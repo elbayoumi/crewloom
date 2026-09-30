@@ -1,0 +1,10 @@
+{
+  "title": "A practical guide to agent working memory",
+  "meta_description": "Learn how to keep architecture, decisions, challenges and task outcomes in a shared agent workspace with clear ownership and verification evidence.",
+  "slug": "agent-working-memory",
+  "wordcount": 950,
+  "internal_links": [
+    "/guides/agent-skills"
+  ],
+  "canonical": "https://example.org/guides/agent-working-memory"
+}

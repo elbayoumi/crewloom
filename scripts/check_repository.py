@@ -11,7 +11,7 @@ from urllib.parse import unquote
 from crewloom import load_validator
 
 ROOT = Path(__file__).resolve().parents[1]
-SUITES = ('skill-forge-recruiter', 'context-guardian')
+SUITES = ('skill-forge-recruiter', 'context-guardian', 'frontend-ux-auditor', 'qa-test-automation-engineer')
 
 
 def inspect(root):

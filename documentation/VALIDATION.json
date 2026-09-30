@@ -1,13 +1,14 @@
 {
   "date": "2026-10-01",
-  "source_commit": "7aecaa9a6543f1011a3e4438c977031e85b1b3e4",
   "local_python": "3.14.7",
   "skills": 42,
   "core_regressions": {
     "validator": 7,
     "context_pack": 8,
-    "public_core": 4,
-    "total": 19,
+    "frontend": 18,
+    "delivery_evidence": 12,
+    "public_core_and_examples": 7,
+    "total": 52,
     "result": "passed"
   },
   "context_cli": {
@@ -16,17 +17,22 @@
   },
   "secret_pattern_scan": {
     "tool_version": "8.30.1",
-    "scope": "Exact public working tree before first commit",
+    "scope": "Public working tree for release 0.2.0",
     "findings": 0
   },
   "commit_gate": {
     "known_bad_commit": "rejected for broken Markdown link",
     "clean_commit": "accepted with hook enabled"
   },
-  "clean_archive_check": "passed: extracted tracked source archive and ran repository checks",
+  "clean_archive_check": "Initial 0.1.0 archive passed; 0.2.0 validated in working tree",
   "hosted_ci": "Configured for Python 3.9 and 3.14; result recorded after push",
   "limits": [
     "Instruction guides are public adaptations, not all internal workflow implementations",
     "No cross-provider or specialist end-to-end evaluation claim"
-  ]
+  ],
+  "release": "0.2.0",
+  "published_examples": {
+    "count": 6,
+    "result": "passed in CLI regression suite"
+  }
 }

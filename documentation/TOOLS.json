@@ -1,0 +1,136 @@
+{
+  "tools": [
+    {
+      "id": "workflow-contract",
+      "skill": "automation-ops-engineer",
+      "path": ".agents/skills/automation-ops-engineer/scripts/check_workflow_contract.py",
+      "description": "Validate an n8n export; reject embedded literal secret fields",
+      "example_args": "{input}",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
+      "id": "seo-packet",
+      "skill": "seo-growth-engineer",
+      "path": ".agents/skills/seo-growth-engineer/scripts/check_seo_content_packet.py",
+      "description": "Validate article metadata, length, canonical and internal links",
+      "example_args": "--packet {input}",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
+      "id": "mcp-config",
+      "skill": "mcp-integration-builder",
+      "path": ".agents/skills/mcp-integration-builder/scripts/validate_mcp_config.py",
+      "description": "Check MCP server configuration and suspicious credential literals",
+      "example_args": "--config {input}",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
+      "id": "script-pacing",
+      "skill": "video-script-architect",
+      "path": ".agents/skills/video-script-architect/scripts/validate_script_pacing.py",
+      "description": "Measure script word pacing for a selected duration",
+      "example_args": "--file {input} --duration 30",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
+      "id": "budget-pacing",
+      "skill": "paid-media-buyer",
+      "path": ".agents/skills/paid-media-buyer/scripts/budget_pacer.py",
+      "description": "Compare actual campaign spend with approved expected pacing",
+      "example_args": "--daily-budget 100 --days-elapsed 3 --actual-spend 300",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
+      "id": "ui-hints",
+      "skill": "frontend-ux-auditor",
+      "path": ".agents/skills/frontend-ux-auditor/scripts/check_ui_quality.py",
+      "description": "Static UI hints; exit 2 requests rendered review rather than claiming acceptance",
+      "example_args": "--project-dir {input} --json",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
+      "id": "grid-safety",
+      "skill": "frontend-ux-auditor",
+      "path": ".agents/skills/frontend-ux-auditor/scripts/check_responsive_grid_safety.py",
+      "description": "Find fixed-pixel grid floors without viewport bounds",
+      "example_args": "--project-dir {input} --json",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
+      "id": "layout-overlap",
+      "skill": "frontend-ux-auditor",
+      "path": ".agents/skills/frontend-ux-auditor/scripts/check_layout_overlap.py",
+      "description": "Check geometric sibling overlap from supplied browser snapshot JSON",
+      "example_args": "--snapshot {input} --json",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
+      "id": "delivery-evidence",
+      "skill": "qa-test-automation-engineer",
+      "path": ".agents/skills/qa-test-automation-engineer/scripts/check_delivery_packet.py",
+      "description": "Verify evidence bookkeeping, revision and hashes; not evidence truth",
+      "example_args": "--help",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
+      "id": "context",
+      "skill": "context-guardian",
+      "path": ".agents/skills/context-guardian/scripts/context_pack.py",
+      "description": "Bounded English or Arabic context pack",
+      "example_args": "--skill context-guardian --out /tmp/context.md",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "writes-context-file"
+    },
+    {
+      "id": "validate-skill",
+      "skill": "skill-forge-recruiter",
+      "path": ".agents/skills/skill-forge-recruiter/scripts/validate_skill.py",
+      "description": "Validate role structure",
+      "example_args": "--skill context-guardian",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
+      "id": "resource-budget",
+      "skill": "ultra-light-optimizer",
+      "path": ".agents/skills/ultra-light-optimizer/scripts/check_resource_budget.py",
+      "description": "Heuristic resource-waste pattern scan",
+      "example_args": "--project-dir {input}",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    }
+  ]
+}

@@ -1,31 +1,37 @@
-# Crewloom — كرو لوم
+# Crewloom
 
-**مهارات وذاكرة وفحوص لعمل الوكلاء.**
+![Crewloom](assets/crewloom-banner.svg)
 
-[English](README.md) · [المهارات](documentation/SKILLS.md) · [دليل البداية](documentation/GETTING_STARTED.md)
+[English](README.md) · [المهارات](documentation/SKILLS.md) · [الأدوات](documentation/TOOLS.md) · [أمثلة التشغيل](examples/README.md)
 
-كرو لوم مجموعة أدوات مفتوحة المصدر تضم 42 دليل دور بالإنجليزية، وقوالب ذاكرة نظيفة لكل دور، وأداة Python لاكتشاف المهارات وفحصها وتوليد حزم السياق.
+أدوات وإجراءات لتنظيم شغل وكلاء الذكاء الاصطناعي داخل الريبو: تختار الدور، توفر بيانات المشروع، تحفظ الذاكرة، وتفحص المخرجات.
 
-هذا الإصدار العام مشتق من مساحة عمل رموز. لا يتضمن بيانات العملاء أو تاريخ التشغيل الخاص أو تطبيق Code Vault الداخلي. الإجراءات هنا تكييف عام للأدوار وليست نسخة كاملة من أنظمة تشغيل الوكالة.
+- **42 دليل دور بالإنجليزية** و**108 مراجع تفصيلية** تتضمن إجراءات المصدر بالعربية.
+- **12 أداة Python** للفحوص والسياق وقياس الموارد والتوقيت والإنفاق.
+- خمس ملفات ذاكرة لكل دور، وفحوص قبل الـcommit وفي GitHub Actions.
 
-## البداية
+## ابدأ عمليًا
 
-تحتاج Python 3.9 أو أحدث وGit. الأدوات الأساسية لا تحتاج مفتاح مزوّد ذكاء اصطناعي.
+تحتاج Git وPython 3.9 أو أحدث.
 
 ```bash
 git clone https://github.com/elbayoumi/crewloom.git
 cd crewloom
-python3 scripts/crewloom.py list
-python3 scripts/crewloom.py validate
-python3 scripts/crewloom.py context context-guardian --out /tmp/crewloom-ar.md --language ar
+python3 scripts/crewloom.py tools
+python3 scripts/crewloom.py run workflow-contract -- examples/workflows/valid.json
+python3 scripts/crewloom.py run seo-packet -- --packet examples/seo/article-packet.json
 ```
 
-افتح المشروع في مضيف الوكلاء واطلب منه قراءة AGENTS.md والمهارة والبرين. حدد العربية أو الإنجليزية في طلبك. ملفات الإجراءات الأساسية إنجليزية، أما عناوين حزم السياق فتدعم اللغتين.
+المثالان يطبعان `PASS`. باقي الأمثلة وأوامرها في [دليل الأمثلة](examples/README.md).
 
-## الحدود
+افتح المشروع في أداة الوكيل واطلب منه:
 
-المضيف يوفّر النموذج والأدوات والصلاحيات. معظم الأدوار أدلة تنفيذ وليست تطبيقات جاهزة؛ الفيديو يحتاج أدوات ميديا والإعلانات تحتاج وصولًا مصرحًا للمنصة. نجاح فحص البنية لا يثبت نجاح كل سير عمل تخصصي.
+> اقرأ AGENTS.md ومهارة frontend-ux-auditor ومراجعها والبرين. استخدم العربية. راجع واجهة مشروعي، وشغّل الفحوص المناسبة، واعرض المشاكل بمواقع الملفات وأدلة التحقق. حدّث الذاكرة بعد الانتهاء.
 
-لا توجد حزمة npm أو PyPI منشورة ولا نظام مركزي للجدولة أو الفوترة في هذا الإصدار.
+```bash
+python3 scripts/crewloom.py context frontend-ux-auditor --language ar --out /tmp/crewloom-ar.md
+```
 
-الترخيص [Apache-2.0](LICENSE)، وحقوق الملكية لرموز. راجع [المساهمة](CONTRIBUTING.md) و[الأمان](SECURITY.md).
+[مسارات العمل](documentation/WORKFLOWS.md) توضح ترتيب الأدوار والمدخلات والمخرجات. الوكيل والنموذج وأدوات الفيديو والمنصات الخارجية توفرها بيئة مشروعك. فحوص الكود الثابتة لا تثبت جودة العرض الفعلي، وفحص ملفات الأدلة لا يثبت صحة محتواها.
+
+الأساس والتوثيق الرئيسي بالإنجليزية. لا توجد حزمة منشورة على npm أو PyPI أو خدمة استضافة للوكلاء. الترخيص [Apache-2.0](LICENSE)، مع حفظ [نسبة المصدر](NOTICE) لوكالة رموز.

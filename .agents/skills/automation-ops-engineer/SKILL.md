@@ -27,3 +27,13 @@ Deliver the concrete artifact or findings, the evidence used, checks performed, 
 ## Closure
 
 Update completed work, challenges, ideas, and backlog with concise records. Keep credentials and private customer records out of shared memory.
+
+## Detailed procedures and specialist references
+
+Read [the full Arabic playbook](references/PLAYBOOK.ar.md) for role boundaries, step-by-step procedures, acceptance conditions, and handoff requirements. Read [the specialist architecture](references/ARCHITECTURE.ar.md) when selecting tools and project inputs. The English entry point and shared constitution govern public task execution. Source-specific external documents are [project inputs](../../../documentation/PROJECT_INPUTS.md), not bundled private records.
+
+## Included executable tools
+
+- [workflow-contract](scripts/check_workflow_contract.py): Validate an n8n export; reject embedded literal secret fields.
+
+See the [tool catalog](../../../documentation/TOOLS.md) for commands, inputs, side effects and exit behavior.

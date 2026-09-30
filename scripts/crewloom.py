@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Repository-native Crewloom discovery, validation, and context CLI."""
 import argparse
+import json
 import importlib.util
 import re
 import subprocess
@@ -23,6 +24,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('list', help='List available skill IDs')
+    commands.add_parser('tools', help='List included executable tools')
+    run = commands.add_parser('run', help='Run a registered local tool')
+    run.add_argument('tool')
+    run.add_argument('arguments', nargs=argparse.REMAINDER)
     show = commands.add_parser('show', help='Print a skill procedure')
     show.add_argument('skill')
     validate = commands.add_parser('validate', help='Validate one or all skill structures')
@@ -32,6 +37,20 @@ def main():
     context.add_argument('--out', required=True)
     context.add_argument('--language', choices=('en', 'ar'), default='en')
     args = parser.parse_args()
+    if args.command in ('tools', 'run'):
+        tools = json.loads((ROOT / 'documentation' / 'TOOLS.json').read_text())['tools']
+        if args.command == 'tools':
+            for item in tools:
+                print(f"{item['id']:20} {item['description']}")
+            return 0
+        item = next((item for item in tools if item['id'] == args.tool), None)
+        if item is None:
+            parser.error('Unknown registered tool')
+        path = (ROOT / item['path']).resolve()
+        if ROOT not in path.parents or not path.is_file():
+            parser.error('Tool path is missing or escapes the repository')
+        arguments = args.arguments[1:] if args.arguments and args.arguments[0] == '--' else args.arguments
+        return subprocess.run([sys.executable, str(path), *arguments], check=False).returncode
     if args.command == 'list':
         for path in sorted(SKILLS.glob('*/SKILL.md')):
             print(path.parent.name)

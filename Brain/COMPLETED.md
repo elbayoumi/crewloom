@@ -9,3 +9,8 @@
 - Artifact: `documentation/VALIDATION.json`.
 - Impact: 19 core tests pass; 42 guides pass structure checks; English and Arabic context commands work.
 - Evidence: Clean archive checks pass, public secret-pattern scan reports zero findings, bad commit rejected and clean commit accepted.
+
+### 2026-10-01 — Public toolkit depth and presentation
+- Artifact: 108 detailed references, twelve tools, six examples, workflow recipes and bilingual entry pages.
+- Impact: Roles link to detailed procedures and applicable executable checks.
+- Evidence: 52 regression tests pass, including all six published CLI examples.

@@ -1,1423 +1,421 @@
 {
-  "format": 1,
-  "date": "2026-10-01",
-  "license": "Apache-2.0",
-  "scope": "First-party public toolkit; excludes upstream Git history and private operations",
-  "files": [
-    {
-      "path": ".agents/CODE_REGISTRY.md",
-      "sha256": "2a8548e2143d10918c012270b0caac905f743bcb002bce501e6b069fcab4a01b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/admin-hr-legal-officer/SKILL.md",
-      "sha256": "48d311bf3157f273f6748ea26c5033494b2407545436c9de5d405c69045fde4e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/admin-hr-legal-officer/brain/ARCHITECTURE.md",
-      "sha256": "3f2860627a1d360f70052d47f0a612ab23dbecfeb7e61f6d50623ef935399c19",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/admin-hr-legal-officer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/admin-hr-legal-officer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/admin-hr-legal-officer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/admin-hr-legal-officer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ai-voice-audio-engineer/SKILL.md",
-      "sha256": "a3fb76bddf5db919743f1c717121c5052b6017bdc6c5ecf4783a2edd1105d11b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ai-voice-audio-engineer/brain/ARCHITECTURE.md",
-      "sha256": "4e09fb025fc997888248f96f60d6ea7c1ee1e8138ff47b25a606e9ceaaf6881e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ai-voice-audio-engineer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ai-voice-audio-engineer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ai-voice-audio-engineer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ai-voice-audio-engineer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/automation-ops-engineer/SKILL.md",
-      "sha256": "dcb36fc7b36ee108527cfbd2676188369bdfa8ee9fe02fd89e98f2fa3fe5a0ba",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/automation-ops-engineer/brain/ARCHITECTURE.md",
-      "sha256": "16fc4f8443afb03710359c390bdbeef5704ef59f122fc2de9aaedf88731b8f06",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/automation-ops-engineer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/automation-ops-engineer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/automation-ops-engineer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/automation-ops-engineer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/b2b-sales-hunter/SKILL.md",
-      "sha256": "786950fc274e96e2f49f7703dc34b275ba261f9bd39949166ddccbd9b7d3a186",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/b2b-sales-hunter/brain/ARCHITECTURE.md",
-      "sha256": "cfbb9b16988f2d66cb780c493fefa3eb47598b88856a95e6682ab7ab360994d9",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/b2b-sales-hunter/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/b2b-sales-hunter/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/b2b-sales-hunter/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/b2b-sales-hunter/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/brand-identity-engineer/SKILL.md",
-      "sha256": "d933184482986a314723102a6d96d990f9cd674414652cf92b558576dd878296",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/brand-identity-engineer/brain/ARCHITECTURE.md",
-      "sha256": "bf4cdcbee9a67234ca4a3dbe7f37f95bd64278e1acbae3d8fe78d093a3e1e857",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/brand-identity-engineer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/brand-identity-engineer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/brand-identity-engineer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/brand-identity-engineer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/business-analyst-discovery/SKILL.md",
-      "sha256": "fc070874a73ffdbaa4b9192f7b9181bbaf3a9a72df860cbc2c5b65e13bbca52b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/business-analyst-discovery/brain/ARCHITECTURE.md",
-      "sha256": "c3a41dc58c29e69d8afb10816f7b384d28df07d59b18bb9da3346b6be4bb3d27",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/business-analyst-discovery/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/business-analyst-discovery/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/business-analyst-discovery/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/business-analyst-discovery/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/client-success-guardian/SKILL.md",
-      "sha256": "f94307a582dd14c68e51375ec7a06d05dca10971e04be87b217a45ba6c8df93f",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/client-success-guardian/brain/ARCHITECTURE.md",
-      "sha256": "3f3ea04856a995be07a6cf07f56488b8bf3a383cd2d3f30839c5c2423d18d479",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/client-success-guardian/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/client-success-guardian/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/client-success-guardian/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/client-success-guardian/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/competitor-spy-analyst/SKILL.md",
-      "sha256": "53921dcd9ffa4f945a8e54edcd14e48082c7842b3fb20b7af569259c6ceb08bd",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/competitor-spy-analyst/brain/ARCHITECTURE.md",
-      "sha256": "16549766f214d9c76ae3bb62953dff4b3791bafdfe9160c8bd0e97f0998ea6b9",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/competitor-spy-analyst/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/competitor-spy-analyst/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/competitor-spy-analyst/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/competitor-spy-analyst/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/context-guardian/SKILL.md",
-      "sha256": "e967e03d579d6b16c1c524cfd1963efcca98682b01837e7f9d29472860b1c192",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/context-guardian/brain/ARCHITECTURE.md",
-      "sha256": "97298f48f96aa42d9b01993649f363ece8b7027ca9f219b289df5303d03f543a",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/context-guardian/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/context-guardian/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/context-guardian/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/context-guardian/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/context-guardian/scripts/context_pack.py",
-      "sha256": "6e705ea4cb43aca667846698ea739a391084e4dbfbc153ec24f20a8f0bd6161f",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/context-guardian/scripts/test_context_pack.py",
-      "sha256": "d4f60bde0526926409b6148dc4005be4ff8830cc204139a0dad2ea7069b4d9a8",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-director/SKILL.md",
-      "sha256": "82409120474ad2175ddd08f7b72de49da6e0eeca2f59df1a304b386efd555540",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-director/brain/ARCHITECTURE.md",
-      "sha256": "a3deff7c054fbca48adfffb4dcea024b1a1755c12a62eda8ca565d9035a7fae7",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-director/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-director/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-director/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-director/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-frontend-designer/SKILL.md",
-      "sha256": "dae1c9fa5196dcac98b1cf66f180d3f583b2f596d26158d4f8b181fe137df115",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-frontend-designer/brain/ARCHITECTURE.md",
-      "sha256": "bb7f15f487b40be8b3d99023590223ba79780c2e8866c78d7c55ab7c4c06fcac",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-frontend-designer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-frontend-designer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-frontend-designer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/creative-frontend-designer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/data-harvester/SKILL.md",
-      "sha256": "37840c93580ceab0f6858d3f21661b85f5a236ad989d94b9c7bbe7c63ace5bb7",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/data-harvester/brain/ARCHITECTURE.md",
-      "sha256": "1ec9a14ca04d7244c1ebe0cb362dc7d5c501fe1db0f41300abcb46cbf5c6e20c",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/data-harvester/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/data-harvester/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/data-harvester/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/data-harvester/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/deal-closer/SKILL.md",
-      "sha256": "d45386f14dc8581d337792f2d12b52f096bc79eddb3d3ad74a0e58e64d821ac5",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/deal-closer/brain/ARCHITECTURE.md",
-      "sha256": "17478cbc9d1b19b2f1a1e95ea63ab859611096aff4b1f49a022556c5982602a3",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/deal-closer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/deal-closer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/deal-closer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/deal-closer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/delivery-director/SKILL.md",
-      "sha256": "69733b61e97d6d051e827050675bd2f79e8a5f7ef3040f56ec2f86a6e793453d",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/delivery-director/brain/ARCHITECTURE.md",
-      "sha256": "c4f58b30767795591289ad1262564b12c678f2f5714cc5db3fdba07b8f2549e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/delivery-director/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/delivery-director/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/delivery-director/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/delivery-director/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/executive-accountant/SKILL.md",
-      "sha256": "c542204e424739d74e9eea0cd964d33d4946a38aca2af2bf8c4a4262f0a9015d",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/executive-accountant/brain/ARCHITECTURE.md",
-      "sha256": "3f52d3b24fdb76cb2e2516810fd84490dd7c85f56b480272d948c3151aaefa64",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/executive-accountant/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/executive-accountant/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/executive-accountant/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/executive-accountant/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/frontend-ux-auditor/SKILL.md",
-      "sha256": "cfbb54b2cb9e6769a957bd8dde866a1963dfa5140c8cc1453565fd0337c9a169",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/frontend-ux-auditor/brain/ARCHITECTURE.md",
-      "sha256": "4c67f88f75ed0b403ecf8f365185da727ebaa6cf9a018f482b47801c6b702cbe",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/frontend-ux-auditor/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/frontend-ux-auditor/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/frontend-ux-auditor/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/frontend-ux-auditor/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/fullstack-mvp-engineer/SKILL.md",
-      "sha256": "8d9848dcb1e7bfcf74997d551991edd51d91fdf2cf803645de9dae84030f661c",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/fullstack-mvp-engineer/brain/ARCHITECTURE.md",
-      "sha256": "d40ad0db3890f114c29b97fdd67c09383c2926da9d065eff30b6ec7ef32f54c8",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/fullstack-mvp-engineer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/fullstack-mvp-engineer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/fullstack-mvp-engineer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/fullstack-mvp-engineer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/funnel-cro-auditor/SKILL.md",
-      "sha256": "d17fb0cf2944e764f6dde5baa53741da78d157160195f7c2a16629b0d3b3354a",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/funnel-cro-auditor/brain/ARCHITECTURE.md",
-      "sha256": "b9291052c3a0f9683caf5f425a0ecbd2117f6830b4fe17c564dbcaa340a990fd",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/funnel-cro-auditor/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/funnel-cro-auditor/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/funnel-cro-auditor/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/funnel-cro-auditor/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/graphic-design-producer/SKILL.md",
-      "sha256": "8b8f3a4f2818f2c4b7b2082fd5e45541f29a48dfab559c12c0e650d91a4a896d",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/graphic-design-producer/brain/ARCHITECTURE.md",
-      "sha256": "c1bcf226158fe0193f6039e988495101569f224a5fe34a9bd37b12a13496f586",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/graphic-design-producer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/graphic-design-producer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/graphic-design-producer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/graphic-design-producer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/growth-director-orchestrator/SKILL.md",
-      "sha256": "2d20890a0fe2a80d366ec478ccfdd053c51c30c917e577113c3c8712c2326e22",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/growth-director-orchestrator/brain/ARCHITECTURE.md",
-      "sha256": "4562a2b72fca5818670a869e49a264e5c207e6aa293b8c2b0fca6bd37ffa027b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/growth-director-orchestrator/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/growth-director-orchestrator/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/growth-director-orchestrator/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/growth-director-orchestrator/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/legacy-code-rescue-specialist/SKILL.md",
-      "sha256": "021485036587658955567afd0e7a70c24cb61c3b0d4eda8e184abf41495dbabc",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/legacy-code-rescue-specialist/brain/ARCHITECTURE.md",
-      "sha256": "9e8153bba611fdfc369f927b9c5f28958ffc7cec7bf0b5cd886f74865dd8f228",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/legacy-code-rescue-specialist/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/legacy-code-rescue-specialist/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/legacy-code-rescue-specialist/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/legacy-code-rescue-specialist/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/machine-control-operator/SKILL.md",
-      "sha256": "c9968d5e5d9ec446b0983d26e8ce221da59e769a20ce81a48aec3f487256b681",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/machine-control-operator/brain/ARCHITECTURE.md",
-      "sha256": "645c2ca4d4cadefa5f048869f8c9e6a0c94659d820282f6cb8420e17eb31a17c",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/machine-control-operator/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/machine-control-operator/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/machine-control-operator/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/machine-control-operator/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/mcp-integration-builder/SKILL.md",
-      "sha256": "620e647c7742721518be65befdfe7cf67d21e19f7702c8b77f7fc102bca44b0e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/mcp-integration-builder/brain/ARCHITECTURE.md",
-      "sha256": "b7566e193505102b4f2483394a57a95d719f48a991c91361e692756d2f210558",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/mcp-integration-builder/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/mcp-integration-builder/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/mcp-integration-builder/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/mcp-integration-builder/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/network-infra-engineer/SKILL.md",
-      "sha256": "c4baaa568ae205ee1c552c3faa897afe34a3ac2b9c64983df07bf190fd26dca2",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/network-infra-engineer/brain/ARCHITECTURE.md",
-      "sha256": "f9cb93381c7789f59e507ad2f7b377a6a158f699e19dca0e46d5476cc007a826",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/network-infra-engineer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/network-infra-engineer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/network-infra-engineer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/network-infra-engineer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/paid-media-buyer/SKILL.md",
-      "sha256": "5d83c37eaea8e95a93ea2b043989532af87335966ede48e71c2d9563c730950a",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/paid-media-buyer/brain/ARCHITECTURE.md",
-      "sha256": "bf56c7ba72444ee1c3a5336de94542b931c2d5ea4527f3899ac6a96991f6afd7",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/paid-media-buyer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/paid-media-buyer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/paid-media-buyer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/paid-media-buyer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/qa-test-automation-engineer/SKILL.md",
-      "sha256": "452d5b6f89b10a5a4e9c6eff797fde7f597729bcdf83ef5ff9c7212570321b54",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/qa-test-automation-engineer/brain/ARCHITECTURE.md",
-      "sha256": "ac181801b23790d8b7c802a031e3eebb067376193099b526bef379a5bf7d3fa2",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/qa-test-automation-engineer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/qa-test-automation-engineer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/qa-test-automation-engineer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/qa-test-automation-engineer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/rfp-proposal-engineer/SKILL.md",
-      "sha256": "499320196be305efa909a49054b63df68a94cdd5e948f1355e400b6a97d9ebaf",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/rfp-proposal-engineer/brain/ARCHITECTURE.md",
-      "sha256": "54208ce7f02dafe5c1971824eb7e70a7d5e231f4fceaea2439c98f8de0dadd80",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/rfp-proposal-engineer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/rfp-proposal-engineer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/rfp-proposal-engineer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/rfp-proposal-engineer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/security-operations-guardian/SKILL.md",
-      "sha256": "0791af9df0a7b623c185224f8f41e54103b0d8df50c6395b7e53429d4a243721",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/security-operations-guardian/brain/ARCHITECTURE.md",
-      "sha256": "4efffcaaee883448b924d2b37917324654549c19fc1dae185cc53797d65040b9",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/security-operations-guardian/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/security-operations-guardian/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/security-operations-guardian/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/security-operations-guardian/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/seo-growth-engineer/SKILL.md",
-      "sha256": "0c9592333d64eff02227df84b93512ee7d8ec051cba6361561369b38dc0d6c14",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/seo-growth-engineer/brain/ARCHITECTURE.md",
-      "sha256": "85b1e290ffda428327e3037a6b0269908e20130340a629b8cbbff26b8e0c723d",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/seo-growth-engineer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/seo-growth-engineer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/seo-growth-engineer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/seo-growth-engineer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/short-form-paid-booster/SKILL.md",
-      "sha256": "75d4ee85ee8566adf9c0893f3d089cc2114cb75483b1a414ba94ea1ad09eb8e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/short-form-paid-booster/brain/ARCHITECTURE.md",
-      "sha256": "d5e33f4ff2af3900d308e6d0c71e162569838423e005685f12b7bfe4b7f229ab",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/short-form-paid-booster/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/short-form-paid-booster/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/short-form-paid-booster/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/short-form-paid-booster/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-forge-recruiter/SKILL.md",
-      "sha256": "48904d7d05bfa8e897ee01b0ddca98c57df7d523e43b813fb8298c4b658201a8",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-forge-recruiter/brain/ARCHITECTURE.md",
-      "sha256": "4d888cba42de289b2fde3bc02f869ff79a857d2a8fbf399f7b88e966b5c5d817",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-forge-recruiter/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-forge-recruiter/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-forge-recruiter/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-forge-recruiter/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-forge-recruiter/scripts/test_validate_skill.py",
-      "sha256": "7f5d69f78ed56a665032b4ac691a69677a2c605e702986515c8e597a4ee6553c",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-forge-recruiter/scripts/validate_skill.py",
-      "sha256": "4318974e5c151b92538066a1b26d6c06227b564e9ed402f1b69ae81410819e76",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-improvement-engineer/SKILL.md",
-      "sha256": "27dfa4ad2813d3b6a9ee42d0e7d50d290abc262f94a54cd06f7289fab5ea9f17",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-improvement-engineer/brain/ARCHITECTURE.md",
-      "sha256": "4a37a057356fb746b652c46866a27aa2f4696c84b0860a192ff6755f6a3bf9af",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-improvement-engineer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-improvement-engineer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-improvement-engineer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-improvement-engineer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-performance-auditor/SKILL.md",
-      "sha256": "0d3087169f008e0494990d9df418060e9f5d160311463f62cd0010fa9d84c7bf",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-performance-auditor/brain/ARCHITECTURE.md",
-      "sha256": "8f95c9885489359437dd9ce180c7365ed557f37b0ab0377ef6ae0f82f1e49de9",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-performance-auditor/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-performance-auditor/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-performance-auditor/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/skill-performance-auditor/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/studio-director/SKILL.md",
-      "sha256": "517a85f611904ccf9fdeab602b57fb3a15b7ed207afae2ca934ce8fd517d6e05",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/studio-director/brain/ARCHITECTURE.md",
-      "sha256": "55413a33c78d05d52cee6b233f1fd6421923855796b1f492fa4252f2ab679209",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/studio-director/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/studio-director/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/studio-director/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/studio-director/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/tech-stack-architect/SKILL.md",
-      "sha256": "d955d90779aac68e84a1b7e08a758333308f3e7d3715e10ab269d6b01ccd8ea1",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/tech-stack-architect/brain/ARCHITECTURE.md",
-      "sha256": "06256a5abcd7c508fdfd270c6257ef79bf10a8438db64613e91d2854238df1a4",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/tech-stack-architect/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/tech-stack-architect/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/tech-stack-architect/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/tech-stack-architect/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/toolbox-integration-steward/SKILL.md",
-      "sha256": "2ad5569cbad978cf918218711d9781c39917d5d44f54dbea8e963518761c6008",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/toolbox-integration-steward/brain/ARCHITECTURE.md",
-      "sha256": "576c5356d50d8a0ae12d4264e9368d1f1effdd16312d61454fbdda5e70782324",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/toolbox-integration-steward/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/toolbox-integration-steward/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/toolbox-integration-steward/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/toolbox-integration-steward/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/trend-hunter-ideator/SKILL.md",
-      "sha256": "ccf19f4cf0ce98261ebb3a4d375b1e0d38dc6a0208ecc4acd666f3f0d141e651",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/trend-hunter-ideator/brain/ARCHITECTURE.md",
-      "sha256": "ca8e8329cefedac54b5358cd14ffe6d526f0a88c598b5d52e2a300c44dff06b5",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/trend-hunter-ideator/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/trend-hunter-ideator/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/trend-hunter-ideator/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/trend-hunter-ideator/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ultra-light-optimizer/SKILL.md",
-      "sha256": "9deedfbb09a74d07575816a265b9e39fd17da1900718a8bd6677f3581996861c",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ultra-light-optimizer/brain/ARCHITECTURE.md",
-      "sha256": "076b25f73004911bdafd75ca0fb2b1d7abe7ef66f3affd858800c0b82c6e987c",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ultra-light-optimizer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ultra-light-optimizer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ultra-light-optimizer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ultra-light-optimizer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/ultra-light-optimizer/scripts/check_resource_budget.py",
-      "sha256": "06247df7ae4755d7bd736baa2776942bcb8cbe07dc17a77d25f1cb1e474f5494",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-assembly-editor/SKILL.md",
-      "sha256": "5d0788c1b006e3bc38f881697761e80d499502738ff7eb8895dde53d53c3afb4",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-assembly-editor/brain/ARCHITECTURE.md",
-      "sha256": "0b3ce5b4675f23de5beb238c767b85b0a84484c4621bead2c889e8fbed2f0099",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-assembly-editor/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-assembly-editor/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-assembly-editor/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-assembly-editor/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-script-architect/SKILL.md",
-      "sha256": "ef56638b503fd8986372165233cf65beb89037718d6ba956a27950609b51550f",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-script-architect/brain/ARCHITECTURE.md",
-      "sha256": "c41496c8cc08d0c1592c627ce640e598d5b3f17e6e16565fb0bddb117f041724",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-script-architect/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-script-architect/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-script-architect/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/video-script-architect/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/viral-hook-architect/SKILL.md",
-      "sha256": "452e41ba0ec67a40c886ff651197114fe17e6c515e4df355f6d419a217aacb13",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/viral-hook-architect/brain/ARCHITECTURE.md",
-      "sha256": "4813ded716bf75958bc63165692d5463db7345c165f52bfbdec61840368a4579",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/viral-hook-architect/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/viral-hook-architect/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/viral-hook-architect/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/viral-hook-architect/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/visual-qa-reviewer/SKILL.md",
-      "sha256": "b43aeee2c7bbb8090559bbacac0ba9811a8d250fcb33f6c436ecc210dd750fe2",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/visual-qa-reviewer/brain/ARCHITECTURE.md",
-      "sha256": "012c38fcb685f4b95004602019a69bc30f46e3d6dac2fed2c7c8a396a895464f",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/visual-qa-reviewer/brain/CHALLENGES.md",
-      "sha256": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/visual-qa-reviewer/brain/COMPLETED.md",
-      "sha256": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/visual-qa-reviewer/brain/IDEAS_VAULT.md",
-      "sha256": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".agents/skills/visual-qa-reviewer/brain/ROADMAP_TODO.md",
-      "sha256": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".githooks/pre-commit",
-      "sha256": "ca9bd204f8a45e812630a403b72fe2270a100c8387c39f7c34fdee1521e7fe28",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "sha256": "9fb88257e714f7417941d6bf1398172f739d7b1abfd68c45b043472e71cdf2d1",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": ".gitignore",
-      "sha256": "865fa496cfd60fa0743d921c027d4f9b8b8cdaf7c9b9fa5adec91d8a3f58aec3",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "AGENTS.md",
-      "sha256": "70d7698e97cd8a06a252b29292bf90a3ee0cc59185c956d79e3769984da9bb62",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "Brain/ARCHITECTURE.md",
-      "sha256": "5609e2c23bd41788083d07b1ea2831f71db3c996a15dbcf0b771c9af3a7ec638",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "Brain/CHALLENGES.md",
-      "sha256": "1edb33b1605cffa71a3f354391e4ba52163a4760604f5f746e959f70f581a68f",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "Brain/COMPLETED.md",
-      "sha256": "c62b3de51719905678ab698506384656db10a1100aeb90cbd151402a75077654",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "Brain/IDEAS_VAULT.md",
-      "sha256": "8bdb9d35b00b21eca701042e2e0d8d928807c5da83401d28b9cfeb3817e0a2a9",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "Brain/ROADMAP_TODO.md",
-      "sha256": "a0d91c06315e35a3c891a0ffed08fd0b7673225bf8dde3740d003f2bcfc0d8df",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "CONTRIBUTING.md",
-      "sha256": "69f1185eef40777c843de91fac91ea68b43cdaeb4d24ee40a41a9b0edac1137f",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "LICENSE",
-      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "MASTER_BRAIN.md",
-      "sha256": "bff14e67271e0971794e4d4b4e95db0eae32ae598a759d6959ea8ce44cbda3a3",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "NOTICE",
-      "sha256": "57c9d1be87f89764a40c4d0f41e10acc069893539fcc7c943d2b67ee9e202037",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "README.ar.md",
-      "sha256": "3b52fb21dd1b405e0f7eddf2f752edee9ef727990dc97380efd701ef817d55fd",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "README.md",
-      "sha256": "0c040e4be607fca3f2b823c539d7606182bc4e16a3d50639abe45829b17d94ea",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "SECURITY.md",
-      "sha256": "a321508982c161537411fa681bae18c0fadeb7afd12c21c765cced0c2205fcf3",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "documentation/ARCHITECTURE.md",
-      "sha256": "decf0b7e83812c0c7759278b3882f24f143ce1fd723fe4ffff944532a5d386b2",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "documentation/GETTING_STARTED.md",
-      "sha256": "5969018ccefc4fb2512674f2631f9cb10066bec74137d7c1c3075d87abba217f",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "documentation/PROVENANCE.json",
-      "sha256": "884a0619f1af0f3519267768f2bdd736d409cabcf89310bac6a6d3c64b1c5ee2",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "documentation/RELEASE.md",
-      "sha256": "3f31ce674a95b3471c3dc764d32c11077df481bc60c2f469835ddf7463007c8a",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "documentation/SKILLS.md",
-      "sha256": "7f1fc378941349b70cf5d5d44479f9bed832723ad033a7e13ae964bfbac51485",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "documentation/VALIDATION.json",
-      "sha256": "4c8123b3f47ba0bf5eceeddc79290a443b5e6629242f944c89e3f2b3fb7e986c",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "scripts/check_repository.py",
-      "sha256": "aa672f56f68e2fd74f2ce2f1a94b22ca3d43c199183ce905701c8d09605b034d",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "scripts/crewloom.py",
-      "sha256": "d105d5baf050ea900910ee31a20db4f347daa988c9c0311a6ddedea2533ca69e",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    },
-    {
-      "path": "scripts/test_public_core.py",
-      "sha256": "b2e06829cefa37a1b681e9c29bb04cce0d48b8140b253e17df4f016cd043ceb6",
-      "rights": "RUMUZE-owned public toolkit; Apache-2.0"
-    }
-  ]
+  "release": "0.2.0",
+  "files": {
+    ".agents/CODE_REGISTRY.md": "2f21f690b8284ba693e68dcac38b9141d618b1a679866d63d93d7ddf65ac9ca0",
+    ".agents/skills/admin-hr-legal-officer/SKILL.md": "40a1034f2fa745bcd2f3c7233da18b1d7f1f880dfbba3986b2a0e95b4247dfd4",
+    ".agents/skills/admin-hr-legal-officer/brain/ARCHITECTURE.md": "3f2860627a1d360f70052d47f0a612ab23dbecfeb7e61f6d50623ef935399c19",
+    ".agents/skills/admin-hr-legal-officer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/admin-hr-legal-officer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/admin-hr-legal-officer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/admin-hr-legal-officer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/admin-hr-legal-officer/references/ARCHITECTURE.ar.md": "8baa6a39cacf798db46cf9effdeaf61d74ad12c4dc0562f30c6ff2cd8e70703a",
+    ".agents/skills/admin-hr-legal-officer/references/PLAYBOOK.ar.md": "1a4507229e777f30f2b61d1b60549777f2f041ccd8ab52122b049dbd92d42fbe",
+    ".agents/skills/ai-voice-audio-engineer/SKILL.md": "d2f8577a84ec5f412209673f4bb90ba3936b8a9cd8335da02315e3be5c742269",
+    ".agents/skills/ai-voice-audio-engineer/brain/ARCHITECTURE.md": "4e09fb025fc997888248f96f60d6ea7c1ee1e8138ff47b25a606e9ceaaf6881e",
+    ".agents/skills/ai-voice-audio-engineer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/ai-voice-audio-engineer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/ai-voice-audio-engineer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/ai-voice-audio-engineer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/ai-voice-audio-engineer/references/ARCHITECTURE.ar.md": "2a0430c96da1d20fbc04117f1b0c9f8e82bea0b5baf540edfb29ea564c3075a3",
+    ".agents/skills/ai-voice-audio-engineer/references/PLAYBOOK.ar.md": "e10b655b8cc0a5f1814db4bf2d5a05b1b32242ce76983f9394d5897c9be04400",
+    ".agents/skills/automation-ops-engineer/SKILL.md": "7924ae27f76c0842a7d5239c03259c2fee51c608233d01b52fe3e950651d45cf",
+    ".agents/skills/automation-ops-engineer/brain/ARCHITECTURE.md": "16fc4f8443afb03710359c390bdbeef5704ef59f122fc2de9aaedf88731b8f06",
+    ".agents/skills/automation-ops-engineer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/automation-ops-engineer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/automation-ops-engineer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/automation-ops-engineer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/automation-ops-engineer/references/ARCHITECTURE.ar.md": "03989f86c0675fcadd4fd0687aa59b96a4accdfd9309df658e261916620a8a4a",
+    ".agents/skills/automation-ops-engineer/references/PLAYBOOK.ar.md": "5e8377e10e728356ffb3aac5d99da173018c0df644bb3257d782769c1888d324",
+    ".agents/skills/automation-ops-engineer/references/github-recruitment-research.md": "84bf3507a9fb09c79e57d3527961d71a64c9dd9108150fc84bfafa6f5c22545b",
+    ".agents/skills/automation-ops-engineer/scripts/check_workflow_contract.py": "51909826a3606a6d574cf71a1c73438fb45bad78b0fa02423ea6cbe3215cfe94",
+    ".agents/skills/b2b-sales-hunter/SKILL.md": "06f87a92ee5eff8ceee714cb5899be8ebde611d1114304cd9d9a89a54898cdc6",
+    ".agents/skills/b2b-sales-hunter/brain/ARCHITECTURE.md": "cfbb9b16988f2d66cb780c493fefa3eb47598b88856a95e6682ab7ab360994d9",
+    ".agents/skills/b2b-sales-hunter/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/b2b-sales-hunter/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/b2b-sales-hunter/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/b2b-sales-hunter/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/b2b-sales-hunter/references/ARCHITECTURE.ar.md": "1bcbabfe3512c871d66b34cb996b27b25c13f0738cd4ad4affabd38c988a8c5e",
+    ".agents/skills/b2b-sales-hunter/references/PLAYBOOK.ar.md": "f875981c35ed9df9722b01aa5bae80f163c0e4d2b60142f8b5c647c3f90db110",
+    ".agents/skills/brand-identity-engineer/SKILL.md": "476b987458b8b38d43dc9bd8d3fde2a82205b61b23666417965a09d9d4b09b6e",
+    ".agents/skills/brand-identity-engineer/brain/ARCHITECTURE.md": "bf4cdcbee9a67234ca4a3dbe7f37f95bd64278e1acbae3d8fe78d093a3e1e857",
+    ".agents/skills/brand-identity-engineer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/brand-identity-engineer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/brand-identity-engineer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/brand-identity-engineer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/brand-identity-engineer/references/ARCHITECTURE.ar.md": "0bfab8b136a6cbec80d209a7dd8f4ea9eac2bcca5a7e29a485212f0ce1fd4e54",
+    ".agents/skills/brand-identity-engineer/references/PLAYBOOK.ar.md": "cbafcff500ebaccc1cf02c1303f9386ae7a492d713199ddf380627c35a2ba097",
+    ".agents/skills/brand-identity-engineer/references/naming-and-domain.md": "f7cf09f585f603caec9749cb0b88d7ddf4a488771e7daa4a5ac850b36eb2f50b",
+    ".agents/skills/business-analyst-discovery/SKILL.md": "d3f2bbfba7c639ca945544a2ae1fcf4b9e4b0d89e0a309323b96107f4167db01",
+    ".agents/skills/business-analyst-discovery/brain/ARCHITECTURE.md": "c3a41dc58c29e69d8afb10816f7b384d28df07d59b18bb9da3346b6be4bb3d27",
+    ".agents/skills/business-analyst-discovery/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/business-analyst-discovery/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/business-analyst-discovery/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/business-analyst-discovery/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/business-analyst-discovery/references/ARCHITECTURE.ar.md": "ca926ca96bbbbfc6310364b55979381c3e67e043102bcc50fc623442b926aadb",
+    ".agents/skills/business-analyst-discovery/references/PLAYBOOK.ar.md": "f39ebf10ef4d8922504ec8dc8f079f14405300a24f610d0845bd748f1371fe09",
+    ".agents/skills/client-success-guardian/SKILL.md": "ee052933cd549ad8853200d82811510a12356e30c6f5cf2f06a0e26cc5086f5b",
+    ".agents/skills/client-success-guardian/brain/ARCHITECTURE.md": "3f3ea04856a995be07a6cf07f56488b8bf3a383cd2d3f30839c5c2423d18d479",
+    ".agents/skills/client-success-guardian/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/client-success-guardian/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/client-success-guardian/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/client-success-guardian/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/client-success-guardian/references/ARCHITECTURE.ar.md": "5340eb99370fa380600bb9f798e85a093e4d45fb93f8b00a8c354af32cf083c2",
+    ".agents/skills/client-success-guardian/references/PLAYBOOK.ar.md": "4583d32062aa9bd8c0e844775871c348191f5651083df26a2c7f2e2dfbfa3abf",
+    ".agents/skills/client-success-guardian/references/github-recruitment-research.md": "5c514371116be627d3258191aa1ec8644053f83ef6e1aca9021d252b54295595",
+    ".agents/skills/competitor-spy-analyst/SKILL.md": "95f90cde644701e29686d361a56c30004f4ccb94f10cfcf4418b9685d7fafae8",
+    ".agents/skills/competitor-spy-analyst/brain/ARCHITECTURE.md": "16549766f214d9c76ae3bb62953dff4b3791bafdfe9160c8bd0e97f0998ea6b9",
+    ".agents/skills/competitor-spy-analyst/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/competitor-spy-analyst/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/competitor-spy-analyst/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/competitor-spy-analyst/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/competitor-spy-analyst/references/ARCHITECTURE.ar.md": "313fb3e583a68fca6d29bfa0bf564f8567e12b2e5b9e6e0d4694152bbca826c4",
+    ".agents/skills/competitor-spy-analyst/references/PLAYBOOK.ar.md": "8eefef5e366288640f5fa85add030703cd75763cd28d87887815b48e12083e89",
+    ".agents/skills/competitor-spy-analyst/references/ad_spy_framework.md": "9ead37bc7706b90e8864b2dfbd5bfd84e46eb94d5dbf8e64b63b77287a01b567",
+    ".agents/skills/context-guardian/SKILL.md": "34c88ba48e9f77f2811a9922298be3361791873f0c40131eeea39777089db2b0",
+    ".agents/skills/context-guardian/brain/ARCHITECTURE.md": "97298f48f96aa42d9b01993649f363ece8b7027ca9f219b289df5303d03f543a",
+    ".agents/skills/context-guardian/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/context-guardian/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/context-guardian/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/context-guardian/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/context-guardian/references/ARCHITECTURE.ar.md": "36846096c29c4ecb5e46a02258cb1c8d2589db0a66085a1731bcea66c970d848",
+    ".agents/skills/context-guardian/references/PLAYBOOK.ar.md": "9247145aba5d43af919f3314bfef1e3eb8f7887528ecbcc06258b4ebefd6959d",
+    ".agents/skills/context-guardian/references/data-request-template.md": "52a22e1afd7d17344c86b6105384c4057ed5a85964bb1f95408efa4c93371cec",
+    ".agents/skills/context-guardian/references/model-tiers.md": "1f7719623b4359283c3bfa8e837249bf32bb340215a7e8de40057dc46bfb2f27",
+    ".agents/skills/context-guardian/scripts/context_pack.py": "6e705ea4cb43aca667846698ea739a391084e4dbfbc153ec24f20a8f0bd6161f",
+    ".agents/skills/context-guardian/scripts/test_context_pack.py": "d4f60bde0526926409b6148dc4005be4ff8830cc204139a0dad2ea7069b4d9a8",
+    ".agents/skills/creative-director/SKILL.md": "f50d24af1a34f75097ca96eb0b479200f3bd751030754db549f99badd8ef2989",
+    ".agents/skills/creative-director/brain/ARCHITECTURE.md": "a3deff7c054fbca48adfffb4dcea024b1a1755c12a62eda8ca565d9035a7fae7",
+    ".agents/skills/creative-director/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/creative-director/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/creative-director/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/creative-director/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/creative-director/references/ARCHITECTURE.ar.md": "c7422945fa71c8c000c83180599eaf6ba4fc2cde024926502872a3bacf7a8cc7",
+    ".agents/skills/creative-director/references/PLAYBOOK.ar.md": "db32b7e0e96e6947c815876a1aa73d0450cdbdd1d867dec6f1f2ed32ec0a6a41",
+    ".agents/skills/creative-frontend-designer/SKILL.md": "be7728a31b4fdd12267d30e1bc641b952be9d7ff8f60bc750a9da98273ba5b00",
+    ".agents/skills/creative-frontend-designer/brain/ARCHITECTURE.md": "bb7f15f487b40be8b3d99023590223ba79780c2e8866c78d7c55ab7c4c06fcac",
+    ".agents/skills/creative-frontend-designer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/creative-frontend-designer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/creative-frontend-designer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/creative-frontend-designer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/creative-frontend-designer/references/ARCHITECTURE.ar.md": "6609dfab88ddfcea80b0238eb348c05fc7632373664505745c02fc4657d3fddf",
+    ".agents/skills/creative-frontend-designer/references/PLAYBOOK.ar.md": "8c6202417389be2f757bcd83640036ece915e506d6f8653852c5db917b3361c2",
+    ".agents/skills/data-harvester/SKILL.md": "4867ab5c6c72622bf812e8206e4ca519da364c93190dc30e61d5e4d8faad49dd",
+    ".agents/skills/data-harvester/brain/ARCHITECTURE.md": "1ec9a14ca04d7244c1ebe0cb362dc7d5c501fe1db0f41300abcb46cbf5c6e20c",
+    ".agents/skills/data-harvester/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/data-harvester/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/data-harvester/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/data-harvester/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/data-harvester/references/ARCHITECTURE.ar.md": "09bcd7b8495478e5282397f1dd320a9ea2110b89b8bd689cb5695f2d495979a8",
+    ".agents/skills/data-harvester/references/PLAYBOOK.ar.md": "4693ea9c43aa535d64f1c908de1cd99513dca887176aa69766ec8ea35b2b2b0c",
+    ".agents/skills/deal-closer/SKILL.md": "64f2b8f269e967ca59ba6ca60cf4b6948eb6ded49c70c32c9dffbe2f889181ab",
+    ".agents/skills/deal-closer/brain/ARCHITECTURE.md": "17478cbc9d1b19b2f1a1e95ea63ab859611096aff4b1f49a022556c5982602a3",
+    ".agents/skills/deal-closer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/deal-closer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/deal-closer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/deal-closer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/deal-closer/references/ARCHITECTURE.ar.md": "7131fa3063587caf1af7dbb898cc9d8c465e735188f7631215d8fb8a426c156a",
+    ".agents/skills/deal-closer/references/PLAYBOOK.ar.md": "09514a8f2162ce9ce9e65f3b223fcab7a5e3848903d1e61d35ae65e8d941b14c",
+    ".agents/skills/deal-closer/references/github-recruitment-research.md": "422404b02a730653843a5eb26ee78ad12c7eb420072bf2949a8eef0a8c31f58c",
+    ".agents/skills/delivery-director/SKILL.md": "525d8599eee1458080ef739625cc38abd78d805e0254957e4bea277d4eb7ef91",
+    ".agents/skills/delivery-director/brain/ARCHITECTURE.md": "c4f58b30767795591289ad1262564b12c678f2f5714cc5db3fdba07b8f2549e6",
+    ".agents/skills/delivery-director/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/delivery-director/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/delivery-director/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/delivery-director/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/delivery-director/references/ARCHITECTURE.ar.md": "b573dabb1900e3e96533e12a97e33393e80659546d8d0c6e190fcb32cd9af515",
+    ".agents/skills/delivery-director/references/PLAYBOOK.ar.md": "95d1196e79ea29de3d2879031f7cb180ae76894f938cb9c901b0c90f49c8ffeb",
+    ".agents/skills/executive-accountant/SKILL.md": "b32acc6b3219cd7973ea44fb09f50bda6cbcb262fd2e819e2b2556371a451a83",
+    ".agents/skills/executive-accountant/brain/ARCHITECTURE.md": "3f52d3b24fdb76cb2e2516810fd84490dd7c85f56b480272d948c3151aaefa64",
+    ".agents/skills/executive-accountant/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/executive-accountant/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/executive-accountant/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/executive-accountant/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/executive-accountant/references/ARCHITECTURE.ar.md": "6c50922748ebaac4ee583c43b79855796d1e9b7369c35c52d312eb71d42023f9",
+    ".agents/skills/executive-accountant/references/PLAYBOOK.ar.md": "60442a22e10703dddf4232af022b201109e7b4c3b9686fcb4df757a237349d52",
+    ".agents/skills/frontend-ux-auditor/SKILL.md": "f0b7846a6307243760674e05684ebab5304941f4b7db813ff9b6fa065277131e",
+    ".agents/skills/frontend-ux-auditor/brain/ARCHITECTURE.md": "4c67f88f75ed0b403ecf8f365185da727ebaa6cf9a018f482b47801c6b702cbe",
+    ".agents/skills/frontend-ux-auditor/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/frontend-ux-auditor/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/frontend-ux-auditor/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/frontend-ux-auditor/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/frontend-ux-auditor/references/ARCHITECTURE.ar.md": "2a9f39560c2038a46a63e4f7aebc613d4eeb6a91c14405389c96c4e52ad85549",
+    ".agents/skills/frontend-ux-auditor/references/PLAYBOOK.ar.md": "812ada413424c2c03a8df5d90c08d326ecb37311524fe78bbdc2a95748058fae",
+    ".agents/skills/frontend-ux-auditor/scripts/check_layout_overlap.py": "f05c5a1ad2d0b6326f7b7aa4a6e6a38a453c98862fb48250d8d0bd46689eb08c",
+    ".agents/skills/frontend-ux-auditor/scripts/check_responsive_grid_safety.py": "f459e8022ab55015a338fd125e3b25e39ab1ba1f3406d26cbb71960ef62a8d56",
+    ".agents/skills/frontend-ux-auditor/scripts/check_ui_quality.py": "280f213ca79477f45901a3fb6a74a06caa04daf5c41d6e4d9834c18b3fe04c75",
+    ".agents/skills/frontend-ux-auditor/scripts/test_responsive_grid_safety.py": "814f804758c8fe9bb2b11327e98d33fc398f68027b3d5a00ad51cc09bbd98dcf",
+    ".agents/skills/frontend-ux-auditor/scripts/test_ui_quality.py": "4ff085c7dd3cc2742bf7c7214272beb01d750e9e4690b759876e221236141522",
+    ".agents/skills/fullstack-mvp-engineer/SKILL.md": "0f4e1dc18a186cadd5b63f3619a8dfc77fc352f430914a40352059e974c96b02",
+    ".agents/skills/fullstack-mvp-engineer/brain/ARCHITECTURE.md": "d40ad0db3890f114c29b97fdd67c09383c2926da9d065eff30b6ec7ef32f54c8",
+    ".agents/skills/fullstack-mvp-engineer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/fullstack-mvp-engineer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/fullstack-mvp-engineer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/fullstack-mvp-engineer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/fullstack-mvp-engineer/references/ARCHITECTURE.ar.md": "a05b0cff1c9a311030cdc7d174a0b965ccbdc261fa281949c76b998b10181a35",
+    ".agents/skills/fullstack-mvp-engineer/references/PLAYBOOK.ar.md": "a894e17d259d4d7732a1ec3b687c09445d39c18d11bc032d8c361288dbf279ff",
+    ".agents/skills/funnel-cro-auditor/SKILL.md": "08cf7783a2f0991c595174d1de9c48cb9090419400471697845ad1cfe5859dba",
+    ".agents/skills/funnel-cro-auditor/brain/ARCHITECTURE.md": "b9291052c3a0f9683caf5f425a0ecbd2117f6830b4fe17c564dbcaa340a990fd",
+    ".agents/skills/funnel-cro-auditor/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/funnel-cro-auditor/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/funnel-cro-auditor/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/funnel-cro-auditor/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/funnel-cro-auditor/references/ARCHITECTURE.ar.md": "a159d8b5917d779931f7e347c4a36ae2ea4d3f514662b95576f96b33102c5601",
+    ".agents/skills/funnel-cro-auditor/references/PLAYBOOK.ar.md": "01d66800aabf5e7070489f68810e6cf7ed996875cfc4b535a2253bf4613d6ef7",
+    ".agents/skills/funnel-cro-auditor/references/cro_audit_checklist.md": "5c994632293ac7e203c63d2433d8c224039a2275c73490d1037fa6130d01b1b0",
+    ".agents/skills/graphic-design-producer/SKILL.md": "b94778d49ef83b8b6b235418e233c4a72e3e2e0e7a353a568f737c3b9add4dee",
+    ".agents/skills/graphic-design-producer/brain/ARCHITECTURE.md": "c1bcf226158fe0193f6039e988495101569f224a5fe34a9bd37b12a13496f586",
+    ".agents/skills/graphic-design-producer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/graphic-design-producer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/graphic-design-producer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/graphic-design-producer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/graphic-design-producer/references/ARCHITECTURE.ar.md": "f62c6ce4fc42cac8bc7706a387de1f1638d2312370ef4a7cc437921bda0fdf24",
+    ".agents/skills/graphic-design-producer/references/PLAYBOOK.ar.md": "6a5aba249bed9de0083fb9c6f57be5d2550c46056aa9cd3aeb2bc0f9a2a2beec",
+    ".agents/skills/growth-director-orchestrator/SKILL.md": "e136cce8cca5e2f0646dfc64cc2419087fd68caf625eeac9a6d491f642f5afa3",
+    ".agents/skills/growth-director-orchestrator/brain/ARCHITECTURE.md": "4562a2b72fca5818670a869e49a264e5c207e6aa293b8c2b0fca6bd37ffa027b",
+    ".agents/skills/growth-director-orchestrator/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/growth-director-orchestrator/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/growth-director-orchestrator/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/growth-director-orchestrator/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/growth-director-orchestrator/references/ARCHITECTURE.ar.md": "4084e109e8405af08fc6807138dd65ca91875c39670042f235c922b621dd57e1",
+    ".agents/skills/growth-director-orchestrator/references/PLAYBOOK.ar.md": "a5d9a0ff14a6d8e102a4533073596af3e387d09b78cb9b0aed08cafb8f1db0f5",
+    ".agents/skills/growth-director-orchestrator/references/campaign_master_blueprint.md": "961410cbb230976c7193ad3eaa92ec19df20bed02080461633bc8c0aaf9d7286",
+    ".agents/skills/growth-director-orchestrator/references/weekly_growth_sprint.md": "a4fa5d8877b3d0193ea7b9847683523f19d581976dde3a228942f7f28c9bb46d",
+    ".agents/skills/legacy-code-rescue-specialist/SKILL.md": "722565987616fbbedc7219f5b4689f444b89d47d99625b59c473b2c652bc4457",
+    ".agents/skills/legacy-code-rescue-specialist/brain/ARCHITECTURE.md": "9e8153bba611fdfc369f927b9c5f28958ffc7cec7bf0b5cd886f74865dd8f228",
+    ".agents/skills/legacy-code-rescue-specialist/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/legacy-code-rescue-specialist/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/legacy-code-rescue-specialist/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/legacy-code-rescue-specialist/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/legacy-code-rescue-specialist/references/ARCHITECTURE.ar.md": "a9e0ed99863dbdc4958cc33b9da4a0ec038599225ea2bbfaf8b8e87b1dc80ed6",
+    ".agents/skills/legacy-code-rescue-specialist/references/PLAYBOOK.ar.md": "767c4ceee42b8adb8b93d838ae99bc873a1122cdd76628e4609aa3152b0db45e",
+    ".agents/skills/machine-control-operator/SKILL.md": "4f6b51e314915e003293398ffb4e67a1914eacbc2c58f508321d39926772e171",
+    ".agents/skills/machine-control-operator/brain/ARCHITECTURE.md": "645c2ca4d4cadefa5f048869f8c9e6a0c94659d820282f6cb8420e17eb31a17c",
+    ".agents/skills/machine-control-operator/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/machine-control-operator/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/machine-control-operator/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/machine-control-operator/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/machine-control-operator/references/ARCHITECTURE.ar.md": "c495ab543aabdc09a2c97b26dff6397c4e5ffddc02117dfd15ece0cf28dc7451",
+    ".agents/skills/machine-control-operator/references/PLAYBOOK.ar.md": "f487f54a3b241a1a32a91caa858402a5edcdbb1495620cae6201c415b0455949",
+    ".agents/skills/machine-control-operator/references/approval-matrix.md": "da73105d409b7b99f6b128ceb2c35425cbe6da7f2f99bf02246d4325d9e43303",
+    ".agents/skills/mcp-integration-builder/SKILL.md": "b8c62de38ec063f770e83814edf6be5d43213d89e1f7e3789d51292a4ce75327",
+    ".agents/skills/mcp-integration-builder/brain/ARCHITECTURE.md": "b7566e193505102b4f2483394a57a95d719f48a991c91361e692756d2f210558",
+    ".agents/skills/mcp-integration-builder/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/mcp-integration-builder/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/mcp-integration-builder/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/mcp-integration-builder/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/mcp-integration-builder/references/ARCHITECTURE.ar.md": "2f51e61fcf04d80fa0272740e7a4800785af4f28e2630462202a7592696a1b1b",
+    ".agents/skills/mcp-integration-builder/references/PLAYBOOK.ar.md": "81c191a3c89b5cc1f98f7aa86e2e34dd7116817aa37afb562309738108a4a450",
+    ".agents/skills/mcp-integration-builder/references/github-recruitment-research.md": "bcdcea5e4c134548dbbbeb241aa06877e10a85d071e883cd75528e25766f5bbd",
+    ".agents/skills/mcp-integration-builder/scripts/validate_mcp_config.py": "6e02d1d475b86963b8dd7fabff5206f295aa0a84109953feaf3c301ab899dda9",
+    ".agents/skills/network-infra-engineer/SKILL.md": "7c580efa7da1d3152ee15f5b9b6f22ea60ea8ecc415cd7234704336e62403b59",
+    ".agents/skills/network-infra-engineer/brain/ARCHITECTURE.md": "f9cb93381c7789f59e507ad2f7b377a6a158f699e19dca0e46d5476cc007a826",
+    ".agents/skills/network-infra-engineer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/network-infra-engineer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/network-infra-engineer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/network-infra-engineer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/network-infra-engineer/references/ARCHITECTURE.ar.md": "e54a9835d322050039809a3f212adc419b445a63e32a27d3d8d9e60b29c4b953",
+    ".agents/skills/network-infra-engineer/references/PLAYBOOK.ar.md": "88b324770d7e7f4cfdc8ce85350d1c09d9e7a9049f1af8c9bde6e268e00718b1",
+    ".agents/skills/paid-media-buyer/SKILL.md": "5e235c57825c15759bb4442a3d9f7a7f55abd94ec8826aa29323f7c2a4f07dd2",
+    ".agents/skills/paid-media-buyer/brain/ARCHITECTURE.md": "bf56c7ba72444ee1c3a5336de94542b931c2d5ea4527f3899ac6a96991f6afd7",
+    ".agents/skills/paid-media-buyer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/paid-media-buyer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/paid-media-buyer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/paid-media-buyer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/paid-media-buyer/references/ARCHITECTURE.ar.md": "f79d798e44064c6838dcc84f580bf490cdc6eca390b49b89470c4fdeddd5e79a",
+    ".agents/skills/paid-media-buyer/references/PLAYBOOK.ar.md": "38f1f7ddf6f96d157acc88929184702287cdb8cbe54abb705de7411721d4bd4f",
+    ".agents/skills/paid-media-buyer/scripts/budget_pacer.py": "e8a5d25e910ea9c1cdb4c63ced815759b965a7ee2e87a68a97badb44643f45bc",
+    ".agents/skills/qa-test-automation-engineer/SKILL.md": "1927e7fff9e7389b4d93344a03afaeda8d4c45bc647b6bc94834b6dd87e67410",
+    ".agents/skills/qa-test-automation-engineer/brain/ARCHITECTURE.md": "ac181801b23790d8b7c802a031e3eebb067376193099b526bef379a5bf7d3fa2",
+    ".agents/skills/qa-test-automation-engineer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/qa-test-automation-engineer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/qa-test-automation-engineer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/qa-test-automation-engineer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/qa-test-automation-engineer/references/ARCHITECTURE.ar.md": "152912b450d82d2569eabcb9a51e273a929de149f30735010f44fc1ee9d02c27",
+    ".agents/skills/qa-test-automation-engineer/references/PLAYBOOK.ar.md": "039a93c912acaae4a96383e2dce496ae4fccc7e58e50b6345d5f085d6556fa0e",
+    ".agents/skills/qa-test-automation-engineer/references/project_acceptance.md": "b335db8840272fc298557c731061d0cd893f050e0e40f8d1aa1079d69174fa7a",
+    ".agents/skills/qa-test-automation-engineer/scripts/check_delivery_packet.py": "ffc1ce1fb92b04444ed4a7c072c0272c3ce34fcddf733fb86af6f1d0b7db6c8c",
+    ".agents/skills/qa-test-automation-engineer/scripts/test_delivery_packet.py": "ff8e7dbc2a4936d0af50b513b907b50108794321736bbc75350d7c59c68798db",
+    ".agents/skills/rfp-proposal-engineer/SKILL.md": "ea78bc8faa8c85c164566dc86efafdc2e41c331edc30ed02858a196c275f07f6",
+    ".agents/skills/rfp-proposal-engineer/brain/ARCHITECTURE.md": "54208ce7f02dafe5c1971824eb7e70a7d5e231f4fceaea2439c98f8de0dadd80",
+    ".agents/skills/rfp-proposal-engineer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/rfp-proposal-engineer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/rfp-proposal-engineer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/rfp-proposal-engineer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/rfp-proposal-engineer/references/ARCHITECTURE.ar.md": "889df5c9f0758c5a7e3439ca4deb6bf9e8ed8a019b9fd523ccce030fc3530b96",
+    ".agents/skills/rfp-proposal-engineer/references/PLAYBOOK.ar.md": "bd3793d1eaa0b101e967e64e4f0144c3618f097377ac77c76f1a7f85d5119310",
+    ".agents/skills/security-operations-guardian/SKILL.md": "bf23f3006b58bb52384ea2191d25d5105842d7b26c1b1d543433178d20dee53f",
+    ".agents/skills/security-operations-guardian/brain/ARCHITECTURE.md": "4efffcaaee883448b924d2b37917324654549c19fc1dae185cc53797d65040b9",
+    ".agents/skills/security-operations-guardian/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/security-operations-guardian/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/security-operations-guardian/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/security-operations-guardian/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/security-operations-guardian/references/ARCHITECTURE.ar.md": "fb510da82765b191571afc0d27012c269c3411fe03ddc8d8bc9c72afaed22ab2",
+    ".agents/skills/security-operations-guardian/references/PLAYBOOK.ar.md": "258aeb5bace56c21e85f42d8c58af4ecc1787f896981a105445dc6d3d17ac763",
+    ".agents/skills/seo-growth-engineer/SKILL.md": "475cb23d9a37fd48dc209be37e2a7d35eebf081dd0ba454592765298d32894c8",
+    ".agents/skills/seo-growth-engineer/brain/ARCHITECTURE.md": "85b1e290ffda428327e3037a6b0269908e20130340a629b8cbbff26b8e0c723d",
+    ".agents/skills/seo-growth-engineer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/seo-growth-engineer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/seo-growth-engineer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/seo-growth-engineer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/seo-growth-engineer/references/ARCHITECTURE.ar.md": "8d968107996a8f135d901aaaaa05f7b3fa503722e56ff745da65e7d083571068",
+    ".agents/skills/seo-growth-engineer/references/PLAYBOOK.ar.md": "589cca789cf6bfcf8c66bb9e0c7371adbd835728fc098bfd42811fe7cc464651",
+    ".agents/skills/seo-growth-engineer/references/github-recruitment-research.md": "acab9132c63eb66b68fbda5632d67ab5babb4d08efc4cd5ab8a6dfdb0d8285c3",
+    ".agents/skills/seo-growth-engineer/scripts/check_seo_content_packet.py": "05ffd5be3d0b1d321f59ab70ffa826490905a49198773785b7ce45a7afc517f9",
+    ".agents/skills/short-form-paid-booster/SKILL.md": "e81a5932a889d37703290050e490d35252ddbe0ded41fcb03a3adac585ba77af",
+    ".agents/skills/short-form-paid-booster/brain/ARCHITECTURE.md": "d5e33f4ff2af3900d308e6d0c71e162569838423e005685f12b7bfe4b7f229ab",
+    ".agents/skills/short-form-paid-booster/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/short-form-paid-booster/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/short-form-paid-booster/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/short-form-paid-booster/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/short-form-paid-booster/references/ARCHITECTURE.ar.md": "6c4f28cea5d461df13b7824906bf30acb7d600a8e36e00bdad6f57459b83bdb5",
+    ".agents/skills/short-form-paid-booster/references/PLAYBOOK.ar.md": "b111775df893beea72d9503be617f555ecd3f323a413ac2634260959a23b9ab6",
+    ".agents/skills/short-form-paid-booster/references/github-recruitment-research.md": "61293cd2f51c2f7afd63ea119e94e415ff363d0dd3da6af2ebce722b208e3b0a",
+    ".agents/skills/skill-forge-recruiter/SKILL.md": "fd296172db595d37ef3ad2789df04c4357fccc4638f0485e2d3d2e5cead3b41a",
+    ".agents/skills/skill-forge-recruiter/brain/ARCHITECTURE.md": "4d888cba42de289b2fde3bc02f869ff79a857d2a8fbf399f7b88e966b5c5d817",
+    ".agents/skills/skill-forge-recruiter/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/skill-forge-recruiter/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/skill-forge-recruiter/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/skill-forge-recruiter/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/skill-forge-recruiter/references/ARCHITECTURE.ar.md": "e43dca52a9a133865200552f1a44a538183aa257b6a26c170c823f62212a842e",
+    ".agents/skills/skill-forge-recruiter/references/PLAYBOOK.ar.md": "b03cd55193c7ec58c50c029a0d391b0f305e94b63bb19eced0bd52c55c8405e2",
+    ".agents/skills/skill-forge-recruiter/references/github-recruitment-research.md": "f8e3e9366d722fc9641941e2687a1c5b9b54e9ad744e7a520d52630e51677789",
+    ".agents/skills/skill-forge-recruiter/references/rumuze-skill-template.md": "957e5a5f51cdcd1b192b6c30095c93db60cab6eead284d965aebd70d01ca7a69",
+    ".agents/skills/skill-forge-recruiter/scripts/test_validate_skill.py": "7f5d69f78ed56a665032b4ac691a69677a2c605e702986515c8e597a4ee6553c",
+    ".agents/skills/skill-forge-recruiter/scripts/validate_skill.py": "4318974e5c151b92538066a1b26d6c06227b564e9ed402f1b69ae81410819e76",
+    ".agents/skills/skill-improvement-engineer/SKILL.md": "a6f1a67f15a2e76ce98845b35085e2580efe69ba85df028c15876ca7664b41c2",
+    ".agents/skills/skill-improvement-engineer/brain/ARCHITECTURE.md": "4a37a057356fb746b652c46866a27aa2f4696c84b0860a192ff6755f6a3bf9af",
+    ".agents/skills/skill-improvement-engineer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/skill-improvement-engineer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/skill-improvement-engineer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/skill-improvement-engineer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/skill-improvement-engineer/references/ARCHITECTURE.ar.md": "b7bd05a4d8b8e6cebbfd935445ed0120ebf8e92367e06c3c7e39dc600a66886a",
+    ".agents/skills/skill-improvement-engineer/references/PLAYBOOK.ar.md": "6d11a2506fb61f4a88795c19581aa870c209a445a32b3a3b68361bed96eea6b8",
+    ".agents/skills/skill-performance-auditor/SKILL.md": "79bc67a0ce6a44e93467d396aeb13f1b55e03291a962198ecf05761fff5bca04",
+    ".agents/skills/skill-performance-auditor/brain/ARCHITECTURE.md": "8f95c9885489359437dd9ce180c7365ed557f37b0ab0377ef6ae0f82f1e49de9",
+    ".agents/skills/skill-performance-auditor/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/skill-performance-auditor/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/skill-performance-auditor/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/skill-performance-auditor/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/skill-performance-auditor/references/ARCHITECTURE.ar.md": "8fccac39f5256cc56b4e6ec7c4a5f2f92ed54d340937ace77c9ee78adf080c3c",
+    ".agents/skills/skill-performance-auditor/references/PLAYBOOK.ar.md": "682f297fa61cb410d3038a3d3f2603c5cc618ad1b3cd9e82e87cdc1215f07e60",
+    ".agents/skills/studio-director/SKILL.md": "0c4821058df8a9519305b5b0b16e60de3c5bfaf56814344f6aaca33aa86dbf95",
+    ".agents/skills/studio-director/brain/ARCHITECTURE.md": "55413a33c78d05d52cee6b233f1fd6421923855796b1f492fa4252f2ab679209",
+    ".agents/skills/studio-director/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/studio-director/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/studio-director/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/studio-director/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/studio-director/references/ARCHITECTURE.ar.md": "dfb60e77c359b246652e3f520507551ceba5118c043cb320b74484e8118e76df",
+    ".agents/skills/studio-director/references/PLAYBOOK.ar.md": "c03b3c37d4c00c079784407b948187a037b9c3f8293e10aedab9ce2484243dd4",
+    ".agents/skills/tech-stack-architect/SKILL.md": "1cbb76f709810f67fce2dfeeff11d51adb3c245554151eb67aa4eccc19463ecb",
+    ".agents/skills/tech-stack-architect/brain/ARCHITECTURE.md": "06256a5abcd7c508fdfd270c6257ef79bf10a8438db64613e91d2854238df1a4",
+    ".agents/skills/tech-stack-architect/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/tech-stack-architect/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/tech-stack-architect/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/tech-stack-architect/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/tech-stack-architect/references/ARCHITECTURE.ar.md": "aa170c62a3a2201e9e30bca0e227c9e06b7d02e06a88db55e23dde64913640ce",
+    ".agents/skills/tech-stack-architect/references/PLAYBOOK.ar.md": "efbdf7a46670806e43652a1e0d87ad6fd949d41db0115692c8ba0123125d453f",
+    ".agents/skills/tech-stack-architect/references/tech-decision-tree.md": "99b8afdd98ad7187174c57878eeadb8d52ecbefe2e26277d5874bea8023ecc3c",
+    ".agents/skills/toolbox-integration-steward/SKILL.md": "a5f5dbac670ee184746211c5801e1a3472fb035c89e05abb5b2628a16fb78c8b",
+    ".agents/skills/toolbox-integration-steward/brain/ARCHITECTURE.md": "576c5356d50d8a0ae12d4264e9368d1f1effdd16312d61454fbdda5e70782324",
+    ".agents/skills/toolbox-integration-steward/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/toolbox-integration-steward/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/toolbox-integration-steward/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/toolbox-integration-steward/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/toolbox-integration-steward/references/ARCHITECTURE.ar.md": "366e4d1c14b6fbc3834f5c8896e49d25c6b7f8ebffa88d0d2d5cc70b2a526110",
+    ".agents/skills/toolbox-integration-steward/references/PLAYBOOK.ar.md": "47a071ade71c6cc1c5545cedb6ff2042a430fd3ea96f010cbd95c98e58baa75e",
+    ".agents/skills/toolbox-integration-steward/references/github-recruitment-research.md": "7465f3ddd09100fe8b75c483378eeb7a8c7c704880794bc42c55a7be62ebb92a",
+    ".agents/skills/trend-hunter-ideator/SKILL.md": "355c0cacaba1f0e46e00b8e3dd4b40111b90eca693329bd48a6b010e4125e430",
+    ".agents/skills/trend-hunter-ideator/brain/ARCHITECTURE.md": "ca8e8329cefedac54b5358cd14ffe6d526f0a88c598b5d52e2a300c44dff06b5",
+    ".agents/skills/trend-hunter-ideator/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/trend-hunter-ideator/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/trend-hunter-ideator/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/trend-hunter-ideator/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/trend-hunter-ideator/references/ARCHITECTURE.ar.md": "b2055c97077d7a4f043ea5300334a0004df6223f8ea132084aedc56c5d40ac47",
+    ".agents/skills/trend-hunter-ideator/references/PLAYBOOK.ar.md": "b7cda74253f2b5af199b1304bd3bd2228145e18ff3df63c6fb1a25c95c08e72d",
+    ".agents/skills/trend-hunter-ideator/references/tricky_angles_matrix.md": "b4de8a40e5bcaa24c530fead10bdac747af362991bd353c38a7d9825e3be78e6",
+    ".agents/skills/ultra-light-optimizer/SKILL.md": "847c8ca706944423c7e6c5c0e1bacfc0fea3c693fe4e45c8e086acc9b45c564e",
+    ".agents/skills/ultra-light-optimizer/brain/ARCHITECTURE.md": "076b25f73004911bdafd75ca0fb2b1d7abe7ef66f3affd858800c0b82c6e987c",
+    ".agents/skills/ultra-light-optimizer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/ultra-light-optimizer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/ultra-light-optimizer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/ultra-light-optimizer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/ultra-light-optimizer/references/ARCHITECTURE.ar.md": "090a1841c14b60a7159e5996f8de1b1e5586da58417b910e7a03ed41cd06f8d8",
+    ".agents/skills/ultra-light-optimizer/references/PLAYBOOK.ar.md": "c07b4f08cc6b3ff2704e56b57bf8cba38aff156f12cb99eabd18841b70258432",
+    ".agents/skills/ultra-light-optimizer/references/ultra-light-contract.md": "e4ff074200c6d5547f71db56ac7282c76600f3af94a752136f787f3f9e753b02",
+    ".agents/skills/ultra-light-optimizer/scripts/check_resource_budget.py": "06247df7ae4755d7bd736baa2776942bcb8cbe07dc17a77d25f1cb1e474f5494",
+    ".agents/skills/video-assembly-editor/SKILL.md": "5ecf23bd817d41f31f548172b0758cfb96b53194745d66c4a922823e893c1017",
+    ".agents/skills/video-assembly-editor/brain/ARCHITECTURE.md": "0b3ce5b4675f23de5beb238c767b85b0a84484c4621bead2c889e8fbed2f0099",
+    ".agents/skills/video-assembly-editor/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/video-assembly-editor/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/video-assembly-editor/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/video-assembly-editor/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/video-assembly-editor/references/ARCHITECTURE.ar.md": "abfeec5e91e4bf8aa84e4e7c4e77e82b1c2091bb07faeae359bccb12ead88676",
+    ".agents/skills/video-assembly-editor/references/PLAYBOOK.ar.md": "13c180a4758ce19891a4fa5793775cc3b9bdc5803994ead3e9a61d8b21a7b97c",
+    ".agents/skills/video-script-architect/SKILL.md": "a8b1d442994a51dcaee9b728ef92646e8e240d2e60a4ff86b760e0a37a13a13d",
+    ".agents/skills/video-script-architect/brain/ARCHITECTURE.md": "c41496c8cc08d0c1592c627ce640e598d5b3f17e6e16565fb0bddb117f041724",
+    ".agents/skills/video-script-architect/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/video-script-architect/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/video-script-architect/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/video-script-architect/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/video-script-architect/references/ARCHITECTURE.ar.md": "586efb4df72cf244acabca3925c37ca420f160c65d832ec5134206745006cdc3",
+    ".agents/skills/video-script-architect/references/PLAYBOOK.ar.md": "d13d2fc70a9d57c3b5cfae89b059a5950f40d1fba50dbbdf9352cb20cba209b1",
+    ".agents/skills/video-script-architect/scripts/validate_script_pacing.py": "7dc9da7fd27db259b5b82d9fbfa9764f5fccedb6299142561eac14a68a3a2156",
+    ".agents/skills/viral-hook-architect/SKILL.md": "4f22fbc24c2c3d2ff2d1ac10460e95792d4564c540cdfe13f05dc97746d29a5d",
+    ".agents/skills/viral-hook-architect/brain/ARCHITECTURE.md": "4813ded716bf75958bc63165692d5463db7345c165f52bfbdec61840368a4579",
+    ".agents/skills/viral-hook-architect/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/viral-hook-architect/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/viral-hook-architect/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/viral-hook-architect/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/viral-hook-architect/references/50_viral_hooks_vault.md": "92dd2b4206883786a898d1b7cbc209ae5f3392426d70bf3e783bba5419be8221",
+    ".agents/skills/viral-hook-architect/references/ARCHITECTURE.ar.md": "65a700b9f73e3797a12029c8c96dff58a2abdbd71028b0c30f526b6dd0f2bd27",
+    ".agents/skills/viral-hook-architect/references/PLAYBOOK.ar.md": "aa62fa9cab7ea4f657c4c20ea7c9fcbfc95c2eb02ef10bc9c31cec65bc3a24e7",
+    ".agents/skills/visual-qa-reviewer/SKILL.md": "00fae2f847902ca717d52f1edb71176b8e4384d463422c39db9421449a29e634",
+    ".agents/skills/visual-qa-reviewer/brain/ARCHITECTURE.md": "012c38fcb685f4b95004602019a69bc30f46e3d6dac2fed2c7c8a396a895464f",
+    ".agents/skills/visual-qa-reviewer/brain/CHALLENGES.md": "8f09da99bb73d91e7df36239097c928702aa35f2ca75a5e22233f3e3435912e6",
+    ".agents/skills/visual-qa-reviewer/brain/COMPLETED.md": "dbf9e6bf270e712edad2b098c5d574570a4e596e5c3471a4a9d3c8fdedc0e74b",
+    ".agents/skills/visual-qa-reviewer/brain/IDEAS_VAULT.md": "a9446e5b097c40ed44952c7143f409d414bce36812b0fe11e3eb39d047d04648",
+    ".agents/skills/visual-qa-reviewer/brain/ROADMAP_TODO.md": "9d23d604d8004046ef7f55d7c8d2e77d3ea6f59bc0feeabd180feaff6ef1d48e",
+    ".agents/skills/visual-qa-reviewer/references/ARCHITECTURE.ar.md": "710044ab795701e3b74aac6b047c9974180bc1ad36a027ef5f4d23178c8e8b0a",
+    ".agents/skills/visual-qa-reviewer/references/PLAYBOOK.ar.md": "2079ad0f6df4e180f6373a1214f7a1818660a3f8f489087db6c541c41726801e",
+    ".agents/skills/visual-qa-reviewer/references/github-recruitment-research.md": "2a80188c730e4eb72ce9cb5c52d04b276bbd3259eb62e6c1077c6ac86eb2359a",
+    ".agents/skills/visual-qa-reviewer/references/visual_checklist.md": "a51ce91959ae6c804848fa1b2381efedeb2ee54260755bf15304936c93676fba",
+    ".githooks/pre-commit": "ca9bd204f8a45e812630a403b72fe2270a100c8387c39f7c34fdee1521e7fe28",
+    ".github/workflows/ci.yml": "9fb88257e714f7417941d6bf1398172f739d7b1abfd68c45b043472e71cdf2d1",
+    ".gitignore": "865fa496cfd60fa0743d921c027d4f9b8b8cdaf7c9b9fa5adec91d8a3f58aec3",
+    "AGENTS.md": "70d7698e97cd8a06a252b29292bf90a3ee0cc59185c956d79e3769984da9bb62",
+    "Brain/ARCHITECTURE.md": "5609e2c23bd41788083d07b1ea2831f71db3c996a15dbcf0b771c9af3a7ec638",
+    "Brain/CHALLENGES.md": "c1bf65857c3312e1ef2c7dbfa53779260492ff15d54d32f03d2f45102e0401c8",
+    "Brain/COMPLETED.md": "5af8be0e6d3634b34f79b6ff2148b95e2fb6c15e0498aaf2fbfdec5e761ab9d1",
+    "Brain/IDEAS_VAULT.md": "4ba12fd5cec55fc906914a0234b826c4aaec3355b2927e8781bd5f9159619604",
+    "Brain/ROADMAP_TODO.md": "12bc6067e2ebba9444755f7896d76ead7c67f6de3f895c74db15e6fc8180a2c2",
+    "CHANGELOG.md": "761b8a4edbaa26b098a23c4b9f63c9edeaecfb4d8d6aedc89885676df4c88a2f",
+    "CONTRIBUTING.md": "69f1185eef40777c843de91fac91ea68b43cdaeb4d24ee40a41a9b0edac1137f",
+    "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "MASTER_BRAIN.md": "a1981c4e9c7d1573bade94e9a867639e495fa304088a04cff76401605c1831c3",
+    "NOTICE": "57c9d1be87f89764a40c4d0f41e10acc069893539fcc7c943d2b67ee9e202037",
+    "README.ar.md": "1d832f0ce2e700d5cc10fa4d2baacca2b7d2130b9d618e12adb2b9a0b4514121",
+    "README.md": "3754801e926cf33fd2cda8f180be816b81cbcb2d53597424de41d2b9c00e1eaa",
+    "SECURITY.md": "a321508982c161537411fa681bae18c0fadeb7afd12c21c765cced0c2205fcf3",
+    "assets/crewloom-banner.svg": "ffe2f42fe461334a90d8cda17c727d5c6ae9bf96968d1f7574f1df137032a6ce",
+    "documentation/ARCHITECTURE.md": "decf0b7e83812c0c7759278b3882f24f143ce1fd723fe4ffff944532a5d386b2",
+    "documentation/GETTING_STARTED.md": "5969018ccefc4fb2512674f2631f9cb10066bec74137d7c1c3075d87abba217f",
+    "documentation/PROJECT_INPUTS.md": "c12193b3459bbb3b816d8c5f56f98220c0bc070ee44ec5894b322900ba042218",
+    "documentation/PROVENANCE.json": "d1f3f51d75b9c0db71ad408a5401d36b77ab281a2ebec2dab9533b82ed6a5393",
+    "documentation/RELEASE.md": "b65366d86ab4ac15a6ba9699d7298d4cc8e335235f1db3b80e281dab4229ed48",
+    "documentation/SKILLS.md": "7f1fc378941349b70cf5d5d44479f9bed832723ad033a7e13ae964bfbac51485",
+    "documentation/TOOLS.json": "b85ba35b92c2fb7f15b0d5b4f874cf1949a06bc6765910bf85e9552901647f22",
+    "documentation/TOOLS.md": "3ab0646945f3a0643990355bcc696fcb8291619c5eeb0f2c9054a91b23e81c8e",
+    "documentation/VALIDATION.json": "3c3c88bf7051456e3d0acaa18e1830b12e4c269bb24672e36565158eddf1401c",
+    "documentation/WORKFLOWS.md": "5d443ff7296df2cf1d7c53759038f4b8e899007169803f094416aadddd2f6207",
+    "examples/README.md": "c2ea2184da34403b54b32a7a6aadf3db3a482fa0da2c74db945197a2170a6508",
+    "examples/mcp/config.json": "6234fd85be9033db5aed61e0b6159b786084fdd32cf95f7d8b9f8d35c94db8bb",
+    "examples/seo/article-packet.json": "2c48678a16dbd211822e798f7c71513576df2bd089c0ee14392f49372209cec8",
+    "examples/ui/grid.css": "7605f947c00d0a4f042f827f51cc869745670487a81421e72aa92e52bd03f4bb",
+    "examples/video/script.txt": "396bd0f4554a7007387effef5b00cc29bc33e38afb0cd4d637a72da9c92941da",
+    "examples/workflows/valid.json": "6fb1ee02380150ea20013ab07736678ea769fb019a4d69438dc51485d91993e5",
+    "scripts/check_repository.py": "afb3c18756355321b8563e25fc94578e44f6a11359c885a2b1207f8b6fa08d3f",
+    "scripts/crewloom.py": "2a82e758c3109bf5c0a42929176e48aa2bd45158b05f346d81ebddb1302daee2",
+    "scripts/test_domain_tools.py": "f3444b7702bb7c3e57d54d5e1599ce25de07d924a20bc93ca2c2de84aa190625",
+    "scripts/test_public_core.py": "b2e06829cefa37a1b681e9c29bb04cce0d48b8140b253e17df4f016cd043ceb6"
+  }
 }
