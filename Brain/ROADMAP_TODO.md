@@ -21,4 +21,4 @@
 - [x] Make grid-safety skip pixel floors behind a breakpoint prefix that already fits them (2 false positives, see documentation/EVIDENCE.md) — priority: medium
 
 - [x] Ship a real token-drift check (palette vs design-tokens.json); the playbook's check_palette_drift.py is not included — priority: high
-- [ ] Repeat the with/without evaluation with harder fixtures, 3+ runs per condition, blind grading — priority: medium
+- [ ] Third evaluation: defects a generic review tends to miss (non-obvious drift, cross-file issues), blind grading by a separate agent, 5+ runs — priority: medium

@@ -1,0 +1,156 @@
+{
+ "seeded": [
+  {
+   "id": "G1",
+   "where": "src/styles.css:3",
+   "issue": "fixed 280px grid floor without min(...,100%) guard",
+   "covered_by_role_tools": true
+  },
+  {
+   "id": "G2",
+   "where": "src/components/Filters.tsx:6",
+   "issue": "unprefixed Tailwind 300px grid floor",
+   "covered_by_role_tools": true
+  },
+  {
+   "id": "C1",
+   "where": "src/styles.css:6",
+   "issue": "off-token color #F60 (=#ff6600)",
+   "covered_by_role_tools": true
+  },
+  {
+   "id": "C2",
+   "where": "src/styles.css:10",
+   "issue": "off-token color #9a9a9a",
+   "covered_by_role_tools": true
+  },
+  {
+   "id": "C3",
+   "where": "src/components/ProductCard.tsx:13",
+   "issue": "off-token color rgb(255 102 0)",
+   "covered_by_role_tools": true
+  },
+  {
+   "id": "C4",
+   "where": "src/components/Filters.tsx:15",
+   "issue": "off-token color #ff6600 in Tailwind arbitrary class",
+   "covered_by_role_tools": true
+  },
+  {
+   "id": "R1",
+   "where": "src/styles.css:7",
+   "issue": "RTL: physical padding-left on .toolbar",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "R2",
+   "where": "src/styles.css:8",
+   "issue": "RTL: physical left:0 on .sidebar",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "A1",
+   "where": "src/styles.css:11",
+   "issue": "global button outline:none removes keyboard focus indicator",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "A2",
+   "where": "src/styles.css:10",
+   "issue": ".muted #9a9a9a on paper fails WCAG AA contrast (~2.6:1)",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "A3",
+   "where": "src/components/ProductCard.tsx:15",
+   "issue": "clickable div not keyboard/AT accessible (should be button)",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "A4",
+   "where": "src/components/Filters.tsx:9",
+   "issue": "select has no label/accessible name",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "A6",
+   "where": "src/components/CheckoutForm.tsx:20",
+   "issue": "error message not programmatically associated (no aria-describedby/aria-invalid/role=alert)",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "A7",
+   "where": "src/components/CheckoutForm.tsx:22",
+   "issue": "icon-only button without accessible name",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "I1",
+   "where": "src/components/ProductCard.tsx:6",
+   "issue": "product img without alt (multi-line tag)",
+   "covered_by_role_tools": true
+  },
+  {
+   "id": "Q1",
+   "where": "src/components/Toast.tsx:9",
+   "issue": "setTimeout without cleanup in effect",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "Q2",
+   "where": "src/hooks/useProducts.ts:11",
+   "issue": "fetch without r.ok/catch: loading stuck, no error state",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "Q3",
+   "where": "src/App.tsx:21",
+   "issue": "array index used as key",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "S1",
+   "where": "src/components/CheckoutForm.tsx:13",
+   "issue": "card number logged to console",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "S2",
+   "where": "src/components/ProductCard.tsx:14",
+   "issue": "API html injected unsanitized (XSS)",
+   "covered_by_role_tools": false
+  }
+ ],
+ "decoys_correct_code": [
+  {
+   "id": "D1",
+   "where": "src/styles.css:4",
+   "note": "guarded grid floor is correct"
+  },
+  {
+   "id": "D2",
+   "where": "src/components/Filters.tsx:14",
+   "note": "breakpoint-prefixed floor fits at lg (measured false positive earlier)"
+  },
+  {
+   "id": "D3",
+   "where": "src/components/ProductCard.tsx:16",
+   "note": "img with alt is correct"
+  },
+  {
+   "id": "D4",
+   "where": "src/styles.css:9",
+   "note": "logical property is correct"
+  },
+  {
+   "id": "D5",
+   "where": "src/styles.css:12",
+   "note": "focus-visible style is correct"
+  },
+  {
+   "id": "D6",
+   "where": "src/App.tsx:18",
+   "note": "loading announced correctly"
+  }
+ ]
+}

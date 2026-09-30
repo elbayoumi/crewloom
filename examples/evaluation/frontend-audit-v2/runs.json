@@ -1,0 +1,68 @@
+{
+ "rule": "decoy flagged = an item names that construct and asks for a change to it; observations such as 'is fine' do not count. Graded by the assistant that ran the experiment, not blind.",
+ "runs": [
+  {
+   "run": "A1",
+   "role": false,
+   "seeded_found": 20,
+   "decoys_flagged": [
+    "D2",
+    "D3",
+    "D4",
+    "D6"
+   ],
+   "items": 38,
+   "tokens": 71835
+  },
+  {
+   "run": "A2",
+   "role": false,
+   "seeded_found": 20,
+   "decoys_flagged": [
+    "D2",
+    "D3"
+   ],
+   "items": 38,
+   "tokens": 71895
+  },
+  {
+   "run": "A3",
+   "role": false,
+   "seeded_found": 20,
+   "decoys_flagged": [
+    "D2"
+   ],
+   "items": 32,
+   "tokens": 71548
+  },
+  {
+   "run": "B1",
+   "role": true,
+   "seeded_found": 20,
+   "decoys_flagged": [],
+   "items": 27,
+   "tokens": 83192,
+   "tool_backed_seeded": 7
+  },
+  {
+   "run": "B2",
+   "role": true,
+   "seeded_found": 20,
+   "decoys_flagged": [],
+   "items": 28,
+   "tokens": 81663,
+   "tool_backed_seeded": 7
+  },
+  {
+   "run": "B3",
+   "role": true,
+   "seeded_found": 20,
+   "decoys_flagged": [
+    "D2"
+   ],
+   "items": 19,
+   "tokens": 83734,
+   "tool_backed_seeded": 7
+  }
+ ]
+}

@@ -77,3 +77,26 @@ Next experiment needed to say anything stronger: several runs per condition, har
 ### Follow-up: `palette-drift` added
 
 The gap found above (off-token colors reachable only by reading) is closed by the new `palette-drift` tool. On the evaluation fixture it reports `src/styles.css:5` and `src/App.tsx:39` (`#ff6600`) and `src/styles.css:4` (`#ddd`), the seeded off-token locations, plus `#fff` literals at `src/App.tsx:39` and `src/styles.css:7`, which are not in the tokens and can be accepted with `--allow`. On code-vault (18 source files, its own `design-tokens.json`) it passes. It checks hex and numeric `rgb()` literals only; contrast and rendering still need a browser.
+
+## 2026-10-01 — Second with/without evaluation: harder fixture, 3 runs per condition
+
+Fixture: [frontend-audit-v2](../examples/evaluation/frontend-audit-v2/fixture) — 10 files, **20 seeded defects** (7 reachable by Crewloom tools: two fixed grid floors, four off-token colors in different notations such as `#F60`, `rgb(255 102 0)` and a Tailwind `bg-[#ff6600]`, and a multi-line `<img>` without `alt`; 13 need reading: RTL, focus, labels, keyboard access, timer leak, unhandled fetch, key misuse, card logging, XSS) and **6 correct decoys**. Ground truth ([ground_truth.json](../examples/evaluation/frontend-audit-v2/ground_truth.json)) was written before any run. Per-run numbers: [runs.json](../examples/evaluation/frontend-audit-v2/runs.json). Conditions as before: A = generic review request, B = same request plus the `frontend-ux-auditor` role and its tools; three independent subagents each, same model, read-only.
+
+| | A: no role (3 runs) | B: with role (3 runs) |
+| --- | --- | --- |
+| Seeded defects found | 20, 20, 20 of 20 | 20, 20, 20 of 20 |
+| Seeded defects backed by a tool result | n/a | 7 of 7 tool-reachable, in every run |
+| Decoys flagged (per run, of 6) | 4, 2, 1 | 0, 0, 1 |
+| Decoys flagged, all runs | 7 of 18 | 1 of 18 |
+| Findings reported per run | 38, 38, 32 | 27, 28, 19 |
+| Subagent tokens per run (mean) | 71.8k | 82.9k (+15%) |
+
+**Results**
+
+- **Recall is a tie again (100% in all six runs).** A capable generic reviewer finds every defect in a 10-file project, so recall cannot separate the conditions here.
+- **Fewer wrong change requests with the role:** 1 of 18 decoy opportunities versus 7 of 18. Caveats that limit this: n = 3 per condition, grading was done by the assistant that ran the experiment (not blind), and the decoys flagged most (`D2`, the breakpoint-prefixed grid floor that fits at `lg:`) are the case the tool was corrected for after the first evaluation, so that part is partly by construction. Excluding `D2`, A flagged 4 and B flagged 0, which is suggestive and far too small a sample to call significant.
+- **Less padding:** B reported about a third fewer items per run (mean 25 versus 36). Extra items were not scored, so this does not show they were wrong.
+- **Cost:** +15% tokens.
+- **Prompt error on my side:** the B prompt suggested passing `--tokens` to every tool; `ui-hints` and `grid-safety` reject it, and all three B agents worked around it by omitting the flag. The tools were not at fault.
+
+**What this does and does not show.** The role plus tools gave deterministic, line-accurate evidence for the 7 defects they cover and, in these runs, fewer unwarranted change requests. It did not find anything a generic reviewer missed. A claim that the role improves results still needs defects a generic review tends to miss, more runs, and a blind grader.
