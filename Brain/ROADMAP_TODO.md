@@ -10,3 +10,6 @@
 - Artifact: Detailed references, tool discovery, examples and README navigation.
 - Status: Implemented and locally validated.
 - Next: Provider-specific end-to-end evaluations remain future work.
+
+- [ ] Add role-level run history charts to the dashboard — priority: medium
+- [ ] Add optional auth before any non-localhost dashboard use — priority: high

@@ -3,13 +3,31 @@
 import argparse
 import json
 import importlib.util
+import os
 import re
 import subprocess
 import sys
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / '.agents' / 'skills'
+RUN_LOG = ROOT / '.crewloom' / 'runs.jsonl'
+
+
+def log_run(tool, skill, code, seconds):
+    """Append one run record so the dashboard can show CLI runs live; never fail the run."""
+    record = {'ts': datetime.now(timezone.utc).isoformat(timespec='seconds'), 'tool': tool,
+              'skill': skill, 'exit_code': code, 'duration_ms': round(seconds * 1000), 'source': 'cli'}
+    if os.environ.get('CREWLOOM_NO_LOG'):
+        return
+    try:
+        RUN_LOG.parent.mkdir(exist_ok=True)
+        with RUN_LOG.open('a', encoding='utf-8') as handle:
+            handle.write(json.dumps(record) + '\n')
+    except OSError:
+        pass
 
 
 def load_validator():
@@ -50,7 +68,10 @@ def main():
         if ROOT not in path.parents or not path.is_file():
             parser.error('Tool path is missing or escapes the repository')
         arguments = args.arguments[1:] if args.arguments and args.arguments[0] == '--' else args.arguments
-        return subprocess.run([sys.executable, str(path), *arguments], check=False).returncode
+        started = time.monotonic()
+        code = subprocess.run([sys.executable, str(path), *arguments], check=False).returncode
+        log_run(item['id'], item['skill'], code, time.monotonic() - started)
+        return code
     if args.command == 'list':
         for path in sorted(SKILLS.glob('*/SKILL.md')):
             print(path.parent.name)

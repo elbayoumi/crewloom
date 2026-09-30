@@ -17,3 +17,19 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python3 scripts/check_repository.py
+  dashboard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npx tsc --noEmit
+      - run: npm run build

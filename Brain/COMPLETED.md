@@ -14,3 +14,8 @@
 - Artifact: 108 detailed references, twelve tools, six examples, workflow recipes and bilingual entry pages.
 - Impact: Roles link to detailed procedures and applicable executable checks.
 - Evidence: 52 regression tests pass, including all six published CLI examples.
+
+### 2026-10-01 — Live dashboard
+- Artifact: `dashboard/` (Next.js), `scripts/crewloom.py` run log, `scripts/test_run_log.py`.
+- Impact: Roles, memory counts, tool runs, and repository checks are observable live; CLI runs appear in open tabs without reload.
+- Evidence: 4 dashboard unit tests, typecheck and production build pass; API run, traversal rejection, and SSE change event verified against the running server.

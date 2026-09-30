@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add the optional live web dashboard (`dashboard/`): role status, memory counts, tool runner, run feed, and repository checks with server-sent updates.
+- Record every `crewloom.py run` to `.crewloom/runs.jsonl` (opt out with `CREWLOOM_NO_LOG=1`).
+
 ## 0.2.0 — 2026-10-01
 
 - Restore 108 detailed, filtered source references across all 42 roles.

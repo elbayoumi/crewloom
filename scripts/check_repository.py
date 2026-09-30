@@ -16,8 +16,8 @@ SUITES = ('skill-forge-recruiter', 'context-guardian', 'frontend-ux-auditor', 'q
 
 def inspect(root):
     errors = []
-    files = [p for p in root.rglob('*') if '.git' not in p.relative_to(root).parts
-             and '__pycache__' not in p.relative_to(root).parts and p.is_file()]
+    skipped = {'.git', '__pycache__', 'node_modules', '.next', '.crewloom'}
+    files = [p for p in root.rglob('*') if not skipped & set(p.relative_to(root).parts) and p.is_file()]
     for path in files:
         if path.is_symlink():
             errors.append(f'Symlink excluded from distribution: {path.relative_to(root)}')

@@ -26,3 +26,5 @@ Core Python tools use the standard library. Commands run from the checkout root.
 | [.agents/skills/qa-test-automation-engineer/scripts/test_delivery_packet.py](../.agents/skills/qa-test-automation-engineer/scripts/test_delivery_packet.py) | Domain regressions | `python3 -m unittest discover -s .agents/skills/qa-test-automation-engineer/scripts -p test_delivery_packet.py` |
 
 | [scripts/test_domain_tools.py](../scripts/test_domain_tools.py) | CLI examples and malformed-input regressions | `python3 -m unittest discover -s scripts -p test_domain_tools.py` |
+| [scripts/test_run_log.py](../scripts/test_run_log.py) | Run-log append and opt-out regressions | `python3 -m unittest discover -s scripts -p test_run_log.py` |
+| [dashboard/](../dashboard/README.md) | Live monitoring web app: roles, memory, tools, runs | `cd dashboard && npm install && npm run dev` |
