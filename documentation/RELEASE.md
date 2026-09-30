@@ -23,3 +23,7 @@ CI is configured for Python 3.9 and 3.14. Local validation uses the runtime reco
 - Broader application localization and a package distribution format.
 
 There is no central agent orchestration service or published package in this edition.
+
+## Recorded results
+
+[VALIDATION.json](VALIDATION.json) records 42 accepted role structures, 19 passing core regressions, successful English / Arabic context CLI commands, a zero-finding redacted public-source secret-pattern scan, and gate rejection / acceptance. Repository checks also pass from an extracted source archive. Specialist workflows are not covered by those results.
