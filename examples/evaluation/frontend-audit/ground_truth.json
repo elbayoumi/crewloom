@@ -1,0 +1,75 @@
+{
+ "seeded": [
+  {
+   "id": "S1",
+   "where": "src/styles.css:3",
+   "issue": "fixed 340px grid floor, no min(...,100%) guard (overflow on narrow viewports)",
+   "covered_by_role_tools": true
+  },
+  {
+   "id": "S2",
+   "where": "src/App.tsx:26",
+   "issue": "product <img> without alt",
+   "covered_by_role_tools": true
+  },
+  {
+   "id": "S3",
+   "where": "src/App.tsx:30",
+   "issue": "empty icon button with no accessible name",
+   "covered_by_role_tools": true
+  },
+  {
+   "id": "S4",
+   "where": "src/styles.css:4-5 + src/App.tsx:39",
+   "issue": "hardcoded colors #ff6600 (not in design-tokens.json), #ddd",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "S5",
+   "where": "src/styles.css:4-5",
+   "issue": "RTL: text-align:left and margin-left on Arabic page (dir=rtl) instead of logical properties",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "S6",
+   "where": "src/App.tsx:38",
+   "issue": "email input has placeholder only, no label / accessible name",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "S7",
+   "where": "src/App.tsx:10-16",
+   "issue": "fetch has no catch/ok check: on failure loading stays true forever, no error state",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "S8",
+   "where": "src/App.tsx:29",
+   "issue": "dangerouslySetInnerHTML with data from API (XSS)",
+   "covered_by_role_tools": false
+  },
+  {
+   "id": "S9",
+   "where": "src/App.tsx:25",
+   "issue": "key={index} on a fetched list",
+   "covered_by_role_tools": false
+  }
+ ],
+ "decoys_correct_code": [
+  {
+   "id": "D1",
+   "where": "src/styles.css:6",
+   "note": "min(240px,100%) guarded grid is correct"
+  },
+  {
+   "id": "D2",
+   "where": "src/App.tsx:35",
+   "note": "logo img has alt"
+  },
+  {
+   "id": "D3",
+   "where": "src/styles.css:8",
+   "note": "focus-visible style present"
+  }
+ ]
+}

@@ -3,6 +3,7 @@
 ## Unreleased
 
 - `grid-safety` no longer flags fixed floors inside breakpoint-prefixed Tailwind grids that fit the breakpoint.
+- Add a with/without-role evaluation on a seeded fixture (result: tie, inconclusive) to `documentation/EVIDENCE.md`.
 - Add `pyproject.toml` (`pip install -e .` provides the `crewloom` command), `crewloom install --host claude|agents`, and `crewloom dashboard`.
 - Add issue and pull request templates and an inline dashboard demo.
 - Add the optional live web dashboard (`dashboard/`): role status, memory counts, tool runner, run feed, and repository checks with server-sent updates.

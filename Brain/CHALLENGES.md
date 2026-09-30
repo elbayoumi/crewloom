@@ -14,3 +14,8 @@
 - السبب الجذري / Root cause: the check flags any `minmax(Npx,...)` floor without modeling that `lg:` only applies at >=1024px.
 - الحل المعتمد / Approved fix: breakpoint-aware guard in `check_responsive_grid_safety.py`; evidence in `documentation/EVIDENCE.md`, task queued in ROADMAP_TODO.
 - الحالة: محلول (2026-10-01) — prefixed floors (sm..2xl) are skipped when their sum is at most half the breakpoint; 4 regression tests
+
+### 2026-10-01 — Evaluation fixture too easy to discriminate
+- السبب الجذري / Root cause: seeded defects are standard patterns a strong generic reviewer already catches.
+- الحل المعتمد / Approved fix: harder fixtures, repeated runs, blind grading (queued in ROADMAP_TODO).
+- الحالة: مفتوح

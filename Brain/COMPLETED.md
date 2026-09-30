@@ -34,3 +34,8 @@
 - Artifact: `.agents/skills/frontend-ux-auditor/scripts/check_responsive_grid_safety.py`.
 - Impact: Removes the 2 measured false positives without hiding unprefixed or oversized floors.
 - Evidence: 10 tests pass (4 new); code-vault re-run passes.
+
+### 2026-10-01 — With/without role evaluation
+- Artifact: `examples/evaluation/frontend-audit/`, section in `documentation/EVIDENCE.md`.
+- Impact: First controlled comparison; result is a tie (9/9 both), recorded honestly as inconclusive.
+- Evidence: ground truth written before runs; both reports scored against it.

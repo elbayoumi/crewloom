@@ -19,3 +19,6 @@
 - [ ] Add dashboard token authentication — priority: high
 
 - [x] Make grid-safety skip pixel floors behind a breakpoint prefix that already fits them (2 false positives, see documentation/EVIDENCE.md) — priority: medium
+
+- [ ] Ship a real token-drift check (palette vs design-tokens.json); the playbook's check_palette_drift.py is not included — priority: high
+- [ ] Repeat the with/without evaluation with harder fixtures, 3+ runs per condition, blind grading — priority: medium

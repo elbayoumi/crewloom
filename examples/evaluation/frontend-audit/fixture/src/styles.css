@@ -1,0 +1,9 @@
+:root { --ink: #1b1b18; --paper: #f6f5f1; --accent: #2b4fd8; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 system-ui; }
+.catalog { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); padding: 16px; }
+.card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; text-align: left; }
+.card .price { margin-left: 12px; color: #ff6600; }
+.safe-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
+.icon-btn { background: var(--accent); color: #fff; border: 0; border-radius: 10px; padding: 8px; }
+.icon-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (max-width: 640px) { .catalog { padding: 8px; } }

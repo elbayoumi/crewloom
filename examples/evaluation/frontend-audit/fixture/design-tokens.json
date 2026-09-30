@@ -1,0 +1,2 @@
+{ "color": { "ink": "#1b1b18", "paper": "#f6f5f1", "accent": "#2b4fd8", "danger": "#b3261e" },
+  "space": { "sm": "8px", "md": "16px", "lg": "24px" }, "radius": { "card": "10px" } }
