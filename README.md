@@ -37,7 +37,7 @@ Both example checks print `PASS`. See [six runnable examples](examples/README.md
 | Review automation | [Automation operations](.agents/skills/automation-ops-engineer/SKILL.md) | Checked n8n export and operational handoff |
 | Coordinate project work | [Context guardian](.agents/skills/context-guardian/SKILL.md) | Bounded context pack and updated project memory |
 
-Monitor roles, memory, and tool runs live with the optional [web dashboard](dashboard/README.md).
+Monitor roles, memory, and tool runs live with the optional [web dashboard](dashboard/README.md) ([19-second demo](assets/dashboard-demo.mp4)).
 
 Follow the [workflow recipes](documentation/WORKFLOWS.md) for role order, inputs, and acceptance evidence. Roles guide your agent; specialist platforms and project assets remain project inputs.
 
