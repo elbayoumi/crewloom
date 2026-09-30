@@ -16,13 +16,36 @@ EXCLUDED_DIRS = {"node_modules", ".next", "dist", "build", ".git"}
 MINMAX_FLOOR = re.compile(r"minmax\(\s*([^,()]+(?:\([^()]*\))?)\s*,")
 BARE_PX_FLOOR = re.compile(r"^\d+px$")
 
+# Tailwind min-width breakpoints. A class such as "lg:grid-cols-[minmax(0,1fr)_minmax(320px,1fr)]" only
+# applies from that width up, so its fixed floors are safe while they sum to at most half the breakpoint
+# (the other half is left for gaps, padding and the remaining tracks).
+BREAKPOINTS = {"sm": 640, "md": 768, "lg": 1024, "xl": 1280, "2xl": 1536}
+PREFIXED_ARBITRARY_GRID = re.compile(r"(?:^|:)(sm|md|lg|xl|2xl):grid-cols-\[")
+FLOOR_PX = re.compile(r"minmax\(\s*(\d+)px\s*,")
+
+
+def token_at(line: str, index: int) -> str:
+    """The quote/space-delimited token containing ``index`` (one Tailwind class)."""
+    start = max(line.rfind(c, 0, index) for c in " \t\"'`") + 1
+    ends = [e for e in (line.find(c, index) for c in " \t\"'`") if e != -1]
+    return line[start:min(ends) if ends else len(line)]
+
+
+def guarded_by_breakpoint(line: str, index: int) -> bool:
+    token = token_at(line, index)
+    match = PREFIXED_ARBITRARY_GRID.search(token)
+    if not match:
+        return False
+    floors = sum(int(n) for n in FLOOR_PX.findall(token))
+    return floors * 2 <= BREAKPOINTS[match.group(1)]
+
 
 def find_violations(text: str) -> list[tuple[int, str]]:
     violations = []
     for i, line in enumerate(text.splitlines(), start=1):
         for m in MINMAX_FLOOR.finditer(line):
             floor = m.group(1).strip()
-            if BARE_PX_FLOOR.match(floor):
+            if BARE_PX_FLOOR.match(floor) and not guarded_by_breakpoint(line, m.start()):
                 violations.append((i, line.strip()))
     return violations
 

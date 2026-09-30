@@ -12,5 +12,5 @@
 
 ### 2026-10-01 — grid-safety false positives behind breakpoint prefixes
 - السبب الجذري / Root cause: the check flags any `minmax(Npx,...)` floor without modeling that `lg:` only applies at >=1024px.
-- الحل المعتمد / Approved fix: open; evidence in `documentation/EVIDENCE.md`, task queued in ROADMAP_TODO.
-- الحالة: مفتوح
+- الحل المعتمد / Approved fix: breakpoint-aware guard in `check_responsive_grid_safety.py`; evidence in `documentation/EVIDENCE.md`, task queued in ROADMAP_TODO.
+- الحالة: محلول (2026-10-01) — prefixed floors (sm..2xl) are skipped when their sum is at most half the breakpoint; 4 regression tests

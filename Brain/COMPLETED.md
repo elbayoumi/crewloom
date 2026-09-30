@@ -29,3 +29,8 @@
 - Artifact: `documentation/EVIDENCE.md`.
 - Impact: Tools run on 3 internal projects; 2 findings measured and classified false positives, not hidden.
 - Evidence: commands and browser measurements recorded in the file.
+
+### 2026-10-01 — grid-safety breakpoint awareness
+- Artifact: `.agents/skills/frontend-ux-auditor/scripts/check_responsive_grid_safety.py`.
+- Impact: Removes the 2 measured false positives without hiding unprefixed or oversized floors.
+- Evidence: 10 tests pass (4 new); code-vault re-run passes.

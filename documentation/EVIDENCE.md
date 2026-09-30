@@ -42,3 +42,8 @@ Verification: a headless Chromium replica of the same `grid-template-columns` (1
 - The tools run on real projects and finish in well under a second each.
 - `grid-safety` flags any fixed floor, even behind a breakpoint prefix that already guarantees the width. Recorded as a follow-up in `Brain/ROADMAP_TODO.md`.
 - No claim is made that the role improves an agent's output; that needs a controlled with/without comparison on the same task, which is still open.
+
+### Follow-up: tool corrected
+
+`grid-safety` now skips a fixed floor inside a Tailwind `sm:`–`2xl:` arbitrary grid class when the floors sum to at most half that breakpoint's width. Unprefixed floors, floors too large for their breakpoint, and other tokens on the same line are still flagged (4 new regression tests). Re-running the original command on code-vault now passes; the two findings above no longer appear. The half-breakpoint margin is a conservative rule of thumb, not a measurement of gaps or padding in a given page.
+
