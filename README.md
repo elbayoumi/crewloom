@@ -56,6 +56,8 @@ crewloom dashboard          # needs Node 20+; opens on http://localhost:4317
 
 Monitor roles, memory, and tool runs live with the optional [web dashboard](dashboard/README.md) ([MP4 version](assets/dashboard-demo.mp4)); it has no authentication, so keep it on localhost.
 
+See [evidence from real projects](documentation/EVIDENCE.md), including a false positive.
+
 Follow the [workflow recipes](documentation/WORKFLOWS.md) for role order, inputs, and acceptance evidence. Roles guide your agent; specialist platforms and project assets remain project inputs.
 
 ## Give your agent a task

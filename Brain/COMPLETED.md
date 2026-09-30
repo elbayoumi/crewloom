@@ -24,3 +24,8 @@
 - Artifact: `pyproject.toml`, `crewloom install/dashboard` commands, issue/PR templates, README GIF.
 - Impact: Roles installable into a project in one command; dashboard starts with one command.
 - Evidence: 3 install tests pass; editable pip install in a clean venv runs `crewloom tools`; `crewloom dashboard` served `/api/overview` 200.
+
+### 2026-10-01 — First real-project evidence
+- Artifact: `documentation/EVIDENCE.md`.
+- Impact: Tools run on 3 internal projects; 2 findings measured and classified false positives, not hidden.
+- Evidence: commands and browser measurements recorded in the file.

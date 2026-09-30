@@ -17,3 +17,5 @@
 - [ ] Publish before/after evidence for 2-3 real tasks with full outputs — priority: high
 - [ ] Set GitHub social preview image (manual in repo settings) and add good-first-issue tasks — priority: medium
 - [ ] Add dashboard token authentication — priority: high
+
+- [ ] Make grid-safety skip pixel floors behind a breakpoint prefix that already fits them (2 false positives, see documentation/EVIDENCE.md) — priority: medium
