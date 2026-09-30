@@ -37,7 +37,24 @@ Both example checks print `PASS`. See [six runnable examples](examples/README.md
 | Review automation | [Automation operations](.agents/skills/automation-ops-engineer/SKILL.md) | Checked n8n export and operational handoff |
 | Coordinate project work | [Context guardian](.agents/skills/context-guardian/SKILL.md) | Bounded context pack and updated project memory |
 
-Monitor roles, memory, and tool runs live with the optional [web dashboard](dashboard/README.md) ([19-second demo](assets/dashboard-demo.mp4)).
+## Use it in your project
+
+```bash
+pip install -e .            # from the clone; adds the `crewloom` command
+crewloom install --host claude --target /path/to/your/project --skill frontend-ux-auditor
+```
+
+`--host claude` copies roles to `.claude/skills`; `--host agents` copies them to `.agents/skills` for hosts that read that folder (omit `--skill` for all 42). Existing roles are never overwritten without `--force`. Copied roles are static: re-run the command after pulling updates. Tools stay in the clone (`crewloom run ...`), because the pip install is editable and refers to the checkout.
+
+## Live dashboard
+
+```bash
+crewloom dashboard          # needs Node 20+; opens on http://localhost:4317
+```
+
+![Dashboard demo: role status, tool runs, and live updates](assets/dashboard-demo.gif)
+
+Monitor roles, memory, and tool runs live with the optional [web dashboard](dashboard/README.md) ([MP4 version](assets/dashboard-demo.mp4)); it has no authentication, so keep it on localhost.
 
 Follow the [workflow recipes](documentation/WORKFLOWS.md) for role order, inputs, and acceptance evidence. Roles guide your agent; specialist platforms and project assets remain project inputs.
 

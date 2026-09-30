@@ -13,3 +13,7 @@
 
 - [ ] Add role-level run history charts to the dashboard — priority: medium
 - [ ] Add optional auth before any non-localhost dashboard use — priority: high
+
+- [ ] Publish before/after evidence for 2-3 real tasks with full outputs — priority: high
+- [ ] Set GitHub social preview image (manual in repo settings) and add good-first-issue tasks — priority: medium
+- [ ] Add dashboard token authentication — priority: high

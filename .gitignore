@@ -10,3 +10,4 @@ dist/
 .crewloom/
 node_modules/
 .next/
+scripts/*.egg-info/

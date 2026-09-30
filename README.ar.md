@@ -35,3 +35,13 @@ python3 scripts/crewloom.py context frontend-ux-auditor --language ar --out /tmp
 [مسارات العمل](documentation/WORKFLOWS.md) توضح ترتيب الأدوار والمدخلات والمخرجات. الوكيل والنموذج وأدوات الفيديو والمنصات الخارجية توفرها بيئة مشروعك. فحوص الكود الثابتة لا تثبت جودة العرض الفعلي، وفحص ملفات الأدلة لا يثبت صحة محتواها.
 
 الأساس والتوثيق الرئيسي بالإنجليزية. لا توجد حزمة منشورة على npm أو PyPI أو خدمة استضافة للوكلاء. الترخيص [Apache-2.0](LICENSE)، مع حفظ [نسبة المصدر](NOTICE) لوكالة رموز.
+
+## استخدمه داخل مشروعك
+
+```bash
+pip install -e .
+crewloom install --host claude --target /path/to/project --skill frontend-ux-auditor
+crewloom dashboard
+```
+
+`--host claude` ينسخ الأدوار إلى `.claude/skills`، و`--host agents` إلى `.agents/skills`. لا يكتب فوق دور موجود بدون `--force`. الداشبورد يحتاج Node 20+ وبلا مصادقة، فاستخدمه على localhost فقط. انظر [الداشبورد](dashboard/README.md).

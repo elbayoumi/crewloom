@@ -1,0 +1,16 @@
+name: Role or tool proposal
+description: Propose a new role, a role improvement, or a local check
+labels: [enhancement]
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: Task this should help with
+      description: One concrete task, the inputs a user has, and the output they need.
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Acceptance evidence
+      description: How a reviewer can verify the result, such as a runnable check or sample input and output.
+    validations: { required: true }

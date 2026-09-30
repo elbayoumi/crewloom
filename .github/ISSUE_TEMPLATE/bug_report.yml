@@ -1,0 +1,22 @@
+name: Bug report
+description: A role, tool, CLI command, or the dashboard behaves incorrectly
+labels: [bug]
+body:
+  - type: textarea
+    id: command
+    attributes:
+      label: Command or action
+      description: The exact command or dashboard action, for example `python3 scripts/crewloom.py run seo-packet -- --packet x.json`.
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual result
+      description: Include the full output. Remove secrets and customer data.
+    validations: { required: true }
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Python version, Node version (dashboard only), and agent host.
+    validations: { required: true }

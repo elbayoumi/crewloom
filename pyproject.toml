@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crewloom"
+version = "0.3.0"
+description = "Repository-native specialist agent skills, working memory, bilingual context packs, and checks."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.9"
+dependencies = []
+keywords = ["agent-skills", "ai-agents", "bilingual"]
+
+[project.urls]
+Homepage = "https://github.com/elbayoumi/crewloom"
+
+[project.scripts]
+crewloom = "crewloom:main"
+
+[tool.setuptools]
+package-dir = { "" = "scripts" }
+py-modules = ["crewloom"]

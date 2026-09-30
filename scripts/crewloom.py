@@ -5,6 +5,7 @@ import json
 import importlib.util
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -38,7 +39,49 @@ def load_validator():
     return module
 
 
+HOST_DIRS = {'claude': Path('.claude') / 'skills', 'agents': Path('.agents') / 'skills'}
+SKILL_ID = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*')
+
+
+def install_skills(target, host, names, force):
+    """Copy role folders into a project's host skill directory; returns (installed, errors)."""
+    available = sorted(p.parent.name for p in SKILLS.glob('*/SKILL.md'))
+    wanted = names or available
+    errors = [f'Unknown skill: {n}' for n in wanted if n not in available]
+    if errors:
+        return [], errors
+    if not target.is_dir():
+        return [], [f'Target directory does not exist: {target}']
+    destination = target / HOST_DIRS[host]
+    clashes = [n for n in wanted if (destination / n).exists()]
+    if clashes and not force:
+        return [], [f'Already installed (use --force to overwrite): {", ".join(clashes)}']
+    destination.mkdir(parents=True, exist_ok=True)
+    for name in wanted:
+        if (destination / name).exists():
+            shutil.rmtree(destination / name)
+        shutil.copytree(SKILLS / name, destination / name, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+    return wanted, []
+
+
+def run_dashboard(port):
+    folder = ROOT / 'dashboard'
+    npm = shutil.which('npm')
+    if not npm:
+        print('npm not found: install Node 20+ to use the dashboard', file=sys.stderr)
+        return 1
+    if not (folder / 'node_modules').is_dir():
+        code = subprocess.run([npm, 'install', '--no-audit', '--no-fund'], cwd=folder, check=False).returncode
+        if code:
+            return code
+    env = {**os.environ, 'CREWLOOM_ROOT': str(ROOT)}
+    return subprocess.run([npm, 'run', 'dev', '--', '-p', str(port)], cwd=folder, env=env, check=False).returncode
+
+
 def main():
+    if not SKILLS.is_dir():
+        print('Crewloom needs a repository checkout; install with `pip install -e .` from a clone.', file=sys.stderr)
+        return 1
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('list', help='List available skill IDs')
@@ -54,7 +97,28 @@ def main():
     context.add_argument('skill')
     context.add_argument('--out', required=True)
     context.add_argument('--language', choices=('en', 'ar'), default='en')
+    install = commands.add_parser('install', help='Copy roles into a project for your agent host')
+    install.add_argument('--host', choices=sorted(HOST_DIRS), required=True,
+                         help='claude -> .claude/skills, agents -> .agents/skills')
+    install.add_argument('--target', default='.', help='Project directory (default: current)')
+    install.add_argument('--skill', action='append', default=[], help='Role ID; repeat for several (default: all)')
+    install.add_argument('--force', action='store_true', help='Overwrite roles that already exist')
+    dash = commands.add_parser('dashboard', help='Start the live dashboard (needs Node 20+)')
+    dash.add_argument('--port', type=int, default=4317)
     args = parser.parse_args()
+    if args.command == 'dashboard':
+        return run_dashboard(args.port)
+    if args.command == 'install':
+        for name in args.skill:
+            if not SKILL_ID.fullmatch(name):
+                parser.error(f'Invalid skill ID: {name}')
+        installed, errors = install_skills(Path(args.target).resolve(), args.host, args.skill, args.force)
+        for error in errors:
+            print(error, file=sys.stderr)
+        if errors:
+            return 2
+        print(f'Installed {len(installed)} roles into {Path(args.target).resolve() / HOST_DIRS[args.host]}')
+        return 0
     if args.command in ('tools', 'run'):
         tools = json.loads((ROOT / 'documentation' / 'TOOLS.json').read_text())['tools']
         if args.command == 'tools':

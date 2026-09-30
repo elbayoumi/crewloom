@@ -28,3 +28,4 @@ Core Python tools use the standard library. Commands run from the checkout root.
 | [scripts/test_domain_tools.py](../scripts/test_domain_tools.py) | CLI examples and malformed-input regressions | `python3 -m unittest discover -s scripts -p test_domain_tools.py` |
 | [scripts/test_run_log.py](../scripts/test_run_log.py) | Run-log append and opt-out regressions | `python3 -m unittest discover -s scripts -p test_run_log.py` |
 | [dashboard/](../dashboard/README.md) | Live monitoring web app: roles, memory, tools, runs | `cd dashboard && npm install && npm run dev` |
+| [scripts/test_install.py](../scripts/test_install.py) | `crewloom install` copy, overwrite-refusal, and validation regressions | `python3 -m unittest discover -s scripts -p test_install.py` |
