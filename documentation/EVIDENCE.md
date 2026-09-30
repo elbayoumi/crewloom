@@ -73,3 +73,7 @@ What the role did change, from B's own report:
 - The role's own gaps surfaced: the playbook relies on a project-supplied `check_palette_drift.py` that is not included, so the seeded off-token colors were found by reading only, and the role's brain files are empty templates.
 
 Next experiment needed to say anything stronger: several runs per condition, harder seeded defects that a generic review tends to miss, and a blind grader for the extra findings.
+
+### Follow-up: `palette-drift` added
+
+The gap found above (off-token colors reachable only by reading) is closed by the new `palette-drift` tool. On the evaluation fixture it reports `src/styles.css:5` and `src/App.tsx:39` (`#ff6600`) and `src/styles.css:4` (`#ddd`), the seeded off-token locations, plus `#fff` literals at `src/App.tsx:39` and `src/styles.css:7`, which are not in the tokens and can be accepted with `--allow`. On code-vault (18 source files, its own `design-tokens.json`) it passes. It checks hex and numeric `rgb()` literals only; contrast and rendering still need a browser.

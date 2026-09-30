@@ -20,6 +20,7 @@ class DomainExamples(unittest.TestCase):
             ('budget-pacing', '--daily-budget', '100', '--days-elapsed', '3', '--actual-spend', '300'),
             ('script-pacing', '--file', 'examples/video/script.txt', '--duration', '30'),
             ('grid-safety', '--project-dir', 'examples/ui', '--json'),
+            ('palette-drift', '--project-dir', 'examples/ui', '--tokens', 'examples/ui/design-tokens.json', '--json'),
         ]
         for case in cases:
             with self.subTest(tool=case[0]):

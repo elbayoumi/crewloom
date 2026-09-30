@@ -36,6 +36,7 @@ Read [the full Arabic playbook](references/PLAYBOOK.ar.md) for role boundaries, 
 
 - [ui-hints](scripts/check_ui_quality.py): Static UI hints; exit 2 requests rendered review rather than claiming acceptance.
 - [grid-safety](scripts/check_responsive_grid_safety.py): Find fixed-pixel grid floors without viewport bounds.
+- [palette-drift](scripts/check_palette_drift.py): Find literal colors in UI source that are absent from the approved design tokens.
 - [layout-overlap](scripts/check_layout_overlap.py): Check geometric sibling overlap from supplied browser snapshot JSON.
 
 See the [tool catalog](../../../documentation/TOOLS.md) for commands, inputs, side effects and exit behavior.

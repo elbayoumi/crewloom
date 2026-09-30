@@ -34,7 +34,7 @@ Source-derived reference; current public scope and tool support are defined in t
 - `npm run build` — المصدر الوحيد لتحذيرات Edge Runtime وجدول `○ Static`/`ƒ Dynamic` وحزم الـ JS المنتجة.
 - `curl -sI <URL>` — فحص استجابة السيرفر وتاريخ الكاش ورأس `last-modified` لضمان تحديث الإنتاج.
 - متصفح حي (Claude_Browser أو ما يعادله) — التحقق النهائي، لا بديل عنه.
-- `scripts/check_palette_drift.py` (project-supplied: `check_palette_drift.py`) — بوابة آلية لبند 2؛
+- `scripts/check_palette_drift.py` (مضمّن في Crewloom؛ الأمر: `crewloom.py run palette-drift`) — بوابة آلية لبند 2؛
   يتطلب `--tokens` لملف هوية المشروع المعتمد، ويقارن به إعداد Tailwind والألوان النصية المدعومة.
   غياب الإعداد أو تعذر تحليله = غير متحقق (2)، والتوكن غير المستخدم تنبيه فقط.
   يرفض الألوان الافتراضية المتسربة والهيكس خارج الهوية؛ لا يغني عن مراجعة المتصفح والتباين. راجع حادثة AqarSafe (`brain/CHALLENGES.md` مرجع 10).

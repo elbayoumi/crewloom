@@ -10,7 +10,7 @@
 
 Crewloom is a repository-native toolkit for specialist AI agent work. Choose a role, give it your project inputs, keep working memory, and check the result with local tools. Use your existing agent host and model.
 
-The toolkit brings together **42 English role guides**, **108 detailed reference documents**, **12 Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic.
+The toolkit brings together **42 English role guides**, **108 detailed reference documents**, **13 Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic.
 
 ## Try it in a minute
 

@@ -78,6 +78,17 @@
       "effect": "read-only"
     },
     {
+      "id": "palette-drift",
+      "skill": "frontend-ux-auditor",
+      "path": ".agents/skills/frontend-ux-auditor/scripts/check_palette_drift.py",
+      "description": "Find literal colors in UI source that are absent from the approved design tokens",
+      "example_args": "--project-dir {input} --tokens design-tokens.json",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
       "id": "layout-overlap",
       "skill": "frontend-ux-auditor",
       "path": ".agents/skills/frontend-ux-auditor/scripts/check_layout_overlap.py",

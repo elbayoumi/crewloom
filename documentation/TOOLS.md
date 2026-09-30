@@ -11,6 +11,7 @@ Run `python3 scripts/crewloom.py tools` to list these tools. `run` dispatches on
 | [budget-pacing](../.agents/skills/paid-media-buyer/scripts/budget_pacer.py) | Compare actual campaign spend with approved expected pacing | `--daily-budget 100 --days-elapsed 3 --actual-spend 300` |
 | [ui-hints](../.agents/skills/frontend-ux-auditor/scripts/check_ui_quality.py) | Static UI hints; exit 2 requests rendered review rather than claiming acceptance | `--project-dir {input} --json` |
 | [grid-safety](../.agents/skills/frontend-ux-auditor/scripts/check_responsive_grid_safety.py) | Find fixed-pixel grid floors without viewport bounds | `--project-dir {input} --json` |
+| [palette-drift](../.agents/skills/frontend-ux-auditor/scripts/check_palette_drift.py) | Find literal colors in UI source that are absent from the approved design tokens; exit 1 drift, 2 unverified | `--project-dir {input} --tokens design-tokens.json` |
 | [layout-overlap](../.agents/skills/frontend-ux-auditor/scripts/check_layout_overlap.py) | Check geometric sibling overlap from supplied browser snapshot JSON | `--snapshot {input} --json` |
 | [delivery-evidence](../.agents/skills/qa-test-automation-engineer/scripts/check_delivery_packet.py) | Verify evidence bookkeeping, revision and hashes; not evidence truth | `--help` |
 | [context](../.agents/skills/context-guardian/scripts/context_pack.py) | Bounded English or Arabic context pack | `--skill context-guardian --out /tmp/context.md` |

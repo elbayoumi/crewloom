@@ -39,3 +39,8 @@
 - Artifact: `examples/evaluation/frontend-audit/`, section in `documentation/EVIDENCE.md`.
 - Impact: First controlled comparison; result is a tie (9/9 both), recorded honestly as inconclusive.
 - Evidence: ground truth written before runs; both reports scored against it.
+
+### 2026-10-01 — palette-drift tool
+- Artifact: `.agents/skills/frontend-ux-auditor/scripts/check_palette_drift.py` (+11 tests), registered as tool 13.
+- Impact: Closes the gap where the playbook named a project-supplied check that did not exist; flags off-token colors with file:line.
+- Evidence: on the seeded fixture it reports all 3 seeded off-token locations (#ff6600 x2, #ddd) plus #fff neutrals; real project code-vault passes (18 files).
