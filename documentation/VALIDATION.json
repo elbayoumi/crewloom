@@ -7,9 +7,9 @@
     "context_pack": 8,
     "frontend": 33,
     "delivery_evidence": 12,
-    "public_cli_workflows_and_grader": 65,
-    "total_cases": 125,
-    "standard_gate_passed": 120,
+    "public_cli_workflows_and_grader": 72,
+    "total_cases": 132,
+    "standard_gate_passed": 127,
     "standard_gate_docker_skips": 5
   },
   "context_cli": {
@@ -36,14 +36,14 @@
     "One public acceptance contract does not establish general superiority",
     "Reviewer identifiers remain unauthenticated"
   ],
-  "release": "0.5.0",
+  "release": "0.5.1",
   "published_examples": {
     "count": 6,
     "result": "passed in CLI regression suite"
   },
   "base_commit": "4e54fc7da28b5fbe523c0f9d3904eaa37389cd38",
   "live_docker": {
-    "workflow_suite_cases": 20,
+    "workflow_suite_cases": 27,
     "docker_cases": 5,
     "result": "passed locally",
     "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d"
@@ -86,5 +86,13 @@
     "claude_skipped": 8,
     "cross_host_complete": false,
     "evidence": "examples/evaluation/host-trials-20261001/report.json"
+  },
+  "project_concurrency": {
+    "explicit_task_root": "required",
+    "same_root_parallel": "rejected",
+    "different_roots_parallel": "passed",
+    "paused_task_reservation": "passed",
+    "cancel_retains_files_and_history": "passed",
+    "runtime_redirects": "rejected"
   }
 }

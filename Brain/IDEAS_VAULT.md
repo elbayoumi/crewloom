@@ -20,3 +20,5 @@ Freeze private multi-file feature contracts, record exact model identity and cos
 
 ### 2026-10-01 — Named maintenance activation
 Use a stable bilingual workflow name to invoke verified in-place repairs without changing role IDs or implying an autonomous runtime.
+
+A future scheduler should preserve canonical root and active-workflow reservations instead of sharing a writable checkout between workers.

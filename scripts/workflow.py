@@ -154,7 +154,7 @@ def state_for(root, plan, fingerprint):
         state = json.loads(path.read_text())
         if not isinstance(state, dict) or state.get('schema_version') != 1 or not isinstance(state.get('steps'), dict):
             raise ValueError('Malformed workflow state')
-        if state.get('status') not in ('pending', 'running', 'failed', 'complete', 'awaiting_task', 'blocked'):
+        if state.get('status') not in ('pending', 'running', 'failed', 'complete', 'awaiting_task', 'blocked', 'cancelled'):
             raise ValueError('Malformed workflow progress status')
         definitions = {step['id']: step for step in plan['steps']}
         for ident, record in state['steps'].items():
@@ -266,81 +266,126 @@ def handoff(root, plan, state):
             'instruction': 'Read the selected role and project memory; retain this root and verify every supplied artifact.'}
 
 
+def active_workflow(root):
+    path=safe_path(root,'.crewloom/active_workflow.json',internal=True)
+    if not path.exists():return None
+    value=json.loads(path.read_text())
+    if not isinstance(value,dict) or value.get('project_root')!=str(root) or not ID.fullmatch(str(value.get('workflow',''))) or not re.fullmatch('[0-9a-f]{64}',str(value.get('plan_sha256',''))):
+        raise ValueError('Invalid or cross-project active workflow reservation')
+    return value
+
+
+def reserve_workflow(root, plan, fingerprint):
+    value=active_workflow(root)
+    if value and (value['workflow']!=plan['id'] or value['plan_sha256']!=fingerprint):
+        raise ValueError('Project already has an unfinished workflow: '+value['workflow']+'; finish or explicitly cancel it first')
+    path=safe_path(root,'.crewloom/active_workflow.json',internal=True)
+    with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=path.parent,delete=False) as stream:
+        temporary=Path(stream.name)
+        json.dump({'project_root':str(root),'workflow':plan['id'],'plan_sha256':fingerprint},stream)
+    os.replace(temporary,path)
+
+
+def cancel(root, plan, fingerprint):
+    with lock(safe_path(root,'.crewloom',internal=True)):
+        folder,state=state_for(root,plan,fingerprint)
+        if not (folder/'state.json').is_file():raise ValueError('Cannot cancel an unstarted workflow')
+        value=active_workflow(root)
+        if value and (value['workflow']!=plan['id'] or value['plan_sha256']!=fingerprint):
+            raise ValueError('Cancel must name the active workflow and unchanged plan')
+        if state['status']=='complete':raise ValueError('Completed workflow does not need cancellation')
+        state['status']='cancelled';save(folder,state)
+        safe_path(root,'.crewloom/active_workflow.json',internal=True).unlink(missing_ok=True)
+        return {'project_root':str(root),'workflow':plan['id'],'status':'cancelled',
+                'instruction':'Inspect partial artifacts. Cancellation preserves files and failure history; use a new workflow ID for new work.'}
+
+
 def run(root, plan, fingerprint, image, accept=None, reviewer=None):
+    with lock(safe_path(root,'.crewloom',internal=True)):
+        _,state=state_for(root,plan,fingerprint)
+        if state['status']=='cancelled':raise ValueError('Cancelled workflow cannot resume; use a new workflow ID')
+        reserve_workflow(root,plan,fingerprint)
+        try:
+            return _run_locked(root,plan,fingerprint,image,accept,reviewer)
+        finally:
+            _,latest=state_for(root,plan,fingerprint)
+            if latest['status'] in ('complete','failed','blocked'):
+                safe_path(root,'.crewloom/active_workflow.json',internal=True).unlink(missing_ok=True)
+
+
+def _run_locked(root, plan, fingerprint, image, accept=None, reviewer=None):
     folder, state = state_for(root, plan, fingerprint)
-    with lock(safe_path(root, '.crewloom', internal=True)):
-        folder, state = state_for(root, plan, fingerprint)
-        verify_completed(root, state)
+    verify_completed(root, state)
+    if accept:
+        next_step = next((s for s in plan['steps'] if state['steps'].get(s['id'], {}).get('status') != 'complete'), None)
+        if not next_step or next_step['id'] != accept or next_step.get('kind') != 'task':
+            raise ValueError('Accept must name the next outstanding task')
+    ledger_file = safe_path(root, '.crewloom/attempts.json', internal=True)
+    ledger = json.loads(ledger_file.read_text()) if ledger_file.exists() else {'attempts': []}
+    if not isinstance(ledger, dict) or not isinstance(ledger.get('attempts'), list) or any(not isinstance(item, dict) or item.get('status') not in ('running', 'failed', 'succeeded') or not isinstance(item.get('signature'), str) for item in ledger['attempts']):
+        raise ValueError('Malformed project attempt ledger')
+    image_id = None
+    for step in plan['steps']:
+        record = state['steps'].setdefault(step['id'], {'status': 'pending', 'role': step['role'], 'summary': step['summary'], 'attempts': []})
+        if record['status'] == 'complete':
+            continue
+        try:
+            inputs = hashes(root, step['inputs'])
+        except ValueError as exc:
+            state['status'] = 'blocked'; state['error'] = str(exc); save(folder, state)
+            return handoff(root, plan, state)
+        state.pop('error', None)
+        if step.get('kind') == 'task':
+            if accept != step['id']:
+                state['status'] = 'awaiting_task'; save(folder, state); return handoff(root, plan, state)
+            if not isinstance(reviewer, str) or not reviewer.strip() or len(reviewer) > 100 or reviewer.strip() == step['role']:
+                raise ValueError('Task completion needs a reviewer identifier different from the owning role')
+            record.update(status='complete', inputs=inputs, outputs=hashes(root, step['outputs']), reviewer=reviewer)
+            state['status'] = 'complete' if step is plan['steps'][-1] else 'pending'
+            save(folder, state)
+            return handoff(root, plan, state)
         if accept:
-            next_step = next((s for s in plan['steps'] if state['steps'].get(s['id'], {}).get('status') != 'complete'), None)
-            if not next_step or next_step['id'] != accept or next_step.get('kind') != 'task':
-                raise ValueError('Accept must name the next outstanding task')
-        ledger_file = safe_path(root, '.crewloom/attempts.json', internal=True)
-        ledger = json.loads(ledger_file.read_text()) if ledger_file.exists() else {'attempts': []}
-        if not isinstance(ledger, dict) or not isinstance(ledger.get('attempts'), list) or any(not isinstance(item, dict) or item.get('status') not in ('running', 'failed', 'succeeded') or not isinstance(item.get('signature'), str) for item in ledger['attempts']):
-            raise ValueError('Malformed project attempt ledger')
-        image_id = None
-        for step in plan['steps']:
-            record = state['steps'].setdefault(step['id'], {'status': 'pending', 'role': step['role'], 'summary': step['summary'], 'attempts': []})
-            if record['status'] == 'complete':
-                continue
-            try:
-                inputs = hashes(root, step['inputs'])
-            except ValueError as exc:
-                state['status'] = 'blocked'; state['error'] = str(exc); save(folder, state)
+            raise ValueError('Accept only the next task step; commands must run to produce evidence')
+        if step.get('kind') == 'model':
+            run_model_step(root, plan, step, inputs, record, state, folder, ledger)
+            if record['status'] != 'complete':
                 return handoff(root, plan, state)
-            state.pop('error', None)
-            if step.get('kind') == 'task':
-                if accept != step['id']:
-                    state['status'] = 'awaiting_task'; save(folder, state); return handoff(root, plan, state)
-                if not isinstance(reviewer, str) or not reviewer.strip() or len(reviewer) > 100 or reviewer.strip() == step['role']:
-                    raise ValueError('Task completion needs a reviewer identifier different from the owning role')
-                record.update(status='complete', inputs=inputs, outputs=hashes(root, step['outputs']), reviewer=reviewer)
-                state['status'] = 'complete' if step is plan['steps'][-1] else 'pending'
-                save(folder, state)
-                return handoff(root, plan, state)
-            if accept:
-                raise ValueError('Accept only the next task step; commands must run to produce evidence')
-            if step.get('kind') == 'model':
-                run_model_step(root, plan, step, inputs, record, state, folder, ledger)
-                if record['status'] != 'complete':
-                    return handoff(root, plan, state)
-                continue
-            try:
-                image_id = image_id or inspect_image(image)
-            except ValueError as exc:
-                state['status'] = 'blocked'; state['error'] = str(exc); save(folder, state)
-                raise
-            signature = digest(json.dumps({'inputs': inputs, 'argv': step['argv'], 'image_id': image_id}, sort_keys=True).encode())
-            if sum(a['signature'] == signature and a['status'] != 'succeeded' for a in ledger['attempts']) >= 2:
-                state['status'] = 'blocked'; save(folder, state)
-                raise ValueError('Two attempts exhausted for unchanged command and inputs')
-            before = {rel: (safe_path(root, rel).stat().st_mtime_ns, safe_path(root, rel).stat().st_ino) for rel in step['outputs'] if safe_path(root, rel).is_file()}
-            attempt = {'signature': signature, 'status': 'running', 'started_at': time.time()}
-            record['attempts'].append(attempt)
-            project_attempt = {'signature': signature, 'status': 'running', 'workflow': plan['id'], 'step': step['id']}
-            ledger['attempts'].append(project_attempt)
-            save_ledger(root, ledger)
-            record['status'] = 'running'; state['status'] = 'running'; save(folder, state)
-            result = docker_execute(root, step['argv'], image_id, step.get('timeout_seconds', 60))
-            attempt.update(result); attempt['status'] = 'finished'
-            record['inputs'] = inputs
-            try:
-                if result['exit_code']:
-                    raise ValueError('Command failed: ' + step['id'])
-                record['outputs'] = hashes(root, step['outputs'])
-                for rel, previous in before.items():
-                    stat = safe_path(root, rel).stat()
-                    if previous == (stat.st_mtime_ns, stat.st_ino):
-                        raise ValueError('Unchanged pre-existing output is not fresh execution evidence: ' + rel)
-            except ValueError as exc:
-                project_attempt['status'] = 'failed'; save_ledger(root, ledger)
-                record['status'] = 'failed'; state['status'] = 'failed'; record['error'] = str(exc)
-                save(folder, state); return handoff(root, plan, state)
-            project_attempt['status'] = 'succeeded'; save_ledger(root, ledger)
-            record['status'] = 'complete'; record.pop('error', None); save(folder, state)
-        state['status'] = 'complete'; save(folder, state)
-        return handoff(root, plan, state)
+            continue
+        try:
+            image_id = image_id or inspect_image(image)
+        except ValueError as exc:
+            state['status'] = 'blocked'; state['error'] = str(exc); save(folder, state)
+            raise
+        signature = digest(json.dumps({'inputs': inputs, 'argv': step['argv'], 'image_id': image_id}, sort_keys=True).encode())
+        if sum(a['signature'] == signature and a['status'] != 'succeeded' for a in ledger['attempts']) >= 2:
+            state['status'] = 'blocked'; save(folder, state)
+            raise ValueError('Two attempts exhausted for unchanged command and inputs')
+        before = {rel: (safe_path(root, rel).stat().st_mtime_ns, safe_path(root, rel).stat().st_ino) for rel in step['outputs'] if safe_path(root, rel).is_file()}
+        attempt = {'signature': signature, 'status': 'running', 'started_at': time.time()}
+        record['attempts'].append(attempt)
+        project_attempt = {'signature': signature, 'status': 'running', 'workflow': plan['id'], 'step': step['id']}
+        ledger['attempts'].append(project_attempt)
+        save_ledger(root, ledger)
+        record['status'] = 'running'; state['status'] = 'running'; save(folder, state)
+        result = docker_execute(root, step['argv'], image_id, step.get('timeout_seconds', 60))
+        attempt.update(result); attempt['status'] = 'finished'
+        record['inputs'] = inputs
+        try:
+            if result['exit_code']:
+                raise ValueError('Command failed: ' + step['id'])
+            record['outputs'] = hashes(root, step['outputs'])
+            for rel, previous in before.items():
+                stat = safe_path(root, rel).stat()
+                if previous == (stat.st_mtime_ns, stat.st_ino):
+                    raise ValueError('Unchanged pre-existing output is not fresh execution evidence: ' + rel)
+        except ValueError as exc:
+            project_attempt['status'] = 'failed'; save_ledger(root, ledger)
+            record['status'] = 'failed'; state['status'] = 'failed'; record['error'] = str(exc)
+            save(folder, state); return handoff(root, plan, state)
+        project_attempt['status'] = 'succeeded'; save_ledger(root, ledger)
+        record['status'] = 'complete'; record.pop('error', None); save(folder, state)
+    state['status'] = 'complete'; save(folder, state)
+    return handoff(root, plan, state)
 
 
 def run_model_step(root, plan, step, inputs, record, state, folder, ledger):
@@ -408,28 +453,32 @@ def doctor(image, root=None, host=None, model_host=None):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('run', 'status', 'handoff', 'accept', 'doctor'))
-    parser.add_argument('--project', default='.')
+    parser.add_argument('action', choices=('run', 'status', 'handoff', 'accept', 'cancel', 'doctor'))
+    parser.add_argument('--project', help='Explicit canonical project root; required for task actions')
     parser.add_argument('--plan', default='workflow.json')
     parser.add_argument('--image', default=DEFAULT_IMAGE)
     parser.add_argument('--host', choices=('agents', 'claude'))
     parser.add_argument('--step'); parser.add_argument('--reviewer')
     parser.add_argument('--model-host', choices=('codex', 'claude'))
     args = parser.parse_args(argv)
+    if args.action != 'doctor' and not args.project:
+        parser.error('Task actions require --project; current working directory is not project identity')
     try:
         if args.action == 'doctor':
-            result = doctor(args.image, Path(args.project).resolve(), args.host, args.model_host)
+            result = doctor(args.image, Path(args.project or '.').resolve(), args.host, args.model_host)
         else:
             root = Path(args.project).resolve(strict=True)
             if not root.is_dir(): raise ValueError('Project must be a directory')
             plan, fingerprint = read_plan(root, args.plan)
             if args.action in ('status', 'handoff'):
                 _, state = state_for(root, plan, fingerprint); result = handoff(root, plan, state)
+            elif args.action == 'cancel':
+                result = cancel(root, plan, fingerprint)
             else:
                 if args.action == 'accept' and not args.step: raise ValueError('Accept needs --step')
                 result = run(root, plan, fingerprint, args.image, args.step if args.action == 'accept' else None, args.reviewer)
         print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0 if args.action in ('status', 'handoff', 'accept') or result.get('status') == 'complete' or result.get('isolated_execution_ready') else 2
+        return 0 if args.action in ('status', 'handoff', 'accept', 'cancel') or result.get('status') == 'complete' or result.get('isolated_execution_ready') else 2
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         print(json.dumps({'status': 'blocked', 'error': str(exc)}, ensure_ascii=False))
         return 2

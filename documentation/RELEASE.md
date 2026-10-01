@@ -41,3 +41,7 @@ Docker-isolated software workflow commands, manual task handoffs, persistent evi
 Adds project-bound model artifact generation for Codex/Claude CLIs, a real generated-feature/Docker acceptance example, repeated provider collection with label-free grading, and English specialist procedures for all 42 roles. Codex generation and acceptance are executed; Claude live success is unavailable because the CLI is logged out. Ten Codex trial submissions tie at full contract acceptance. This release makes no broad superiority or independent-human-review claim.
 
 Provider CLI processes remain trusted host dependencies outside the Docker command sandbox. Authenticate locally, review supplied inputs, and run generated code through isolated checks. Default model identity and unreported cost are not inferred.
+
+## 0.5.1
+
+Workflow task actions require an explicit project root. Project ownership persists while a manual task awaits an artifact; other workflows cannot take that root until completion or explicit cancellation. Cancellation preserves partial files and failure history. Concurrent same-root rejection, parallel distinct-root execution and runtime reservation boundaries are verified. Direct host edits are outside the runner guards.
