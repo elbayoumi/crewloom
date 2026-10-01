@@ -46,3 +46,5 @@
 - [ ] Authenticate Claude locally and complete cross-host runs; current Claude results are failed/blocked.
 - [ ] Freeze harder private cases with an independent coordinator; current public slug task ties at full acceptance.
 - [ ] Authenticate reviewer identities for task acceptance; declared IDs remain unauthenticated.
+
+- [x] Adopt Self-Editing Mode / التعديل الذاتي for the existing maintenance workflow and document activation/scope.

@@ -125,3 +125,7 @@ Derived from RUMUZE Agency's first-party procedures, with clean public memory an
 [Apache-2.0](LICENSE) · Copyright 2026 RUMUZE Agency · [Attribution](NOTICE).
 
 Project selection and isolation: [project guide](documentation/PROJECTS.md).
+
+## Self-Editing Mode
+
+Use [Self-Editing Mode](documentation/SELF_EDITING.md) to repair an existing role, tool or document from an observed problem. The workflow binds a project, makes an in-place change, verifies acceptance and records the result. Arabic activation name: **التعديل الذاتي**.

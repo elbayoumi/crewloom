@@ -69,3 +69,8 @@
 - Artifact: CLI model adapters, generated-feature example, provider trial harness and 36 additional English specialist procedures.
 - Impact: Explicit project inputs/outputs, checked generation, all 42 English procedures and reproducible scoring.
 - Evidence: Codex feature passes five live Docker tests; ten fresh trial submissions tie at 9/9. Claude has two authentication failures/eight skipped calls; cross-host evaluation incomplete.
+
+### 2026-10-01 — Self-Editing Mode naming
+- Artifact: `documentation/SELF_EDITING.md`, constitution and improvement-role entry point.
+- Impact: Owner-selected English/Arabic name activates the existing in-place maintenance workflow.
+- Evidence: Role ID preserved; documentation explicitly distinguishes host task activation from CLI/background execution.

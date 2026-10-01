@@ -39,3 +39,7 @@ A new gate requires a demonstrated rejection of a known bad commit and acceptanc
 ## Project isolation
 
 Bind one canonical project root before work and preserve it through handoffs. Library code is reusable; project memory, inputs, outputs, and run history belong to the selected project. Run tools with `run --project <root>` and generate project context with `context --project <root>` after installing the role. Never use another project's memory or infer a project from a previous task. Resolve symlinks before validating paths. Reject missing or ambiguous project identity before writes. CLI checks are input guards, not a sandbox for arbitrary agent-host actions.
+
+## Self-Editing Mode
+
+When the user requests **Self-Editing Mode** or **التعديل الذاتي**, apply the existing in-place improvement workflow described in [the mode guide](documentation/SELF_EDITING.md). Bind the selected project, diagnose the demonstrated problem, define acceptance, edit existing assets, verify the result and sync memory. Preserve previous attempts and unrelated work. The mode name does not expand task authorization or host permissions.

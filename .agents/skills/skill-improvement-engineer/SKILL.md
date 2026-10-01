@@ -1,13 +1,15 @@
 ---
 name: skill-improvement-engineer
-description: Identify one demonstrated problem in an existing skill and read its recorded experience. Use for skill improvement engineer tasks.
+description: Improve an existing role in place from a demonstrated problem. Use when the user requests Self-Editing Mode, التعديل الذاتي, or skill improvement.
 ---
 
-# Skill Improvement Engineer
+# Self-Editing Mode
+
+The implementation role ID remains `skill-improvement-engineer`. Read [the mode guide](../../../documentation/SELF_EDITING.md) for activation and scope.
 
 ## When to use
 
-Use this role for skill improvement engineer work. Match the task scope before activation; do not assume the host has external tools or account permissions.
+Use this role for Self-Editing Mode (التعديل الذاتي) and in-place skill improvement work. Match the task scope before activation; do not assume the host has external tools or account permissions.
 
 ## Brain and preflight
 

@@ -35,7 +35,7 @@ All 42 entries are English public adaptations. IDs stay stable across output lan
 | Seo Growth Engineer | [seo-growth-engineer](../.agents/skills/seo-growth-engineer/SKILL.md) |
 | Short Form Paid Booster | [short-form-paid-booster](../.agents/skills/short-form-paid-booster/SKILL.md) |
 | Skill Forge Recruiter | [skill-forge-recruiter](../.agents/skills/skill-forge-recruiter/SKILL.md) |
-| Skill Improvement Engineer | [skill-improvement-engineer](../.agents/skills/skill-improvement-engineer/SKILL.md) |
+| Self-Editing Mode | [skill-improvement-engineer](../.agents/skills/skill-improvement-engineer/SKILL.md) |
 | Skill Performance Auditor | [skill-performance-auditor](../.agents/skills/skill-performance-auditor/SKILL.md) |
 | Studio Director | [studio-director](../.agents/skills/studio-director/SKILL.md) |
 | Tech Stack Architect | [tech-stack-architect](../.agents/skills/tech-stack-architect/SKILL.md) |

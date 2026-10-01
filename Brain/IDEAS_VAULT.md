@@ -17,3 +17,6 @@ Extend the label-free grader with independently frozen acceptance suites for add
 
 ### 2026-10-01 — Harder provider acceptance
 Freeze private multi-file feature contracts, record exact model identity and cost, and use a coordinator independent of the producer. A full-acceptance tie on a public pure function cannot establish the benefit of specialist procedures.
+
+### 2026-10-01 — Named maintenance activation
+Use a stable bilingual workflow name to invoke verified in-place repairs without changing role IDs or implying an autonomous runtime.

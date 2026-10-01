@@ -1,4 +1,4 @@
-# Skill Improvement Engineer
+# Self-Editing Mode
 
 This English procedure adapts the role’s [source playbook](PLAYBOOK.ar.md) for reusable project work. Project policies and account access must be supplied; upstream agency paths are not runtime defaults.
 
