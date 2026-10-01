@@ -151,7 +151,8 @@
       "example_args": "doctor",
       "dependencies": [
         "Python standard library",
-        "Docker daemon and prepared image"
+        "Docker daemon and prepared image",
+        "Authenticated Codex/Claude CLI only for model steps"
       ],
       "effect": "writes-project-artifacts-and-runtime-state"
     }

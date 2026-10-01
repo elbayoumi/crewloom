@@ -36,4 +36,13 @@
 ### 2026-10-01 — Executable software workflows
 - Artifact: Software execution foundation ✅; six detailed English contracts and objective feature grading.
 - Status: Runnable fixture, Docker isolation, resume/handoff, host-layout setup and readiness implemented.
-- Remaining: Real independently coordinated provider trials; remaining detailed role translations; authenticated review and external-model adapters.
+- Remaining: Independent cross-host provider trials; authenticated review and broader/private acceptance benchmarks.
+
+### 2026-10-01 — Bounded model generation and English role depth
+- [x] Codex/Claude bounded artifact adapters and project-input/output regressions.
+- [x] Real Codex generation followed by isolated acceptance and resume.
+- [x] Repeated provider-trial harness with frozen protocol and anonymous grading.
+- [x] English specialist execution procedures for all 42 roles.
+- [ ] Authenticate Claude locally and complete cross-host runs; current Claude results are failed/blocked.
+- [ ] Freeze harder private cases with an independent coordinator; current public slug task ties at full acceptance.
+- [ ] Authenticate reviewer identities for task acceptance; declared IDs remain unauthenticated.

@@ -22,3 +22,9 @@ Project selection and isolation: [project guide](PROJECTS.md).
 ## Execution and evidence layer
 
 `scripts/workflow.py` is the single workflow state/execution implementation. The CLI delegates to it. The project owns a validated ordered plan; commands execute in Docker and tasks pause for reviewed artifacts. Runtime state is project-local and hidden from commands. Fingerprints prevent stale resume and project/plan substitution; attempts and locks survive handoffs. The objective feature evaluator reuses the same Docker executor and keeps expected answers outside candidate containers. See [execution](EXECUTION.md).
+
+## Bounded model generation
+
+Workflow model steps use `scripts/model_host.py`: operator-authenticated CLI text generation in an empty temporary working directory, strict artifact sets and project-scoped writes. Only selected text inputs and installed project role guidance/memory are supplied. Docker commands verify generated code; the CLI itself is a trusted host dependency outside the command sandbox. Generation and acceptance evidence remain distinct.
+
+The repeated-trial coordinator (`scripts/evaluate_hosts.py`) freezes task/scorer hashes, collects new with/without-role submissions and calls the deterministic grader without provider labels. Provider mapping is written separately and joined in the final report. This provides automatic contract scoring, not independent human coordination or universal role-performance evidence.

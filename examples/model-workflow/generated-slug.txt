@@ -1,0 +1,28 @@
+"""Unicode slug generation using the Python standard library.
+
+Verification is deferred to the next workflow step; no checks were executed.
+"""
+
+import unicodedata
+
+
+def slugify(value: str) -> str:
+    """Normalize and casefold text, preserving Unicode letters and decimals."""
+    if not isinstance(value, str):
+        raise TypeError("value must be a string")
+
+    normalized = unicodedata.normalize("NFKC", value).casefold()
+    result = []
+    separator_pending = False
+
+    for character in normalized:
+        category = unicodedata.category(character)
+        if category.startswith("L") or category == "Nd":
+            if separator_pending and result:
+                result.append("-")
+            result.append(character)
+            separator_pending = False
+        else:
+            separator_pending = True
+
+    return "".join(result)

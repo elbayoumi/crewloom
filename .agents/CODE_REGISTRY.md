@@ -39,3 +39,10 @@ Core Python tools use the standard library. Commands run from the checkout root.
 | [scripts/evaluate_feature.py](../scripts/evaluate_feature.py) | Label-free held-out Unicode feature acceptance; QA | `python3 scripts/evaluate_feature.py --project /path/to/submission --repeats 3` |
 | [scripts/test_evaluate_feature.py](../scripts/test_evaluate_feature.py) | Objective grader error and acceptance regressions | `python3 -m unittest discover -s scripts -p test_evaluate_feature.py` |
 | [examples/evaluation/unicode-slug/seeded-baseline/src/slug.py](../examples/evaluation/unicode-slug/seeded-baseline/src/slug.py) | Intentionally incomplete benchmark reference | `python3 scripts/evaluate_feature.py --project examples/evaluation/unicode-slug/seeded-baseline --repeats 3` |
+
+| [scripts/model_host.py](../scripts/model_host.py) | Bounded CLI text-generation adapters and validated artifacts; fullstack-mvp-engineer | `crewloom workflow run --project /path/to/model-project` |
+| [scripts/test_model_host.py](../scripts/test_model_host.py) | Model artifact paths, host flags, failure budget and project isolation; QA | `python3 -m unittest discover -s scripts -p test_model_host.py` |
+| [scripts/evaluate_hosts.py](../scripts/evaluate_hosts.py) | Frozen repeated host trials with label-free scoring; QA | `crewloom evaluate-hosts --host codex --host claude --output /path/to/fresh-evidence` |
+| [scripts/test_evaluate_hosts.py](../scripts/test_evaluate_hosts.py) | Balanced trials, frozen protocol, failure budget and anonymous grading; QA | `python3 -m unittest discover -s scripts -p test_evaluate_hosts.py` |
+| [examples/model-workflow/project/verify.py](../examples/model-workflow/project/verify.py) | Executes supplied acceptance and records actual output; QA | `python3 verify.py` from the copied project |
+| [examples/model-workflow/project/tests/test_slug.py](../examples/model-workflow/project/tests/test_slug.py) | English/Arabic contract acceptance of freshly generated code; QA | `python3 -m unittest discover -s tests` from the copied project |

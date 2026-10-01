@@ -114,3 +114,11 @@ The repository now has 100 Python test cases: 95 run in the standard gate; five 
 The objective Unicode grader was run three times per supplied implementation. Reference: 9/9 each time. Deliberately limited ASCII baseline: 5/9 each time. Expected answers stay outside the candidate container; the scorer receives no treatment/model labels. See [raw results](../examples/evaluation/unicode-slug/results.json). These fixtures validate scorer discrimination, not an improvement in agent-generated results. Actual cross-provider, independently coordinated with/without trials remain unperformed.
 
 Release source secret scan: three raw detections, all verified as 64-character SHA-256 values in MANIFEST.json; no confirmed credentials. Runtime/build caches were excluded from the public source export.
+
+## 0.5.0 — Model generation and repeated acceptance
+
+The [model workflow execution](../examples/model-workflow/evidence.json) records a newly generated Codex implementation and five passing Docker tests, then successful resume without regenerating completed artifacts. A host diagnostic item was initially misclassified as a tool event; the parser now requires completed generation and distinguishes nonfatal diagnostics from tool execution. Regressions preserve that boundary.
+
+The [trial evidence](../examples/evaluation/host-trials-20261001/README.md) contains five fresh Codex generations per condition (with/without full-stack role). All ten pass nine contract cases: a tie, not measured superiority. Two Claude generation attempts failed with no local authentication and eight remaining calls were blocked; no cross-host conclusion is available. Task and acceptance cases are public, scoring is deterministic and label-free, and the runner is also the coordinator. There is no independent human review claim.
+
+All 42 roles now have English project procedures as well as source Arabic playbooks, for 150 detailed role references. Documentation/structure checks do not validate every external-domain workflow. Provider calls are excluded from ordinary CI.

@@ -7,9 +7,9 @@
     "context_pack": 8,
     "frontend": 33,
     "delivery_evidence": 12,
-    "public_cli_workflows_and_grader": 40,
-    "total_cases": 100,
-    "standard_gate_passed": 95,
+    "public_cli_workflows_and_grader": 65,
+    "total_cases": 125,
+    "standard_gate_passed": 120,
     "standard_gate_docker_skips": 5
   },
   "context_cli": {
@@ -18,11 +18,11 @@
   },
   "secret_pattern_scan": {
     "tool_version": "8.30.1",
-    "scope": "Public 0.4.0 source export; runtime/build directories excluded",
+    "scope": "Public 0.5.0 source export; runtime/build directories excluded",
     "raw_findings": 3,
     "reviewed_false_positives": 3,
     "confirmed_secrets": 0,
-    "reason": "All three detections are SHA-256 file hashes in documentation/MANIFEST.json"
+    "reason": "All three redacted detections map to SHA-256 file values in documentation/MANIFEST.json; reviewed source lines"
   },
   "commit_gate": {
     "known_bad_commit": "rejected for broken Markdown link",
@@ -31,17 +31,17 @@
   "clean_archive_check": "Initial 0.1.0 archive passed; 0.2.0 validated in working tree",
   "hosted_ci": "Core Python matrix, dashboard and Docker workflow jobs configured; confirm after push",
   "limits": [
-    "Manual task hosts remain outside Docker command isolation",
-    "Host layout setup is verified, not external model invocation",
-    "No real independently coordinated cross-provider superiority claim",
-    "Reviewer identifier is a declaration, not authenticated identity"
+    "CLI hosts remain outside Docker command isolation",
+    "Claude live generation is unverified because local CLI is logged out",
+    "One public acceptance contract does not establish general superiority",
+    "Reviewer identifiers remain unauthenticated"
   ],
-  "release": "0.4.0",
+  "release": "0.5.0",
   "published_examples": {
     "count": 6,
     "result": "passed in CLI regression suite"
   },
-  "base_commit": "733f3824ee6ef1e85dc03d4753c430876175374c",
+  "base_commit": "4e54fc7da28b5fbe523c0f9d3904eaa37389cd38",
   "live_docker": {
     "workflow_suite_cases": 20,
     "docker_cases": 5,
@@ -66,5 +66,25 @@
     ],
     "total_cases": 9,
     "scope": "Supplied fixture implementations; no agent treatment comparison"
+  },
+  "role_references": {
+    "english_procedures": 42,
+    "detailed_references": 150
+  },
+  "model_workflow": {
+    "host": "codex",
+    "fresh_generation": "passed",
+    "docker_acceptance_cases": 5,
+    "resume": "passed",
+    "evidence": "examples/model-workflow/evidence.json"
+  },
+  "provider_trials": {
+    "codex_generations": 10,
+    "codex_with_role_pass_rate": 1.0,
+    "codex_without_role_pass_rate": 1.0,
+    "claude_failed": 2,
+    "claude_skipped": 8,
+    "cross_host_complete": false,
+    "evidence": "examples/evaluation/host-trials-20261001/report.json"
   }
 }

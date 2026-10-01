@@ -14,3 +14,6 @@ Keep reusable role upgrades separate from project state migrations and validate 
 
 ### 2026-10-01 — Executable software workflows
 Extend the label-free grader with independently frozen acceptance suites for additional software features and models. Keep model-treatment mapping outside the grader and record cost alongside correctness.
+
+### 2026-10-01 — Harder provider acceptance
+Freeze private multi-file feature contracts, record exact model identity and cost, and use a coordinator independent of the producer. A full-acceptance tie on a public pure function cannot establish the benefit of specialist procedures.

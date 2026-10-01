@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-01",
+  "status": "complete",
+  "generated_source_sha256": "6e494c8cd75fd9e14466212eedbe0bb6cd6ccfcfe0fad2acb3ef5e9d57511944",
+  "generation": {
+    "signature": "eccb9cc93eb8d5682674e734936fb1499177d51c6bb0ec38a468122e27258be6",
+    "status": "finished",
+    "started_at": 1790865958.027736,
+    "host": "codex",
+    "host_version": "codex-cli 0.155.1",
+    "model_requested": null,
+    "duration_ms": 31331,
+    "usage": {
+      "input_tokens": 10970,
+      "cached_input_tokens": 9344,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 232,
+      "reasoning_output_tokens": 0,
+      "host_diagnostic_items": 2
+    },
+    "cost_usd": null,
+    "execution_boundary": "text-generation in temporary directory; artifacts validated by Crewloom",
+    "exit_code": 0
+  },
+  "verification": {
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.000s\n\nOK\n"
+  },
+  "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+  "limits": [
+    "Five supplied acceptance tests on one generated function",
+    "CLI itself is outside Docker sandbox",
+    "Not a general model superiority result"
+  ],
+  "earlier_attempt": "Nonfatal host diagnostics were misclassified as tool events; corrected before successful generation"
+}

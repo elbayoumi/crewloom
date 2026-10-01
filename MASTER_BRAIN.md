@@ -9,3 +9,5 @@ Public edition 0.2.0 restores detailed references and ships twelve catalogued lo
 Project runtime root is separate from library code; CLI/dashboard histories and installed role memory are project-local. See documentation/PROJECTS.md for scope and evidence.
 
 Crewloom 0.4.0 adds Docker-isolated software commands, project-bound state and task handoffs, six detailed English software contracts, readiness and host-layout setup, and an objective feature scorer. Supplied-fixture execution is validated; real provider superiority and authenticated independent review are not claimed.
+
+Crewloom 0.5.0 adds bounded Codex/Claude artifact-generation adapters, an executed Codex-to-Docker feature example, a reproducible provider-trial coordinator, and English specialist procedures for all 42 roles. Ten Codex submissions tie at 9/9 on one contract; Claude authentication blocks cross-host results. No general superiority or authenticated independent-review claim.

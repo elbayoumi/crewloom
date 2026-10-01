@@ -1,0 +1,121 @@
+{
+  "benchmark": "unicode-slug-v1",
+  "seed": 20261001,
+  "repeats_per_condition": 5,
+  "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+  "scorer_sha256": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+  "cases_sha256": "cac7b745dd3da955f74788c2d3b9d07c530392e09ebec76a0bf761d40442b377",
+  "prompt_sha256": {
+    "without-role": "e9fec406ea33e4ae64a743be882a4a3839e7c96e6efd74718e6ce4d68a795eb1",
+    "with-role": "7ec49796b649936c24c0ab4a932924be09a93faa28093d1a2269a2ef2c0c094a"
+  },
+  "models_requested": {},
+  "trial_order": [
+    {
+      "host": "claude",
+      "condition": "with-role",
+      "repeat": 5
+    },
+    {
+      "host": "codex",
+      "condition": "with-role",
+      "repeat": 1
+    },
+    {
+      "host": "codex",
+      "condition": "with-role",
+      "repeat": 2
+    },
+    {
+      "host": "codex",
+      "condition": "without-role",
+      "repeat": 5
+    },
+    {
+      "host": "claude",
+      "condition": "with-role",
+      "repeat": 3
+    },
+    {
+      "host": "codex",
+      "condition": "with-role",
+      "repeat": 4
+    },
+    {
+      "host": "codex",
+      "condition": "without-role",
+      "repeat": 1
+    },
+    {
+      "host": "claude",
+      "condition": "with-role",
+      "repeat": 4
+    },
+    {
+      "host": "claude",
+      "condition": "without-role",
+      "repeat": 4
+    },
+    {
+      "host": "codex",
+      "condition": "without-role",
+      "repeat": 4
+    },
+    {
+      "host": "codex",
+      "condition": "without-role",
+      "repeat": 3
+    },
+    {
+      "host": "codex",
+      "condition": "with-role",
+      "repeat": 5
+    },
+    {
+      "host": "codex",
+      "condition": "without-role",
+      "repeat": 2
+    },
+    {
+      "host": "claude",
+      "condition": "with-role",
+      "repeat": 1
+    },
+    {
+      "host": "claude",
+      "condition": "without-role",
+      "repeat": 5
+    },
+    {
+      "host": "claude",
+      "condition": "without-role",
+      "repeat": 3
+    },
+    {
+      "host": "claude",
+      "condition": "with-role",
+      "repeat": 2
+    },
+    {
+      "host": "claude",
+      "condition": "without-role",
+      "repeat": 2
+    },
+    {
+      "host": "claude",
+      "condition": "without-role",
+      "repeat": 1
+    },
+    {
+      "host": "codex",
+      "condition": "with-role",
+      "repeat": 3
+    }
+  ],
+  "limits": [
+    "Single public pure-function task; acceptance cases are public",
+    "Deterministic grader separate from producing host; no independent human coordinator",
+    "Role treatment includes extra prompt length; default host models may differ",
+    "Artifact acceptance measures this contract only, not general agency performance"
+  ]
+}

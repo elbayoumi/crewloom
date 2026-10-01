@@ -12,3 +12,6 @@ These synthetic inputs contain no client data. They exercise local tools and do 
 | Responsive grid source | `python3 scripts/crewloom.py run grid-safety -- --project-dir examples/ui --json` | No unbounded fixed-pixel grid floor |
 
 SEO packet word count is declared metadata, not a generated article. MCP `your_server.py` is an external project input, not a bundled server. Static grid checks do not prove rendered layout. Video pacing is a measurement tool, not a speech engine.
+
+- [Model-generated software feature](model-workflow/README.md): authenticated CLI generation, scoped artifacts and isolated acceptance.
+- [Repeated host trials](evaluation/unicode-slug/HOST_TRIALS.md): frozen protocol, anonymized submissions and deterministic scoring.

@@ -1,0 +1,122 @@
+[
+  {
+    "submission": "submission-001",
+    "host": "claude",
+    "condition": "with-role",
+    "repeat": 5
+  },
+  {
+    "submission": "submission-002",
+    "host": "codex",
+    "condition": "with-role",
+    "repeat": 1
+  },
+  {
+    "submission": "submission-003",
+    "host": "codex",
+    "condition": "with-role",
+    "repeat": 2
+  },
+  {
+    "submission": "submission-004",
+    "host": "codex",
+    "condition": "without-role",
+    "repeat": 5
+  },
+  {
+    "submission": "submission-005",
+    "host": "claude",
+    "condition": "with-role",
+    "repeat": 3
+  },
+  {
+    "submission": "submission-006",
+    "host": "codex",
+    "condition": "with-role",
+    "repeat": 4
+  },
+  {
+    "submission": "submission-007",
+    "host": "codex",
+    "condition": "without-role",
+    "repeat": 1
+  },
+  {
+    "submission": "submission-008",
+    "host": "claude",
+    "condition": "with-role",
+    "repeat": 4
+  },
+  {
+    "submission": "submission-009",
+    "host": "claude",
+    "condition": "without-role",
+    "repeat": 4
+  },
+  {
+    "submission": "submission-010",
+    "host": "codex",
+    "condition": "without-role",
+    "repeat": 4
+  },
+  {
+    "submission": "submission-011",
+    "host": "codex",
+    "condition": "without-role",
+    "repeat": 3
+  },
+  {
+    "submission": "submission-012",
+    "host": "codex",
+    "condition": "with-role",
+    "repeat": 5
+  },
+  {
+    "submission": "submission-013",
+    "host": "codex",
+    "condition": "without-role",
+    "repeat": 2
+  },
+  {
+    "submission": "submission-014",
+    "host": "claude",
+    "condition": "with-role",
+    "repeat": 1
+  },
+  {
+    "submission": "submission-015",
+    "host": "claude",
+    "condition": "without-role",
+    "repeat": 5
+  },
+  {
+    "submission": "submission-016",
+    "host": "claude",
+    "condition": "without-role",
+    "repeat": 3
+  },
+  {
+    "submission": "submission-017",
+    "host": "claude",
+    "condition": "with-role",
+    "repeat": 2
+  },
+  {
+    "submission": "submission-018",
+    "host": "claude",
+    "condition": "without-role",
+    "repeat": 2
+  },
+  {
+    "submission": "submission-019",
+    "host": "claude",
+    "condition": "without-role",
+    "repeat": 1
+  },
+  {
+    "submission": "submission-020",
+    "host": "codex",
+    "condition": "with-role",
+    "repeat": 3
+  }
+]

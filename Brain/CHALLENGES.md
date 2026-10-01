@@ -34,3 +34,8 @@
 - Cause: Role procedures alone did not execute work, isolate subprocesses or prevent stale evidence.
 - Fix: Docker-only commands, project-bound state, fingerprints, attempt limits, locks and task handoffs.
 - Check: Live container tests plus objective acceptance; task review identity and host sandboxing remain external.
+
+### 2026-10-01 — Model host diagnostics and unavailable authentication
+- Cause: Codex nonfatal diagnostic items were mistaken for executable tool events; Claude CLI is installed but logged out.
+- Fix: Require completed structured generation, count diagnostics separately, reject executable/unknown tool items; preserve provider failures and skip calls after two host failures.
+- Check: Diagnostic regression and actual Codex/Docker feature pass; Claude comparison remains blocked until local login.

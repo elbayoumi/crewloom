@@ -35,3 +35,9 @@ There is no central agent orchestration service or published package in this edi
 ## 0.4.0 execution foundation
 
 Docker-isolated software workflow commands, manual task handoffs, persistent evidence and resume, objective feature scoring and six English role contracts. See [execution](EXECUTION.md), [host setup](HOSTS.md), [evidence](EVIDENCE.md), and [changelog](../CHANGELOG.md).
+
+## 0.5.0
+
+Adds project-bound model artifact generation for Codex/Claude CLIs, a real generated-feature/Docker acceptance example, repeated provider collection with label-free grading, and English specialist procedures for all 42 roles. Codex generation and acceptance are executed; Claude live success is unavailable because the CLI is logged out. Ten Codex trial submissions tie at full contract acceptance. This release makes no broad superiority or independent-human-review claim.
+
+Provider CLI processes remain trusted host dependencies outside the Docker command sandbox. Authenticate locally, review supplied inputs, and run generated code through isolated checks. Default model identity and unreported cost are not inferred.

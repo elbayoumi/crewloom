@@ -1,0 +1,122 @@
+[
+  {
+    "submission": "submission-001",
+    "status": "failed",
+    "error": "Host generation failed (exit 1); check local authentication and provider limits"
+  },
+  {
+    "submission": "submission-002",
+    "status": "scored",
+    "source_sha256": "49cae4ecffac50022010ce97417b80ff9e8b40c5eff22b3ca4206d336d1e5f70",
+    "pass_rate": 1.0,
+    "duration_ms": 15465
+  },
+  {
+    "submission": "submission-003",
+    "status": "scored",
+    "source_sha256": "eeebd854fa03e6923df43acd22113d16ebec165a9f37ef0e8f5eb03569c7c26d",
+    "pass_rate": 1.0,
+    "duration_ms": 13479
+  },
+  {
+    "submission": "submission-004",
+    "status": "scored",
+    "source_sha256": "b456b9f327bfee3917ece2886359e244379600329d183800a207d132b1aa7a44",
+    "pass_rate": 1.0,
+    "duration_ms": 13685
+  },
+  {
+    "submission": "submission-005",
+    "status": "failed",
+    "error": "Host generation failed (exit 1); check local authentication and provider limits"
+  },
+  {
+    "submission": "submission-006",
+    "status": "scored",
+    "source_sha256": "c430c18809a0a6743afc5c94001bd06b856cfcc837bda108eba5c935547d94b6",
+    "pass_rate": 1.0,
+    "duration_ms": 15473
+  },
+  {
+    "submission": "submission-007",
+    "status": "scored",
+    "source_sha256": "e10529456d8cd729cae714c189a8fb96431f79f739549a60cf8e4350e4616583",
+    "pass_rate": 1.0,
+    "duration_ms": 13168
+  },
+  {
+    "submission": "submission-008",
+    "status": "blocked",
+    "reason": "Two host failures; remaining calls skipped"
+  },
+  {
+    "submission": "submission-009",
+    "status": "blocked",
+    "reason": "Two host failures; remaining calls skipped"
+  },
+  {
+    "submission": "submission-010",
+    "status": "scored",
+    "source_sha256": "b5b246cd9b780ac6e568ac06bd991aa581dee6aba29edcc0c37de3708e65f469",
+    "pass_rate": 1.0,
+    "duration_ms": 12959
+  },
+  {
+    "submission": "submission-011",
+    "status": "scored",
+    "source_sha256": "9fc6a942297acdec0750e7ad39fae16913a1890c2f0978153e9cc3e8a2826968",
+    "pass_rate": 1.0,
+    "duration_ms": 13887
+  },
+  {
+    "submission": "submission-012",
+    "status": "scored",
+    "source_sha256": "8119ed5d688d4db8e5555be9a48e07a37898db6a6eb05abe2e9aa470ab16a48d",
+    "pass_rate": 1.0,
+    "duration_ms": 24078
+  },
+  {
+    "submission": "submission-013",
+    "status": "scored",
+    "source_sha256": "20e90e08a83a2cebc664f4086b0f5bae43396833646f11a95839fcc6861742e8",
+    "pass_rate": 1.0,
+    "duration_ms": 15447
+  },
+  {
+    "submission": "submission-014",
+    "status": "blocked",
+    "reason": "Two host failures; remaining calls skipped"
+  },
+  {
+    "submission": "submission-015",
+    "status": "blocked",
+    "reason": "Two host failures; remaining calls skipped"
+  },
+  {
+    "submission": "submission-016",
+    "status": "blocked",
+    "reason": "Two host failures; remaining calls skipped"
+  },
+  {
+    "submission": "submission-017",
+    "status": "blocked",
+    "reason": "Two host failures; remaining calls skipped"
+  },
+  {
+    "submission": "submission-018",
+    "status": "blocked",
+    "reason": "Two host failures; remaining calls skipped"
+  },
+  {
+    "submission": "submission-019",
+    "status": "blocked",
+    "reason": "Two host failures; remaining calls skipped"
+  },
+  {
+    "submission": "submission-020",
+    "status": "scored",
+    "source_sha256": "b6ac7427a46614e843132fd094abd0235d9cb68e143d9d6642d8bee345b4ec3f",
+    "pass_rate": 1.0,
+    "duration_ms": 13615
+  }
+]

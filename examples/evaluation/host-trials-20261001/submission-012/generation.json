@@ -1,0 +1,15 @@
+{
+  "host": "codex",
+  "host_version": "codex-cli 0.155.1",
+  "model_requested": null,
+  "duration_ms": 23370,
+  "usage": {
+    "input_tokens": 10496,
+    "cached_input_tokens": 0,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 238,
+    "reasoning_output_tokens": 38
+  },
+  "cost_usd": null,
+  "execution_boundary": "text-generation in temporary directory; artifacts validated by Crewloom"
+}

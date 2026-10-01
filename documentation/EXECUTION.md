@@ -79,3 +79,9 @@ Verification includes live Docker tests for the six-stage feature, resume, outsi
 ## Objective feature scoring
 
 Use `crewloom evaluate --project /path/to/submission --repeats 3` for the [Unicode acceptance benchmark](../examples/evaluation/unicode-slug/README.md). It scores a specific pure-function contract; it is not a general software-quality score. Submission code executes with the same isolated Docker executor.
+
+## Model steps
+
+`kind: model` requires an explicit `host` (`codex` or `claude`), declared text inputs, outputs and an installed owning role. An optional `model` identifier pins the request; `timeout_seconds` defaults to 180. The adapter returns validated artifact text, while generation metadata and attempts stay in project-local workflow state. A model success is artifact production, not test acceptance. Follow it with command checks or a separate task review. See [automatic host execution](HOSTS.md) and the [generated-feature example](../examples/model-workflow/README.md).
+
+Unchanged failed/interrupted model generations share the project failure ledger across workflow IDs. Signatures include full supplied prompt, host, requested model, timeout and adapter fingerprint. The adapter does not switch providers, auto-install CLIs, copy authentication, or run generated code on the host. Readiness checks inspect CLI capabilities without making a provider call; only actual execution verifies authentication.

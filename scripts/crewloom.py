@@ -139,6 +139,14 @@ def main():
     evaluation.add_argument('--project', required=True)
     evaluation.add_argument('--image', default='python:3.14-slim')
     evaluation.add_argument('--repeats', type=int, default=3)
+    trials = commands.add_parser('evaluate-hosts', help='Collect model artifacts and grade anonymized submissions')
+    trials.add_argument('--output', required=True)
+    trials.add_argument('--host', choices=('codex', 'claude'), action='append', required=True)
+    trials.add_argument('--repeats', type=int, default=5)
+    trials.add_argument('--seed', type=int, default=20261001)
+    trials.add_argument('--image', default='python:3.14-slim')
+    trials.add_argument('--timeout', type=int, default=180)
+    trials.add_argument('--codex-model'); trials.add_argument('--claude-model')
     workflow = commands.add_parser('workflow', help='Run an isolated, resumable project workflow')
     workflow.add_argument('workflow_arguments', nargs=argparse.REMAINDER)
     commands.add_parser('tools', help='List included executable tools')
@@ -168,6 +176,14 @@ def main():
     if args.command == 'evaluate':
         from evaluate_feature import main as evaluate_main
         return evaluate_main(['--project', args.project, '--image', args.image, '--repeats', str(args.repeats)])
+    if args.command == 'evaluate-hosts':
+        from evaluate_hosts import main as trials_main
+        forwarded = ['--output', args.output, '--repeats', str(args.repeats), '--seed', str(args.seed), '--image', args.image, '--timeout', str(args.timeout)]
+        for host in args.host: forwarded.extend(['--host', host])
+        for host in ('codex', 'claude'):
+            model = getattr(args, host + '_model')
+            if model: forwarded.extend(['--' + host + '-model', model])
+        return trials_main(forwarded)
     if args.command == 'workflow':
         from workflow import main as workflow_main
         return workflow_main(args.workflow_arguments)

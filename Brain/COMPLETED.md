@@ -64,3 +64,8 @@
 - Artifact: Isolated workflow runner, six-stage feature/task plans, objective grader and six English role contracts.
 - Impact: Executable project work, persistent attempts/handoffs and verified command boundaries.
 - Evidence: 100 Python cases covered across core/live-Docker suites; five dashboard tests; fresh editable install; reference 9/9 and seeded baseline 5/9 in three grader runs.
+
+### 2026-10-01 — Bounded model generation and English role depth
+- Artifact: CLI model adapters, generated-feature example, provider trial harness and 36 additional English specialist procedures.
+- Impact: Explicit project inputs/outputs, checked generation, all 42 English procedures and reproducible scoring.
+- Evidence: Codex feature passes five live Docker tests; ten fresh trial submissions tie at 9/9. Claude has two authentication failures/eight skipped calls; cross-host evaluation incomplete.

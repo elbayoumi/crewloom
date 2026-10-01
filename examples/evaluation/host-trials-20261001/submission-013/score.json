@@ -1,0 +1,29 @@
+{
+  "benchmark": "unicode-slug-v1",
+  "source_sha256": "20e90e08a83a2cebc664f4086b0f5bae43396833646f11a95839fcc6861742e8",
+  "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+  "runs": [
+    {
+      "passed": 9,
+      "total": 9,
+      "cases": {
+        "english-punctuation": true,
+        "arabic-spacing": true,
+        "compatibility-forms": true,
+        "case-folding": true,
+        "repeated-separators": true,
+        "empty-input": true,
+        "punctuation-only": true,
+        "arabic-digits": true,
+        "invalid-type": true
+      },
+      "duration_ms": 483
+    }
+  ],
+  "mean_pass_rate": 1.0,
+  "limits": [
+    "Single pure-function benchmark",
+    "No model condition is provided to the scorer",
+    "Not a cross-provider or independent-human-review result"
+  ]
+}

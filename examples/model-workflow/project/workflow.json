@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "id": "unicode-model-demo",
+  "language": "en",
+  "steps": [
+    {
+      "id": "implement",
+      "role": "fullstack-mvp-engineer",
+      "kind": "model",
+      "host": "codex",
+      "summary": "Implement the exact Unicode slug contract in task.md. Return working Python source only.",
+      "inputs": [
+        "task.md"
+      ],
+      "outputs": [
+        "src/slug.py"
+      ],
+      "timeout_seconds": 180
+    },
+    {
+      "id": "verify",
+      "role": "qa-test-automation-engineer",
+      "kind": "command",
+      "summary": "Execute independent project acceptance tests",
+      "argv": [
+        "python3",
+        "verify.py"
+      ],
+      "inputs": [
+        "src/slug.py",
+        "tests/test_slug.py",
+        "verify.py"
+      ],
+      "outputs": [
+        "artifacts/verification.json"
+      ]
+    }
+  ]
+}
