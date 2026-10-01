@@ -172,7 +172,7 @@ def main():
             parser.error('Tool path is missing or escapes the repository')
         arguments = args.arguments[1:] if args.arguments and args.arguments[0] == '--' else args.arguments
         try:
-            if not (project / '.crewloom').resolve().is_relative_to(project):
+            if any(not candidate.resolve().is_relative_to(project) for candidate in (project / '.crewloom', project / '.crewloom/runs.jsonl')):
                 raise ValueError('Run history directory escapes selected project')
             validate_project_paths(item['id'], arguments, project)
         except (OSError, ValueError) as exc:

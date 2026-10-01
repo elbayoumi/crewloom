@@ -55,8 +55,9 @@ export function parseRuns(text: string): Run[] {
 
 function assertProjectLog() {
   const folder = path.dirname(RUN_LOG);
-  if (existsSync(folder)) {
-    const relative = path.relative(realpathSync(PROJECT), realpathSync(folder));
+  for (const candidate of [folder, RUN_LOG]) {
+    if (!existsSync(candidate)) continue;
+    const relative = path.relative(realpathSync(PROJECT), realpathSync(candidate));
     if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) throw new Error('Run history escapes selected project');
   }
 }

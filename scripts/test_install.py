@@ -71,6 +71,12 @@ class ProjectIsolationTests(unittest.TestCase):
             (one/'.agents').symlink_to(two,target_is_directory=True)
             self.assertEqual(cli('install','--host','agents','--target',str(one),'--skill','context-guardian').returncode,2)
             self.assertFalse((two/'skills').exists())
+            (one/'.crewloom').mkdir()
+            (two/'runs.jsonl').write_text('')
+            (one/'.crewloom/runs.jsonl').symlink_to(two/'runs.jsonl')
+            result=cli('run','--project',str(one),'budget-pacing','--','--daily-budget','100','--days-elapsed','1','--actual-spend','100')
+            self.assertEqual(result.returncode,2)
+            self.assertEqual((two/'runs.jsonl').read_text(),'')
 
     def test_context_uses_project_memory_and_rejects_other_project_output(self):
         with tempfile.TemporaryDirectory() as directory:
