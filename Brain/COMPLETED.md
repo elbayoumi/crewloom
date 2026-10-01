@@ -54,3 +54,8 @@
 - Artifact: Project-scoped CLI logs/context and dashboard execution/memory.
 - Impact: Project-relative inputs and isolated histories; cross-project paths rejected.
 - Evidence: 75 Python tests, five dashboard tests and TypeScript checks pass.
+
+### 2026-10-01 — Role installation memory isolation
+- Artifact: Memory-preserving role updates and clean first-install project records.
+- Impact: Library history is not imported; force updates retain local experience.
+- Evidence: Existing install regressions now exercise retained memory and nested destination symlink rejection; full gate passes.

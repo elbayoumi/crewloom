@@ -8,3 +8,6 @@ Build reproducible, synthetic end-to-end role tasks with independently reviewed 
 
 ### 2026-10-01 — Project path isolation
 Project-scoped host permissions can extend the entry-point path guards to arbitrary tool execution.
+
+### 2026-10-01 — Role installation memory isolation
+Keep reusable role upgrades separate from project state migrations and validate each migration against its selected project.

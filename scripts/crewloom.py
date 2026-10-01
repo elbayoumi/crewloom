@@ -62,11 +62,28 @@ def install_skills(target, host, names, force):
             return [], [f'Install path escapes project through a symlink: {candidate}']
         if candidate.is_symlink():
             return [], [f'Refusing symlink install destination: {candidate}']
+    # Validate every copied destination before any role is changed.
+    for name in wanted:
+        for source in (SKILLS / name).rglob('*'):
+            relative = source.relative_to(SKILLS / name)
+            candidate = destination / name / relative
+            if not candidate.resolve().is_relative_to(target.resolve()):
+                return [], [f'Install file escapes project through a symlink: {candidate}']
     destination.mkdir(parents=True, exist_ok=True)
     for name in wanted:
-        if (destination / name).exists():
-            shutil.rmtree(destination / name)
-        shutil.copytree(SKILLS / name, destination / name, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+        role = destination / name
+        shutil.copytree(SKILLS / name, role, dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns('__pycache__', '*.pyc', 'brain'))
+        brain = role / 'brain'
+        brain.mkdir(exist_ok=True)
+        for filename in ('ARCHITECTURE', 'COMPLETED', 'CHALLENGES', 'IDEAS_VAULT', 'ROADMAP_TODO'):
+            memory = brain / (filename + '.md')
+            if memory.exists():
+                continue
+            if filename == 'ARCHITECTURE':
+                shutil.copyfile(SKILLS / name / 'brain' / 'ARCHITECTURE.md', memory)
+            else:
+                memory.write_text(f'# {filename.replace("_", " ").title()}\n\nNo project-specific entries recorded yet.\n', encoding='utf-8')
     return wanted, []
 
 

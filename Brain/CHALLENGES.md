@@ -24,3 +24,8 @@
 - Cause: Library and project roots were conflated for execution, memory, and logs.
 - Fix: Separate canonical roots and validate resolved input/output/install paths.
 - Check: Two-project fixtures exercise identical filenames and symlink escapes.
+
+### 2026-10-01 — Role installation memory isolation
+- Cause: Force installation removed the whole role directory, including project memory.
+- Fix: Refresh reusable files, preserve existing brain, initialize clean local records on first install.
+- Check: Seed private history and verify it survives update; reject redirected destination files.

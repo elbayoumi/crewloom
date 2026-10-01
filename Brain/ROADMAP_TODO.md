@@ -27,3 +27,8 @@
 - Artifact: Project isolation fix ✅.
 - Status: CLI/dashboard scope covered by regressions.
 - Remaining: Arbitrary host tools need project-scoped permissions; no sandbox claim.
+
+### 2026-10-01 — Role installation memory isolation
+- Artifact: Safe project role updates ✅.
+- Status: Local memory preserved and first-install history clean.
+- Remaining: Arbitrary host filesystem access still needs host-specific permissions.

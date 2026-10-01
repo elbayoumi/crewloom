@@ -22,3 +22,7 @@ Existing unlabelled shared run records are not migrated into client histories: t
 These guards apply to the CLI and dashboard entry points. Direct scripts, arbitrary agent tools, files referenced inside supplied packets, and external integrations require their own project-scoped permissions; this is not a filesystem sandbox.
 
 Verification: two-project CLI and dashboard fixtures with identical relative filenames, separate run histories and memories, and rejected cross-project/context/symlink paths. See [the evidence log](EVIDENCE.md).
+
+## Installing and updating roles
+
+Fresh installations copy reusable architecture guidance and initialize empty project records. `install --force` refreshes role procedures/tools while preserving all existing brain files and project-local custom files. It does not import completed work, incidents, ideas, or task history from the library. Resolved destination files are checked before copying to prevent nested symlink redirects.

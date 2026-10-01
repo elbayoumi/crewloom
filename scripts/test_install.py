@@ -21,11 +21,20 @@ class InstallTests(unittest.TestCase):
             installed = Path(directory) / '.claude' / 'skills' / 'seo-growth-engineer'
             self.assertTrue((installed / 'SKILL.md').is_file())
             self.assertFalse(list(installed.rglob('__pycache__')))
+            self.assertIn('No project-specific entries', (installed/'brain/COMPLETED.md').read_text())
             again = cli('install', '--host', 'claude', '--target', directory, '--skill', 'seo-growth-engineer')
             self.assertEqual(again.returncode, 2)
             self.assertIn('--force', again.stderr)
+            (installed / 'brain' / 'COMPLETED.md').write_text('PROJECT_PRIVATE_HISTORY')
             forced = cli('install', '--host', 'claude', '--target', directory, '--skill', 'seo-growth-engineer', '--force')
             self.assertEqual(forced.returncode, 0)
+            self.assertEqual((installed / 'brain' / 'COMPLETED.md').read_text(),'PROJECT_PRIVATE_HISTORY')
+            with tempfile.TemporaryDirectory() as outside:
+                sentinel=Path(outside)/'sentinel.md'; sentinel.write_text('OTHER_PROJECT')
+                (installed/'SKILL.md').unlink(); (installed/'SKILL.md').symlink_to(sentinel)
+                rejected=cli('install','--host','claude','--target',directory,'--skill','seo-growth-engineer','--force')
+                self.assertEqual(rejected.returncode,2)
+                self.assertEqual(sentinel.read_text(),'OTHER_PROJECT')
 
     def test_unknown_and_invalid_roles_and_missing_target_are_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
