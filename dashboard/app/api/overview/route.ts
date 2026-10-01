@@ -1,4 +1,4 @@
-import { listSkills, readRuns, readTools } from '@/lib/repo.ts';
+import { PROJECT, listSkills, readRuns, readTools } from '@/lib/repo.ts';
 
 export const dynamic = 'force-dynamic';
 
@@ -6,6 +6,7 @@ export async function GET() {
   const [skills, tools, runs] = await Promise.all([listSkills(), readTools(), readRuns(50)]);
   const failed = runs.filter((r) => r.exit_code !== 0).length;
   return Response.json({
+    projectRoot: PROJECT,
     generatedAt: new Date().toISOString(),
     totals: {
       skills: skills.length, tools: tools.length, runs: runs.length, failedRuns: failed,

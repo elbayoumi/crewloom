@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class DomainExamples(unittest.TestCase):
     def run_tool(self, tool, *args):
-        return subprocess.run([sys.executable, str(ROOT/'scripts/crewloom.py'), 'run', tool, '--', *args], cwd=ROOT, capture_output=True, text=True)
+        return subprocess.run([sys.executable, str(ROOT/'scripts/crewloom.py'), 'run', tool, '--', *args], cwd=getattr(self, 'project', ROOT), capture_output=True, text=True)
 
     def test_published_examples(self):
         cases = [
@@ -29,6 +29,7 @@ class DomainExamples(unittest.TestCase):
 
     def test_non_object_json_rejected_without_traceback(self):
         with tempfile.TemporaryDirectory() as folder:
+            self.project=Path(folder)
             path=Path(folder)/'input.json'; path.write_text(json.dumps([]))
             for tool, flag in [('seo-packet','--packet'),('mcp-config','--config')]:
                 with self.subTest(tool=tool):

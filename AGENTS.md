@@ -35,3 +35,7 @@ Evaluate existing skill evidence and owner feedback before retiring or replacing
 Activate hooks with `git config core.hooksPath .githooks`. Never disable hooks or use `--no-verify` without an explicit owner instruction in the same conversation. Fix failed checks or document genuine scope exceptions; do not fabricate evidence.
 
 A new gate requires a demonstrated rejection of a known bad commit and acceptance of a clean commit. The repository gate validates public guides, links, tools, and relevant tests; it is not a sandbox for agent actions.
+
+## Project isolation
+
+Bind one canonical project root before work and preserve it through handoffs. Library code is reusable; project memory, inputs, outputs, and run history belong to the selected project. Run tools with `run --project <root>` and generate project context with `context --project <root>` after installing the role. Never use another project's memory or infer a project from a previous task. Resolve symlinks before validating paths. Reject missing or ambiguous project identity before writes. CLI checks are input guards, not a sandbox for arbitrary agent-host actions.

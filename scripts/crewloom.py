@@ -14,18 +14,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / '.agents' / 'skills'
-RUN_LOG = ROOT / '.crewloom' / 'runs.jsonl'
 
 
-def log_run(tool, skill, code, seconds):
+def log_run(tool, skill, code, seconds, project=None):
     """Append one run record so the dashboard can show CLI runs live; never fail the run."""
-    record = {'ts': datetime.now(timezone.utc).isoformat(timespec='seconds'), 'tool': tool,
+    project = Path(project or Path.cwd()).resolve()
+    run_log = project / '.crewloom' / 'runs.jsonl'
+    record = {'project_root': str(project), 'ts': datetime.now(timezone.utc).isoformat(timespec='seconds'), 'tool': tool,
               'skill': skill, 'exit_code': code, 'duration_ms': round(seconds * 1000), 'source': 'cli'}
     if os.environ.get('CREWLOOM_NO_LOG'):
         return
     try:
-        RUN_LOG.parent.mkdir(exist_ok=True)
-        with RUN_LOG.open('a', encoding='utf-8') as handle:
+        run_log.parent.mkdir(exist_ok=True)
+        with run_log.open('a', encoding='utf-8') as handle:
             handle.write(json.dumps(record) + '\n')
     except OSError:
         pass
@@ -56,6 +57,11 @@ def install_skills(target, host, names, force):
     clashes = [n for n in wanted if (destination / n).exists()]
     if clashes and not force:
         return [], [f'Already installed (use --force to overwrite): {", ".join(clashes)}']
+    for candidate in [destination, *[destination / n for n in wanted]]:
+        if not candidate.resolve().is_relative_to(target.resolve()):
+            return [], [f'Install path escapes project through a symlink: {candidate}']
+        if candidate.is_symlink():
+            return [], [f'Refusing symlink install destination: {candidate}']
     destination.mkdir(parents=True, exist_ok=True)
     for name in wanted:
         if (destination / name).exists():
@@ -64,7 +70,7 @@ def install_skills(target, host, names, force):
     return wanted, []
 
 
-def run_dashboard(port):
+def run_dashboard(port, project):
     folder = ROOT / 'dashboard'
     npm = shutil.which('npm')
     if not npm:
@@ -74,8 +80,35 @@ def run_dashboard(port):
         code = subprocess.run([npm, 'install', '--no-audit', '--no-fund'], cwd=folder, check=False).returncode
         if code:
             return code
-    env = {**os.environ, 'CREWLOOM_ROOT': str(ROOT)}
+    env = {**os.environ, 'CREWLOOM_ROOT': str(ROOT), 'CREWLOOM_PROJECT': str(project)}
     return subprocess.run([npm, 'run', 'dev', '--', '-p', str(port)], cwd=folder, env=env, check=False).returncode
+
+
+PATH_FLAGS = {'--project-dir', '--file', '--config', '--packet', '--snapshot', '--tokens', '--out', '--exceptions', '--project'}
+POSITIONAL_PATH_TOOLS = {'workflow-contract', 'delivery-evidence'}
+
+
+def validate_project_paths(tool, arguments, project):
+    """Resolve registered input/output path arguments against one project root."""
+    paths = []
+    index = 0
+    while index < len(arguments):
+        arg = arguments[index]
+        flag, separator, value = arg.partition('=')
+        if flag in PATH_FLAGS:
+            if not separator:
+                index += 1
+                if index >= len(arguments):
+                    raise ValueError(f'Missing path for {flag}')
+                value = arguments[index]
+            paths.append(value)
+        elif index == 0 and tool in POSITIONAL_PATH_TOOLS and not arg.startswith('-'):
+            paths.append(arg)
+        index += 1
+    for value in paths:
+        resolved = (project / value).resolve()
+        if not resolved.is_relative_to(project):
+            raise ValueError(f'Path escapes selected project: {value}')
 
 
 def main():
@@ -87,6 +120,7 @@ def main():
     commands.add_parser('list', help='List available skill IDs')
     commands.add_parser('tools', help='List included executable tools')
     run = commands.add_parser('run', help='Run a registered local tool')
+    run.add_argument('--project', default='.', help='Project root for relative inputs and run history')
     run.add_argument('tool')
     run.add_argument('arguments', nargs=argparse.REMAINDER)
     show = commands.add_parser('show', help='Print a skill procedure')
@@ -94,6 +128,7 @@ def main():
     validate = commands.add_parser('validate', help='Validate one or all skill structures')
     validate.add_argument('--skill')
     context = commands.add_parser('context', help='Build a bounded context pack')
+    context.add_argument('--project', help='Use only this project’s installed roles and memory')
     context.add_argument('skill')
     context.add_argument('--out', required=True)
     context.add_argument('--language', choices=('en', 'ar'), default='en')
@@ -104,10 +139,14 @@ def main():
     install.add_argument('--skill', action='append', default=[], help='Role ID; repeat for several (default: all)')
     install.add_argument('--force', action='store_true', help='Overwrite roles that already exist')
     dash = commands.add_parser('dashboard', help='Start the live dashboard (needs Node 20+)')
+    dash.add_argument('--project', default='.', help='Project monitored by this dashboard process')
     dash.add_argument('--port', type=int, default=4317)
     args = parser.parse_args()
+    project = Path(getattr(args, 'project', None) or '.').resolve()
+    if not project.is_dir():
+        parser.error('Project root must be an existing directory')
     if args.command == 'dashboard':
-        return run_dashboard(args.port)
+        return run_dashboard(args.port, project)
     if args.command == 'install':
         for name in args.skill:
             if not SKILL_ID.fullmatch(name):
@@ -132,9 +171,17 @@ def main():
         if ROOT not in path.parents or not path.is_file():
             parser.error('Tool path is missing or escapes the repository')
         arguments = args.arguments[1:] if args.arguments and args.arguments[0] == '--' else args.arguments
+        try:
+            if not (project / '.crewloom').resolve().is_relative_to(project):
+                raise ValueError('Run history directory escapes selected project')
+            validate_project_paths(item['id'], arguments, project)
+        except (OSError, ValueError) as exc:
+            parser.error(str(exc))
+        if item['id'] == 'context' and project != ROOT and '--project' not in arguments:
+            arguments = ['--project', str(project), *arguments]
         started = time.monotonic()
-        code = subprocess.run([sys.executable, str(path), *arguments], check=False).returncode
-        log_run(item['id'], item['skill'], code, time.monotonic() - started)
+        code = subprocess.run([sys.executable, str(path), *arguments], cwd=project, check=False).returncode
+        log_run(item['id'], item['skill'], code, time.monotonic() - started, project)
         return code
     if args.command == 'list':
         for path in sorted(SKILLS.glob('*/SKILL.md')):
@@ -159,8 +206,10 @@ def main():
             print(f'PASS: {len(names)} skills')
         return 1 if failures else 0
     script = SKILLS / 'context-guardian' / 'scripts' / 'context_pack.py'
-    return subprocess.run([sys.executable, str(script), '--skill', name, '--out', args.out,
-                           '--language', args.language], check=False).returncode
+    context_args = [sys.executable, str(script), '--skill', name, '--out', args.out, '--language', args.language]
+    if args.project:
+        context_args += ['--project', str(project)]
+    return subprocess.run(context_args, cwd=project, check=False).returncode
 
 
 if __name__ == '__main__':

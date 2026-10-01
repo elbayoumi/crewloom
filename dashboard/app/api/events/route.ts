@@ -1,5 +1,5 @@
 import { mkdirSync, watch, type FSWatcher } from 'node:fs';
-import { RUN_LOG, ROOT, SKILLS } from '@/lib/repo.ts';
+import { RUN_LOG, PROJECT, SKILLS } from '@/lib/repo.ts';
 import path from 'node:path';
 
 export const dynamic = 'force-dynamic';
@@ -18,12 +18,12 @@ export async function GET(req: Request) {
         clearTimeout(timer);
         timer = setTimeout(() => send('change', { file, ts: Date.now() }), 150);
       };
-      mkdirSync(path.join(ROOT, '.crewloom'), { recursive: true });
-      for (const dir of [SKILLS, path.join(ROOT, '.crewloom'), path.join(ROOT, 'Brain')]) {
+      mkdirSync(path.join(PROJECT, '.crewloom'), { recursive: true });
+      for (const dir of [SKILLS, path.join(PROJECT, '.agents', 'skills'), path.join(PROJECT, '.claude', 'skills'), path.join(PROJECT, '.crewloom'), path.join(PROJECT, 'Brain')]) {
         try { watchers.push(watch(dir, { recursive: true }, (_e, f) => notify(f ? String(f) : null))); } catch { /* dir absent */ }
       }
       beat = setInterval(() => controller.enqueue(encoder.encode(': ping\n\n')), 15000);
-      send('ready', { watching: watchers.length, runLog: path.relative(ROOT, RUN_LOG) });
+      send('ready', { watching: watchers.length, runLog: path.relative(PROJECT, RUN_LOG) });
       req.signal.addEventListener('abort', () => {
         watchers.forEach((w) => w.close());
         clearTimeout(timer); clearInterval(beat);

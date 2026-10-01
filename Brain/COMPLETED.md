@@ -49,3 +49,8 @@
 - Artifact: `examples/evaluation/frontend-audit-v2/`, section in `documentation/EVIDENCE.md`.
 - Impact: 3 runs per condition on a 20-defect fixture; recall tie (100%), role runs flagged 1/18 decoys vs 7/18, +15% tokens.
 - Evidence: ground truth written before runs; per-run numbers in runs.json; graded non-blind by the runner.
+
+### 2026-10-01 — Project path isolation
+- Artifact: Project-scoped CLI logs/context and dashboard execution/memory.
+- Impact: Project-relative inputs and isolated histories; cross-project paths rejected.
+- Evidence: 75 Python tests, five dashboard tests and TypeScript checks pass.

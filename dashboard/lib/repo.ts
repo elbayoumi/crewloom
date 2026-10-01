@@ -1,15 +1,16 @@
-import { promises as fs, existsSync } from 'node:fs';
+import { promises as fs, existsSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 
 export const ROOT = path.resolve(process.env.CREWLOOM_ROOT ?? path.join(process.cwd(), '..'));
 export const SKILLS = path.join(ROOT, '.agents', 'skills');
-export const RUN_LOG = path.join(ROOT, '.crewloom', 'runs.jsonl');
+export const PROJECT = path.resolve(process.env.CREWLOOM_PROJECT ?? ROOT);
+export const RUN_LOG = path.join(PROJECT, '.crewloom', 'runs.jsonl');
 export const BRAIN_FILES = ['ARCHITECTURE', 'COMPLETED', 'CHALLENGES', 'IDEAS_VAULT', 'ROADMAP_TODO'] as const;
 const SKILL_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export type Tool = { id: string; skill: string; path: string; description: string; example_args: string; effect: string };
-export type Run = { ts: string; tool: string; skill: string; exit_code: number; duration_ms: number; source: 'cli' | 'dashboard'; output?: string };
+export type Run = { ts: string; tool: string; skill: string; exit_code: number; duration_ms: number; source: 'cli' | 'dashboard'; project_root?: string; output?: string };
 export type SkillSummary = {
   id: string; description: string; lastActivity: string | null;
   openTasks: number; doneEntries: number; openChallenges: number; ideas: number; tools: string[];
@@ -52,13 +53,23 @@ export function parseRuns(text: string): Run[] {
   return runs;
 }
 
+function assertProjectLog() {
+  const folder = path.dirname(RUN_LOG);
+  if (existsSync(folder)) {
+    const relative = path.relative(realpathSync(PROJECT), realpathSync(folder));
+    if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) throw new Error('Run history escapes selected project');
+  }
+}
+
 export async function readRuns(limit = 200): Promise<Run[]> {
+  assertProjectLog();
   try { return parseRuns(await fs.readFile(RUN_LOG, 'utf8')).slice(-limit).reverse(); } catch { return []; }
 }
 
 export async function appendRun(run: Run) {
+  assertProjectLog();
   await fs.mkdir(path.dirname(RUN_LOG), { recursive: true });
-  await fs.appendFile(RUN_LOG, JSON.stringify(run) + '\n', 'utf8');
+  await fs.appendFile(RUN_LOG, JSON.stringify({ ...run, project_root: PROJECT }) + '\n', 'utf8');
 }
 
 export async function readTools(): Promise<Tool[]> {
@@ -67,15 +78,22 @@ export async function readTools(): Promise<Tool[]> {
 }
 
 async function readBrain(id: string) {
-  const dir = path.join(SKILLS, id, 'brain');
+  const agentDir = path.join(PROJECT, '.agents', 'skills', id);
+  const claudeDir = path.join(PROJECT, '.claude', 'skills', id);
+  const dirs = [agentDir, claudeDir].filter((dir) => existsSync(path.join(dir, 'SKILL.md')));
+  if (dirs.length > 1) throw new Error('Ambiguous project role: choose one host installation');
+  const dir = path.join(dirs[0] ?? agentDir, 'brain');
+  const within = (file: string) => { const rel = path.relative(realpathSync(PROJECT), realpathSync(file)); return rel !== '..' && !rel.startsWith(`..${path.sep}`) && !path.isAbsolute(rel); };
+  if (existsSync(dir) && !within(dir)) throw new Error('Project brain escapes through symlink');
   const files: Partial<Record<(typeof BRAIN_FILES)[number], string>> = {};
   let latest = 0;
   for (const name of BRAIN_FILES) {
     const file = path.join(dir, `${name}.md`);
     try {
+      if (existsSync(file) && !within(file)) throw new Error('Project brain file escapes through symlink');
       files[name] = await fs.readFile(file, 'utf8');
       latest = Math.max(latest, (await fs.stat(file)).mtimeMs);
-    } catch { /* absent */ }
+    } catch (error) { if (existsSync(file)) throw error; /* absent */ }
   }
   return { files, latest };
 }
@@ -108,10 +126,10 @@ export async function skillDetail(id: string) {
 
 export type ExecResult = { exit_code: number; output: string; duration_ms: number };
 
-function exec(args: string[], timeoutMs: number): Promise<ExecResult> {
+function exec(args: string[], timeoutMs: number, cwd = PROJECT): Promise<ExecResult> {
   return new Promise((resolve) => {
     const started = Date.now();
-    const child = spawn('python3', args, { cwd: ROOT, env: { ...process.env, CREWLOOM_NO_LOG: '1' } });
+    const child = spawn('python3', args, { cwd, env: { ...process.env, CREWLOOM_NO_LOG: '1' } });
     let output = '';
     const cap = (d: Buffer) => { if (output.length < 20000) output += d.toString(); };
     child.stdout.on('data', cap);
@@ -122,7 +140,7 @@ function exec(args: string[], timeoutMs: number): Promise<ExecResult> {
   });
 }
 
-/** Run a registered tool only; arguments must be plain strings and may not escape ROOT as paths. */
+/** Run a registered tool only; arguments must be plain strings and use project-relative paths. */
 export async function runTool(toolId: string, args: string[]): Promise<ExecResult & { error?: string }> {
   const tool = (await readTools()).find((t) => t.id === toolId);
   if (!tool) return { exit_code: 2, output: '', duration_ms: 0, error: 'Unknown tool' };
@@ -131,10 +149,10 @@ export async function runTool(toolId: string, args: string[]): Promise<ExecResul
       return { exit_code: 2, output: '', duration_ms: 0, error: `Rejected argument: ${arg}` };
     }
   }
-  const result = await exec(['scripts/crewloom.py', 'run', tool.id, '--', ...args], 60000);
+  const result = await exec([path.join(ROOT, 'scripts/crewloom.py'), 'run', '--project', PROJECT, tool.id, '--', ...args], 60000);
   return result;
 }
 
 export async function runChecks(): Promise<ExecResult> {
-  return exec(['scripts/check_repository.py'], 180000);
+  return exec([path.join(ROOT, 'scripts/check_repository.py')], 180000, ROOT);
 }

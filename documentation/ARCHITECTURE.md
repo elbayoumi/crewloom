@@ -16,3 +16,5 @@ Each public role has five initial memory documents. They contain no agency opera
 The core context builder keeps complete source files or explicit reading obligations; it never silently removes the tail of a procedure. English and Arabic change human-facing context labels, while paths and role identifiers remain stable.
 
 The validator checks file structure and required section markers. The repository checker also checks Python syntax and local Markdown links, then runs the core suites. These checks do not establish the quality of every role or constrain arbitrary host actions.
+
+Project selection and isolation: [project guide](PROJECTS.md).

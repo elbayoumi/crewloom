@@ -25,3 +25,38 @@ test('frontmatter and skill id validation', () => {
   assert.equal(isSkillId('../etc'), false);
   assert.equal(isSkillId('seo-growth-engineer'), true);
 });
+
+test('dashboard project memory, relative tool inputs, and run history stay isolated', async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const path = await import('node:path');
+  const { pathToFileURL } = await import('node:url');
+  const folder = mkdtempSync(path.join(tmpdir(), 'crewloom-projects-'));
+  const oldProject = process.env.CREWLOOM_PROJECT;
+  try {
+    const modules = [];
+    for (const name of ['one', 'two']) {
+      const project = path.join(folder, name);
+      const role = path.join(project, '.agents', 'skills', 'context-guardian');
+      mkdirSync(path.join(role, 'brain'), { recursive: true });
+      writeFileSync(path.join(role, 'SKILL.md'), 'role');
+      writeFileSync(path.join(role, 'brain', 'ARCHITECTURE.md'), name);
+      writeFileSync(path.join(project, 'workflow.json'), name === 'one' ? readFileSync('../examples/workflows/valid.json') : '[]');
+      process.env.CREWLOOM_PROJECT = project;
+      const url = pathToFileURL(path.resolve('lib/repo.ts')); url.searchParams.set('project-test', name);
+      modules.push(await import(url.href));
+    }
+    assert.equal((await modules[0].skillDetail('context-guardian')).brain.ARCHITECTURE, 'one');
+    assert.equal((await modules[1].skillDetail('context-guardian')).brain.ARCHITECTURE, 'two');
+    const result = await modules[0].runTool('workflow-contract', ['workflow.json']);
+    assert.equal(result.exit_code, 0, result.output);
+    await modules[0].appendRun({ ts: 'now', tool: 'workflow-contract', skill: 'automation-ops-engineer', exit_code: 0, duration_ms: 1, source: 'dashboard' });
+    assert.equal((await modules[0].readRuns()).length, 1);
+    assert.equal((await modules[1].readRuns()).length, 0);
+    const escape = await modules[0].runTool('seo-packet', ['--packet=../two/workflow.json']);
+    assert.notEqual(escape.exit_code, 0);
+  } finally {
+    if (oldProject === undefined) delete process.env.CREWLOOM_PROJECT; else process.env.CREWLOOM_PROJECT = oldProject;
+    rmSync(folder, { recursive: true, force: true });
+  }
+});

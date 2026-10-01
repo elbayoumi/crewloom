@@ -4,12 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 type Skill = { id: string; description: string; lastActivity: string | null; openTasks: number; doneEntries: number; openChallenges: number; ideas: number; tools: string[]; runs: number; failedRuns: number; status: 'healthy' | 'attention' | 'idle' };
 type Tool = { id: string; skill: string; description: string; example_args: string; effect: string };
 type Run = { ts: string; tool: string; skill: string; exit_code: number; duration_ms: number; source: string; output?: string };
-type Overview = { generatedAt: string; totals: Record<string, number>; skills: Skill[]; tools: Tool[]; runs: Run[] };
+type Overview = { projectRoot: string; generatedAt: string; totals: Record<string, number>; skills: Skill[]; tools: Tool[]; runs: Run[] };
 type Detail = { id: string; skill: string; brain: Record<string, string> };
 
 const T = {
-  en: { skills: 'Roles', tools: 'Tools', attention: 'Need attention', tasks: 'Open tasks', challenges: 'Open challenges', failed: 'Failed runs (last 50)', live: 'Live', offline: 'Reconnecting', search: 'Search roles', all: 'All', run: 'Run', runs: 'Recent runs', checks: 'Run repository checks', args: 'Arguments (space separated, repo-relative)', none: 'No runs recorded yet. Run a tool here or with the CLI.', role: 'Role', status: 'Status', activity: 'Last memory update', done: 'Done', open: 'Open', ideas: 'Ideas', lang: 'العربية' },
-  ar: { skills: 'الأدوار', tools: 'الأدوات', attention: 'تحتاج متابعة', tasks: 'مهام مفتوحة', challenges: 'تحديات مفتوحة', failed: 'تشغيل فاشل (آخر 50)', live: 'مباشر', offline: 'إعادة اتصال', search: 'ابحث في الأدوار', all: 'الكل', run: 'تشغيل', runs: 'آخر التشغيلات', checks: 'شغّل فحوص الريبو', args: 'المعاملات (بمسافات، مسارات نسبية للريبو)', none: 'لا توجد تشغيلات بعد. شغّل أداة من هنا أو من الـ CLI.', role: 'الدور', status: 'الحالة', activity: 'آخر تحديث للذاكرة', done: 'منجز', open: 'مفتوح', ideas: 'أفكار', lang: 'English' },
+  en: { skills: 'Roles', tools: 'Tools', attention: 'Need attention', tasks: 'Open tasks', challenges: 'Open challenges', failed: 'Failed runs (last 50)', live: 'Live', offline: 'Reconnecting', search: 'Search roles', all: 'All', run: 'Run', runs: 'Recent runs', checks: 'Run repository checks', args: 'Arguments (space separated, project-relative)', none: 'No runs recorded yet. Run a tool here or with the CLI.', role: 'Role', status: 'Status', activity: 'Last memory update', done: 'Done', open: 'Open', ideas: 'Ideas', lang: 'العربية' },
+  ar: { skills: 'الأدوار', tools: 'الأدوات', attention: 'تحتاج متابعة', tasks: 'مهام مفتوحة', challenges: 'تحديات مفتوحة', failed: 'تشغيل فاشل (آخر 50)', live: 'مباشر', offline: 'إعادة اتصال', search: 'ابحث في الأدوار', all: 'الكل', run: 'تشغيل', runs: 'آخر التشغيلات', checks: 'شغّل فحوص الريبو', args: 'المعاملات (بمسافات، مسارات نسبية للمشروع)', none: 'لا توجد تشغيلات بعد. شغّل أداة من هنا أو من الـ CLI.', role: 'الدور', status: 'الحالة', activity: 'آخر تحديث للذاكرة', done: 'منجز', open: 'مفتوح', ideas: 'أفكار', lang: 'English' },
 } as const;
 
 const ago = (iso: string | null) => {
@@ -86,6 +86,7 @@ export default function Dashboard() {
           <button className="ghost" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>{t.lang}</button>
         </div>
       </header>
+      <p>{lang === "ar" ? "المشروع الحالي" : "Current project"}: <code>{data?.projectRoot ?? "…"}</code></p>
       {error && <div className="card" role="alert">API: {error}</div>}
       <section className="tiles" aria-label="Totals">
         <div className="tile"><b>{totals.skills ?? '—'}</b><span>{t.skills}</span></div>

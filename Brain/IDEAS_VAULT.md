@@ -5,3 +5,6 @@ Evaluate repeatable role tasks in both Arabic and English across target agent ho
 
 ### Role evaluations
 Build reproducible, synthetic end-to-end role tasks with independently reviewed outputs, extending structural checks without claiming unmeasured performance.
+
+### 2026-10-01 — Project path isolation
+Project-scoped host permissions can extend the entry-point path guards to arbitrary tool execution.

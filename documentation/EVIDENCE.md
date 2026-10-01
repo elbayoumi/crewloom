@@ -100,3 +100,7 @@ Fixture: [frontend-audit-v2](../examples/evaluation/frontend-audit-v2/fixture) â
 - **Prompt error on my side:** the B prompt suggested passing `--tokens` to every tool; `ui-hints` and `grid-safety` reject it, and all three B agents worked around it by omitting the flag. The tools were not at fault.
 
 **What this does and does not show.** The role plus tools gave deterministic, line-accurate evidence for the 7 defects they cover and, in these runs, fewer unwarranted change requests. It did not find anything a generic reviewer missed. A claim that the role improves results still needs defects a generic review tends to miss, more runs, and a blind grader.
+
+## 2026-10-01 â€” Project path isolation
+
+75 Python regressions and five dashboard tests pass, including separate project histories and memory, identical relative input names, and cross-project path rejection. TypeScript `tsc --noEmit` passes. These are entry-point guards, not host sandbox evidence.

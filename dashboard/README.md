@@ -32,3 +32,5 @@ Updates arrive through Server-Sent Events (`/api/events`): editing a memory file
 ## Safety
 
 The API runs only tools registered in `TOOLS.json`, rejects absolute or `..` path arguments, caps output at 20 KB and run time at 60 s. There is no authentication: bind it to localhost only and do not expose it to a network.
+
+Project selection and isolation: [project guide](../documentation/PROJECTS.md).

@@ -105,3 +105,5 @@ Start with [Getting started](documentation/GETTING_STARTED.md), [Architecture](d
 Derived from RUMUZE Agency's first-party procedures, with clean public memory and filtered operational references. Client records, private infrastructure, and internal history are excluded. See [provenance](documentation/PROVENANCE.json).
 
 [Apache-2.0](LICENSE) · Copyright 2026 RUMUZE Agency · [Attribution](NOTICE).
+
+Project selection and isolation: [project guide](documentation/PROJECTS.md).

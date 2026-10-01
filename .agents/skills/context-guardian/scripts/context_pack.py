@@ -62,6 +62,7 @@ def build_pack(base: Path, budget: int = BUDGET, output: Optional[Path] = None, 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--project", help="Read only this project’s installed role and memory")
     ap.add_argument("--skill", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--language", choices=("en", "ar"), default="en")
@@ -69,11 +70,25 @@ def main() -> int:
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", a.skill):
         ap.error("Invalid skill name")
     base = REPO / ".agents" / "skills" / a.skill
+    if a.project:
+        project = Path(a.project).resolve()
+        candidates = [project / host / 'skills' / a.skill for host in ('.agents', '.claude')]
+        installed = [p for p in candidates if (p / 'SKILL.md').is_file()]
+        if len(installed) != 1:
+            ap.error('Project must have exactly one installed copy of this role; no shared-memory fallback')
+        base = installed[0].resolve()
+        if not base.is_relative_to(project):
+            ap.error('Installed role escapes project through a symlink')
     output = Path(a.out).resolve()
     try:
-        if (REPO / ".agents" / "skills").resolve() in output.parents:
+        if a.project and not output.is_relative_to(project):
+            raise ValueError('Project context output must remain inside the selected project')
+        if any(not (base / rel).resolve().is_relative_to(base) for rel in SOURCES):
+            raise ValueError('Role memory source escapes its installation through a symlink')
+        if base == output or base in output.parents or (REPO / ".agents" / "skills").resolve() in output.parents:
             raise ValueError("Output must be outside skill sources")
-        pack = build_pack(base, output=output, language=a.language)
+        binding = (f"Project root: {project}\nRole installation: {base}\nKeep project state and outputs in this project.\n\n" if a.project else '')
+        pack = binding + build_pack(base, budget=BUDGET-len(binding), output=output, language=a.language)
         output.parent.mkdir(parents=True, exist_ok=True)
         with NamedTemporaryFile(mode="w", encoding="utf-8", dir=output.parent, delete=False) as stream:
             temporary = Path(stream.name)

@@ -42,3 +42,46 @@ class InstallTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class ProjectIsolationTests(unittest.TestCase):
+    def test_same_relative_input_uses_selected_project_and_separate_logs(self):
+        import json
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            for name, data in [('one', json.loads((ROOT/'examples/workflows/valid.json').read_text())), ('two', [])]:
+                project=root/name; project.mkdir()
+                (project/'workflow.json').write_text(json.dumps(data))
+            one=cli('run','--project',str(root/'one'),'workflow-contract','--','workflow.json')
+            two=cli('run','--project',str(root/'two'),'workflow-contract','--','workflow.json')
+            self.assertNotEqual(one.returncode,two.returncode)
+            for name in ('one','two'):
+                log=root/name/'.crewloom/runs.jsonl'
+                records=[json.loads(line) for line in log.read_text().splitlines()]
+                self.assertEqual(len(records),1)
+                self.assertEqual(records[0]['project_root'],str((root/name).resolve()))
+
+    def test_cross_project_path_and_symlink_install_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory); one=root/'one'; two=root/'two'; one.mkdir();two.mkdir()
+            (two/'input.json').write_text('{}')
+            for arg in ('../two/input.json', str(two/'input.json')):
+                result=cli('run','--project',str(one),'workflow-contract','--',arg)
+                self.assertEqual(result.returncode,2)
+                self.assertIn('escapes selected project',result.stderr)
+            (one/'.agents').symlink_to(two,target_is_directory=True)
+            self.assertEqual(cli('install','--host','agents','--target',str(one),'--skill','context-guardian').returncode,2)
+            self.assertFalse((two/'skills').exists())
+
+    def test_context_uses_project_memory_and_rejects_other_project_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory); one=root/'one';two=root/'two';one.mkdir();two.mkdir()
+            self.assertEqual(cli('install','--host','agents','--target',str(one),'--skill','context-guardian').returncode,0)
+            brain=one/'.agents/skills/context-guardian/brain/ARCHITECTURE.md'
+            brain.write_text('# Architecture\nPROJECT_ONE_ONLY')
+            out=one/'context.md'
+            result=cli('context','--project',str(one),'context-guardian','--out',str(out))
+            self.assertEqual(result.returncode,0,result.stderr)
+            self.assertIn('PROJECT_ONE_ONLY',out.read_text())
+            self.assertNotEqual(cli('context','--project',str(one),'context-guardian','--out',str(two/'context.md')).returncode,0)
+            self.assertFalse((two/'context.md').exists())
+            self.assertNotEqual(cli('context','--project',str(two),'context-guardian','--out',str(two/'context.md')).returncode,0)

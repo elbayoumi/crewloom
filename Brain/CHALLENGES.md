@@ -19,3 +19,8 @@
 - السبب الجذري / Root cause: seeded defects are standard patterns a strong generic reviewer already catches.
 - الحل المعتمد / Approved fix: harder fixtures, repeated runs, blind grading (queued in ROADMAP_TODO).
 - الحالة: مفتوح
+
+### 2026-10-01 — Project path isolation
+- Cause: Library and project roots were conflated for execution, memory, and logs.
+- Fix: Separate canonical roots and validate resolved input/output/install paths.
+- Check: Two-project fixtures exercise identical filenames and symlink escapes.
