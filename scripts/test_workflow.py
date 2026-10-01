@@ -1,5 +1,7 @@
 """Workflow invariants and optional real-Docker acceptance checks."""
 import json
+import threading
+from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path
 import shutil
@@ -109,6 +111,75 @@ class WorkflowTests(unittest.TestCase):
             result=self.run_plan();self.assertEqual(result['status'],'complete')
             self.assertNotEqual(result['completed']['build']['inputs']['output.txt'],result['completed']['build']['outputs']['output.txt'])
             self.assertEqual(self.run_plan()['status'],'complete')
+
+    def test_task_actions_need_explicit_project(self):
+        with self.assertRaises(SystemExit) as error:w.main(['run'])
+        self.assertEqual(error.exception.code,2)
+
+    def test_paused_task_reserves_project_between_calls(self):
+        self.plan['steps'][0]['kind']='task';self.plan['steps'][0].pop('argv')
+        plan,fingerprint=self.write_plan()
+        self.assertEqual(w.run(self.root,plan,fingerprint,'image')['status'],'awaiting_task')
+        other=json.loads(json.dumps(plan));other['id']='other-task';other['steps'][0]['outputs']=['other.txt']
+        with self.assertRaisesRegex(ValueError,'unfinished workflow'):
+            w.run(self.root,other,w.digest(json.dumps(other,sort_keys=True).encode()),'image')
+        self.assertEqual(w.active_workflow(self.root)['workflow'],plan['id'])
+        self.assertFalse((self.root/'other.txt').exists())
+
+    def test_cancel_preserves_files_and_history_and_blocks_resume(self):
+        self.plan['steps'][0]['kind']='task';self.plan['steps'][0].pop('argv')
+        plan,fingerprint=self.write_plan();w.run(self.root,plan,fingerprint,'image')
+        (self.root/'output.txt').write_text('partial artifact')
+        ledger={'attempts':[{'signature':'prior-failure','status':'failed'}]};w.save_ledger(self.root,ledger)
+        self.assertEqual(w.cancel(self.root,plan,fingerprint)['status'],'cancelled')
+        self.assertEqual((self.root/'output.txt').read_text(),'partial artifact')
+        self.assertEqual(json.loads((self.root/'.crewloom/attempts.json').read_text()),ledger)
+        self.assertIsNone(w.active_workflow(self.root))
+        with self.assertRaisesRegex(ValueError,'Cancelled'):w.run(self.root,plan,fingerprint,'image')
+        other=json.loads(json.dumps(plan));other['id']='new-task'
+        self.assertEqual(w.run(self.root,other,w.digest(json.dumps(other,sort_keys=True).encode()),'image')['status'],'awaiting_task')
+
+    def test_cancel_cannot_bypass_running_project_lock(self):
+        plan,fingerprint=self.write_plan()
+        with w.lock(w.safe_path(self.root,'.crewloom',internal=True)):
+            with self.assertRaisesRegex(ValueError,'locked'):w.cancel(self.root,plan,fingerprint)
+
+    def test_actual_concurrent_runs_same_project_rejected(self):
+        plan,fingerprint=self.write_plan();entered=threading.Event();release=threading.Event()
+        def execute(root,argv,image,timeout):
+            entered.set();self.assertTrue(release.wait(5));return self.execute(root,argv,image,timeout)
+        with patch.object(w,'inspect_image',return_value='sha256:test'),patch.object(w,'docker_execute',side_effect=execute),ThreadPoolExecutor(max_workers=2) as pool:
+            first=pool.submit(w.run,self.root,plan,fingerprint,'image')
+            try:
+                self.assertTrue(entered.wait(5))
+                with self.assertRaisesRegex(ValueError,'locked'):w.run(self.root,plan,fingerprint,'image')
+            finally:release.set()
+            self.assertEqual(first.result(timeout=5)['status'],'complete')
+        self.assertIsNone(w.active_workflow(self.root))
+
+    def test_actual_parallel_projects_with_identical_names_are_independent(self):
+        plan,fingerprint=self.write_plan();barrier=threading.Barrier(2)
+        with tempfile.TemporaryDirectory() as t:
+            other=Path(t).resolve();(other/'input.txt').write_text('second project')
+            def execute(root,argv,image,timeout):
+                barrier.wait(timeout=5);(root/'output.txt').write_text((root/'input.txt').read_text())
+                return {'exit_code':0,'output':''}
+            with patch.object(w,'inspect_image',return_value='sha256:test'),patch.object(w,'docker_execute',side_effect=execute),ThreadPoolExecutor(max_workers=2) as pool:
+                runs=[pool.submit(w.run,root,plan,fingerprint,'image') for root in (self.root,other)]
+                results=[future.result(timeout=8) for future in runs]
+            self.assertEqual([r['status'] for r in results],['complete','complete'])
+            self.assertEqual((self.root/'output.txt').read_text(),'input');self.assertEqual((other/'output.txt').read_text(),'second project')
+            self.assertNotEqual(results[0]['project_root'],results[1]['project_root'])
+
+    def test_copied_or_symlinked_project_reservation_rejected(self):
+        folder=self.root/'.crewloom';folder.mkdir()
+        path=folder/'active_workflow.json'
+        path.write_text(json.dumps({'project_root':'/other/project','workflow':'test-feature','plan_sha256':'a'*64}))
+        with self.assertRaisesRegex(ValueError,'cross-project'):self.run_plan()
+        path.unlink()
+        with tempfile.TemporaryDirectory() as t:
+            path.symlink_to(Path(t)/'active.json')
+            with self.assertRaisesRegex(ValueError,'symlinks|escapes'):self.run_plan()
 
     def test_task_handoff_and_independent_reviewer_identifier(self):
         self.plan['steps'][0]['kind']='task';self.plan['steps'][0].pop('argv')

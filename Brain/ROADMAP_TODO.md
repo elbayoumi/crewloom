@@ -48,3 +48,7 @@
 - [ ] Authenticate reviewer identities for task acceptance; declared IDs remain unauthenticated.
 
 - [x] Adopt Self-Editing Mode / التعديل الذاتي for the existing maintenance workflow and document activation/scope.
+
+- [x] Require explicit workflow project root and retain ownership across paused manual tasks.
+- [x] Verify separate-project parallel execution and same-project conflict rejection.
+- [ ] Automatic scheduling remains unimplemented; parallel worktrees require explicit setup and reviewed merges.

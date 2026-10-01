@@ -74,3 +74,8 @@
 - Artifact: `documentation/SELF_EDITING.md`, constitution and improvement-role entry point.
 - Impact: Owner-selected English/Arabic name activates the existing in-place maintenance workflow.
 - Evidence: Role ID preserved; documentation explicitly distinguishes host task activation from CLI/background execution.
+
+### 2026-10-01 — Precise concurrent project scope
+- Artifact: Explicit workflow project selection, paused-task reservation, cancellation and concurrency regressions.
+- Impact: Separate roots run together; one root cannot switch workflows while a manual task is outstanding.
+- Evidence: Same-root concurrent invocation rejected; different roots with identical filenames run simultaneously; copied/symlinked reservations rejected and cancellation retains files/history.

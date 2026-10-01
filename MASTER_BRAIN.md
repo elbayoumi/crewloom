@@ -13,3 +13,5 @@ Crewloom 0.4.0 adds Docker-isolated software commands, project-bound state and t
 Crewloom 0.5.0 adds bounded Codex/Claude artifact-generation adapters, an executed Codex-to-Docker feature example, a reproducible provider-trial coordinator, and English specialist procedures for all 42 roles. Ten Codex submissions tie at 9/9 on one contract; Claude authentication blocks cross-host results. No general superiority or authenticated independent-review claim.
 
 The owner-selected maintenance workflow name is Self-Editing Mode / التعديل الذاتي. It uses the existing skill-improvement-engineer role and task permissions; activation and acceptance are documented in documentation/SELF_EDITING.md.
+
+Concurrent workflow scope uses explicit project roots, process locks and paused-task reservations. Different roots run in parallel; same-root task ownership persists until completion or explicit cancellation. Direct host tools are outside these guards.

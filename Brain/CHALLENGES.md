@@ -39,3 +39,8 @@
 - Cause: Codex nonfatal diagnostic items were mistaken for executable tool events; Claude CLI is installed but logged out.
 - Fix: Require completed structured generation, count diagnostics separately, reject executable/unknown tool items; preserve provider failures and skip calls after two host failures.
 - Check: Diagnostic regression and actual Codex/Docker feature pass; Claude comparison remains blocked until local login.
+
+### 2026-10-01 — Paused tasks released process ownership
+- Cause: Process locks ended on manual-task handoff, permitting a different workflow to start in that root; implicit cwd also allowed ambiguous selection.
+- Fix: Require explicit task root and persist a project-bound active-workflow reservation; only matching continuation/cancellation may take over.
+- Check: Concurrent same/different-root, paused-task, cancellation and redirected reservation regressions. Direct host edits remain outside runner protection.
