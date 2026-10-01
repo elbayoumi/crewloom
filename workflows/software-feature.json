@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "id": "software-feature",
+  "language": "en",
+  "steps": [
+    {
+      "id": "requirements",
+      "role": "business-analyst-discovery",
+      "kind": "task",
+      "summary": "Define bounded acceptance criteria and unresolved decisions",
+      "inputs": [
+        "task.md"
+      ],
+      "outputs": [
+        "artifacts/requirements.md"
+      ]
+    },
+    {
+      "id": "architecture",
+      "role": "tech-stack-architect",
+      "kind": "task",
+      "summary": "Document reuse, architecture and permissions",
+      "inputs": [
+        "artifacts/requirements.md"
+      ],
+      "outputs": [
+        "artifacts/architecture.md"
+      ]
+    },
+    {
+      "id": "implementation",
+      "role": "fullstack-mvp-engineer",
+      "kind": "task",
+      "summary": "Implement the feature; report changed files, errors and remaining gaps",
+      "inputs": [
+        "artifacts/requirements.md",
+        "artifacts/architecture.md"
+      ],
+      "outputs": [
+        "artifacts/implementation.md"
+      ]
+    },
+    {
+      "id": "review",
+      "role": "frontend-ux-auditor",
+      "kind": "task",
+      "summary": "Review the actual changed files and rendered behavior; record evidence",
+      "inputs": [
+        "artifacts/implementation.md"
+      ],
+      "outputs": [
+        "artifacts/review.md"
+      ]
+    },
+    {
+      "id": "verification",
+      "role": "qa-test-automation-engineer",
+      "kind": "task",
+      "summary": "Run real project checks; record argv, exit codes, revision and results",
+      "inputs": [
+        "artifacts/implementation.md",
+        "artifacts/review.md"
+      ],
+      "outputs": [
+        "artifacts/verification.json"
+      ]
+    },
+    {
+      "id": "delivery",
+      "role": "delivery-director",
+      "kind": "task",
+      "summary": "Review current evidence and deliver usage, rollback and remaining limitations",
+      "inputs": [
+        "artifacts/verification.json"
+      ],
+      "outputs": [
+        "artifacts/delivery.md"
+      ]
+    }
+  ]
+}

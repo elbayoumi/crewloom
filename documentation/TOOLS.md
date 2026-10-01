@@ -21,3 +21,7 @@ Run `python3 scripts/crewloom.py tools` to list these tools. `run` dispatches on
 `{input}` means a real path supplied by you. Start with [the runnable examples](../examples/README.md). Commands do not install dependencies or authorize external operations. Tool messages may be English or Arabic.
 
 For exact JSON contracts inspect the tool docstring and validation function. The source is linked directly above so the input contract is reviewable.
+
+| [workflow](../scripts/workflow.py) | Isolated software workflows and role handoff | `python3 scripts/crewloom.py workflow doctor` |
+
+Workflow execution requires Docker and a locally available image. See [execution](EXECUTION.md). Feature evaluation has a separate [benchmark contract](../examples/evaluation/unicode-slug/README.md).

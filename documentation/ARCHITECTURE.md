@@ -18,3 +18,7 @@ The core context builder keeps complete source files or explicit reading obligat
 The validator checks file structure and required section markers. The repository checker also checks Python syntax and local Markdown links, then runs the core suites. These checks do not establish the quality of every role or constrain arbitrary host actions.
 
 Project selection and isolation: [project guide](PROJECTS.md).
+
+## Execution and evidence layer
+
+`scripts/workflow.py` is the single workflow state/execution implementation. The CLI delegates to it. The project owns a validated ordered plan; commands execute in Docker and tasks pause for reviewed artifacts. Runtime state is project-local and hidden from commands. Fingerprints prevent stale resume and project/plan substitution; attempts and locks survive handoffs. The objective feature evaluator reuses the same Docker executor and keeps expected answers outside candidate containers. See [execution](EXECUTION.md).

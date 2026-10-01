@@ -10,11 +10,27 @@
 
 Crewloom is a repository-native toolkit for specialist AI agent work. Choose a role, give it your project inputs, keep working memory, and check the result with local tools. Use your existing agent host and model.
 
-The toolkit brings together **42 English role guides**, **108 detailed reference documents**, **13 Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic.
+The toolkit brings together **42 English role guides**, **114 detailed reference documents**, **14 catalogued Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic.
 
-## Try it in a minute
+## Execute a software workflow
 
-Requires Git and Python 3.9+. The included tools use the standard library.
+Run a six-stage feature with actual commands, project-bound evidence and resumable state:
+
+```bash
+docker pull python:3.14-slim
+cp -R examples/software-workflow/project /tmp/crewloom-demo
+python3 scripts/crewloom.py workflow doctor
+python3 scripts/crewloom.py workflow run --project /tmp/crewloom-demo
+python3 scripts/crewloom.py workflow handoff --project /tmp/crewloom-demo
+```
+
+Use a fresh destination. Commands run inside Docker with network access disabled and only the selected project mounted. The example tests a supplied Unicode implementation in English and Arabic; it demonstrates execution, not model-generated feature quality.
+
+Use the [software task plan](workflows/software-feature.json) for agent-produced work. Read [execution and failure handling](documentation/EXECUTION.md), [host setup](documentation/HOSTS.md), and [objective evaluation](examples/evaluation/unicode-slug/README.md).
+
+## Try local checks in a minute
+
+Requires Git and Python 3.9+. The Python core uses the standard library; isolated workflows additionally require Docker.
 
 ```bash
 git clone https://github.com/elbayoumi/crewloom.git

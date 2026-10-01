@@ -135,6 +135,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('list', help='List available skill IDs')
+    evaluation = commands.add_parser('evaluate', help='Score a Unicode feature submission with held-out acceptance')
+    evaluation.add_argument('--project', required=True)
+    evaluation.add_argument('--image', default='python:3.14-slim')
+    evaluation.add_argument('--repeats', type=int, default=3)
+    workflow = commands.add_parser('workflow', help='Run an isolated, resumable project workflow')
+    workflow.add_argument('workflow_arguments', nargs=argparse.REMAINDER)
     commands.add_parser('tools', help='List included executable tools')
     run = commands.add_parser('run', help='Run a registered local tool')
     run.add_argument('--project', default='.', help='Project root for relative inputs and run history')
@@ -159,6 +165,12 @@ def main():
     dash.add_argument('--project', default='.', help='Project monitored by this dashboard process')
     dash.add_argument('--port', type=int, default=4317)
     args = parser.parse_args()
+    if args.command == 'evaluate':
+        from evaluate_feature import main as evaluate_main
+        return evaluate_main(['--project', args.project, '--image', args.image, '--repeats', str(args.repeats)])
+    if args.command == 'workflow':
+        from workflow import main as workflow_main
+        return workflow_main(args.workflow_arguments)
     project = Path(getattr(args, 'project', None) or '.').resolve()
     if not project.is_dir():
         parser.error('Project root must be an existing directory')

@@ -1,0 +1,134 @@
+{
+  "date": "2026-10-01",
+  "experiment": "Objective Unicode acceptance scorer validation",
+  "conditions": {
+    "seeded_ascii_baseline": {
+      "benchmark": "unicode-slug-v1",
+      "source_sha256": "18a4f92b60a27406614614ab414eb86d9c619b23f0bb0df859b6081faff3d74f",
+      "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+      "runs": [
+        {
+          "passed": 5,
+          "total": 9,
+          "cases": {
+            "english-punctuation": true,
+            "arabic-spacing": false,
+            "compatibility-forms": false,
+            "case-folding": false,
+            "repeated-separators": true,
+            "empty-input": true,
+            "punctuation-only": true,
+            "arabic-digits": false,
+            "invalid-type": true
+          },
+          "duration_ms": 491
+        },
+        {
+          "passed": 5,
+          "total": 9,
+          "cases": {
+            "english-punctuation": true,
+            "arabic-spacing": false,
+            "compatibility-forms": false,
+            "case-folding": false,
+            "repeated-separators": true,
+            "empty-input": true,
+            "punctuation-only": true,
+            "arabic-digits": false,
+            "invalid-type": true
+          },
+          "duration_ms": 426
+        },
+        {
+          "passed": 5,
+          "total": 9,
+          "cases": {
+            "english-punctuation": true,
+            "arabic-spacing": false,
+            "compatibility-forms": false,
+            "case-folding": false,
+            "repeated-separators": true,
+            "empty-input": true,
+            "punctuation-only": true,
+            "arabic-digits": false,
+            "invalid-type": true
+          },
+          "duration_ms": 434
+        }
+      ],
+      "mean_pass_rate": 0.5555555555555556,
+      "limits": [
+        "Single pure-function benchmark",
+        "No model condition is provided to the scorer",
+        "Not a cross-provider or independent-human-review result"
+      ]
+    },
+    "supplied_reference": {
+      "benchmark": "unicode-slug-v1",
+      "source_sha256": "0d88f1f28bc4c9f73d9e0d2270c4e1a73aec4fd503209b9b8c1abbb3ab820604",
+      "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+      "runs": [
+        {
+          "passed": 9,
+          "total": 9,
+          "cases": {
+            "english-punctuation": true,
+            "arabic-spacing": true,
+            "compatibility-forms": true,
+            "case-folding": true,
+            "repeated-separators": true,
+            "empty-input": true,
+            "punctuation-only": true,
+            "arabic-digits": true,
+            "invalid-type": true
+          },
+          "duration_ms": 384
+        },
+        {
+          "passed": 9,
+          "total": 9,
+          "cases": {
+            "english-punctuation": true,
+            "arabic-spacing": true,
+            "compatibility-forms": true,
+            "case-folding": true,
+            "repeated-separators": true,
+            "empty-input": true,
+            "punctuation-only": true,
+            "arabic-digits": true,
+            "invalid-type": true
+          },
+          "duration_ms": 378
+        },
+        {
+          "passed": 9,
+          "total": 9,
+          "cases": {
+            "english-punctuation": true,
+            "arabic-spacing": true,
+            "compatibility-forms": true,
+            "case-folding": true,
+            "repeated-separators": true,
+            "empty-input": true,
+            "punctuation-only": true,
+            "arabic-digits": true,
+            "invalid-type": true
+          },
+          "duration_ms": 438
+        }
+      ],
+      "mean_pass_rate": 1.0,
+      "limits": [
+        "Single pure-function benchmark",
+        "No model condition is provided to the scorer",
+        "Not a cross-provider or independent-human-review result"
+      ]
+    }
+  },
+  "limitations": [
+    "Both implementations are supplied fixtures; neither is a measured agent treatment",
+    "Expected cases are public regression cases, not a secret unseen generalization benchmark",
+    "Scorer does not receive model/treatment labels",
+    "This is not proof of model superiority or independent human review"
+  ]
+}

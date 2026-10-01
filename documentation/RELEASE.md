@@ -31,3 +31,7 @@ There is no central agent orchestration service or published package in this edi
 ## 0.2.0 depth refresh
 
 108 detailed references, twelve local tools and six runnable examples. All 52 regression tests pass locally. See [the changelog](../CHANGELOG.md) and [validation metadata](VALIDATION.json).
+
+## 0.4.0 execution foundation
+
+Docker-isolated software workflow commands, manual task handoffs, persistent evidence and resume, objective feature scoring and six English role contracts. See [execution](EXECUTION.md), [host setup](HOSTS.md), [evidence](EVIDENCE.md), and [changelog](../CHANGELOG.md).

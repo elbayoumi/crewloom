@@ -7,3 +7,5 @@ The public edition contains clean role memory and shared repository memory. It h
 Public edition 0.2.0 restores detailed references and ships twelve catalogued local tools, with six runnable examples.
 
 Project runtime root is separate from library code; CLI/dashboard histories and installed role memory are project-local. See documentation/PROJECTS.md for scope and evidence.
+
+Crewloom 0.4.0 adds Docker-isolated software commands, project-bound state and task handoffs, six detailed English software contracts, readiness and host-layout setup, and an objective feature scorer. Supplied-fixture execution is validated; real provider superiority and authenticated independent review are not claimed.

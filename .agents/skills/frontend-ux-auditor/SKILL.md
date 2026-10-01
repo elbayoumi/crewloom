@@ -40,3 +40,7 @@ Read [the full Arabic playbook](references/PLAYBOOK.ar.md) for role boundaries, 
 - [layout-overlap](scripts/check_layout_overlap.py): Check geometric sibling overlap from supplied browser snapshot JSON.
 
 See the [tool catalog](../../../documentation/TOOLS.md) for commands, inputs, side effects and exit behavior.
+
+## English software workflow contract
+
+Read [the English playbook](references/PLAYBOOK.en.md) and [the execution guide](../../../documentation/EXECUTION.md) before owning a software workflow step.

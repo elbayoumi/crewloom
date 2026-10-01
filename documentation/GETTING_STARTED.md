@@ -33,3 +33,7 @@ python3 .agents/skills/ultra-light-optimizer/scripts/check_resource_budget.py --
 ```
 
 Use your actual project directory. This is a heuristic source scanner, not a database profiler or general correctness check. Exit 0 means no hard pattern findings, 1 means hard findings, and 2 means no scannable source was found. Inspect false positives and document any exceptions.
+
+## Isolated feature execution
+
+Start with [the six-stage feature example](../examples/software-workflow/README.md). Use [execution](EXECUTION.md) for readiness, task acceptance, Docker boundaries and resume; use [host setup](HOSTS.md) for project-local agent handoffs.

@@ -29,3 +29,8 @@
 - Cause: Force installation removed the whole role directory, including project memory.
 - Fix: Refresh reusable files, preserve existing brain, initialize clean local records on first install.
 - Check: Seed private history and verify it survives update; reject redirected destination files.
+
+### 2026-10-01 — Executable software workflows
+- Cause: Role procedures alone did not execute work, isolate subprocesses or prevent stale evidence.
+- Fix: Docker-only commands, project-bound state, fingerprints, attempt limits, locks and task handoffs.
+- Check: Live container tests plus objective acceptance; task review identity and host sandboxing remain external.

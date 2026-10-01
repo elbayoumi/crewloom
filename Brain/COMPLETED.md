@@ -59,3 +59,8 @@
 - Artifact: Memory-preserving role updates and clean first-install project records.
 - Impact: Library history is not imported; force updates retain local experience.
 - Evidence: Existing install regressions now exercise retained memory and nested destination symlink rejection; full gate passes.
+
+### 2026-10-01 — Executable software workflows
+- Artifact: Isolated workflow runner, six-stage feature/task plans, objective grader and six English role contracts.
+- Impact: Executable project work, persistent attempts/handoffs and verified command boundaries.
+- Evidence: 100 Python cases covered across core/live-Docker suites; five dashboard tests; fresh editable install; reference 9/9 and seeded baseline 5/9 in three grader runs.

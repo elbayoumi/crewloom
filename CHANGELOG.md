@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 — 2026-10-01
+
+- Add project-bound Docker workflow execution with ordered commands/tasks, persistent attempts, locks, fingerprint verification, and handoff JSON.
+- Add fail-closed readiness, explicit image selection, network-off command containers, runtime-state protection, resource limits and bounded output capture.
+- Add a six-stage Unicode feature example, a real-project task plan, and English contracts for six software roles.
+- Add a label-free, held-out objective feature grader and repeated reference/baseline measurements.
+- Add host-layout setup guidance and real Docker integration checks in CI.
+
 ## Unreleased
 
 - `grid-safety` no longer flags fixed floors inside breakpoint-prefixed Tailwind grids that fit the breakpoint.

@@ -104,3 +104,13 @@ Fixture: [frontend-audit-v2](../examples/evaluation/frontend-audit-v2/fixture) �
 ## 2026-10-01 — Project path isolation
 
 75 Python regressions and five dashboard tests pass, including separate project histories and memory, identical relative input names, and cross-project path rejection. TypeScript `tsc --noEmit` passes. These are entry-point guards, not host sandbox evidence.
+
+## 2026-10-01 — Isolated software execution and objective acceptance
+
+The six-stage Unicode feature completed inside Docker using image `sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d`. Its five feature acceptance tests passed; resume did not repeat successful commands. Real Docker checks also exercised network denial, a foreign-project symlink, unmounted library/immutable runtime state, bounded output capture, and timeout termination. The command executor uses a 1 GiB memory limit, two CPUs and 128 processes.
+
+The repository now has 100 Python test cases: 95 run in the standard gate; five live Docker cases are opt-in locally and mandatory in the separate CI job. Five dashboard tests pass. Editable installation in a fresh Python environment, workflow doctor, and installed-CLI role validation passed. Hosted results are recorded after push.
+
+The objective Unicode grader was run three times per supplied implementation. Reference: 9/9 each time. Deliberately limited ASCII baseline: 5/9 each time. Expected answers stay outside the candidate container; the scorer receives no treatment/model labels. See [raw results](../examples/evaluation/unicode-slug/results.json). These fixtures validate scorer discrimination, not an improvement in agent-generated results. Actual cross-provider, independently coordinated with/without trials remain unperformed.
+
+Release source secret scan: three raw detections, all verified as 64-character SHA-256 values in MANIFEST.json; no confirmed credentials. Runtime/build caches were excluded from the public source export.

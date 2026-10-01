@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "id": "unicode-slug",
+  "language": "en",
+  "steps": [
+    {
+      "id": "discover",
+      "role": "business-analyst-discovery",
+      "summary": "Record acceptance criteria",
+      "argv": [
+        "python3",
+        "stages.py",
+        "discover"
+      ],
+      "inputs": [
+        "stages.py",
+        "inputs/requirements.md"
+      ],
+      "outputs": [
+        "artifacts/acceptance.md"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "architect",
+      "role": "tech-stack-architect",
+      "summary": "Document feature architecture",
+      "argv": [
+        "python3",
+        "stages.py",
+        "architect"
+      ],
+      "inputs": [
+        "stages.py",
+        "artifacts/acceptance.md"
+      ],
+      "outputs": [
+        "artifacts/architecture.md"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "implement",
+      "role": "fullstack-mvp-engineer",
+      "summary": "Install the supplied implementation fixture",
+      "argv": [
+        "python3",
+        "stages.py",
+        "implement"
+      ],
+      "inputs": [
+        "stages.py",
+        "artifacts/architecture.md",
+        "solution/slug.py"
+      ],
+      "outputs": [
+        "src/slug.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "review",
+      "role": "frontend-ux-auditor",
+      "summary": "Check Python syntax",
+      "argv": [
+        "python3",
+        "stages.py",
+        "review"
+      ],
+      "inputs": [
+        "stages.py",
+        "src/slug.py"
+      ],
+      "outputs": [
+        "artifacts/source-review.json"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "test",
+      "role": "qa-test-automation-engineer",
+      "summary": "Execute acceptance tests",
+      "argv": [
+        "python3",
+        "stages.py",
+        "test"
+      ],
+      "inputs": [
+        "stages.py",
+        "src/slug.py",
+        "tests/test_slug.py"
+      ],
+      "outputs": [
+        "artifacts/test-results.json"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "deliver",
+      "role": "delivery-director",
+      "summary": "Produce hashed delivery evidence",
+      "argv": [
+        "python3",
+        "stages.py",
+        "deliver"
+      ],
+      "inputs": [
+        "stages.py",
+        "src/slug.py",
+        "artifacts/test-results.json"
+      ],
+      "outputs": [
+        "artifacts/delivery.json"
+      ],
+      "timeout_seconds": 30
+    }
+  ]
+}

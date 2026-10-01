@@ -11,3 +11,6 @@ Project-scoped host permissions can extend the entry-point path guards to arbitr
 
 ### 2026-10-01 — Role installation memory isolation
 Keep reusable role upgrades separate from project state migrations and validate each migration against its selected project.
+
+### 2026-10-01 — Executable software workflows
+Extend the label-free grader with independently frozen acceptance suites for additional software features and models. Keep model-treatment mapping outside the grader and record cost alongside correctness.

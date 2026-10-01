@@ -30,3 +30,7 @@ Confirm the audience and approved claims. Use the script-pacing tool before voic
 > Read AGENTS.md, the chosen role, its detailed playbook, and relevant memory. Use English. The task is [concrete output]. Inputs are [real files]. Acceptance is [observable checks]. External actions are [explicit authority]. Verify the result and update memory.
 
 > اقرأ AGENTS.md والمهارة ودليلها التفصيلي والبرين. استخدم العربية. المطلوب [مخرج محدد] والمدخلات [ملفات فعلية] وشروط القبول [فحوص واضحة]. التصرفات الخارجية المصرح بها [نطاق صريح]. افحص النتيجة وحدّث الذاكرة.
+
+## Executable software path
+
+Use [the task plan](../workflows/software-feature.json) for host-produced work, or [the supplied feature example](../examples/software-workflow/README.md) to exercise six command stages. Both use the [same execution and handoff contract](EXECUTION.md). Task acceptance is not an authenticated review system.

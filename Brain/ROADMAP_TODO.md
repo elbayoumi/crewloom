@@ -32,3 +32,8 @@
 - Artifact: Safe project role updates ✅.
 - Status: Local memory preserved and first-install history clean.
 - Remaining: Arbitrary host filesystem access still needs host-specific permissions.
+
+### 2026-10-01 — Executable software workflows
+- Artifact: Software execution foundation ✅; six detailed English contracts and objective feature grading.
+- Status: Runnable fixture, Docker isolation, resume/handoff, host-layout setup and readiness implemented.
+- Remaining: Real independently coordinated provider trials; remaining detailed role translations; authenticated review and external-model adapters.
