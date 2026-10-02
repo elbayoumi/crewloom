@@ -294,6 +294,11 @@ def run(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_c
         for step in plan['steps']:
             record = state['steps'].setdefault(step['id'], {'status': 'pending', 'role': step['role'], 'summary': step['summary'], 'attempts': []})
             if record['status'] == 'complete':
+                if step.get('kind')=='model':
+                    from model_host import build_prompt
+                    current=digest(build_prompt(root,step,plan.get('language','en')).encode())
+                    if record.get('context_sha256')!=current:
+                        raise ValueError('Model context changed or old evidence lacks context hash; review and use a new workflow ID')
                 continue
             try:
                 inputs = hashes(root, step['inputs'])
@@ -371,6 +376,9 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
         if sum(a.get('kind')=='model' for a in ledger['attempts']) >= MAX_PROJECT_MODEL_REQUESTS:
             raise ValueError('Project model request budget exhausted')
         prompt=build_prompt(root,step,plan.get('language','en'))
+        record['context_sha256']=digest(prompt.encode())
+        record['context_bytes']=len(prompt.encode())
+        record['memory_mode']=step.get('memory_mode','focused')
         signature=digest(json.dumps({'prompt':prompt,'host':step['host'],'model':step.get('model'),
                                     'timeout':step.get('timeout_seconds',180),
                                     'adapter_sha256':digest(Path(host_module.__file__).read_bytes()),

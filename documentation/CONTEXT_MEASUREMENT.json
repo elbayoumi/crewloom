@@ -1,0 +1,9 @@
+{
+  "fixture": "100 historical completion records; identical task, rules and inputs",
+  "full_prompt_bytes": 63107,
+  "focused_prompt_bytes": 9439,
+  "byte_reduction_percent": 85.04,
+  "measured_tokens": null,
+  "quality_improvement": "not evaluated",
+  "provider_calls": "none; deterministic local measurement"
+}

@@ -1,0 +1,5 @@
+R-HARD-01|scripts/test_public_core.py|QA owner: intentional SQL violation fixture asserting scanner rejection, no production query
+R-HARD-03|scripts/test_public_core.py|QA owner: intentional unpaginated SQL test fixture, no production database
+R-HARD-02|check_responsive_grid_safety.py|Frontend tooling owner: CSS floor extraction and iteration, no database call
+R-HARD-02|scripts/check_repository.py|Repository tooling owner: regular expression scanning Markdown links, no database call
+R-HARD-04|check_resource_budget.py|Resource tooling owner: regular expression defining fetch detection, no network execution

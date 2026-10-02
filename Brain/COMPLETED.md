@@ -78,3 +78,6 @@
 ### 2026-10-02 — Managed enforcement
 - Artifact: declared-file execution broker, tool-free provider gateway, default native CLI rejection and enforcement guide.
 - Evidence: repository gate covers 139 cases (133 pass, six Docker cases skipped); live broker suite passes all six cases. Live provider authentication is unverified because API keys are not configured.
+
+### 2026-10-02 — Context efficiency
+- Artifact: bounded memory selection and context-aware reuse. Evidence: 25 model-host regressions pass; synthetic full/focused prompt 63,107/9,439 bytes (85.04% smaller). No live token-cost or quality claim.

@@ -23,3 +23,6 @@ Use a stable bilingual workflow name to invoke verified in-place repairs without
 
 ### 2026-10-02 — Enforced runtime follow-up
 Add provider-backed integration evidence after local credentials are configured, account-level spend controls and transactional multi-file publication. Keep unmanaged host permissions explicit.
+
+### 2026-10-02 — Context efficiency
+- Evaluate selected-memory correctness on frozen tasks, record actual provider token/cached-token usage, and add indexed retrieval only if lexical selection misses useful lessons.

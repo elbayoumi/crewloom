@@ -131,3 +131,5 @@ Project selection and isolation: [project guide](documentation/PROJECTS.md).
 Use [Self-Editing Mode](documentation/SELF_EDITING.md) to repair an existing role, tool or document from an observed problem. The workflow binds a project, makes an in-place change, verifies acceptance and records the result. Arabic activation name: **التعديل الذاتي**.
 
 Managed execution now rejects native model CLI steps by default. See [enforcement and compatibility](documentation/ENFORCEMENT.md) before running an existing model plan.
+
+[Context efficiency](documentation/CONTEXT_EFFICIENCY.md) selects relevant historical records while keeping rules and inputs complete, and verifies context hashes before reusing completed model work.

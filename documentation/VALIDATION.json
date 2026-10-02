@@ -96,5 +96,15 @@
     "live_artifact_broker_cases_passed": 6,
     "provider_transport": "mock contracts passed; live credentials unavailable",
     "publication": "development change; no new release asserted"
+  },
+  "context_efficiency": {
+    "date": "2026-10-02",
+    "standard_gate_cases": 145,
+    "standard_gate_passed": 139,
+    "docker_skips": 6,
+    "model_host_tests": 25,
+    "measurement": "CONTEXT_MEASUREMENT.json",
+    "resource_budget": "PASS with five reviewed scanner/fixture exceptions; two seeded soft findings",
+    "live_token_cost_and_quality": "not measured"
   }
 }

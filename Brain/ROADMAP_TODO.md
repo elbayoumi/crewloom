@@ -52,3 +52,6 @@
 ### 2026-10-02 — Enforcement delivery
 - Done: declared file isolation, brokered output publication, API transport contracts and native CLI default denial.
 - Remaining: live authenticated provider trial, multi-file transaction support and public release verification.
+
+### 2026-10-02 — Context efficiency
+- Done: focused history budgets, compact prompts, context bytes/hash telemetry and safe completed-work reuse. Remaining: actual provider token/cost measurements and controlled answer-quality evaluation.

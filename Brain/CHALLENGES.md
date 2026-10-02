@@ -44,3 +44,6 @@
 - Cause: writable project mounts and native CLI processes exceeded the intended artifact boundary.
 - Fix: declared-input snapshots, individual output mounts, trusted publication and tool-free API generation; native CLI requires operator opt-in.
 - Check: actual Docker rejects input/runtime/undeclared writes and accepts a declared output. Arbitrary host agents remain outside this boundary.
+
+### 2026-10-02 — Context efficiency
+- Cause: growing completion/challenge/idea histories were resent in full, and completed model reuse did not check changed guidance. Fix: whole-record selection with omission counts and prompt-hash validation. Check: retained relevant old lesson, preserved rules, changed-context rejection and unchanged reuse acceptance.
