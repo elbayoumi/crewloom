@@ -86,5 +86,15 @@
     "claude_skipped": 8,
     "cross_host_complete": false,
     "evidence": "examples/evaluation/host-trials-20261001/report.json"
+  },
+  "managed_enforcement": {
+    "date": "2026-10-02",
+    "standard_gate_cases": 139,
+    "standard_gate_passed": 133,
+    "standard_gate_docker_skips": 6,
+    "live_workflow_cases_passed": 20,
+    "live_artifact_broker_cases_passed": 6,
+    "provider_transport": "mock contracts passed; live credentials unavailable",
+    "publication": "development change; no new release asserted"
   }
 }

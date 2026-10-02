@@ -39,3 +39,8 @@
 - Cause: Codex nonfatal diagnostic items were mistaken for executable tool events; Claude CLI is installed but logged out.
 - Fix: Require completed structured generation, count diagnostics separately, reject executable/unknown tool items; preserve provider failures and skip calls after two host failures.
 - Check: Diagnostic regression and actual Codex/Docker feature pass; Claude comparison remains blocked until local login.
+
+### 2026-10-02 — Instructions cannot constrain arbitrary host tools
+- Cause: writable project mounts and native CLI processes exceeded the intended artifact boundary.
+- Fix: declared-input snapshots, individual output mounts, trusted publication and tool-free API generation; native CLI requires operator opt-in.
+- Check: actual Docker rejects input/runtime/undeclared writes and accepts a declared output. Arbitrary host agents remain outside this boundary.

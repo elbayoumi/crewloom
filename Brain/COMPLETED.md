@@ -74,3 +74,7 @@
 - Artifact: `documentation/SELF_EDITING.md`, constitution and improvement-role entry point.
 - Impact: Owner-selected English/Arabic name activates the existing in-place maintenance workflow.
 - Evidence: Role ID preserved; documentation explicitly distinguishes host task activation from CLI/background execution.
+
+### 2026-10-02 — Managed enforcement
+- Artifact: declared-file execution broker, tool-free provider gateway, default native CLI rejection and enforcement guide.
+- Evidence: repository gate covers 139 cases (133 pass, six Docker cases skipped); live broker suite passes all six cases. Live provider authentication is unverified because API keys are not configured.

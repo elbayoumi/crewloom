@@ -19,7 +19,7 @@ punctuation-only input returns an empty string. Return only the artifact; no too
 
 
 def trial_order(hosts, repeats, seed):
-    if not hosts or len(set(hosts))!=len(hosts) or any(item not in host.HOSTS for item in hosts):
+    if not hosts or len(set(hosts))!=len(hosts) or any(item not in ('codex','claude') for item in hosts):
         raise ValueError('Choose unique codex/claude hosts')
     if type(repeats) is not int or not 1<=repeats<=20:raise ValueError('Repeats must be from 1 to 20')
     trials=[{'host':name,'condition':condition,'repeat':repeat} for name in hosts
@@ -93,7 +93,7 @@ def collect(destination, hosts, repeats=5, seed=20261001, image=w.DEFAULT_IMAGE,
 
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output',required=True);parser.add_argument('--host',choices=host.HOSTS,action='append',required=True)
+    parser.add_argument('--output',required=True);parser.add_argument('--host',choices=('codex','claude'),action='append',required=True)
     parser.add_argument('--repeats',type=int,default=5);parser.add_argument('--seed',type=int,default=20261001)
     parser.add_argument('--image',default=w.DEFAULT_IMAGE);parser.add_argument('--timeout',type=int,default=180)
     parser.add_argument('--codex-model');parser.add_argument('--claude-model')

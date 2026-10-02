@@ -29,3 +29,5 @@ After two unsuccessful repairs for the same cause, retain the evidence, report t
 ## Scope and authority
 
 The selected task determines what may be changed. Choosing this mode does not expand authority to other projects, external messages, purchases or publication. Existing task authorization remains valid. Host tools retain their own permission and sandbox boundaries; this workflow name does not create additional filesystem isolation.
+
+Managed execution now rejects native model CLI steps by default. See [enforcement and compatibility](ENFORCEMENT.md) before running an existing model plan.

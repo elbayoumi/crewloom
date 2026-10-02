@@ -46,3 +46,11 @@ Core Python tools use the standard library. Commands run from the checkout root.
 | [scripts/test_evaluate_hosts.py](../scripts/test_evaluate_hosts.py) | Balanced trials, frozen protocol, failure budget and anonymous grading; QA | `python3 -m unittest discover -s scripts -p test_evaluate_hosts.py` |
 | [examples/model-workflow/project/verify.py](../examples/model-workflow/project/verify.py) | Executes supplied acceptance and records actual output; QA | `python3 verify.py` from the copied project |
 | [examples/model-workflow/project/tests/test_slug.py](../examples/model-workflow/project/tests/test_slug.py) | English/Arabic contract acceptance of freshly generated code; QA | `python3 -m unittest discover -s tests` from the copied project |
+
+| [scripts/execution_policy.py](../scripts/execution_policy.py) | Declared artifact broker; context-guardian | `crewloom workflow run --project /path/to/project` |
+
+| [scripts/provider_gateway.py](../scripts/provider_gateway.py) | Tool-free provider RPC; fullstack-mvp-engineer | `crewloom workflow run --project /path/to/project` |
+
+| [scripts/test_execution_policy.py](../scripts/test_execution_policy.py) | Broker rejection and acceptance; QA | `python3 -m unittest discover -s scripts -p test_execution_policy.py` |
+
+| [scripts/test_provider_gateway.py](../scripts/test_provider_gateway.py) | Provider transport and default host denial; QA | `python3 -m unittest discover -s scripts -p test_provider_gateway.py` |

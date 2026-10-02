@@ -48,3 +48,7 @@
 - [ ] Authenticate reviewer identities for task acceptance; declared IDs remain unauthenticated.
 
 - [x] Adopt Self-Editing Mode / التعديل الذاتي for the existing maintenance workflow and document activation/scope.
+
+### 2026-10-02 — Enforcement delivery
+- Done: declared file isolation, brokered output publication, API transport contracts and native CLI default denial.
+- Remaining: live authenticated provider trial, multi-file transaction support and public release verification.

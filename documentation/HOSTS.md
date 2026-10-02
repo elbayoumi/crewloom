@@ -28,13 +28,13 @@ The handoff identifies the next step, role setup, input/output paths, completed 
 
 ## Automatic bounded artifact generation
 
-A workflow `model` step selects `host: codex` or `host: claude`. It needs exactly one project-installed copy of the owning role. Crewloom sends that role's English procedure, five project memory documents, optional project constitution and only the step's declared text inputs. The host starts in a temporary directory rather than the project checkout, generates a schema-constrained artifact list, and never receives the Docker socket. Crewloom rejects missing, duplicate, undeclared, empty, oversized or symlink-directed outputs before writing them. Inputs are rechecked after generation.
+A managed workflow `model` step selects `host: openai` or `host: anthropic` with an explicit model and local API credential. The following legacy CLI example requires the operator exception `--allow-host-cli`. It needs exactly one project-installed copy of the owning role. Crewloom sends that role's English procedure, five project memory documents, optional project constitution and only the step's declared text inputs. The host starts in a temporary directory rather than the project checkout, generates a schema-constrained artifact list, and never receives the Docker socket. Crewloom rejects missing, duplicate, undeclared, empty, oversized or symlink-directed outputs before writing them. Inputs are rechecked after generation.
 
 ```bash
 cp -R examples/model-workflow/project /tmp/crewloom-model-demo
 crewloom install --host agents --target /tmp/crewloom-model-demo --skill fullstack-mvp-engineer
 crewloom workflow doctor --project /tmp/crewloom-model-demo --model-host codex
-crewloom workflow run --project /tmp/crewloom-model-demo
+crewloom workflow run --allow-host-cli --project /tmp/crewloom-model-demo
 ```
 
 Use a fresh project destination. Authenticate the selected CLI locally first; Crewloom never logs in for you or copies credentials into the project. Install/currently validate the CLI flags listed by doctor. Read the [Codex noninteractive documentation](https://learn.chatgpt.com/docs/non-interactive-mode) and [Claude programmatic interface](https://code.claude.com/docs/en/headless). The adapters were checked against Codex CLI 0.155.1 and Claude Code 2.1.150; later versions must preserve the required flags.
@@ -44,3 +44,5 @@ Codex uses read-only mode, ephemeral sessions, ignores user configuration and di
 Model selection is optional in a step's `model` field. If omitted, the adapter uses the CLI's built-in default; Codex user-config defaults are deliberately not loaded. No fallback to a different host/model occurs. Record a model explicitly when comparing model quality. Generation evidence records requested model, CLI version, duration and reported usage/cost; unreported cost stays null. Provider error text is withheld from public/project logs because it may contain sensitive configuration. Diagnose credentials locally.
 
 A successful model step means declared artifacts were generated, not that they are correct. Follow it with Docker command checks and a separate review task when appropriate. Failed or interrupted unchanged generations consume the persistent two-attempt budget. Artifacts can be partially written if the filesystem fails during the final replacements; inspect the project diff before retrying. Memory changes occur only if explicitly declared as outputs or performed by the separate reviewer.
+
+Managed execution now rejects native model CLI steps by default. See [enforcement and compatibility](ENFORCEMENT.md) before running an existing model plan.

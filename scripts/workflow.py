@@ -46,7 +46,11 @@ def hashes(root, paths):
         path = safe_path(root, relative)
         if not path.is_file() or not path.stat().st_size:
             raise ValueError('Missing or empty artifact: ' + relative)
-        result[relative] = digest(path.read_bytes())
+        if path.stat().st_size>16*1024*1024:raise ValueError('Artifact input budget exceeded: '+relative)
+        hasher=hashlib.sha256()
+        with path.open('rb') as stream:
+            for chunk in iter(lambda:stream.read(65536),b''):hasher.update(chunk)
+        result[relative] = hasher.hexdigest()
     return result
 
 
@@ -79,7 +83,7 @@ def read_plan(root, filename):
         if kind == 'model':
             from model_host import HOSTS
             if step.get('host') not in HOSTS:
-                raise ValueError('Model step needs an explicit codex or claude host')
+                raise ValueError('Model step needs an explicit model provider/host')
             if 'model' in step and (not isinstance(step['model'], str) or not step['model'].strip()):
                 raise ValueError('Model identifier must be nonempty')
         timeout = step.get('timeout_seconds', 60)
@@ -187,19 +191,26 @@ def inspect_image(image):
     return result.stdout.strip()
 
 
-def docker_execute(root, argv, image_id, timeout):
+def docker_execute(root, argv, image_id, timeout, writable=None):
     """Only project mounted; runtime state hidden; image immutable; network off."""
     if ',' in str(root):
         raise ValueError('Docker mount paths cannot contain commas')
     name = 'crewloom-' + uuid.uuid4().hex
     command = ['docker', 'run', '--rm', '--name', name, '--network', 'none', '--read-only',
                '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--pids-limit', '128',
-               '--memory', '1g', '--cpus', '2',
+               '--memory', '1g', '--cpus', '2', '--ulimit', 'fsize=4194304:4194304',
                '--user', f'{os.getuid()}:{os.getgid()}', '--tmpfs', '/tmp:rw,nosuid,size=128m',
                '--tmpfs', '/workspace/.crewloom:ro,noexec,nosuid,size=1m',
-               '--mount', f'type=bind,src={root},dst=/workspace',
+               '--mount', f'type=bind,src={root},dst=/workspace' + (',readonly' if writable is not None else ''),
                '--workdir', '/workspace', '--env', 'HOME=/tmp', '--env', 'PYTHONDONTWRITEBYTECODE=1',
                '--env', 'PYTHONUNBUFFERED=1', image_id, *argv]
+    if writable is not None:
+        mounts=[]
+        for relative in writable:
+            path=safe_path(root,relative)
+            if ',' in str(path):raise ValueError('Docker mount paths cannot contain commas')
+            mounts.extend(['--mount',f'type=bind,src={path},dst=/workspace/{path.relative_to(root)}'])
+        index=command.index(image_id);command[index:index]=mounts
     started = time.monotonic()
     captured = bytearray()
     discarded = [False]
@@ -266,7 +277,7 @@ def handoff(root, plan, state):
             'instruction': 'Read the selected role and project memory; retain this root and verify every supplied artifact.'}
 
 
-def run(root, plan, fingerprint, image, accept=None, reviewer=None):
+def run(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False):
     folder, state = state_for(root, plan, fingerprint)
     with lock(safe_path(root, '.crewloom', internal=True)):
         folder, state = state_for(root, plan, fingerprint)
@@ -302,7 +313,7 @@ def run(root, plan, fingerprint, image, accept=None, reviewer=None):
             if accept:
                 raise ValueError('Accept only the next task step; commands must run to produce evidence')
             if step.get('kind') == 'model':
-                run_model_step(root, plan, step, inputs, record, state, folder, ledger)
+                run_model_step(root, plan, step, inputs, record, state, folder, ledger, allow_host_cli)
                 if record['status'] != 'complete':
                     return handoff(root, plan, state)
                 continue
@@ -311,7 +322,7 @@ def run(root, plan, fingerprint, image, accept=None, reviewer=None):
             except ValueError as exc:
                 state['status'] = 'blocked'; state['error'] = str(exc); save(folder, state)
                 raise
-            signature = digest(json.dumps({'inputs': inputs, 'argv': step['argv'], 'image_id': image_id}, sort_keys=True).encode())
+            signature = digest(json.dumps({'inputs': inputs, 'argv': step['argv'], 'outputs': step['outputs'], 'image_id': image_id, 'broker_sha256': digest((LIBRARY/'scripts/execution_policy.py').read_bytes())}, sort_keys=True).encode())
             if sum(a['signature'] == signature and a['status'] != 'succeeded' for a in ledger['attempts']) >= 2:
                 state['status'] = 'blocked'; save(folder, state)
                 raise ValueError('Two attempts exhausted for unchanged command and inputs')
@@ -322,7 +333,11 @@ def run(root, plan, fingerprint, image, accept=None, reviewer=None):
             ledger['attempts'].append(project_attempt)
             save_ledger(root, ledger)
             record['status'] = 'running'; state['status'] = 'running'; save(folder, state)
-            result = docker_execute(root, step['argv'], image_id, step.get('timeout_seconds', 60))
+            from execution_policy import execute as isolated_execute
+            try:
+                result = isolated_execute(root, step, image_id, step.get('timeout_seconds', 60))
+            except (ValueError, OSError) as exc:
+                result = {'exit_code': 2, 'output': str(exc), 'boundary': 'artifact broker rejected execution'}
             attempt.update(result); attempt['status'] = 'finished'
             record['inputs'] = inputs
             try:
@@ -343,39 +358,40 @@ def run(root, plan, fingerprint, image, accept=None, reviewer=None):
         return handoff(root, plan, state)
 
 
-def run_model_step(root, plan, step, inputs, record, state, folder, ledger):
+def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allow_host_cli):
     import model_host as host_module
     from model_host import build_prompt, generate
     try:
+        if step['host'] in ('codex','claude') and not allow_host_cli:
+            raise ValueError('Host CLI execution is disabled in enforced mode; use openai/anthropic or explicit operator --allow-host-cli')
+        from provider_gateway import MAX_PROJECT_MODEL_REQUESTS, PROVIDERS
+        if step['host'] in PROVIDERS:
+            if not step.get('model'):raise ValueError('API execution requires an explicit model identifier')
+            if not os.environ.get(PROVIDERS[step['host']][1]):raise ValueError('Configure '+PROVIDERS[step['host']][1]+' locally before running')
+        if sum(a.get('kind')=='model' for a in ledger['attempts']) >= MAX_PROJECT_MODEL_REQUESTS:
+            raise ValueError('Project model request budget exhausted')
         prompt=build_prompt(root,step,plan.get('language','en'))
         signature=digest(json.dumps({'prompt':prompt,'host':step['host'],'model':step.get('model'),
                                     'timeout':step.get('timeout_seconds',180),
-                                    'adapter_sha256':digest(Path(host_module.__file__).read_bytes())},sort_keys=True).encode())
+                                    'adapter_sha256':digest(Path(host_module.__file__).read_bytes()),
+                                    'gateway_sha256':digest((LIBRARY/'scripts/provider_gateway.py').read_bytes()),
+                                    'broker_sha256':digest((LIBRARY/'scripts/execution_policy.py').read_bytes())},sort_keys=True).encode())
         if sum(a['signature']==signature and a['status']!='succeeded' for a in ledger['attempts'])>=2:
             raise ValueError('Two attempts exhausted for unchanged model task and inputs')
         attempt={'signature':signature,'status':'running','started_at':time.time()}
         record['attempts'].append(attempt)
-        entry={'signature':signature,'status':'running','workflow':plan['id'],'step':step['id']}
+        entry={'signature':signature,'status':'running','workflow':plan['id'],'step':step['id'],'kind':'model'}
         ledger['attempts'].append(entry);save_ledger(root,ledger)
         record['status']='running';state['status']='running';save(folder,state)
-        artifacts,evidence=generate(step['host'],prompt,step['outputs'],step.get('timeout_seconds',180),step.get('model'))
+        if step['host'] in ('openai','anthropic'):
+            from provider_gateway import generate as api_generate
+            artifacts,evidence=api_generate(step['host'],prompt,step['outputs'],step.get('timeout_seconds',180),step.get('model'))
+        else:
+            artifacts,evidence=generate(step['host'],prompt,step['outputs'],step.get('timeout_seconds',180),step.get('model'))
         if hashes(root,step['inputs']) != inputs:
             raise ValueError('Inputs changed during model generation; outputs rejected')
-        # Preflight every destination before any write. Never follow output aliases.
-        destinations={}
-        for relative in artifacts:
-            current=root
-            for part in Path(relative).parts:
-                current=current/part
-                if current.is_symlink():raise ValueError('Model outputs cannot follow symlinks')
-            path=safe_path(root,relative)
-            if path.exists() and not path.is_file():raise ValueError('Output must be a file')
-            destinations[relative]=path
-        for relative,path in destinations.items():
-            path.parent.mkdir(parents=True,exist_ok=True)
-            with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=path.parent,delete=False) as stream:
-                temporary=Path(stream.name);stream.write(artifacts[relative])
-            os.replace(temporary,path)
+        from execution_policy import publish
+        publish(root,{path:text.encode() for path,text in artifacts.items()},inputs)
         attempt.update(evidence,status='finished',exit_code=0)
         entry['status']='succeeded';save_ledger(root,ledger)
         record.update(status='complete',inputs=inputs,outputs=hashes(root,step['outputs']))
@@ -396,7 +412,9 @@ def doctor(image, root=None, host=None, model_host=None):
         checks['isolated_execution_ready'] = False; checks['error'] = str(exc)
     if model_host:
         from model_host import probe
-        try: checks['model_host'] = probe(model_host)
+        from provider_gateway import PROVIDERS
+        try:
+            checks['model_host'] = ({'provider':model_host,'generation_supported':True,'credentials_configured':bool(os.environ.get(PROVIDERS[model_host][1])),'authentication_verified':False} if model_host in PROVIDERS else probe(model_host))
         except (ValueError, OSError, subprocess.SubprocessError) as exc: checks['model_host'] = {'generation_supported': False, 'error': str(exc)}
     if root and host:
         directory = root / ('.agents' if host == 'agents' else '.claude') / 'skills'
@@ -414,7 +432,8 @@ def main(argv=None):
     parser.add_argument('--image', default=DEFAULT_IMAGE)
     parser.add_argument('--host', choices=('agents', 'claude'))
     parser.add_argument('--step'); parser.add_argument('--reviewer')
-    parser.add_argument('--model-host', choices=('codex', 'claude'))
+    parser.add_argument('--allow-host-cli', action='store_true', help='Operator opt-in to legacy CLI hosts outside the enforced boundary')
+    parser.add_argument('--model-host', choices=('codex', 'claude', 'openai', 'anthropic'))
     args = parser.parse_args(argv)
     try:
         if args.action == 'doctor':
@@ -427,7 +446,7 @@ def main(argv=None):
                 _, state = state_for(root, plan, fingerprint); result = handoff(root, plan, state)
             else:
                 if args.action == 'accept' and not args.step: raise ValueError('Accept needs --step')
-                result = run(root, plan, fingerprint, args.image, args.step if args.action == 'accept' else None, args.reviewer)
+                result = run(root, plan, fingerprint, args.image, args.step if args.action == 'accept' else None, args.reviewer, args.allow_host_cli)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0 if args.action in ('status', 'handoff', 'accept') or result.get('status') == 'complete' or result.get('isolated_execution_ready') else 2
     except (ValueError, OSError, subprocess.SubprocessError) as exc:

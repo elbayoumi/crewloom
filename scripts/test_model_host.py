@@ -83,7 +83,7 @@ class ModelWorkflowTests(unittest.TestCase):
     def run_plan(self):
         (self.root/'workflow.json').write_text(json.dumps(self.plan))
         plan,fingerprint=w.read_plan(self.root,'workflow.json')
-        return w.run(self.root,plan,fingerprint,'image')
+        return w.run(self.root,plan,fingerprint,'image',allow_host_cli=True)
 
     def test_generation_and_resume_no_repeated_provider_call(self):
         with patch.object(h,'generate',return_value=({'src/a.py':'print(1)'},{'host':'codex'})) as generate:

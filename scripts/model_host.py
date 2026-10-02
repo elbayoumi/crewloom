@@ -12,7 +12,7 @@ import tempfile
 import time
 from pathlib import Path
 
-HOSTS = ('codex', 'claude')
+HOSTS = ('codex', 'claude', 'openai', 'anthropic')
 MAX_TEXT = 256 * 1024
 MAX_ARTIFACT_BYTES = 1024 * 1024
 SCHEMA = {'type':'object','properties':{'artifacts':{'type':'array','items':{'type':'object',
@@ -162,11 +162,13 @@ def build_prompt(root, step, language):
     for path in paths:
         path=w.safe_path(root,str(path.relative_to(root)))
         if path.is_file():
+            if path.stat().st_nlink!=1:raise ValueError('Hardlinked guidance is forbidden')
             if path.stat().st_size>MAX_TEXT:raise ValueError('Guidance file exceeds prompt limit')
             guidance.append({'path':str(path.relative_to(root)),'text':path.read_text()})
     inputs=[]
     for relative in step['inputs']:
         path=w.safe_path(root,relative)
+        if path.stat().st_nlink!=1:raise ValueError('Hardlinked inputs are forbidden')
         if path.stat().st_size>MAX_TEXT:raise ValueError('Input file exceeds prompt limit')
         inputs.append({'path':relative,'text':path.read_text()})
     payload={'language':language,'role':step['role'],'task':step['summary'],

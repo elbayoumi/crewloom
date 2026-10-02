@@ -20,3 +20,6 @@ Freeze private multi-file feature contracts, record exact model identity and cos
 
 ### 2026-10-01 — Named maintenance activation
 Use a stable bilingual workflow name to invoke verified in-place repairs without changing role IDs or implying an autonomous runtime.
+
+### 2026-10-02 — Enforced runtime follow-up
+Add provider-backed integration evidence after local credentials are configured, account-level spend controls and transactional multi-file publication. Keep unmanaged host permissions explicit.

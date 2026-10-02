@@ -21,7 +21,7 @@ class WorkflowTests(unittest.TestCase):
         (self.root/'workflow.json').write_text(json.dumps(self.plan))
         return w.read_plan(self.root,'workflow.json')
 
-    def execute(self, root, argv, image, timeout):
+    def execute(self, root, argv, image, timeout, **kwargs):
         (root/'output.txt').write_text('verified-output')
         return {'exit_code':0,'duration_ms':1,'output':'','image_id':image}
 
