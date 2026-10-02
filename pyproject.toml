@@ -20,4 +20,4 @@ crewloom = "crewloom:main"
 
 [tool.setuptools]
 package-dir = { "" = "scripts" }
-py-modules = ["crewloom", "workflow", "evaluate_feature", "model_host", "evaluate_hosts", "execution_policy", "provider_gateway"]
+py-modules = ["crewloom", "workflow", "evaluate_feature", "model_host", "evaluate_hosts", "execution_policy", "provider_gateway", "repo_map"]

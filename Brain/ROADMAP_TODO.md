@@ -55,3 +55,6 @@
 
 ### 2026-10-02 — Context efficiency
 - Done: focused history budgets, compact prompts, context bytes/hash telemetry and safe completed-work reuse. Remaining: actual provider token/cost measurements and controlled answer-quality evaluation.
+
+### 2026-10-02 — Repository navigation
+- Done: project maps, parse reuse and bounded task relevance. Remaining: richer language parsers, retrieval-quality evaluation and actual provider token measurements.

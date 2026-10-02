@@ -106,5 +106,17 @@
     "measurement": "CONTEXT_MEASUREMENT.json",
     "resource_budget": "PASS with five reviewed scanner/fixture exceptions; two seeded soft findings",
     "live_token_cost_and_quality": "not measured"
+  },
+  "repository_map": {
+    "date": "2026-10-02",
+    "standard_gate_cases": 152,
+    "standard_gate_passed": 146,
+    "docker_skips": 6,
+    "map_regressions": 7,
+    "local_source_files": 55,
+    "local_source_bytes": 178673,
+    "rendered_map_bytes": 4076,
+    "unchanged_parse_reuse": 55,
+    "provider_tokens_latency_quality": "unmeasured"
   }
 }

@@ -147,6 +147,10 @@ def main():
     trials.add_argument('--image', default='python:3.14-slim')
     trials.add_argument('--timeout', type=int, default=180)
     trials.add_argument('--codex-model'); trials.add_argument('--claude-model')
+    mapping=commands.add_parser('map',help='Build a bounded project symbol map')
+    mapping.add_argument('--project',required=True)
+    mapping.add_argument('--query',default='')
+    mapping.add_argument('--budget',type=int,default=8192)
     workflow = commands.add_parser('workflow', help='Run an isolated, resumable project workflow')
     workflow.add_argument('workflow_arguments', nargs=argparse.REMAINDER)
     commands.add_parser('tools', help='List included executable tools')
@@ -184,6 +188,9 @@ def main():
             model = getattr(args, host + '_model')
             if model: forwarded.extend(['--' + host + '-model', model])
         return trials_main(forwarded)
+    if args.command == 'map':
+        from repo_map import main as map_main
+        return map_main(['--project',args.project,'--query',args.query,'--budget',str(args.budget)])
     if args.command == 'workflow':
         from workflow import main as workflow_main
         return workflow_main(args.workflow_arguments)

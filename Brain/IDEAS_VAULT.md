@@ -26,3 +26,6 @@ Add provider-backed integration evidence after local credentials are configured,
 
 ### 2026-10-02 — Context efficiency
 - Evaluate selected-memory correctness on frozen tasks, record actual provider token/cached-token usage, and add indexed retrieval only if lexical selection misses useful lessons.
+
+### 2026-10-02 — Repository navigation
+- Add optional Tree-sitter adapters and precise import graphs only after measuring missed symbols and retrieval quality; retain dependency-free core and explicit provider metadata scope.

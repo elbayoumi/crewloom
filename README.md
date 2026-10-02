@@ -133,3 +133,5 @@ Use [Self-Editing Mode](documentation/SELF_EDITING.md) to repair an existing rol
 Managed execution now rejects native model CLI steps by default. See [enforcement and compatibility](documentation/ENFORCEMENT.md) before running an existing model plan.
 
 [Context efficiency](documentation/CONTEXT_EFFICIENCY.md) selects relevant historical records while keeping rules and inputs complete, and verifies context hashes before reusing completed model work.
+
+[Project repository maps](documentation/REPOSITORY_MAP.md) provide a bounded file/symbol index with project-local parsing reuse: `crewloom map --project /path/to/git-project --query login`.

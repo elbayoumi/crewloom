@@ -54,3 +54,6 @@ Core Python tools use the standard library. Commands run from the checkout root.
 | [scripts/test_execution_policy.py](../scripts/test_execution_policy.py) | Broker rejection and acceptance; QA | `python3 -m unittest discover -s scripts -p test_execution_policy.py` |
 
 | [scripts/test_provider_gateway.py](../scripts/test_provider_gateway.py) | Provider transport and default host denial; QA | `python3 -m unittest discover -s scripts -p test_provider_gateway.py` |
+
+| [scripts/repo_map.py](../scripts/repo_map.py) | Project-local symbol index, SHA-keyed parse cache and bounded navigation; context-guardian | `crewloom map --project /path/to/git-project --query login` |
+| [scripts/test_repo_map.py](../scripts/test_repo_map.py) | Map freshness, scope, budget and CLI regressions; QA | `python3 -m unittest discover -s scripts -p test_repo_map.py` |

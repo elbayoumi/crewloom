@@ -81,3 +81,6 @@
 
 ### 2026-10-02 — Context efficiency
 - Artifact: bounded memory selection and context-aware reuse. Evidence: 25 model-host regressions pass; synthetic full/focused prompt 63,107/9,439 bytes (85.04% smaller). No live token-cost or quality claim.
+
+### 2026-10-02 — Repository navigation
+- Artifact: crewloom map CLI, project-local cache, bounded ranking and model opt-in. Evidence: seven map regressions; local 55-file scan renders 4076 bytes and second scan reuses 55 parses. No live token/latency claim.

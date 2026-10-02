@@ -47,3 +47,6 @@
 
 ### 2026-10-02 — Context efficiency
 - Cause: growing completion/challenge/idea histories were resent in full, and completed model reuse did not check changed guidance. Fix: whole-record selection with omission counts and prompt-hash validation. Check: retained relevant old lesson, preserved rules, changed-context rejection and unchanged reuse acceptance.
+
+### 2026-10-02 — Repository navigation
+- Cause: full source context is expensive and stale navigation can misdirect edits. Fix: bounded symbol index with content-hash refresh, deletion pruning and explicit root checks. Check: changed/added/deleted files refresh; redirected/foreign cache rejected.

@@ -17,3 +17,5 @@ The owner-selected maintenance workflow name is Self-Editing Mode / التعدي
 Managed enforcement is implemented through declared-file snapshots and tool-free provider RPC. Repository instructions alone cannot bind unmanaged host agents. See [the trust boundary](documentation/ENFORCEMENT.md).
 
 Context efficiency selects reusable project lessons without rewriting history or claiming model training. Measured byte reduction and limits are documented in [context efficiency](documentation/CONTEXT_EFFICIENCY.md).
+
+Project-local repository navigation now supplements memory selection; maps are advisory and managed provider metadata inclusion is explicit. See [repository maps](documentation/REPOSITORY_MAP.md).
