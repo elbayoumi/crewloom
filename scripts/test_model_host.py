@@ -58,6 +58,25 @@ class ArtifactTests(unittest.TestCase):
             with self.assertRaises(ValueError):h.parse_response('claude',json.dumps(value),Path('/unused'))
 
 
+class MemorySelectionTests(unittest.TestCase):
+    def test_relevant_old_solution_survives_recent_noise(self):
+        old='### Cache issue\nArabic عربى cache verified fix\n'
+        text='# Memory\n'+old+''.join('### Entry '+str(i)+'\n'+('unrelated '*40)+'\n' for i in range(40))
+        selected,omitted=h.select_memory(text,'cache عربى',1024)
+        self.assertIn(old,selected);self.assertGreater(omitted,0)
+        self.assertLessEqual(len(selected.encode()),1024)
+
+    def test_small_memory_is_preserved_exactly(self):
+        text='# Memory\n### Verified\nEvidence intact\n'
+        self.assertEqual(h.select_memory(text,'anything',1024),(text,0))
+
+    def test_oversized_record_is_omitted_without_partial_evidence(self):
+        text='# Memory\n### Huge\n'+('x'*2000)+'\n### Small\nverified\n'
+        selected,omitted=h.select_memory(text,'Huge',1024)
+        self.assertNotIn('### Huge',selected);self.assertIn('verified',selected)
+        self.assertEqual(omitted,1)
+
+
 class ProcessBoundaryTests(unittest.TestCase):
     def test_generation_does_not_forward_arbitrary_environment(self):
         script="import json,os,pathlib;pathlib.Path('response.json').write_text(json.dumps({'artifacts':[{'path':'a','content':os.environ.get('CREWLOOM_PRIVATE_TEST','absent')}]}));print(json.dumps({'type':'turn.completed','usage':{}}))"
@@ -83,13 +102,40 @@ class ModelWorkflowTests(unittest.TestCase):
     def run_plan(self):
         (self.root/'workflow.json').write_text(json.dumps(self.plan))
         plan,fingerprint=w.read_plan(self.root,'workflow.json')
-        return w.run(self.root,plan,fingerprint,'image')
+        return w.run(self.root,plan,fingerprint,'image',allow_host_cli=True)
+
+
+    def test_focused_memory_preserves_rules_and_all_inputs(self):
+        folder=self.root/'.agents/skills/fullstack-mvp-engineer/brain'
+        history=''.join('### Record '+str(i)+'\n'+('noise '*100)+'\n' for i in range(100))
+        (folder/'COMPLETED.md').write_text(history)
+        (folder/'ARCHITECTURE.md').write_text('mandatory architecture '+('rule '*2000))
+        step=self.plan['steps'][0];focused=h.build_prompt(self.root,step,'en')
+        full=h.build_prompt(self.root,dict(step,memory_mode='full'),'en')
+        self.assertLess(len(focused.encode()),len(full.encode())/2)
+        payload=json.loads(focused.split('\n',1)[1])
+        self.assertEqual(payload['inputs'][0]['text'],(self.root/'task.md').read_text())
+        architecture=next(g for g in payload['guidance'] if g['path'].endswith('ARCHITECTURE.md'))
+        self.assertEqual(architecture['text'],(folder/'ARCHITECTURE.md').read_text())
+        with self.assertRaises(ValueError):h.build_prompt(self.root,dict(step,memory_budget_bytes=0),'en')
 
     def test_generation_and_resume_no_repeated_provider_call(self):
         with patch.object(h,'generate',return_value=({'src/a.py':'print(1)'},{'host':'codex'})) as generate:
             self.assertEqual(self.run_plan()['status'],'complete')
             self.assertEqual(self.run_plan()['status'],'complete');self.assertEqual(generate.call_count,1)
         self.assertEqual((self.root/'src/a.py').read_text(),'print(1)')
+
+    def test_changed_guidance_cannot_reuse_completed_generation(self):
+        with patch.object(h,'generate',return_value=({'src/a.py':'print(1)'},{'host':'codex'})) as generate:
+            self.assertEqual(self.run_plan()['status'],'complete')
+            (self.root/'.agents/skills/fullstack-mvp-engineer/SKILL.md').write_text('New mandatory constraint')
+            with self.assertRaisesRegex(ValueError,'context changed'):self.run_plan()
+            self.assertEqual(generate.call_count,1)
+
+    def test_combined_prompt_budget_blocks_before_provider(self):
+        (self.root/'task.md').write_text('x'*(h.MAX_TEXT-1))
+        with patch.object(h,'generate') as generate:
+            self.assertEqual(self.run_plan()['status'],'failed');generate.assert_not_called()
 
     def test_missing_role_blocks_before_host(self):
         (self.root/'.agents/skills/fullstack-mvp-engineer/SKILL.md').unlink()
@@ -129,7 +175,7 @@ class ModelWorkflowTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as other:
             (Path(other)/'task.md').write_text('FOREIGN PRIVATE TEXT')
             prompt=h.build_prompt(self.root,self.plan['steps'][0],'ar')
-        self.assertIn('Implement a bounded feature',prompt);self.assertIn('"language": "ar"',prompt)
+        self.assertIn('Implement a bounded feature',prompt);self.assertEqual(json.loads(prompt.split('\n',1)[1])['language'],'ar')
         self.assertNotIn('FOREIGN PRIVATE TEXT',prompt)
 
 

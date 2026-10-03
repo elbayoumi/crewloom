@@ -7,9 +7,9 @@
     "context_pack": 8,
     "frontend": 33,
     "delivery_evidence": 12,
-    "public_cli_workflows_and_grader": 72,
-    "total_cases": 132,
-    "standard_gate_passed": 127,
+    "public_cli_workflows_and_grader": 65,
+    "total_cases": 125,
+    "standard_gate_passed": 120,
     "standard_gate_docker_skips": 5
   },
   "context_cli": {
@@ -36,14 +36,14 @@
     "One public acceptance contract does not establish general superiority",
     "Reviewer identifiers remain unauthenticated"
   ],
-  "release": "0.5.1",
+  "release": "0.5.0",
   "published_examples": {
     "count": 6,
     "result": "passed in CLI regression suite"
   },
   "base_commit": "4e54fc7da28b5fbe523c0f9d3904eaa37389cd38",
   "live_docker": {
-    "workflow_suite_cases": 27,
+    "workflow_suite_cases": 20,
     "docker_cases": 5,
     "result": "passed locally",
     "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d"
@@ -86,6 +86,206 @@
     "claude_skipped": 8,
     "cross_host_complete": false,
     "evidence": "examples/evaluation/host-trials-20261001/report.json"
+  },
+  "managed_enforcement": {
+    "date": "2026-10-02",
+    "standard_gate_cases": 139,
+    "standard_gate_passed": 133,
+    "standard_gate_docker_skips": 6,
+    "live_workflow_cases_passed": 20,
+    "live_artifact_broker_cases_passed": 6,
+    "provider_transport": "mock contracts passed; live credentials unavailable",
+    "publication": "development change; no new release asserted"
+  },
+  "context_efficiency": {
+    "date": "2026-10-02",
+    "standard_gate_cases": 145,
+    "standard_gate_passed": 139,
+    "docker_skips": 6,
+    "model_host_tests": 25,
+    "measurement": "CONTEXT_MEASUREMENT.json",
+    "resource_budget": "PASS with five reviewed scanner/fixture exceptions; two seeded soft findings",
+    "live_token_cost_and_quality": "not measured"
+  },
+  "repository_map": {
+    "date": "2026-10-02",
+    "standard_gate_cases": 152,
+    "standard_gate_passed": 146,
+    "docker_skips": 6,
+    "map_regressions": 7,
+    "local_source_files": 55,
+    "local_source_bytes": 178673,
+    "rendered_map_bytes": 4076,
+    "unchanged_parse_reuse": 55,
+    "provider_tokens_latency_quality": "unmeasured"
+  },
+  "project_context": {
+    "date": "2026-10-03",
+    "status": "integrated development source; no new release tag asserted",
+    "measured_on": "8e83941 runtime integrated with origin/main a8dcff4; source archive and Python 3.9 container independently checked",
+    "baseline_gate_cases_at_71da4ca": 152,
+    "standard_gate_cases": 310,
+    "standard_gate_passed": 304,
+    "standard_gate_docker_skips": 6,
+    "live_docker_scripts_cases": 250,
+    "live_docker_scripts_passed": 250,
+    "new_regressions_vs_baseline": 158,
+    "new_regressions_by_module": {
+      "repo_map": 23,
+      "workflow": 8,
+      "task_context": 19,
+      "project_binding": 38,
+      "project_lessons": 23,
+      "project_lifecycle": 10,
+      "context_pilot": 7,
+      "context_acceptance_boundaries": 30
+    },
+    "measured": {
+      "development_checkout_indexed_files": 65,
+      "development_checkout_indexed_source_bytes": 473895,
+      "development_checkout_cold_parse_ms": 159,
+      "development_checkout_warm_reuse_ms": 72,
+      "development_checkout_unchanged_parses": 0,
+      "rendered_map_bytes": 8123,
+      "synthetic_small_selected_share_of_full_context": 0.7627,
+      "synthetic_large_selected_share_of_full_context": 0.0118,
+      "synthetic_pilot_acceptance_executed_in_docker": true,
+      "synthetic_pilot_finalization_verified": true,
+      "scoped_reproduction_2002_indexed_files": {
+        "context_bytes": 16663,
+        "context_bytes_budget": 131072,
+        "declared_body_intact": true,
+        "seed_in_navigation": true,
+        "out_of_scope_change_kept_context_fresh": true
+      },
+      "measurement_file": "CONTEXT_MEASUREMENT.json",
+      "dense_optional_navigation_reproduction": {
+        "source": "local fixture in scripts/test_task_context.py; not the authorized client project",
+        "candidate_ranges": 1441,
+        "range_records_kept": 23,
+        "range_bytes": 7928,
+        "range_bytes_allowance": 8192,
+        "recorded_range_omissions": 1418,
+        "context_bytes": 44729,
+        "context_bytes_budget": 131072,
+        "snapshot_rules_sources_assembly_bytes": 61618,
+        "same_fixture_without_independent_range_allowance_bytes": 131137,
+        "same_fixture_without_independent_range_allowance": "refused: exceeds context_bytes"
+      }
+    },
+    "rejected_bad_cases": [
+      "forged lesson verification with self-asserted exit_code 0",
+      "finalization without executed checks",
+      "finalization with a failing check relabelled complete",
+      "workflow state without a correlated attempt ledger entry",
+      "provider generation presented as an acceptance check",
+      "zero-exit failed artifact record promoted as a pass",
+      "foreign or corrupt local binding",
+      "copied project binding without explicit relocation",
+      "malformed or invented agency ledger entries",
+      "needs_reconciliation under enforced context",
+      "stale code-range reference after a source change",
+      "declared source body silently dropped",
+      "seed path dropped by an oversized symbol block",
+      "range cache key shared by two identical files",
+      "unchanged entry incrementing the frozen generation",
+      "rejected task writing project metadata before the ownership check",
+      "forked process inheriting re-entrant project-lock ownership",
+      "native context task and managed workflow in the same root",
+      "optional range and index metadata exceeding the task byte budget",
+      "out-of-scope file invalidating a scoped frozen generation",
+      "decoder-skipped candidates evading the aggregate scan byte budget",
+      "oversized declared source body read before it was refused",
+      "first native entry freezing instructions it then rewrote",
+      "generated exit command losing its JSON quotes or its line ending",
+      "reusable model step resolving another step archived context generation",
+      "verified lesson surviving a changed declared source at project entry",
+      "frozen navigation absent from the managed model prompt",
+      "managed map request scanning outside the bound project source roots",
+      "verified lesson selection trusting a record count instead of serialized bytes",
+      "managed entry failure leaving the root reserved and uncancellable",
+      "commit-hook Git environment selecting or mutating a foreign repository",
+      "plain directory accepted as a Git root through inherited configuration",
+      "pilot timing-width drift reported as a semantic context difference"
+    ],
+    "not_measured": [
+      "live provider token, cached-token and cost effects",
+      "real authorized client projects",
+      "host folder-open callbacks",
+      "JS/TS package and alias resolution"
+    ],
+    "live_docker_scripts_skips": 0,
+    "previous_measurement_before_this_correction": {
+      "standard_gate_cases": 287,
+      "standard_gate_passed": 281,
+      "live_docker_scripts_cases": 227,
+      "python_3_9_gate_cases": 287,
+      "python_3_9_gate_skips": 9,
+      "note": "measured earlier on the same date; the Python 3.9 gate was not re-run after this correction"
+    },
+    "previous_measurement_before_final_integration": {
+      "date": "2026-10-02",
+      "standard_gate_cases": 298,
+      "standard_gate_passed": 292,
+      "standard_gate_docker_skips": 6,
+      "live_docker_scripts_cases": 238,
+      "new_regressions_vs_baseline": 146
+    },
+    "package_version": "0.5.1",
+    "python_3_9": {
+      "gate_cases": 310,
+      "passed": 301,
+      "skips": 9,
+      "result": "passed in actual Python 3.9 container; three additional native-host CLI skips on Linux"
+    },
+    "source_archive": {
+      "gate_cases": 310,
+      "passed": 304,
+      "skips": 6,
+      "result": "passed from extracted source without Git/runtime/build directories",
+      "files": 609,
+      "manifest_verified_files": 608,
+      "editable_install_version": "0.5.1",
+      "installed_cli_role_validation": "passed",
+      "installed_cli_project_status": "passed"
+    },
+    "independent_boundary_suite": {
+      "cases": 30,
+      "passed": 30
+    },
+    "actual_commit_gate": {
+      "commit": "8e8394157654be069c82bb6b09aabc46d151fceb",
+      "hook_enabled": true,
+      "result": "passed; 310 cases, 304 pass, 6 Docker skips; selected worktree identity and shared Git configuration preserved"
+    },
+    "secret_scan": {
+      "tool_version": "8.30.1",
+      "scope": "integrated public source archive",
+      "raw_findings": 3,
+      "reviewed_false_positives": 3,
+      "confirmed_secrets": 0,
+      "reason": "All detections are SHA-256 file values for the three design-tokens.json fixtures in MANIFEST.json"
+    },
+    "public_project_pilots": {
+      "evidence": "../examples/evaluation/project-context-20261003/results.json",
+      "languages": [
+        "en",
+        "ar"
+      ],
+      "checks_per_project": 9,
+      "passed_projects": 2,
+      "acceptance_attempts_per_project": 1,
+      "verified_lessons": 2,
+      "provider_usage": null
+    },
+    "publication": {
+      "pull_request": "https://github.com/elbayoumi/crewloom/pull/2",
+      "integrated_head": "4df2eae520e0d80307d38cfae5ada8f62ecfab55",
+      "conflict_resolution": "main a8dcff4 is an ancestor",
+      "hosted_first_run": "https://github.com/elbayoumi/crewloom/actions/runs/37116755909",
+      "hosted_first_run_result": "dashboard and isolated-workflows passed; validate 3.14 failed missing image; 3.9 cancelled by fail-fast",
+      "hosted_correction": "validate matrix explicitly pulls the required image before running unchanged acceptance; final hosted result is available on PR checks"
+    }
   },
   "project_concurrency": {
     "explicit_task_root": "required",

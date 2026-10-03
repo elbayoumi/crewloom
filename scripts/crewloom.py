@@ -147,6 +147,16 @@ def main():
     trials.add_argument('--image', default='python:3.14-slim')
     trials.add_argument('--timeout', type=int, default=180)
     trials.add_argument('--codex-model'); trials.add_argument('--claude-model')
+    mapping=commands.add_parser('map',help='Build a bounded project symbol map')
+    mapping.add_argument('--project',required=True)
+    mapping.add_argument('--query',default='')
+    mapping.add_argument('--budget',type=int,default=8192)
+    mapping.add_argument('--seed',action='append',default=[])
+    mapping.add_argument('--rebuild',action='store_true',help='Discard cached parses and re-index every candidate')
+    project = commands.add_parser('project', help='Enter, inspect, finish, cancel or relink a bound project context')
+    project.add_argument('project_arguments', nargs=argparse.REMAINDER)
+    lesson = commands.add_parser('lesson', help='Record, verify, retrieve or review project lessons')
+    lesson.add_argument('lesson_arguments', nargs=argparse.REMAINDER)
     workflow = commands.add_parser('workflow', help='Run an isolated, resumable project workflow')
     workflow.add_argument('workflow_arguments', nargs=argparse.REMAINDER)
     commands.add_parser('tools', help='List included executable tools')
@@ -184,6 +194,17 @@ def main():
             model = getattr(args, host + '_model')
             if model: forwarded.extend(['--' + host + '-model', model])
         return trials_main(forwarded)
+    if args.command == 'map':
+        from repo_map import main as map_main
+        return map_main(['--project',args.project,'--query',args.query,'--budget',str(args.budget)]
+                        + sum([['--seed',seed] for seed in args.seed],[])
+                        + (['--rebuild'] if args.rebuild else []))
+    if args.command == 'project':
+        from project_binding import main as project_main
+        return project_main(args.project_arguments)
+    if args.command == 'lesson':
+        from project_lessons import main as lesson_main
+        return lesson_main(args.lesson_arguments)
     if args.command == 'workflow':
         from workflow import main as workflow_main
         return workflow_main(args.workflow_arguments)

@@ -1,11 +1,11 @@
 """Workflow invariants and optional real-Docker acceptance checks."""
 import json
-import threading
-from concurrent.futures import ThreadPoolExecutor
 import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import shutil
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 
@@ -23,7 +23,7 @@ class WorkflowTests(unittest.TestCase):
         (self.root/'workflow.json').write_text(json.dumps(self.plan))
         return w.read_plan(self.root,'workflow.json')
 
-    def execute(self, root, argv, image, timeout):
+    def execute(self, root, argv, image, timeout, **kwargs):
         (root/'output.txt').write_text('verified-output')
         return {'exit_code':0,'duration_ms':1,'output':'','image_id':image}
 
@@ -112,11 +112,22 @@ class WorkflowTests(unittest.TestCase):
             self.assertNotEqual(result['completed']['build']['inputs']['output.txt'],result['completed']['build']['outputs']['output.txt'])
             self.assertEqual(self.run_plan()['status'],'complete')
 
+    def test_task_handoff_and_independent_reviewer_identifier(self):
+        self.plan['steps'][0]['kind']='task';self.plan['steps'][0].pop('argv')
+        plan,fingerprint=self.write_plan()
+        self.assertEqual(w.run(self.root,plan,fingerprint,'image')['status'],'awaiting_task')
+        (self.root/'output.txt').write_text('agent-produced artifact')
+        with self.assertRaises(ValueError):w.run(self.root,plan,fingerprint,'image','build','fullstack-mvp-engineer')
+        result=w.run(self.root,plan,fingerprint,'image','build','reviewer-a')
+        self.assertEqual(result['status'],'complete')
+        self.assertEqual(result['completed']['build']['reviewer'],'reviewer-a')
+
     def test_task_actions_need_explicit_project(self):
-        with self.assertRaises(SystemExit) as error:w.main(['run'])
+        import contextlib,io
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as error:w.main(['run'])
         self.assertEqual(error.exception.code,2)
 
-    def test_paused_task_reserves_project_between_calls(self):
+    def test_paused_task_reserves_the_project_between_calls(self):
         self.plan['steps'][0]['kind']='task';self.plan['steps'][0].pop('argv')
         plan,fingerprint=self.write_plan()
         self.assertEqual(w.run(self.root,plan,fingerprint,'image')['status'],'awaiting_task')
@@ -136,6 +147,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(json.loads((self.root/'.crewloom/attempts.json').read_text()),ledger)
         self.assertIsNone(w.active_workflow(self.root))
         with self.assertRaisesRegex(ValueError,'Cancelled'):w.run(self.root,plan,fingerprint,'image')
+        self.assertEqual(w.cancel(self.root,plan,fingerprint)['idempotent'],True)
         other=json.loads(json.dumps(plan));other['id']='new-task'
         self.assertEqual(w.run(self.root,other,w.digest(json.dumps(other,sort_keys=True).encode()),'image')['status'],'awaiting_task')
 
@@ -146,8 +158,8 @@ class WorkflowTests(unittest.TestCase):
 
     def test_actual_concurrent_runs_same_project_rejected(self):
         plan,fingerprint=self.write_plan();entered=threading.Event();release=threading.Event()
-        def execute(root,argv,image,timeout):
-            entered.set();self.assertTrue(release.wait(5));return self.execute(root,argv,image,timeout)
+        def execute(root,argv,image,timeout,**kwargs):
+            entered.set();self.assertTrue(release.wait(5));return self.execute(root,argv,image,timeout,**kwargs)
         with patch.object(w,'inspect_image',return_value='sha256:test'),patch.object(w,'docker_execute',side_effect=execute),ThreadPoolExecutor(max_workers=2) as pool:
             first=pool.submit(w.run,self.root,plan,fingerprint,'image')
             try:
@@ -161,14 +173,15 @@ class WorkflowTests(unittest.TestCase):
         plan,fingerprint=self.write_plan();barrier=threading.Barrier(2)
         with tempfile.TemporaryDirectory() as t:
             other=Path(t).resolve();(other/'input.txt').write_text('second project')
-            def execute(root,argv,image,timeout):
+            def execute(root,argv,image,timeout,**kwargs):
                 barrier.wait(timeout=5);(root/'output.txt').write_text((root/'input.txt').read_text())
                 return {'exit_code':0,'output':''}
             with patch.object(w,'inspect_image',return_value='sha256:test'),patch.object(w,'docker_execute',side_effect=execute),ThreadPoolExecutor(max_workers=2) as pool:
                 runs=[pool.submit(w.run,root,plan,fingerprint,'image') for root in (self.root,other)]
                 results=[future.result(timeout=8) for future in runs]
             self.assertEqual([r['status'] for r in results],['complete','complete'])
-            self.assertEqual((self.root/'output.txt').read_text(),'input');self.assertEqual((other/'output.txt').read_text(),'second project')
+            self.assertEqual((self.root/'output.txt').read_text(),'input')
+            self.assertEqual((other/'output.txt').read_text(),'second project')
             self.assertNotEqual(results[0]['project_root'],results[1]['project_root'])
 
     def test_copied_or_symlinked_project_reservation_rejected(self):
@@ -181,15 +194,12 @@ class WorkflowTests(unittest.TestCase):
             path.symlink_to(Path(t)/'active.json')
             with self.assertRaisesRegex(ValueError,'symlinks|escapes'):self.run_plan()
 
-    def test_task_handoff_and_independent_reviewer_identifier(self):
-        self.plan['steps'][0]['kind']='task';self.plan['steps'][0].pop('argv')
-        plan,fingerprint=self.write_plan()
-        self.assertEqual(w.run(self.root,plan,fingerprint,'image')['status'],'awaiting_task')
-        (self.root/'output.txt').write_text('agent-produced artifact')
-        with self.assertRaises(ValueError):w.run(self.root,plan,fingerprint,'image','build','fullstack-mvp-engineer')
-        result=w.run(self.root,plan,fingerprint,'image','build','reviewer-a')
-        self.assertEqual(result['status'],'complete')
-        self.assertEqual(result['completed']['build']['reviewer'],'reviewer-a')
+    def test_native_context_reservation_blocks_a_different_workflow(self):
+        folder=self.root/'.crewloom';folder.mkdir()
+        (folder/'active_task.json').write_text(json.dumps(
+            {'schema_version':1,'project_root':str(self.root),'project_id':'sample-project',
+             'checkout_id':'a'*32,'task_id':'native-task','owner':'project-context'}))
+        with self.assertRaisesRegex(ValueError,'reserved by native context task'):self.run_plan()
 
 
 @unittest.skipUnless(os.environ.get('CREWLOOM_DOCKER_TESTS')=='1','Enable real Docker integration checks explicitly')

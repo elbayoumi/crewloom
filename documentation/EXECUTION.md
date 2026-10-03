@@ -1,6 +1,6 @@
 # Isolated software workflows
 
-Crewloom executes a project-owned plan, records evidence, and exports the next role's handoff. It does not call a model or create autonomous agents. A command step runs an actual argv array; a task step pauses for your agent or human to produce and review an artifact.
+Crewloom executes a project-owned plan, records evidence, and exports the next role's handoff. Model steps use the provider gateway described in [managed enforcement](ENFORCEMENT.md). A command step runs an actual argv array; a task step pauses for your agent or human to produce and review an artifact.
 
 ## Requirements and readiness
 
@@ -35,7 +35,7 @@ The example copies a supplied implementation, parses it, runs five acceptance te
 | Field | Meaning |
 | --- | --- |
 | `id`, `role`, `summary` | Stable step identity, installed catalog role ID, concrete intended result |
-| `kind` | `command` (default) or `task` |
+| `kind` | `command` (default), `model`, or `task` |
 | `argv` | Nonempty command argument array; no shell expansion is performed |
 | `inputs` | Nonempty files to fingerprint before execution; the list itself may be empty |
 | `outputs` | Nonempty files expected from this step; one owner per artifact |
@@ -64,27 +64,13 @@ State lives in `.crewloom/workflows/<id>/state.json`; the failure ledger lives i
 - Changed completed inputs/outputs or a changed plan reject old evidence. Review changes and use a new workflow ID; old history remains available.
 - Command failure or missing/unchanged pre-existing output stops the workflow. Two failed or interrupted attempts with unchanged command, inputs, and image block another attempt. A project-wide ledger carries this budget across workflow IDs; renaming the workflow cannot reset it. Successful attempts do not consume the failure budget. Change the actual cause before retrying.
 - A project-wide lock prevents concurrent workflows from writing the same project. After a host crash, inspect the lock PID and Docker containers, stop any surviving command, and remove the stale lock only after confirming no execution owns it. There is no automatic unsafe lock takeover.
-- Commands can partially change project files before failure. The runner does not roll them back. Inspect the diff and backups before retrying.
+- Managed commands publish only validated declared outputs after success; failed commands publish nothing. Publication across several files is not atomic.
 
 Exit 0: complete workflow, successful task acceptance, readable status/handoff, or ready doctor. Exit 2: blocked/failed/awaiting-task execution or unavailable setup. The JSON status is authoritative for progress.
 
 ## Isolation boundary
 
-Command containers use the inspected image ID, a read-only root filesystem, no network, no extra capabilities, no privilege escalation, a 128-process limit, 1 GiB memory and two CPUs, and the caller's UID/GID. Only the selected project is mounted and writable; the library checkout is not exposed, and project runtime state is hidden behind a read-only temporary mount. Install needed role tools into the project or bake them into the image before executing. A bounded temporary filesystem is available at `/tmp`. Host environment variables and Docker socket are not forwarded.
-
-Docker itself is a trusted dependency. Project-local secrets are still readable by commands that can read the project. Commands may write project files, consume disk space, or include sensitive content in captured output; review project inputs and logs before sharing them. These command restrictions do not sandbox a separately running agent host or prove container isolation against kernel vulnerabilities.
-
-Verification includes live Docker tests for the six-stage feature, resume, outside-project symlinks, network denial, unmounted library and immutable runtime state, and timeout termination. See [execution evidence](EVIDENCE.md).
-
-## Objective feature scoring
-
-Use `crewloom evaluate --project /path/to/submission --repeats 3` for the [Unicode acceptance benchmark](../examples/evaluation/unicode-slug/README.md). It scores a specific pure-function contract; it is not a general software-quality score. Submission code executes with the same isolated Docker executor.
-
-## Model steps
-
-`kind: model` requires an explicit `host` (`codex` or `claude`), declared text inputs, outputs and an installed owning role. An optional `model` identifier pins the request; `timeout_seconds` defaults to 180. The adapter returns validated artifact text, while generation metadata and attempts stay in project-local workflow state. A model success is artifact production, not test acceptance. Follow it with command checks or a separate task review. See [automatic host execution](HOSTS.md) and the [generated-feature example](../examples/model-workflow/README.md).
-
-Unchanged failed/interrupted model generations share the project failure ledger across workflow IDs. Signatures include full supplied prompt, host, requested model, timeout and adapter fingerprint. The adapter does not switch providers, auto-install CLIs, copy authentication, or run generated code on the host. Readiness checks inspect CLI capabilities without making a provider call; only actual execution verifies authentication.
+See [managed enforcement](ENFORCEMENT.md) for input snapshots, declared writable outputs, provider RPC, resource limits, and the trusted-host boundary. Manual tasks and explicitly enabled native CLI hosts remain outside that boundary.
 
 ## Project ownership between task steps
 

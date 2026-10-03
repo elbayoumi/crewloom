@@ -25,3 +25,11 @@ For exact JSON contracts inspect the tool docstring and validation function. The
 | [workflow](../scripts/workflow.py) | Isolated software workflows and role handoff | `python3 scripts/crewloom.py workflow doctor` |
 
 Workflow execution requires Docker and a locally available image. See [execution](EXECUTION.md). Feature evaluation has a separate [benchmark contract](../examples/evaluation/unicode-slug/README.md).
+
+| [project-context](../scripts/project_binding.py) | Portable project identity, local checkout binding, lifecycle entry and finalization | `python3 scripts/crewloom.py project status --project /path/to/project --project-id id` |
+| [context-generations](../scripts/project_context.py) | Frozen per-task context with hash-validated code ranges | `python3 scripts/crewloom.py project enter --project /path/to/project --project-id id --task-id task --role context-guardian` |
+| [project-lessons](../scripts/project_lessons.py) | Evidence-linked lessons; promotion needs executor evidence | `python3 scripts/crewloom.py lesson list --project /path/to/project` |
+| [navigation-index](../scripts/repo_map.py) | Versioned project symbol index with verified reuse | `python3 scripts/crewloom.py map --project /path/to/git-project --query login` |
+| [context-pilot](../scripts/context_pilot.py) | Reproducible cold/warm pilot and context byte comparison | `python3 scripts/context_pilot.py --out /tmp/pilot.json` |
+
+Project context is opt-in per project and never changes workflow isolation. See [project context](PROJECT_CONTEXT.md).

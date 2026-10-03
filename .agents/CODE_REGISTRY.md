@@ -46,3 +46,29 @@ Core Python tools use the standard library. Commands run from the checkout root.
 | [scripts/test_evaluate_hosts.py](../scripts/test_evaluate_hosts.py) | Balanced trials, frozen protocol, failure budget and anonymous grading; QA | `python3 -m unittest discover -s scripts -p test_evaluate_hosts.py` |
 | [examples/model-workflow/project/verify.py](../examples/model-workflow/project/verify.py) | Executes supplied acceptance and records actual output; QA | `python3 verify.py` from the copied project |
 | [examples/model-workflow/project/tests/test_slug.py](../examples/model-workflow/project/tests/test_slug.py) | English/Arabic contract acceptance of freshly generated code; QA | `python3 -m unittest discover -s tests` from the copied project |
+
+| [scripts/execution_policy.py](../scripts/execution_policy.py) | Declared artifact broker; context-guardian | `crewloom workflow run --project /path/to/project` |
+
+| [scripts/provider_gateway.py](../scripts/provider_gateway.py) | Tool-free provider RPC; fullstack-mvp-engineer | `crewloom workflow run --project /path/to/project` |
+
+| [scripts/test_execution_policy.py](../scripts/test_execution_policy.py) | Broker rejection and acceptance; QA | `python3 -m unittest discover -s scripts -p test_execution_policy.py` |
+
+| [scripts/test_provider_gateway.py](../scripts/test_provider_gateway.py) | Provider transport and default host denial; QA | `python3 -m unittest discover -s scripts -p test_provider_gateway.py` |
+
+| [scripts/repo_map.py](../scripts/repo_map.py) | Project-local symbol index, versioned generations, SHA-verified reuse and bounded navigation; context-guardian | `crewloom map --project /path/to/git-project --query login` |
+| [scripts/test_repo_map.py](../scripts/test_repo_map.py) | Map freshness, generations, seed visibility, import accuracy and CLI regressions; QA | `python3 -m unittest discover -s scripts -p test_repo_map.py` |
+
+| [scripts/project_binding.py](../scripts/project_binding.py) | Portable project identity, local checkout binding, agency ledger validation and lifecycle; context-guardian | `crewloom project status --project /path/to/project --project-id id` |
+| [scripts/project_context.py](../scripts/project_context.py) | Frozen per-task context generations with hash-validated code ranges; context-guardian | `crewloom project enter --project /path/to/project --project-id id --task-id task --role context-guardian` |
+| [scripts/project_lessons.py](../scripts/project_lessons.py) | Evidence-linked lessons; promotion needs recorded executor evidence; QA | `crewloom lesson list --project /path/to/project` |
+| [scripts/context_pilot.py](../scripts/context_pilot.py) | Reproducible cold/warm context pilot and byte comparison; context-guardian | `python3 scripts/context_pilot.py --out /tmp/crewloom-pilot.json` |
+| [scripts/test_project_binding.py](../scripts/test_project_binding.py) | Identity, bootstrap, relocation, ledger and reservation regressions; QA | `python3 -m unittest discover -s scripts -p test_project_binding.py` |
+| [scripts/test_task_context.py](../scripts/test_task_context.py) | Frozen generation, staleness, range and budget regressions; QA | `python3 -m unittest discover -s scripts -p test_task_context.py` |
+| [scripts/test_project_lessons.py](../scripts/test_project_lessons.py) | Forged-success rejection and evidence-gated promotion; QA | `python3 -m unittest discover -s scripts -p test_project_lessons.py` |
+| [scripts/test_project_lifecycle.py](../scripts/test_project_lifecycle.py) | Managed enter/checkpoint/publish-gate/finalize integration; QA | `python3 -m unittest discover -s scripts -p test_project_lifecycle.py` |
+| [scripts/test_context_pilot.py](../scripts/test_context_pilot.py) | Cold/warm pilot acceptance against measured behaviour, with live acceptance gated on a reachable Docker daemon; QA | `python3 -m unittest discover -s scripts -p test_context_pilot.py` |
+| [scripts/test_context_acceptance_boundaries.py](../scripts/test_context_acceptance_boundaries.py) | Independent acceptance regressions for lock ownership, ownership preflight, byte-room bounding, scoped freshness and managed prompt delivery; QA | `python3 -m unittest discover -s scripts -p test_context_acceptance_boundaries.py` |
+
+| [examples/evaluation/project-context-20261003/check.py](../examples/evaluation/project-context-20261003/check.py) | Nine frozen public-project navigation/context acceptance cases; QA / context-guardian | `python3 crewloom-hook-pilot/check.py` inside the documented disposable project workflow |
+
+The public context acceptance checker consumes `crewloom-hook-pilot/{context.json,acceptance.json}` and the explicitly declared seed; it writes `crewloom-hook-pilot/result.json`, exits 0 only when all nine checks pass, and exits non-zero on failed/missing/malformed input. It uses the Python standard library; its recorded workflow additionally requires Docker. It is a verification fixture, not a folder-open adapter or a client-delivery benchmark.

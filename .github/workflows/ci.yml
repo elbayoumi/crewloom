@@ -16,6 +16,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      - run: docker pull python:3.14-slim
       - run: python3 scripts/check_repository.py
   dashboard:
     runs-on: ubuntu-latest
@@ -43,6 +44,8 @@ jobs:
           python-version: '3.14'
       - run: docker pull python:3.14-slim
       - run: CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p test_workflow.py
+      - run: CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p test_execution_policy.py
+      - run: python3 scripts/context_pilot.py --out /tmp/crewloom-pilot.json
       - run: |
           mkdir -p /tmp/crewloom-submission/src
           cp examples/software-workflow/project/solution/slug.py /tmp/crewloom-submission/src/slug.py

@@ -14,4 +14,15 @@ Crewloom 0.5.0 adds bounded Codex/Claude artifact-generation adapters, an execut
 
 The owner-selected maintenance workflow name is Self-Editing Mode / التعديل الذاتي. It uses the existing skill-improvement-engineer role and task permissions; activation and acceptance are documented in documentation/SELF_EDITING.md.
 
+Managed enforcement is implemented through declared-file snapshots and tool-free provider RPC. Repository instructions alone cannot bind unmanaged host agents. See [the trust boundary](documentation/ENFORCEMENT.md).
+
+Context efficiency selects reusable project lessons without rewriting history or claiming model training. Measured byte reduction and limits are documented in [context efficiency](documentation/CONTEXT_EFFICIENCY.md).
+
+Project-local repository navigation now supplements memory selection; maps are advisory and managed provider metadata inclusion is explicit. See [repository maps](documentation/REPOSITORY_MAP.md).
+
+Automatic project context is now implemented for opted-in projects: portable project identity, a local checkout binding, versioned navigation generations scoped by `source_roots`, frozen per-task context with hash-validated code ranges, and lessons that only recorded executor evidence can promote. Lifecycle labels distinguish managed runner, instruction-assisted and manual operation; opening a folder never triggers anything by itself. Optional read ranges carry their own byte allowance and record cap instead of filling the global context ceiling, and a completed model step re-verifies against the exact frozen generation it consumed. See [project context](documentation/PROJECT_CONTEXT.md) and [the plan it implements](documentation/AUTOMATIC_PROJECT_CONTEXT_PLAN.md). Live provider token, cost and answer-quality effects remain unmeasured, and no new tagged release is asserted. Two public English/Arabic navigation and lifecycle pilots passed the fixed acceptance contract; [their evidence](examples/evaluation/project-context-20261003/README.md) distinguishes bytes from provider billing.
+
 Concurrent workflow scope uses explicit project roots, process locks and paused-task reservations. Different roots run in parallel; same-root task ownership persists until completion or explicit cancellation. Direct host tools are outside these guards.
+
+### 2026-10-03 — Automatic project context implementation published
+Project-local identity, incremental maps, frozen context and executor-verified lessons are implemented and uploaded in PR #2. Public English/Arabic navigation pilots each pass nine frozen checks; provider billing and general answer-quality gains remain unmeasured. Managed lifecycle refresh is automatic; native operation is instruction-assisted and private-client adoption awaits registry reconciliation.

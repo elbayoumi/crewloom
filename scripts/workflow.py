@@ -46,7 +46,11 @@ def hashes(root, paths):
         path = safe_path(root, relative)
         if not path.is_file() or not path.stat().st_size:
             raise ValueError('Missing or empty artifact: ' + relative)
-        result[relative] = digest(path.read_bytes())
+        if path.stat().st_size>16*1024*1024:raise ValueError('Artifact input budget exceeded: '+relative)
+        hasher=hashlib.sha256()
+        with path.open('rb') as stream:
+            for chunk in iter(lambda:stream.read(65536),b''):hasher.update(chunk)
+        result[relative] = hasher.hexdigest()
     return result
 
 
@@ -57,6 +61,13 @@ def read_plan(root, filename):
         raise ValueError('Workflow requires schema_version 1 and a stable kebab-case id')
     if plan.get('language', 'en') not in ('en', 'ar'):
         raise ValueError('Language must be en or ar')
+    unknown = set(plan) - {'schema_version', 'id', 'language', 'steps', 'criteria'}
+    if unknown:
+        raise ValueError('Unknown workflow plan fields: ' + ', '.join(sorted(unknown)))
+    if 'criteria' in plan:
+        safe_path(root, plan['criteria'])
+        if not safe_path(root, plan['criteria']).is_file():
+            raise ValueError('Workflow criteria file is missing')
     steps = plan.get('steps')
     if not isinstance(steps, list) or not steps:
         raise ValueError('Workflow needs at least one step')
@@ -79,7 +90,7 @@ def read_plan(root, filename):
         if kind == 'model':
             from model_host import HOSTS
             if step.get('host') not in HOSTS:
-                raise ValueError('Model step needs an explicit codex or claude host')
+                raise ValueError('Model step needs an explicit model provider/host')
             if 'model' in step and (not isinstance(step['model'], str) or not step['model'].strip()):
                 raise ValueError('Model identifier must be nonempty')
         timeout = step.get('timeout_seconds', 60)
@@ -121,20 +132,63 @@ def save(folder, state):
     os.replace(temporary, target)
 
 
+_LOCKS = threading.local()
+
+
+def _lock_depth():
+    """Thread-local lock ownership that a forked process can never inherit.
+
+    `fork` copies thread-local storage, so recorded depth is only ever trusted for the
+    process that created it. Ownership is therefore keyed by process, thread and the
+    canonical folder, and the depth table is dropped whenever the process identity changes.
+    """
+    state = getattr(_LOCKS, 'state', None)
+    if state is None or state['pid'] != os.getpid():
+        state = _LOCKS.state = {'pid': os.getpid(), 'depth': {}}
+    return state['depth']
+
+
 @contextmanager
-def lock(folder):
+def project_lock(folder, reentrant=False):
+    """The single project lock protocol; internal callers may compose it re-entrantly.
+
+    External writers still contend on the same `O_CREAT|O_EXCL` lock file, so a second
+    process is rejected whether it uses `lock` or `project_lock`. Re-entrancy is scoped to
+    one process and one thread, so a forked child contends instead of inheriting ownership.
+    """
     folder.mkdir(parents=True, exist_ok=True)
+    depth = _lock_depth()
+    key = (os.getpid(), threading.get_ident(), os.path.realpath(str(folder)))
+    if reentrant and depth.get(key, 0):
+        depth[key] += 1
+        try:
+            yield
+        finally:
+            depth[key] -= 1
+        return
     path = folder / 'lock'
     try:
         fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
     except FileExistsError:
         raise ValueError('Workflow locked: another execution or interrupted host owns the lock')
     try:
+        if reentrant:
+            depth[key] = depth.get(key, 0) + 1
         with os.fdopen(fd, 'w') as stream:
-            stream.write(str(os.getpid()))
+            stream.write(json.dumps({'pid': os.getpid(), 'thread': threading.get_ident(),
+                                     'folder': key[2]}, sort_keys=True))
         yield
     finally:
+        if reentrant:
+            depth[key] = max(0, depth.get(key, 1) - 1)
         path.unlink(missing_ok=True)
+
+
+@contextmanager
+def lock(folder):
+    """Public, strictly non-reentrant project lock; external writers contend on the same file."""
+    with project_lock(folder, reentrant=False):
+        yield
 
 
 def save_ledger(root, ledger):
@@ -172,8 +226,10 @@ def state_for(root, plan, fingerprint):
         if state.get('project_root') != str(root) or state.get('plan_sha256') != fingerprint:
             raise ValueError('State belongs to another project or plan revision; use a new workflow ID')
         return folder, state
+    folder.mkdir(parents=True, exist_ok=True)
     return folder, {'schema_version': 1, 'project_root': str(root), 'workflow': plan['id'],
-                    'plan_sha256': fingerprint, 'steps': {}, 'status': 'pending'}
+                    'plan_sha256': fingerprint, 'steps': {}, 'status': 'pending',
+                    'project_id': binding_id(root)[0], 'checkout_id': binding_id(root)[1]}
 
 
 def inspect_image(image):
@@ -187,19 +243,26 @@ def inspect_image(image):
     return result.stdout.strip()
 
 
-def docker_execute(root, argv, image_id, timeout):
+def docker_execute(root, argv, image_id, timeout, writable=None):
     """Only project mounted; runtime state hidden; image immutable; network off."""
     if ',' in str(root):
         raise ValueError('Docker mount paths cannot contain commas')
     name = 'crewloom-' + uuid.uuid4().hex
     command = ['docker', 'run', '--rm', '--name', name, '--network', 'none', '--read-only',
                '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--pids-limit', '128',
-               '--memory', '1g', '--cpus', '2',
+               '--memory', '1g', '--cpus', '2', '--ulimit', 'fsize=4194304:4194304',
                '--user', f'{os.getuid()}:{os.getgid()}', '--tmpfs', '/tmp:rw,nosuid,size=128m',
                '--tmpfs', '/workspace/.crewloom:ro,noexec,nosuid,size=1m',
-               '--mount', f'type=bind,src={root},dst=/workspace',
+               '--mount', f'type=bind,src={root},dst=/workspace' + (',readonly' if writable is not None else ''),
                '--workdir', '/workspace', '--env', 'HOME=/tmp', '--env', 'PYTHONDONTWRITEBYTECODE=1',
                '--env', 'PYTHONUNBUFFERED=1', image_id, *argv]
+    if writable is not None:
+        mounts=[]
+        for relative in writable:
+            path=safe_path(root,relative)
+            if ',' in str(path):raise ValueError('Docker mount paths cannot contain commas')
+            mounts.extend(['--mount',f'type=bind,src={path},dst=/workspace/{path.relative_to(root)}'])
+        index=command.index(image_id);command[index:index]=mounts
     started = time.monotonic()
     captured = bytearray()
     discarded = [False]
@@ -263,7 +326,22 @@ def handoff(root, plan, state):
             'next_step_state': ({**{field: state['steps'].get(next_step['id'], {}).get(field) for field in ('status', 'error')}, 'attempt_count': len(state['steps'].get(next_step['id'], {}).get('attempts', []))} if next_step else None),
             'state_file': str(runtime(root, plan['id']) / 'state.json'),
             'blocker': state.get('error'),
+            'project_context': project_context_status(root, plan['id']),
             'instruction': 'Read the selected role and project memory; retain this root and verify every supplied artifact.'}
+
+
+def binding_id(root):
+    """Project and checkout identity for executor evidence correlation, when this project is bound."""
+    path = safe_path(root, '.crewloom/binding.json', internal=True)
+    if not path.is_file():
+        return None, None
+    try:
+        value = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return None, None
+    if not isinstance(value, dict) or value.get('project_root') != str(root):
+        return None, None
+    return value.get('project_id'), value.get('checkout_id')
 
 
 def active_workflow(root):
@@ -279,6 +357,9 @@ def reserve_workflow(root, plan, fingerprint):
     value=active_workflow(root)
     if value and (value['workflow']!=plan['id'] or value['plan_sha256']!=fingerprint):
         raise ValueError('Project already has an unfinished workflow: '+value['workflow']+'; finish or explicitly cancel it first')
+    native=project_context_reservation(root)
+    if native and native['task_id']!=plan['id']:
+        raise ValueError('Project is reserved by native context task: '+native['task_id']+'; finish or cancel it first')
     path=safe_path(root,'.crewloom/active_workflow.json',internal=True)
     with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=path.parent,delete=False) as stream:
         temporary=Path(stream.name)
@@ -286,144 +367,327 @@ def reserve_workflow(root, plan, fingerprint):
     os.replace(temporary,path)
 
 
-def cancel(root, plan, fingerprint):
+def cancel(root, plan, fingerprint, reason='operator request'):
     with lock(safe_path(root,'.crewloom',internal=True)):
         folder,state=state_for(root,plan,fingerprint)
-        if not (folder/'state.json').is_file():raise ValueError('Cannot cancel an unstarted workflow')
         value=active_workflow(root)
+        if not (folder/'state.json').is_file():
+            # Managed entry can fail after this root was reserved and before any step state
+            # exists. The reservation is real: it blocks the next task, so it must be
+            # explicitly cancellable instead of leaving the project permanently reserved.
+            if not value or value['workflow']!=plan['id'] or value['plan_sha256']!=fingerprint:
+                raise ValueError('Cannot cancel an unstarted workflow')
+            state['status']='cancelled';state['started']=False
+            state['cancelled_at']=time.time();state['cancel_reason']=str(reason)[:200];save(folder,state)
+            safe_path(root,'.crewloom/active_workflow.json',internal=True).unlink(missing_ok=True)
+            project_context_cancel(root,plan['id'],reason)
+            return {'project_root':str(root),'workflow':plan['id'],'status':'cancelled','idempotent':False,
+                    'started':False,'completed_steps':[],
+                    'instruction':'The reservation was released before any step ran; files and history are preserved.'}
         if value and (value['workflow']!=plan['id'] or value['plan_sha256']!=fingerprint):
             raise ValueError('Cancel must name the active workflow and unchanged plan')
         if state['status']=='complete':raise ValueError('Completed workflow does not need cancellation')
-        state['status']='cancelled';save(folder,state)
+        if state['status']=='cancelled':
+            return {'project_root':str(root),'workflow':plan['id'],'status':'cancelled','idempotent':True,
+                    'instruction':'Cancellation preserves files and failure history; use a new workflow ID for new work.'}
+        state['status']='cancelled';state['cancelled_at']=time.time();state['cancel_reason']=str(reason)[:200];save(folder,state)
         safe_path(root,'.crewloom/active_workflow.json',internal=True).unlink(missing_ok=True)
-        return {'project_root':str(root),'workflow':plan['id'],'status':'cancelled',
-                'instruction':'Inspect partial artifacts. Cancellation preserves files and failure history; use a new workflow ID for new work.'}
+        project_context_cancel(root,plan['id'],reason)
+        return {'project_root':str(root),'workflow':plan['id'],'status':'cancelled','idempotent':False,
+                'completed_steps':[key for key,value in state['steps'].items() if value.get('status')=='complete'],
+                'instruction':'Cancellation preserves files and failure history; use a new workflow ID for new work.'}
 
 
-def run(root, plan, fingerprint, image, accept=None, reviewer=None):
-    with lock(safe_path(root,'.crewloom',internal=True)):
-        _,state=state_for(root,plan,fingerprint)
-        if state['status']=='cancelled':raise ValueError('Cancelled workflow cannot resume; use a new workflow ID')
-        reserve_workflow(root,plan,fingerprint)
+def run(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False):
+    """Reserve the root, execute under the shared project lock, then finalize recorded evidence."""
+    with project_lock(safe_path(root, '.crewloom', internal=True), reentrant=True):
         try:
-            return _run_locked(root,plan,fingerprint,image,accept,reviewer)
-        finally:
-            _,latest=state_for(root,plan,fingerprint)
-            if latest['status'] in ('complete','failed','blocked'):
-                safe_path(root,'.crewloom/active_workflow.json',internal=True).unlink(missing_ok=True)
-
-
-def _run_locked(root, plan, fingerprint, image, accept=None, reviewer=None):
-    folder, state = state_for(root, plan, fingerprint)
-    verify_completed(root, state)
-    if accept:
-        next_step = next((s for s in plan['steps'] if state['steps'].get(s['id'], {}).get('status') != 'complete'), None)
-        if not next_step or next_step['id'] != accept or next_step.get('kind') != 'task':
-            raise ValueError('Accept must name the next outstanding task')
-    ledger_file = safe_path(root, '.crewloom/attempts.json', internal=True)
-    ledger = json.loads(ledger_file.read_text()) if ledger_file.exists() else {'attempts': []}
-    if not isinstance(ledger, dict) or not isinstance(ledger.get('attempts'), list) or any(not isinstance(item, dict) or item.get('status') not in ('running', 'failed', 'succeeded') or not isinstance(item.get('signature'), str) for item in ledger['attempts']):
-        raise ValueError('Malformed project attempt ledger')
-    image_id = None
-    for step in plan['steps']:
-        record = state['steps'].setdefault(step['id'], {'status': 'pending', 'role': step['role'], 'summary': step['summary'], 'attempts': []})
-        if record['status'] == 'complete':
-            continue
-        try:
-            inputs = hashes(root, step['inputs'])
-        except ValueError as exc:
-            state['status'] = 'blocked'; state['error'] = str(exc); save(folder, state)
-            return handoff(root, plan, state)
-        state.pop('error', None)
-        if step.get('kind') == 'task':
-            if accept != step['id']:
-                state['status'] = 'awaiting_task'; save(folder, state); return handoff(root, plan, state)
-            if not isinstance(reviewer, str) or not reviewer.strip() or len(reviewer) > 100 or reviewer.strip() == step['role']:
-                raise ValueError('Task completion needs a reviewer identifier different from the owning role')
-            record.update(status='complete', inputs=inputs, outputs=hashes(root, step['outputs']), reviewer=reviewer)
-            state['status'] = 'complete' if step is plan['steps'][-1] else 'pending'
-            save(folder, state)
-            return handoff(root, plan, state)
-        if accept:
-            raise ValueError('Accept only the next task step; commands must run to produce evidence')
-        if step.get('kind') == 'model':
-            run_model_step(root, plan, step, inputs, record, state, folder, ledger)
-            if record['status'] != 'complete':
-                return handoff(root, plan, state)
-            continue
-        try:
-            image_id = image_id or inspect_image(image)
-        except ValueError as exc:
-            state['status'] = 'blocked'; state['error'] = str(exc); save(folder, state)
+            result = _execute(root, plan, fingerprint, image, accept, reviewer, allow_host_cli)
+        except BaseException:
+            _settle(root, plan, fingerprint, enforce=False)
             raise
-        signature = digest(json.dumps({'inputs': inputs, 'argv': step['argv'], 'image_id': image_id}, sort_keys=True).encode())
-        if sum(a['signature'] == signature and a['status'] != 'succeeded' for a in ledger['attempts']) >= 2:
-            state['status'] = 'blocked'; save(folder, state)
-            raise ValueError('Two attempts exhausted for unchanged command and inputs')
-        before = {rel: (safe_path(root, rel).stat().st_mtime_ns, safe_path(root, rel).stat().st_ino) for rel in step['outputs'] if safe_path(root, rel).is_file()}
-        attempt = {'signature': signature, 'status': 'running', 'started_at': time.time()}
-        record['attempts'].append(attempt)
-        project_attempt = {'signature': signature, 'status': 'running', 'workflow': plan['id'], 'step': step['id']}
-        ledger['attempts'].append(project_attempt)
-        save_ledger(root, ledger)
-        record['status'] = 'running'; state['status'] = 'running'; save(folder, state)
-        result = docker_execute(root, step['argv'], image_id, step.get('timeout_seconds', 60))
-        attempt.update(result); attempt['status'] = 'finished'
-        record['inputs'] = inputs
-        try:
-            if result['exit_code']:
-                raise ValueError('Command failed: ' + step['id'])
-            record['outputs'] = hashes(root, step['outputs'])
-            for rel, previous in before.items():
-                stat = safe_path(root, rel).stat()
-                if previous == (stat.st_mtime_ns, stat.st_ino):
-                    raise ValueError('Unchanged pre-existing output is not fresh execution evidence: ' + rel)
-        except ValueError as exc:
-            project_attempt['status'] = 'failed'; save_ledger(root, ledger)
-            record['status'] = 'failed'; state['status'] = 'failed'; record['error'] = str(exc)
-            save(folder, state); return handoff(root, plan, state)
-        project_attempt['status'] = 'succeeded'; save_ledger(root, ledger)
-        record['status'] = 'complete'; record.pop('error', None); save(folder, state)
-    state['status'] = 'complete'; save(folder, state)
-    return handoff(root, plan, state)
+        _settle(root, plan, fingerprint, enforce=True)
+        result = dict(result)
+        result['project_context'] = project_context_status(root, plan['id'])
+        return result
 
 
-def run_model_step(root, plan, step, inputs, record, state, folder, ledger):
+def _settle(root, plan, fingerprint, enforce=False):
+    """Release the reservation and record finalization while the project lock is still held."""
+    _, latest = state_for(root, plan, fingerprint)
+    if latest['status'] not in ('complete', 'failed', 'blocked'):
+        return
+    release_reservation(root, plan, fingerprint)
+    problem = project_context_finish(root, plan, latest, hold_lock=True)
+    if problem and enforce and lifecycle_mode(root) == 'enforced':
+        raise ValueError(problem)
+
+
+def release_reservation(root, plan, fingerprint):
+    _, latest = state_for(root, plan, fingerprint)
+    if latest['status'] in ('complete', 'failed', 'blocked'):
+        safe_path(root, '.crewloom/active_workflow.json', internal=True).unlink(missing_ok=True)
+
+
+def lifecycle_mode(root):
+    """Managed lifecycle exists only where the project explicitly enabled it."""
+    if not (root / 'crewloom.project.json').is_file():
+        return None
+    import project_binding as pb
+    config, _ = pb.load_config(root)
+    if not config:
+        return None
+    return config['policy']['mode'] if config['policy']['managed_lifecycle'] else None
+
+
+def project_context_reservation(root):
+    """Native context tasks and managed workflows serialize on the same project reservation."""
+    path=safe_path(root,'.crewloom/active_task.json',internal=True)
+    if not path.exists():return None
+    value=json.loads(path.read_text())
+    if not isinstance(value,dict) or value.get('project_root')!=str(root) or not re.fullmatch(r'[0-9a-f]{32}',str(value.get('checkout_id',''))):
+        raise ValueError('Invalid or cross-project context task reservation')
+    return value
+
+
+def project_context_status(root, task_id):
+    path = safe_path(root, '.crewloom/tasks/' + task_id + '/state.json', internal=True)
+    if not path.is_file():
+        return None
+    import project_binding as pb
+    state = pb.task_state(root, task_id)
+    return {'task_id': task_id, 'status': state['status'], 'lifecycle': state['lifecycle'],
+            'policy_mode': state['policy_mode'], 'evidence_only': state.get('evidence_only'),
+            'context': state.get('context'), 'verified': state.get('verified'),
+            'metrics': state.get('metrics', {}),
+            'host_callbacks_verified': False}
+
+
+def project_context_enter(root, plan, state):
+    import project_binding as pb
+    step = next((item for item in plan['steps'] if state['steps'].get(item['id'], {}).get('status') != 'complete'),
+                plan['steps'][-1])
+    return pb.enter(root, None, plan['id'], step['role'], seeds=step['inputs'], sources=step['inputs'],
+                    language=plan.get('language', 'en'), criteria_path=plan.get('criteria'), hold_lock=False)
+
+
+def project_context_checkpoint(root, plan, state, step):
+    """Rebuild the frozen generation before a step instead of executing on obsolete evidence.
+
+    The rebuild is also required when a step declares different sources or a different role
+    than the stored generation, so per-step inputs refresh even when no earlier byte changed.
+    """
+    import project_context as pc
+    path = pc.context_path(root, plan['id'])
+    if path.is_file():
+        stored = json.loads(path.read_text(encoding='utf-8'))
+        changed = pc.changed_files(root, stored)
+        declared = sorted(item['path'] for item in stored.get('bodies', []))
+        scope = stored.get('scope') or {}
+        drifted = (scope.get('role') != step['role']
+                   or declared != sorted(step['inputs'])
+                   or (stored.get('criteria_file') or {}).get('path') != plan.get('criteria'))
+        if not changed and not drifted:
+            return {'stale': False, 'generation': stored.get('generation')}
+        if changed:
+            pc.invalidate(root, plan['id'], 'sources changed before step ' + step['id'])
+    project_context_enter(root, plan, state)
+    return {'stale': True, 'rebuilt': True}
+
+
+def project_context_publish_gate(root, plan, step):
+    """Enforced mode refuses to publish model artifacts against a stale snapshot."""
+    if lifecycle_mode(root) != 'enforced':
+        return None
+    import project_context as pc
+    import project_binding as pb
+    binding = pb.load_binding(root)
+    return pc.require_fresh(root, binding, plan['id'])
+
+
+def project_context_finish(root, plan, state, hold_lock=True):
+    import project_binding as pb
+    try:
+        binding = pb.load_binding(root, required=False)
+        if binding is None:
+            return None
+        definitions = {step['id']: step for step in plan['steps']}
+        changed = sorted({name for record in state['steps'].values() for name in record.get('outputs', {})})
+        evidence = []
+        for name, record in state['steps'].items():
+            step = definitions[name]
+            if step.get('kind', 'command') != 'command' or record.get('reviewer'):
+                continue
+            if record.get('status') not in ('complete', 'failed'):
+                continue
+            if not record.get('attempts'):
+                continue
+            evidence.append({'workflow': plan['id'], 'step': name,
+                             'scope': 'acceptance command step ' + name})
+        pb.finish(root, binding['project_id'], plan['id'], changed, [], role=plan['steps'][-1]['role'],
+                  evidence=evidence, hold_lock=hold_lock)
+        return None
+    except (ValueError, OSError) as exc:
+        return 'Project context finalization failed: ' + str(exc)
+
+
+def project_context_cancel(root, task_id, reason):
+    import project_binding as pb
+    try:
+        binding = pb.load_binding(root, required=False)
+        if binding is None:
+            return None
+        pb.cancel(root, binding['project_id'], task_id, reason, hold_lock=False)
+    except (ValueError, OSError):
+        return None
+    return None
+
+
+def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False):
+    with project_lock(safe_path(root, '.crewloom', internal=True), reentrant=True):
+        folder, state = state_for(root, plan, fingerprint)
+        if state['status'] == 'cancelled':
+            raise ValueError('Cancelled workflow cannot resume; use a new workflow ID')
+        reserve_workflow(root, plan, fingerprint)
+        verify_completed(root, state)
+        if accept:
+            next_step = next((s for s in plan['steps'] if state['steps'].get(s['id'], {}).get('status') != 'complete'), None)
+            if not next_step or next_step['id'] != accept or next_step.get('kind') != 'task':
+                raise ValueError('Accept must name the next outstanding task')
+        ledger_file = safe_path(root, '.crewloom/attempts.json', internal=True)
+        ledger = json.loads(ledger_file.read_text()) if ledger_file.exists() else {'attempts': []}
+        if not isinstance(ledger, dict) or not isinstance(ledger.get('attempts'), list) or any(not isinstance(item, dict) or item.get('status') not in ('running', 'failed', 'succeeded') or not isinstance(item.get('signature'), str) for item in ledger['attempts']):
+            raise ValueError('Malformed project attempt ledger')
+        image_id = None
+        lifecycle = project_context_enter(root, plan, state) if lifecycle_mode(root) else None
+        if lifecycle: state = state_for(root, plan, fingerprint)[1]
+        for step in plan['steps']:
+            record = state['steps'].setdefault(step['id'], {'status': 'pending', 'role': step['role'], 'summary': step['summary'], 'kind': step.get('kind', 'command'), 'argv': list(step.get('argv') or []), 'attempts': []})
+            if record['status'] == 'complete':
+                if step.get('kind')=='model':
+                    from model_host import bound_context, build_prompt, pc_path_exists
+                    # Reuse verifies the prompt against the exact archived generation this step
+                    # consumed, never against whichever context happens to be current now. A
+                    # project with no project context at all still verifies the prompt hash.
+                    consumed=(bound_context(root,plan['id'],record)
+                              if 'context_generation' in record or pc_path_exists(root,plan['id']) else None)
+                    current=digest(build_prompt(root,step,plan.get('language','en'),plan['id'],consumed).encode())
+                    if record.get('context_sha256')!=current:
+                        raise ValueError('Model context changed or old evidence lacks context hash; review and use a new workflow ID')
+                continue
+            if lifecycle_mode(root): project_context_checkpoint(root, plan, state, step)
+            try:
+                inputs = hashes(root, step['inputs'])
+            except ValueError as exc:
+                state['status'] = 'blocked'; state['error'] = str(exc); save(folder, state)
+                return handoff(root, plan, state)
+            state.pop('error', None)
+            if step.get('kind') == 'task':
+                if accept != step['id']:
+                    state['status'] = 'awaiting_task'; save(folder, state); return handoff(root, plan, state)
+                if not isinstance(reviewer, str) or not reviewer.strip() or len(reviewer) > 100 or reviewer.strip() == step['role']:
+                    raise ValueError('Task completion needs a reviewer identifier different from the owning role')
+                record.update(status='complete', inputs=inputs, outputs=hashes(root, step['outputs']), reviewer=reviewer)
+                state['status'] = 'complete' if step is plan['steps'][-1] else 'pending'
+                save(folder, state)
+                return handoff(root, plan, state)
+            if accept:
+                raise ValueError('Accept only the next task step; commands must run to produce evidence')
+            if step.get('kind') == 'model':
+                run_model_step(root, plan, step, inputs, record, state, folder, ledger, allow_host_cli)
+                if record['status'] != 'complete':
+                    return handoff(root, plan, state)
+                continue
+            try:
+                image_id = image_id or inspect_image(image)
+            except ValueError as exc:
+                state['status'] = 'blocked'; state['error'] = str(exc); save(folder, state)
+                raise
+            signature = digest(json.dumps({'inputs': inputs, 'argv': step['argv'], 'outputs': step['outputs'], 'image_id': image_id, 'broker_sha256': digest((LIBRARY/'scripts/execution_policy.py').read_bytes())}, sort_keys=True).encode())
+            if sum(a['signature'] == signature and a['status'] != 'succeeded' for a in ledger['attempts']) >= 2:
+                state['status'] = 'blocked'; save(folder, state)
+                raise ValueError('Two attempts exhausted for unchanged command and inputs')
+            before = {rel: (safe_path(root, rel).stat().st_mtime_ns, safe_path(root, rel).stat().st_ino) for rel in step['outputs'] if safe_path(root, rel).is_file()}
+            attempt = {'signature': signature, 'status': 'running', 'started_at': time.time()}
+            record['attempts'].append(attempt)
+            project_attempt = {'signature': signature, 'status': 'running', 'workflow': plan['id'], 'step': step['id']}
+            ledger['attempts'].append(project_attempt)
+            save_ledger(root, ledger)
+            record['status'] = 'running'; state['status'] = 'running'; save(folder, state)
+            from execution_policy import execute as isolated_execute
+            try:
+                result = isolated_execute(root, step, image_id, step.get('timeout_seconds', 60))
+            except (ValueError, OSError) as exc:
+                result = {'exit_code': 2, 'output': str(exc), 'boundary': 'artifact broker rejected execution'}
+            attempt.update(result); attempt['status'] = 'finished'
+            record['inputs'] = inputs
+            try:
+                if result['exit_code']:
+                    raise ValueError('Command failed: ' + step['id'])
+                record['outputs'] = hashes(root, step['outputs'])
+                for rel, previous in before.items():
+                    stat = safe_path(root, rel).stat()
+                    if previous == (stat.st_mtime_ns, stat.st_ino):
+                        raise ValueError('Unchanged pre-existing output is not fresh execution evidence: ' + rel)
+            except ValueError as exc:
+                project_attempt['status'] = 'failed'; save_ledger(root, ledger)
+                record['status'] = 'failed'; state['status'] = 'failed'; record['error'] = str(exc)
+                save(folder, state); return handoff(root, plan, state)
+            project_attempt['status'] = 'succeeded'; save_ledger(root, ledger)
+            record['status'] = 'complete'; record.pop('error', None); save(folder, state)
+        state['status'] = 'complete'; save(folder, state)
+        return handoff(root, plan, state)
+
+
+def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allow_host_cli):
     import model_host as host_module
     from model_host import build_prompt, generate
     try:
-        prompt=build_prompt(root,step,plan.get('language','en'))
+        if step['host'] in ('codex','claude') and not allow_host_cli:
+            raise ValueError('Host CLI execution is disabled in enforced mode; use openai/anthropic or explicit operator --allow-host-cli')
+        from provider_gateway import MAX_PROJECT_MODEL_REQUESTS
+        if sum(a.get('kind')=='model' for a in ledger['attempts']) >= MAX_PROJECT_MODEL_REQUESTS:
+            raise ValueError('Project model request budget exhausted')
+        project_context_publish_gate(root, plan, step)
+        consumed=host_module.consumed_context(root,plan['id'],step)
+        prompt=build_prompt(root,step,plan.get('language','en'),plan['id'],consumed)
+        record['context_sha256']=digest(prompt.encode())
+        record['context_bytes']=len(prompt.encode())
+        if consumed:
+            # Bind this step to the generation it actually read; a later reuse resolves the
+            # same immutable evidence instead of inferring it from matching declared sources.
+            record['context_generation']=consumed['generation']
+            record['context_semantic_sha256']=consumed['semantic_sha256']
+        else:
+            record.pop('context_generation',None)
+            record.pop('context_semantic_sha256',None)
+        record['memory_mode']=step.get('memory_mode','focused')
         signature=digest(json.dumps({'prompt':prompt,'host':step['host'],'model':step.get('model'),
                                     'timeout':step.get('timeout_seconds',180),
-                                    'adapter_sha256':digest(Path(host_module.__file__).read_bytes())},sort_keys=True).encode())
+                                    'adapter_sha256':digest(Path(host_module.__file__).read_bytes()),
+                                    'gateway_sha256':digest((LIBRARY/'scripts/provider_gateway.py').read_bytes()),
+                                    'broker_sha256':digest((LIBRARY/'scripts/execution_policy.py').read_bytes())},sort_keys=True).encode())
         if sum(a['signature']==signature and a['status']!='succeeded' for a in ledger['attempts'])>=2:
             raise ValueError('Two attempts exhausted for unchanged model task and inputs')
         attempt={'signature':signature,'status':'running','started_at':time.time()}
         record['attempts'].append(attempt)
-        entry={'signature':signature,'status':'running','workflow':plan['id'],'step':step['id']}
+        entry={'signature':signature,'status':'running','workflow':plan['id'],'step':step['id'],'kind':'model'}
         ledger['attempts'].append(entry);save_ledger(root,ledger)
         record['status']='running';state['status']='running';save(folder,state)
         artifacts,evidence=generate(step['host'],prompt,step['outputs'],step.get('timeout_seconds',180),step.get('model'))
         if hashes(root,step['inputs']) != inputs:
             raise ValueError('Inputs changed during model generation; outputs rejected')
-        # Preflight every destination before any write. Never follow output aliases.
-        destinations={}
-        for relative in artifacts:
-            current=root
-            for part in Path(relative).parts:
-                current=current/part
-                if current.is_symlink():raise ValueError('Model outputs cannot follow symlinks')
-            path=safe_path(root,relative)
-            if path.exists() and not path.is_file():raise ValueError('Output must be a file')
-            destinations[relative]=path
-        for relative,path in destinations.items():
-            path.parent.mkdir(parents=True,exist_ok=True)
-            with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=path.parent,delete=False) as stream:
-                temporary=Path(stream.name);stream.write(artifacts[relative])
-            os.replace(temporary,path)
+        project_context_publish_gate(root, plan, step)
+        from execution_policy import publish
+        publish(root,{path:text.encode() for path,text in artifacts.items()},inputs)
         attempt.update(evidence,status='finished',exit_code=0)
         entry['status']='succeeded';save_ledger(root,ledger)
         record.update(status='complete',inputs=inputs,outputs=hashes(root,step['outputs']))
+        record['context_bytes']=len(prompt.encode())
+        usage=evidence.get('usage') or {}
+        if isinstance(usage,dict):
+            record['provider_usage']={key:usage[key] for key in ('input_tokens','cached_input_tokens','output_tokens','total_tokens') if isinstance(usage.get(key),int)}
+            record['provider_usage_available']=bool(record['provider_usage'])
         record.pop('error',None);save(folder,state)
     except (ValueError,OSError,subprocess.SubprocessError) as exc:
         if 'entry' in locals():
@@ -441,7 +705,9 @@ def doctor(image, root=None, host=None, model_host=None):
         checks['isolated_execution_ready'] = False; checks['error'] = str(exc)
     if model_host:
         from model_host import probe
-        try: checks['model_host'] = probe(model_host)
+        from provider_gateway import PROVIDERS
+        try:
+            checks['model_host'] = ({'provider':model_host,'generation_supported':True,'credentials_configured':bool(os.environ.get(PROVIDERS[model_host][1])),'authentication_verified':False} if model_host in PROVIDERS else probe(model_host))
         except (ValueError, OSError, subprocess.SubprocessError) as exc: checks['model_host'] = {'generation_supported': False, 'error': str(exc)}
     if root and host:
         directory = root / ('.agents' if host == 'agents' else '.claude') / 'skills'
@@ -458,11 +724,12 @@ def main(argv=None):
     parser.add_argument('--plan', default='workflow.json')
     parser.add_argument('--image', default=DEFAULT_IMAGE)
     parser.add_argument('--host', choices=('agents', 'claude'))
-    parser.add_argument('--step'); parser.add_argument('--reviewer')
-    parser.add_argument('--model-host', choices=('codex', 'claude'))
+    parser.add_argument('--step'); parser.add_argument('--reviewer'); parser.add_argument('--reason')
+    parser.add_argument('--allow-host-cli', action='store_true', help='Operator opt-in to legacy CLI hosts outside the enforced boundary')
+    parser.add_argument('--model-host', choices=('codex', 'claude', 'openai', 'anthropic'))
     args = parser.parse_args(argv)
     if args.action != 'doctor' and not args.project:
-        parser.error('Task actions require --project; current working directory is not project identity')
+        parser.error('Task actions require --project; the current directory is not project identity')
     try:
         if args.action == 'doctor':
             result = doctor(args.image, Path(args.project or '.').resolve(), args.host, args.model_host)
@@ -473,10 +740,10 @@ def main(argv=None):
             if args.action in ('status', 'handoff'):
                 _, state = state_for(root, plan, fingerprint); result = handoff(root, plan, state)
             elif args.action == 'cancel':
-                result = cancel(root, plan, fingerprint)
+                result = cancel(root, plan, fingerprint, args.reason or 'operator request')
             else:
                 if args.action == 'accept' and not args.step: raise ValueError('Accept needs --step')
-                result = run(root, plan, fingerprint, args.image, args.step if args.action == 'accept' else None, args.reviewer)
+                result = run(root, plan, fingerprint, args.image, args.step if args.action == 'accept' else None, args.reviewer, args.allow_host_cli)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0 if args.action in ('status', 'handoff', 'accept', 'cancel') or result.get('status') == 'complete' or result.get('isolated_execution_ready') else 2
     except (ValueError, OSError, subprocess.SubprocessError) as exc:

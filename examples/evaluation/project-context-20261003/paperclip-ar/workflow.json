@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "id": "git-isolated-navigation-acceptance",
+  "language": "ar",
+  "criteria": "crewloom-hook-pilot/ACCEPTANCE.md",
+  "steps": [
+    {
+      "id": "acceptance",
+      "role": "context-guardian",
+      "summary": "Execute frozen navigation acceptance in final enforced lifecycle",
+      "argv": [
+        "python3",
+        "crewloom-hook-pilot/check.py"
+      ],
+      "inputs": [
+        "crewloom-hook-pilot/check.py",
+        "crewloom-hook-pilot/acceptance.json",
+        "crewloom-hook-pilot/context.json",
+        "ui/src/api/auth.ts"
+      ],
+      "outputs": [
+        "crewloom-hook-pilot/result.json"
+      ],
+      "timeout_seconds": 30
+    }
+  ]
+}

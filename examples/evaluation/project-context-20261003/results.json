@@ -1,0 +1,240 @@
+{
+  "execution_date": "2026-10-03",
+  "review_date": "2026-10-03",
+  "implementation": "working tree based on71da4ca with Git-environment isolation; independent Docker executions",
+  "projects": [
+    {
+      "project_id": "crewloom-public",
+      "language": "en",
+      "base_commit": "71da4ca7b12ca64b0addef91868345334e61ebce",
+      "scope": "Enforced navigation/context lifecycle, whole declared source and recorded executor acceptance; not application build quality",
+      "indexed_files": 57,
+      "cold_ms": 158,
+      "warm_ms": 102,
+      "warm_parsed": 0,
+      "selected_bytes": 43231,
+      "full_indexed_source_and_rules_bytes": 187358,
+      "byte_reduction_percent": 76.93,
+      "omissions": [
+        {
+          "count": 29,
+          "detail": "navigation index omitted files outside the byte budget",
+          "kind": "map-files"
+        },
+        {
+          "count": 35,
+          "detail": "package, alias and unsupported syntax resolution is a deferred adapter",
+          "kind": "dependency-resolution"
+        },
+        {
+          "count": 5,
+          "detail": "suggested read ranges outside their own byte allowance and record cap; the context ceiling is not a target for optional hints",
+          "kind": "ranges"
+        }
+      ],
+      "checks": {
+        "checks": {
+          "project_identity": true,
+          "language": true,
+          "seed_navigation": true,
+          "whole_source": true,
+          "body_fingerprint": true,
+          "required_symbols": true,
+          "direct_relative_imports": true,
+          "budget": true,
+          "complete_rules": true
+        },
+        "passed": true
+      },
+      "task_status": "complete",
+      "verified": true,
+      "repeat_status": "complete",
+      "acceptance_attempts": 1,
+      "lesson_state": "verified",
+      "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+      "executor_boundary": "declared-input snapshot; read-only workspace; declared output file mounts",
+      "duration_ms": 1448,
+      "provider_usage": null,
+      "criteria_sha256": "aea79b55475d1456eabcfcd81956f05e6499ac671f79eb68b3aa5b7b5f96b17b"
+    },
+    {
+      "project_id": "paperclip-public",
+      "language": "ar",
+      "base_commit": "427e0484059c33fdfd98263e2d6f4c3a27a7e156",
+      "scope": "Enforced navigation/context lifecycle, whole declared source and recorded executor acceptance; not application build quality",
+      "indexed_files": 2001,
+      "cold_ms": 1531,
+      "warm_ms": 362,
+      "warm_parsed": 0,
+      "selected_bytes": 54106,
+      "full_indexed_source_and_rules_bytes": 22705265,
+      "byte_reduction_percent": 99.76,
+      "omissions": [
+        {
+          "count": 1994,
+          "detail": "navigation index omitted files outside the byte budget",
+          "kind": "map-files"
+        },
+        {
+          "count": 1831,
+          "detail": "package, alias and unsupported syntax resolution is a deferred adapter",
+          "kind": "dependency-resolution"
+        },
+        {
+          "count": 2001,
+          "detail": "the generation keeps a digest of the indexed file set plus a bounded sample",
+          "kind": "indexed-names"
+        },
+        {
+          "count": 1346,
+          "detail": "suggested read ranges outside their own byte allowance and record cap; the context ceiling is not a target for optional hints",
+          "kind": "ranges"
+        }
+      ],
+      "checks": {
+        "checks": {
+          "project_identity": true,
+          "language": true,
+          "seed_navigation": true,
+          "whole_source": true,
+          "body_fingerprint": true,
+          "required_symbols": true,
+          "direct_relative_imports": true,
+          "budget": true,
+          "complete_rules": true
+        },
+        "passed": true
+      },
+      "task_status": "complete",
+      "verified": true,
+      "repeat_status": "complete",
+      "acceptance_attempts": 1,
+      "lesson_state": "verified",
+      "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+      "executor_boundary": "declared-input snapshot; read-only workspace; declared output file mounts",
+      "duration_ms": 1596,
+      "provider_usage": null,
+      "criteria_sha256": "aea79b55475d1456eabcfcd81956f05e6499ac671f79eb68b3aa5b7b5f96b17b"
+    }
+  ],
+  "earlier_public_pilot": {
+    "implementation": "working tree based on 71da4ca; Space Bunny Free delegation; independently executed Docker pilots",
+    "projects": [
+      {
+        "project_id": "crewloom-public",
+        "language": "en",
+        "base_commit": "71da4ca7b12ca64b0addef91868345334e61ebce",
+        "scope": "Enforced navigation/context lifecycle, whole declared source and recorded executor acceptance; not application build quality",
+        "indexed_files": 56,
+        "cold_ms": 114,
+        "warm_ms": 69,
+        "warm_parsed": 0,
+        "selected_bytes": 41301,
+        "full_indexed_source_and_rules_bytes": 186286,
+        "byte_reduction_percent": 77.83,
+        "omissions": [
+          {
+            "count": 30,
+            "detail": "navigation index omitted files outside the byte budget",
+            "kind": "map-files"
+          },
+          {
+            "count": 35,
+            "detail": "package, alias and unsupported syntax resolution is a deferred adapter",
+            "kind": "dependency-resolution"
+          },
+          {
+            "count": 5,
+            "detail": "suggested read ranges outside their own byte allowance and record cap; the context ceiling is not a target for optional hints",
+            "kind": "ranges"
+          }
+        ],
+        "checks": {
+          "checks": {
+            "project_identity": true,
+            "language": true,
+            "seed_navigation": true,
+            "whole_source": true,
+            "body_fingerprint": true,
+            "required_symbols": true,
+            "direct_relative_imports": true,
+            "budget": true,
+            "complete_rules": true
+          },
+          "passed": true
+        },
+        "task_status": "complete",
+        "verified": true,
+        "repeat_status": "complete",
+        "acceptance_attempts": 1,
+        "lesson_state": "verified",
+        "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+        "executor_boundary": "declared-input snapshot; read-only workspace; declared output file mounts",
+        "duration_ms": 916,
+        "provider_usage": null,
+        "criteria_sha256": "aea79b55475d1456eabcfcd81956f05e6499ac671f79eb68b3aa5b7b5f96b17b"
+      },
+      {
+        "project_id": "paperclip-public",
+        "language": "ar",
+        "base_commit": "427e0484059c33fdfd98263e2d6f4c3a27a7e156",
+        "scope": "Enforced navigation/context lifecycle, whole declared source and recorded executor acceptance; not application build quality",
+        "indexed_files": 2001,
+        "cold_ms": 1139,
+        "warm_ms": 284,
+        "warm_parsed": 0,
+        "selected_bytes": 52180,
+        "full_indexed_source_and_rules_bytes": 22705265,
+        "byte_reduction_percent": 99.77,
+        "omissions": [
+          {
+            "count": 1994,
+            "detail": "navigation index omitted files outside the byte budget",
+            "kind": "map-files"
+          },
+          {
+            "count": 1831,
+            "detail": "package, alias and unsupported syntax resolution is a deferred adapter",
+            "kind": "dependency-resolution"
+          },
+          {
+            "count": 2001,
+            "detail": "the generation keeps a digest of the indexed file set plus a bounded sample",
+            "kind": "indexed-names"
+          },
+          {
+            "count": 1346,
+            "detail": "suggested read ranges outside their own byte allowance and record cap; the context ceiling is not a target for optional hints",
+            "kind": "ranges"
+          }
+        ],
+        "checks": {
+          "checks": {
+            "project_identity": true,
+            "language": true,
+            "seed_navigation": true,
+            "whole_source": true,
+            "body_fingerprint": true,
+            "required_symbols": true,
+            "direct_relative_imports": true,
+            "budget": true,
+            "complete_rules": true
+          },
+          "passed": true
+        },
+        "task_status": "complete",
+        "verified": true,
+        "repeat_status": "complete",
+        "acceptance_attempts": 1,
+        "lesson_state": "verified",
+        "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+        "executor_boundary": "declared-input snapshot; read-only workspace; declared output file mounts",
+        "duration_ms": 1399,
+        "provider_usage": null,
+        "criteria_sha256": "aea79b55475d1456eabcfcd81956f05e6499ac671f79eb68b3aa5b7b5f96b17b"
+      }
+    ],
+    "execution_date": "2026-10-02",
+    "review_date": "2026-10-03"
+  }
+}

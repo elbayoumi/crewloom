@@ -23,6 +23,20 @@ These guards apply to the CLI and dashboard entry points. Direct scripts, arbitr
 
 Verification: two-project CLI and dashboard fixtures with identical relative filenames, separate run histories and memories, and rejected cross-project/context/symlink paths. See [the evidence log](EVIDENCE.md).
 
+## Project context lifecycle
+
+A project that wants automatic context writes a portable `crewloom.project.json` and binds itself once:
+
+```bash
+crewloom project enter  --project /path/to/project --project-id sample-project --task-id login-fix --role context-guardian --seed src/auth.py
+crewloom project status --project /path/to/project --project-id sample-project
+crewloom project finish --project /path/to/project --project-id sample-project --task-id login-fix --evidence '[{"workflow": "login-flow", "step": "build", "scope": "unit tests"}]'
+```
+
+Entry creates missing metadata, refreshes an existing one and reserves the root. It preserves the project constitution, installed role memory and lesson history. `status` never claims ownership of a running task. `finish` reports `complete` only from recorded executor evidence: `--evidence` names real workflow steps, while `--verification` is an operator attestation that keeps the task awaiting verification and fails closed when it claims a failure. `rebind` is the only supported way to move a checkout, and it rebuilds rebuildable caches without touching durable memory.
+
+Context generations and navigation caches are rebuildable; lessons and task records are durable local memory. Agency projects validate the existing project-control ledger with `--agency-registry` and `--agency-root`, and `needs_reconciliation` permits evidence gathering only. Full contract, lifecycle labels and limits: [project context](PROJECT_CONTEXT.md).
+
 ## Installing and updating roles
 
 Fresh installations copy reusable architecture guidance and initialize empty project records. `install --force` refreshes role procedures/tools while preserving all existing brain files and project-local custom files. It does not import completed work, incidents, ideas, or task history from the library. Resolved destination files are checked before copying to prevent nested symlink redirects.

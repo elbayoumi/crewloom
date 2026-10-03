@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "project_id": "paperclip-public",
+  "tooling": {
+    "vendor": "Rumuze",
+    "tool": "Crewloom",
+    "role": "tooling",
+    "owns_client_code": false
+  },
+  "policy": {
+    "mode": "enforced",
+    "managed_lifecycle": true,
+    "evidence_only": false
+  },
+  "source_roots": [
+    "ui"
+  ],
+  "exclude": [
+    ".git",
+    ".crewloom",
+    ".agents",
+    ".claude",
+    "node_modules",
+    "dist",
+    "build",
+    ".venv",
+    "vendor",
+    "__pycache__"
+  ],
+  "language": "ar",
+  "budgets": {
+    "map_bytes": 8192,
+    "context_bytes": 131072,
+    "lesson_budget_bytes": 4096
+  },
+  "host_adapter": {
+    "enabled": false,
+    "files": [
+      "AGENTS.md"
+    ]
+  }
+}

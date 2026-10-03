@@ -122,3 +122,26 @@ The [model workflow execution](../examples/model-workflow/evidence.json) records
 The [trial evidence](../examples/evaluation/host-trials-20261001/README.md) contains five fresh Codex generations per condition (with/without full-stack role). All ten pass nine contract cases: a tie, not measured superiority. Two Claude generation attempts failed with no local authentication and eight remaining calls were blocked; no cross-host conclusion is available. Task and acceptance cases are public, scoring is deterministic and label-free, and the runner is also the coordinator. There is no independent human review claim.
 
 All 42 roles now have English project procedures as well as source Arabic playbooks, for 150 detailed role references. Documentation/structure checks do not validate every external-domain workflow. Provider calls are excluded from ordinary CI.
+
+## Automatic project context — integrated source, 2026-10-03
+
+Runtime commit `8e83941` integrates with `main` at `a8dcff4`. Package metadata is 0.5.1; these checks do not assert a new release tag. Earlier measurements remain in [Brain/COMPLETED.md](../Brain/COMPLETED.md).
+
+| Check | Execution | Result |
+| --- | --- | --- |
+| Repository and actual commit gate | `python3 scripts/check_repository.py`; hook enabled | 310 cases: 304 pass, 6 Docker-gated skips |
+| Live Docker scripts | `CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p "test_*.py"` | 250 cases, all pass, zero skips |
+| Independent acceptance boundaries | `python3 -m unittest discover -s scripts -p "test_context_acceptance_boundaries.py"` | 30 cases, all pass |
+| Python 3.9 | Full repository gate in a Python 3.9 container with Git | 310 cases: 301 pass, 9 skips |
+| Clean source archive | Full gate from extracted source without Git/runtime/build files | 310 cases: 304 pass, 6 Docker-gated skips |
+| Public project pilots | English Crewloom and Arabic Paperclip UI; actual Docker executor | Nine fixed checks pass per project; verified finish and one acceptance attempt after repeat |
+
+The baseline at `71da4ca` has 152 cases. This change adds 158 regressions. Known failing fixtures are rejected for forged or drifted executor evidence, foreign/copied bindings, cross-project ownership, stale ranges, context overflow, dropped declared inputs, uncancellable failed entry, and commit-hook Git environment leakage. A poisoned-Git fixture run leaves the unrelated repository's HEAD, index, configuration, refs and history unchanged; the actual commit also passed with the hook enabled.
+
+The [public pilot contracts and results](../examples/evaluation/project-context-20261003/README.md) are reproducible. Selected context is 43,231 versus 187,358 bytes for Crewloom (76.93% fewer bytes), and 54,106 versus 22,705,265 for the scoped Paperclip UI (99.76%). Both retain whole declared input bodies, rules and acceptance criteria under the unchanged 131,072-byte ceiling. Both warm scans parse zero unchanged files. These are navigation/context checks, not application quality or universal billed-token savings.
+
+The synthetic pilot executes acceptance in Docker and verifies finalization at both sizes: 8,179/10,724 bytes for 26 files and 16,911/1,438,664 bytes for 606 files. Dense optional-navigation reproduction retains 23 of 1,441 candidate ranges in 7,928 bytes under its 8,192-byte allowance; omitted hints are recorded. Required source bodies are never truncated to fit optional navigation.
+
+The source-only Gitleaks 8.30.1 scan reports three heuristics, all reviewed as manifest SHA-256 values for design-token fixtures; no confirmed credentials. Native integration is instruction-assisted; automatic refresh applies to the managed lifecycle. Provider billing/answer-quality studies, private-client rollout after registry reconciliation, richer JS/TS alias resolution and verified host folder-open callbacks remain future work.
+
+Publication: [PR #2](https://github.com/elbayoumi/crewloom/pull/2) contains the integrated implementation and these reproduction assets. The first [hosted run](https://github.com/elbayoumi/crewloom/actions/runs/37116755909) passed dashboard tests/type checking/build and isolated workflows/pilot/grader. The validate job correctly refused the absent default Docker image; its matrix now explicitly preloads that image, retaining every acceptance assertion. Consult the PR checks for the current hosted result.
