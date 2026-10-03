@@ -122,3 +122,13 @@
 - Response: every Git child starts from `repo_map.git_environment()`, which drops each `GIT_` variable except `GIT_AUTHOR_*`/`GIT_COMMITTER_*` and keeps `PATH`, locale and time zone, and `require_git_root` additionally requires the discovered repository to be the one the root's own `.git` marker names with its work tree at that root. Bare repositories, subdirectories of another checkout and plain directories are refused. The runtime test fixtures and the synthetic pilot use the same cleared environment.
 - Failed attempt kept as history: clearing the environment alone was not enough, because `git rev-parse --git-dir` still succeeds for a subdirectory of another checkout, so the root could silently index a relative path set against a foreign work tree; the `.git`-marker and work-tree equality check is what makes the binding exact, and it is what keeps a linked worktree (this checkout is one) mapped as its own root.
 - Check: the whole suite under a faithful hook environment pointed at a throwaway repository reports 30 failures and 8 errors with a leaked `first` commit and `feature` branch before the fix, and 0 failures / 0 errors afterwards with the foreign HEAD, index, configuration, refs and history byte-identical and its pending work still untracked. Regressions map the selected repository from an environment exported by the other one in both directions, refuse a plain directory, a nested directory and a bare repository without initializing anything, map a linked worktree as its own root, and reject any fixture that starts Git without an explicit environment.
+
+### 2026-10-01 — Paused tasks released process ownership
+- Cause: Process locks ended on manual-task handoff, permitting a different workflow to start in that root; implicit cwd also allowed ambiguous selection.
+- Fix: Require explicit task root and persist a project-bound active-workflow reservation; only matching continuation/cancellation may take over.
+- Check: Concurrent same/different-root, paused-task, cancellation and redirected reservation regressions. Direct host edits remain outside runner protection.
+
+### 2026-10-03 — Final evidence reconciliation
+- Cause: Earlier draft counts and interpreter coverage predated the hook-environment fix and main integration.
+- Solution: Preserve historical entries, label scripts versus total cases, and use actual post-integration 310-case gate, 250 live Docker cases and 30 independent boundaries in final evidence.
+- Evidence: Python 3.9 container and extracted source archive both terminate with exit 0; manifest detections reviewed as fixture file hashes.

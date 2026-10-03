@@ -71,3 +71,7 @@ Exit 0: complete workflow, successful task acceptance, readable status/handoff, 
 ## Isolation boundary
 
 See [managed enforcement](ENFORCEMENT.md) for input snapshots, declared writable outputs, provider RPC, resource limits, and the trusted-host boundary. Manual tasks and explicitly enabled native CLI hosts remain outside that boundary.
+
+## Project ownership between task steps
+
+`run`, `status`, `handoff`, `accept` and `cancel` require `--project`. An active-workflow reservation persists across `awaiting_task`, so a second task cannot take the same root while the first awaits an artifact. Running invocations still use the project process lock. Finish or explicitly `cancel` the matching workflow before switching tasks. Cancellation preserves files/failure history and prevents resuming that ID; inspect partial artifacts first. See [parallel project rules](PROJECTS.md).

@@ -147,7 +147,7 @@
       "id": "workflow",
       "skill": "context-guardian",
       "path": "scripts/workflow.py",
-      "description": "Isolated Docker workflows, evidence, handoff and readiness",
+      "description": "Project-bound workflows, persistent task ownership, cancellation and isolated execution",
       "example_args": "doctor",
       "dependencies": [
         "Python standard library",

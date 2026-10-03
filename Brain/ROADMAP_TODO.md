@@ -82,3 +82,11 @@
 ### 2026-10-03 — Final public-project acceptance
 - Done: English Crewloom and Arabic Paperclip UI pilots passed nine frozen checks each, retained complete declared source/rules/criteria, completed enforced lifecycle, verified local lessons and reused acceptance with one recorded attempt. Cold/warm scans parsed zero unchanged files on reuse. Public contracts and measured results: examples/evaluation/project-context-20261003/.
 - Remaining: final source archive/manifest, Git main reconciliation and PR publication; provider billing/answer-quality studies, richer JS/TS resolution and verified native callbacks remain future work. Earlier pilot-pending checkpoints above describe historical stages, not current pilot status.
+
+- [x] Require explicit workflow project root and retain ownership across paused manual tasks.
+- [x] Verify separate-project parallel execution and same-project conflict rejection.
+- [ ] Automatic scheduling remains unimplemented; parallel worktrees require explicit setup and reviewed merges.
+
+### 2026-10-03 — Integration verification
+- Done: Main reconciliation preserves declared input/output enforcement and per-root reservations; actual commit gate, live Docker, Python 3.9 and clean archive checks passed. Public English/Arabic pilot contracts and measurements are published as source fixtures.
+- Remaining: GitHub publication and hosted checks; provider billing/quality evaluation, private-client reconciliation, richer parsers and verified native callbacks remain deferred.

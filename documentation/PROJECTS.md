@@ -40,3 +40,18 @@ Context generations and navigation caches are rebuildable; lessons and task reco
 ## Installing and updating roles
 
 Fresh installations copy reusable architecture guidance and initialize empty project records. `install --force` refreshes role procedures/tools while preserving all existing brain files and project-local custom files. It does not import completed work, incidents, ideas, or task history from the library. Resolved destination files are checked before copying to prevent nested symlink redirects.
+
+## Multiple projects and tasks
+
+Workflow task actions require an explicit `--project`; the current terminal directory is not inferred as task identity. Use a separate canonical root for each project. Separate roots can execute concurrently with independent project locks, histories and memory. When using dashboards simultaneously, select one root per process and separate ports.
+
+One root admits one active workflow at a time. The process lock covers running commands/model calls. A project-bound `.crewloom/active_workflow.json` reservation also persists while a manual task awaits its artifact/review, preventing a different workflow from taking over between calls. Continue the same workflow or explicitly cancel it before starting another. Copied reservations and redirected runtime paths are rejected.
+
+```bash
+crewloom workflow run --project /path/to/project --plan workflow.json
+crewloom workflow cancel --project /path/to/project --plan workflow.json
+```
+
+Cancellation needs the matching unchanged plan and cannot bypass an occupied process lock. It retains partial files and failure history; inspect them before new work. A cancelled workflow ID cannot resume. Completed and known failed/blocked executions release the reservation; the attempt ledger still prevents unchanged failure loops. Interrupted running state retains ownership until inspected and cancelled. Stale process locks require the existing manual recovery procedure.
+
+For parallel tasks in one Git project, use separate worktrees with separate canonical roots and branches. Install project-local roles/memory in each worktree; do not copy `.crewloom` runtime state between roots. Review conflicting changes before merging. This is manual parallel setup, not an automatic task scheduler. Direct host tools remain outside these runner guards.

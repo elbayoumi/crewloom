@@ -40,3 +40,8 @@ Add provider-backed integration evidence after local credentials are configured,
 
 ### 2026-10-02 — Bounded delegation handoff
 - Preserve acceptance, failure counters, source state and verification references in a compact checkpoint; keep verbose execution history on disk. A fresh model session can reduce repeated context without erasing attempts or reducing task scope.
+
+A future scheduler should preserve canonical root and active-workflow reservations instead of sharing a writable checkout between workers.
+
+### 2026-10-03 — Keep savings tied to frozen tasks
+Compare complete declared inputs and unchanged acceptance contracts across context modes before claiming billed-token or quality gains; current public byte measurements are navigation evidence only.

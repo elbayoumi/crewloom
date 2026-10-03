@@ -120,25 +120,25 @@
     "provider_tokens_latency_quality": "unmeasured"
   },
   "project_context": {
-    "date": "2026-10-02",
-    "status": "development change; no release asserted",
-    "measured_on": "corrected working tree; every number below was produced by the commands recorded here",
+    "date": "2026-10-03",
+    "status": "integrated development source; no new release tag asserted",
+    "measured_on": "8e83941 runtime integrated with origin/main a8dcff4; source archive and Python 3.9 container independently checked",
     "baseline_gate_cases_at_71da4ca": 152,
-    "standard_gate_cases": 298,
-    "standard_gate_passed": 292,
+    "standard_gate_cases": 310,
+    "standard_gate_passed": 304,
     "standard_gate_docker_skips": 6,
-    "live_docker_scripts_cases": 238,
-    "live_docker_scripts_passed": 238,
-    "new_regressions_vs_baseline": 146,
+    "live_docker_scripts_cases": 250,
+    "live_docker_scripts_passed": 250,
+    "new_regressions_vs_baseline": 158,
     "new_regressions_by_module": {
-      "repo_map": 15,
+      "repo_map": 23,
       "workflow": 8,
       "task_context": 19,
       "project_binding": 38,
       "project_lessons": 23,
       "project_lifecycle": 10,
-      "context_pilot": 6,
-      "context_acceptance_boundaries": 27
+      "context_pilot": 7,
+      "context_acceptance_boundaries": 30
     },
     "measured": {
       "development_checkout_indexed_files": 65,
@@ -147,8 +147,8 @@
       "development_checkout_warm_reuse_ms": 72,
       "development_checkout_unchanged_parses": 0,
       "rendered_map_bytes": 8123,
-      "synthetic_small_selected_share_of_full_context": 0.7608,
-      "synthetic_large_selected_share_of_full_context": 0.0117,
+      "synthetic_small_selected_share_of_full_context": 0.7627,
+      "synthetic_large_selected_share_of_full_context": 0.0118,
       "synthetic_pilot_acceptance_executed_in_docker": true,
       "synthetic_pilot_finalization_verified": true,
       "scoped_reproduction_2002_indexed_files": {
@@ -203,7 +203,10 @@
       "frozen navigation absent from the managed model prompt",
       "managed map request scanning outside the bound project source roots",
       "verified lesson selection trusting a record count instead of serialized bytes",
-      "managed entry failure leaving the root reserved and uncancellable"
+      "managed entry failure leaving the root reserved and uncancellable",
+      "commit-hook Git environment selecting or mutating a foreign repository",
+      "plain directory accepted as a Git root through inherited configuration",
+      "pilot timing-width drift reported as a semantic context difference"
     ],
     "not_measured": [
       "live provider token, cached-token and cost effects",
@@ -219,6 +222,64 @@
       "python_3_9_gate_cases": 287,
       "python_3_9_gate_skips": 9,
       "note": "measured earlier on the same date; the Python 3.9 gate was not re-run after this correction"
+    },
+    "previous_measurement_before_final_integration": {
+      "date": "2026-10-02",
+      "standard_gate_cases": 298,
+      "standard_gate_passed": 292,
+      "standard_gate_docker_skips": 6,
+      "live_docker_scripts_cases": 238,
+      "new_regressions_vs_baseline": 146
+    },
+    "package_version": "0.5.1",
+    "python_3_9": {
+      "gate_cases": 310,
+      "passed": 301,
+      "skips": 9,
+      "result": "passed in actual Python 3.9 container; three additional native-host CLI skips on Linux"
+    },
+    "source_archive": {
+      "gate_cases": 310,
+      "passed": 304,
+      "skips": 6,
+      "result": "passed from extracted source without Git/runtime/build directories"
+    },
+    "independent_boundary_suite": {
+      "cases": 30,
+      "passed": 30
+    },
+    "actual_commit_gate": {
+      "commit": "8e8394157654be069c82bb6b09aabc46d151fceb",
+      "hook_enabled": true,
+      "result": "passed; 310 cases, 304 pass, 6 Docker skips; selected worktree identity and shared Git configuration preserved"
+    },
+    "secret_scan": {
+      "tool_version": "8.30.1",
+      "scope": "integrated public source archive",
+      "raw_findings": 3,
+      "reviewed_false_positives": 3,
+      "confirmed_secrets": 0,
+      "reason": "All detections are SHA-256 file values for the three design-tokens.json fixtures in MANIFEST.json"
+    },
+    "public_project_pilots": {
+      "evidence": "../examples/evaluation/project-context-20261003/results.json",
+      "languages": [
+        "en",
+        "ar"
+      ],
+      "checks_per_project": 9,
+      "passed_projects": 2,
+      "acceptance_attempts_per_project": 1,
+      "verified_lessons": 2,
+      "provider_usage": null
     }
+  },
+  "project_concurrency": {
+    "explicit_task_root": "required",
+    "same_root_parallel": "rejected",
+    "different_roots_parallel": "passed",
+    "paused_task_reservation": "passed",
+    "cancel_retains_files_and_history": "passed",
+    "runtime_redirects": "rejected"
   }
 }

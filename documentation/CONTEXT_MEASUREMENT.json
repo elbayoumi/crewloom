@@ -7,13 +7,14 @@
   "quality_improvement": "not evaluated",
   "provider_calls": "none; deterministic local measurement",
   "project_context_pilot": {
-    "date": "2026-10-02",
+    "date": "2026-10-03",
     "command": "python3 scripts/context_pilot.py --out /tmp/pilot.json",
     "acceptance": "python3 -m unittest discover -s scripts -p test_context_pilot.py with a reachable Docker daemon",
     "synthetic_small": {
       "indexed_files": 26,
       "cold_parse_wall_ms": 104,
-      "warm_reuse_wall_ms": 84,
+      "warm_reuse_wall_ms": 100,
+      "warm_parsed": 0,
       "selected_context_bytes": 8179,
       "serialized_bytes": 8179,
       "full_context_bytes": 10724,
@@ -24,8 +25,9 @@
     },
     "synthetic_large": {
       "indexed_files": 606,
-      "cold_parse_wall_ms": 207,
-      "warm_reuse_wall_ms": 143,
+      "cold_parse_wall_ms": 124,
+      "warm_reuse_wall_ms": 123,
+      "warm_parsed": 0,
       "selected_context_bytes": 16911,
       "serialized_bytes": 16911,
       "full_context_bytes": 1438664,

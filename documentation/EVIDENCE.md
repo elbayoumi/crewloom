@@ -123,22 +123,23 @@ The [trial evidence](../examples/evaluation/host-trials-20261001/README.md) cont
 
 All 42 roles now have English project procedures as well as source Arabic playbooks, for 150 detailed role references. Documentation/structure checks do not validate every external-domain workflow. Provider calls are excluded from ordinary CI.
 
-## Automatic project context — corrected working tree, 2026-10-02
+## Automatic project context — integrated source, 2026-10-03
 
-Measured on this working tree; no release or archive claim is made here.
+Runtime commit `8e83941` integrates with `main` at `a8dcff4`. Package metadata is 0.5.1; these checks do not assert a new release tag. Earlier measurements remain in [Brain/COMPLETED.md](../Brain/COMPLETED.md).
 
-| Check | Command | Result |
+| Check | Execution | Result |
 | --- | --- | --- |
-| Repository gate | `python3 scripts/check_repository.py` | 298 cases: 292 pass, 6 Docker-gated skips |
-| Live Docker suite | `CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p "test_*.py"` | 238 cases, all pass, no skips |
-| Independent acceptance | `python3 -m unittest discover -s scripts -p "test_context_acceptance_boundaries.py"` | 27 cases, all pass |
-| Synthetic pilot | `python3 -m unittest discover -s scripts -p "test_context_pilot.py"` | both sizes execute acceptance inside Docker and finalize as verified |
-| Python 3.9 gate | repository gate inside `crewloom-python39-test:latest` | not re-measured since this correction; the earlier 287-case run with 9 skips is kept as history |
+| Repository and actual commit gate | `python3 scripts/check_repository.py`; hook enabled | 310 cases: 304 pass, 6 Docker-gated skips |
+| Live Docker scripts | `CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p "test_*.py"` | 250 cases, all pass, zero skips |
+| Independent acceptance boundaries | `python3 -m unittest discover -s scripts -p "test_context_acceptance_boundaries.py"` | 30 cases, all pass |
+| Python 3.9 | Full repository gate in a Python 3.9 container with Git | 310 cases: 301 pass, 9 skips |
+| Clean source archive | Full gate from extracted source without Git/runtime/build files | 310 cases: 304 pass, 6 Docker-gated skips |
+| Public project pilots | English Crewloom and Arabic Paperclip UI; actual Docker executor | Nine fixed checks pass per project; verified finish and one acceptance attempt after repeat |
 
-The independently measured baseline at commit `71da4ca` was 152 cases; this tree adds 146 regressions, not the earlier draft's 126. Draft measurements recorded before the review are kept as history in [Brain/COMPLETED.md](../Brain/COMPLETED.md) and are not presented as final evidence.
+The baseline at `71da4ca` has 152 cases. This change adds 158 regressions. Known failing fixtures are rejected for forged or drifted executor evidence, foreign/copied bindings, cross-project ownership, stale ranges, context overflow, dropped declared inputs, uncancellable failed entry, and commit-hook Git environment leakage. A poisoned-Git fixture run leaves the unrelated repository's HEAD, index, configuration, refs and history unchanged; the actual commit also passed with the hook enabled.
 
-Rejected bad cases now covered include forked re-entrant lock ownership, a rejected task writing project metadata, shared range cache keys, generation churn on unchanged entry, forged or drifted executor evidence, provider output offered as acceptance, zero-exit failed artifacts promoted as a pass, optional evidence exceeding the frozen byte budget, out-of-scope files invalidating a scoped generation, decoder-skipped files evading the aggregate scan budget, an oversized declared body read before it was refused, first native entry freezing instructions it then rewrote, a reusable model step resolving another step's archived context, verified lessons surviving a changed declared source, and a managed entry failure that left the root reserved and uncancellable.
+The [public pilot contracts and results](../examples/evaluation/project-context-20261003/README.md) are reproducible. Selected context is 43,231 versus 187,358 bytes for Crewloom (76.93% fewer bytes), and 54,106 versus 22,705,265 for the scoped Paperclip UI (99.76%). Both retain whole declared input bodies, rules and acceptance criteria under the unchanged 131,072-byte ceiling. Both warm scans parse zero unchanged files. These are navigation/context checks, not application quality or universal billed-token savings.
 
-Measured dense optional-navigation reproduction (local fixture, not the authorized client project): 1441 candidate ranges from 121 seed-related test files, 23 range records kept inside an 8192-byte `range_bytes` allowance with 1418 recorded omissions, a 44,729-byte frozen snapshot, and a 61,618-byte snapshot-plus-rules-plus-sources assembly under the unchanged 131,072-byte ceiling. Removing the independent range allowance makes the same fixture fail at 131,137 bytes.
+The synthetic pilot executes acceptance in Docker and verifies finalization at both sizes: 8,179/10,724 bytes for 26 files and 16,911/1,438,664 bytes for 606 files. Dense optional-navigation reproduction retains 23 of 1,441 candidate ranges in 7,928 bytes under its 8,192-byte allowance; omitted hints are recorded. Required source bodies are never truncated to fit optional navigation.
 
-Still not measured: live provider token, cached-token, cost and answer-quality effects, host folder-open callbacks, JS/TS package and alias resolution, the two authorized real client pilots and the real dense-project rerun, which remain with the supervising agent.
+The source-only Gitleaks 8.30.1 scan reports three heuristics, all reviewed as manifest SHA-256 values for design-token fixtures; no confirmed credentials. Native integration is instruction-assisted; automatic refresh applies to the managed lifecycle. Provider billing/answer-quality studies, private-client rollout after registry reconciliation, richer JS/TS alias resolution and verified host folder-open callbacks remain future work.
