@@ -1,0 +1,14 @@
+{
+  "project_id": "crewloom-public",
+  "language": "en",
+  "source_roots": [
+    "."
+  ],
+  "seed": "scripts/model_host.py",
+  "required_symbols": [
+    "def build_prompt(",
+    "def select_memory("
+  ],
+  "required_neighbours": [],
+  "limits": "navigation/context correctness only; not application build quality"
+}

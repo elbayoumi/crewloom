@@ -113,6 +113,15 @@ def validate_artifacts(value, outputs):
 
 
 def generate(host, prompt, outputs, timeout=180, model=None):
+    """One adapter entry point for every generation host.
+
+    API providers keep their own tool-free RPC boundary and their own explicit model and
+    credential requirements; installed CLIs are probed for bounded-generation flags.
+    """
+    from provider_gateway import PROVIDERS
+    if host in PROVIDERS:
+        from provider_gateway import generate as provider_generate
+        return provider_generate(host, prompt, outputs, timeout, model)
     info=probe(host)
     if len(prompt.encode())>MAX_TEXT:raise ValueError('Host prompt exceeds 256 KiB')
     started=time.monotonic()
@@ -168,14 +177,144 @@ def select_memory(text, query, budget):
             chosen.append(index); used += size
     return ''.join(blocks[i] for i in sorted(chosen)), len(blocks)-len(chosen)
 
-def build_prompt(root, step, language):
+def frozen_generation(root, task_id, step):
+    """The immutable generation that carries this step's declared sources and role.
+
+    The current generation is preferred; when a later step already advanced the task, the
+    archived generation for this step is used instead, so a resumed or repeated run carries
+    exactly the frozen semantic evidence the original call consumed.
+    """
+    import workflow as w
+    import project_context as pc
+    wanted = sorted(step['inputs'])
+    current = pc.context_path(root, task_id)
+    if current.is_file():
+        try:
+            value = pc.load(root, {'task_id': task_id})
+        except ValueError:
+            value = None
+        if value is not None and _generation_matches(value, wanted, step['role']):
+            return value
+    folder = w.safe_path(root, '.crewloom/context/history/' + task_id, internal=True)
+    for path in sorted(folder.glob('generation-*.json')) if folder.is_dir() else []:
+        try:
+            archived = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(archived, dict) or archived.get('invalidated'):
+            continue
+        if not _generation_matches(archived, wanted, step['role']):
+            continue
+        if pc.semantic_digest(archived) != archived.get('semantic_sha256'):
+            raise ValueError('Archived project context does not match its semantic fingerprint')
+        return archived
+    raise ValueError('No frozen project context carries the declared sources for this step: '
+                     + task_id + '/' + step['id'])
+
+
+def _generation_matches(value, wanted, role):
+    if not isinstance(value, dict) or value.get('invalidated'):
+        return False
+    if (value.get('scope') or {}).get('role') != role:
+        return False
+    return sorted(item.get('path') for item in value.get('bodies', [])) == wanted
+
+
+def consumed_context(root, task_id, step):
+    """The exact generation this step reads now, or None when the project has no context."""
+    if not pc_path_exists(root, task_id):
+        return None
+    return frozen_generation(root, task_id, step)
+
+
+def bound_context(root, task_id, record):
+    """The immutable generation a completed model step recorded when it consumed evidence.
+
+    Reuse resolves the generation and semantic fingerprint stored with the step itself. A step
+    that never recorded them has no evidence of what it read, and guessing an archived context
+    from matching paths could certify a prompt that never happened.
+    """
+    generation = record.get('context_generation')
+    expected = record.get('context_semantic_sha256')
+    if not isinstance(generation, int) or isinstance(generation, bool) or not isinstance(expected, str):
+        raise ValueError('Old model evidence lacks its bound context generation; '
+                         'review and use a new workflow ID')
+    import project_context as pc
+    context = pc.archived_generation(root, task_id, generation)
+    if context.get('semantic_sha256') != expected:
+        raise ValueError('Archived project context no longer matches the generation this step consumed')
+    return context
+
+
+def project_context_payload(root, task_id, step, context=None):
+    """Carry the frozen generation, its identity and its verified lessons into the prompt.
+
+    Storing a snapshot is not delivery: a managed call must receive the exact scope,
+    generation, semantic fingerprint and verified remedies that the publication gate
+    accepted, so the model cannot silently lose required context between steps or handoffs.
+    """
+    if context is None:
+        context = consumed_context(root, task_id, step)
+    if context is None:
+        return None
+    scope = context['scope']
+    wanted = set(step['inputs'])
+    return {
+        'scope': scope,
+        'generation': context['generation'],
+        'semantic_sha256': context['semantic_sha256'],
+        'sha256': context['sha256'],
+        'policy': context['policy'],
+        'criteria': context['criteria'],
+        'criteria_file': context.get('criteria_file'),
+        'navigation': {'text': context['navigation']['text'], 'stats': context['navigation']['stats']},
+        'rules': [{'path': item['path'], 'sha256': item['sha256'], 'bytes': item['bytes'],
+                  'text': item['text']} for item in context['rules']],
+        'declared_sources': [{'path': item['path'], 'sha256': item['sha256'], 'bytes': item['bytes'],
+                              'supplied_as_input': item['path'] in wanted}
+                             for item in context['bodies']],
+        'lessons': [{'id': item['id'], 'issue': item['issue'], 'remedy': item['remedy'],
+                     'conditions': item['conditions'], 'negative': item['negative'],
+                     'verification': item['verification'], 'source_task': item.get('source_task')}
+                    for item in context['lessons']],
+        'ranges': [{'path': item['path'], 'start': item['start'], 'end': item['end'],
+                    'cache_key': item['cache_key'], 'sha256': item['sha256'], 'name': item['name']}
+                   for item in context['ranges']],
+        'omissions': context['omissions'],
+        'tests': context.get('tests', []),
+        'neighbours': context.get('neighbours', []),
+        'negative_evidence_count': context.get('negative_evidence_count', 0),
+        'instruction': 'Frozen project-context evidence for this scope. Cite ranges by cache_key and '
+                       're-validate their sha256 before relying on a line reference; verified lessons '
+                       'apply only inside their recorded conditions.',
+    }
+
+
+def pc_path_exists(root, task_id):
+    import project_context as pc
+    return pc.context_path(root, task_id).is_file()
+
+
+def bound_project_config(root):
+    """The project configuration this checkout binds, or None when it has none.
+
+    A managed map must obey the same source roots, exclusions and scan caps as the frozen
+    generation it travels with; scanning a wider tree here would read files the project
+    explicitly excluded and could exhaust a budget the frozen context never spent.
+    """
+    import project_binding as pb
+    config, _ = pb.load_config(root)
+    return config
+
+
+def build_prompt(root, step, language, task_id=None, context=None):
     import workflow as w
     setup=w.project_role(root,step['role'])
     if not setup['ready']:raise ValueError('Install exactly one project-local role before model execution: '+setup.get('error',''))
     directory=Path(setup['guide']).parent
     paths=[directory/'SKILL.md',directory/'references/PLAYBOOK.en.md']
     paths.extend(directory/'brain'/(name+'.md') for name in w.MEMORY)
-    if (root/'AGENTS.md').is_file():paths.append(root/'AGENTS.md')
+    paths.extend(root/name for name in ('AGENTS.md', 'CLAUDE.md'))
     mode=step.get('memory_mode','focused')
     budget=step.get('memory_budget_bytes',8192)
     if mode not in ('focused','full'):raise ValueError('memory_mode must be focused or full')
@@ -199,10 +338,18 @@ def build_prompt(root, step, language):
         inputs.append({'path':relative,'text':path.read_text()})
     payload={'language':language,'role':step['role'],'guidance':guidance,
              'inputs':inputs,'task':step['summary'],'outputs':step['outputs']}
+    if task_id:
+        frozen=project_context_payload(root,task_id,step,context)
+        if frozen:
+            payload['project_context']=frozen
+            # Governing rules are delivered whole inside the frozen block; the guidance list
+            # must not repeat them or shrink them.
+            ruled={item['path'] for item in frozen['rules']}
+            payload['guidance']=[item for item in payload['guidance'] if item['path'] not in ruled]
     if step.get('repo_map',False):
         if step['repo_map'] is not True:raise ValueError('repo_map must be true or omitted')
         from repo_map import build,render
-        value,stats=build(root)
+        value,stats=build(root,config=bound_project_config(root))
         navigation,selection=render(value,query,step.get('repo_map_budget_bytes',8192),step['inputs'])
         payload['repo_map']={'navigation':navigation,'selection':selection}
     prompt=('Produce exactly the declared artifacts as JSON matching the schema. You are a text generator; '
@@ -211,6 +358,8 @@ def build_prompt(root, step, language):
             'Use supplied facts, note missing evidence in artifacts, and write code when requested. '
             'Memory may omit historical records; do not infer their absence. Reuse relevant verified solutions, '
             'check their conditions against this task, and distinguish evidence from ideas. '
+            'Any project_context block is frozen evidence for its scope: apply its verified lessons inside '
+            'their recorded conditions and treat its omissions as recorded facts, not as absent content. '
             'A later isolated checker executes generated code.\n'+json.dumps(payload,ensure_ascii=False,separators=(',',':')))
 
     if len(prompt.encode())>MAX_TEXT:raise ValueError('Combined prompt exceeds 256 KiB; narrow declared inputs')

@@ -57,3 +57,15 @@ crewloom dashboard
 ## التعديل الذاتي
 
 [وضع التعديل الذاتي](documentation/SELF_EDITING.md) هو مسار تحسين الأدوار والأدوات والتوثيق الموجودة: تشخيص المشكلة، تعديل التنفيذ، التحقق، ثم تسجيل النتيجة. الاسم الإنجليزي: **Self-Editing Mode**. شغّله بطلب واضح لوكيلك مع تحديد المشروع والمشكلة؛ لا يضيف صلاحيات إلى المضيف.
+
+## سياق المشروع
+
+[سياق المشروع](documentation/PROJECT_CONTEXT.md) اختياري لكل مشروع، ويضيف هوية مشروع صالحة، وربطًا محليًا لنسخة العمل، وسياقًا مجمدًا لكل مهمة مع مراجع أسطر مُتحقَّق من بصمتها، ودروسًا لا ترفعها إلا أدلة تنفيذ مسجّلة.
+
+```bash
+crewloom project enter  --project /path/to/project --project-id sample-project --task-id login-fix --role context-guardian --seed src/auth.py
+crewloom project status --project /path/to/project --project-id sample-project
+crewloom project finish --project /path/to/project --project-id sample-project --task-id login-fix --evidence '[{"workflow": "login-flow", "step": "acceptance", "scope": "unit tests"}]'
+```
+
+الدخول ينشئ الناقص ويحدّث الموجود دون إعادة كتابة دستور مشروعك أو ذاكرة أدوارك. `status` يوضّح هل دورة الحياة يديرها مشغّل Crewloom أم أنها مُساعَدة بتعليمات أم يدوية؛ فتح المجلد لا يستدعي شيئًا وحده. `finish` لا يعلن الاكتمال إلا من أدلة تنفيذ مسجّلة، أما `--verification` فيسجّل إقرارًا يدويًا ويُبقي المهمة بانتظار التحقق. راجع [القياس التجريبي](documentation/PROJECT_CONTEXT.md#measurements) للسلوك المقيس فعليًا.

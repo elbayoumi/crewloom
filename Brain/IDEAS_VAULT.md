@@ -29,3 +29,14 @@ Add provider-backed integration evidence after local credentials are configured,
 
 ### 2026-10-02 — Repository navigation
 - Add optional Tree-sitter adapters and precise import graphs only after measuring missed symbols and retrieval quality; retain dependency-free core and explicit provider metadata scope.
+
+### 2026-10-02 — Automatic context implementation plan
+- Use task-boundary refresh and project/checkout/task identities before adding filesystem watchers or semantic dependencies. Pilot observable token/correctness effects before all-project rollout.
+
+### 2026-10-02 — Automatic context implementation
+- The initial draft crossover (superseded: selected context 62.6% of full at 24 files, 0.92% at 604) suggests publishing the crossover point per project instead of a universal percentage, and keeping `source_roots` as the first lever for very large repositories.
+- Executor-gated lesson promotion is a reusable pattern for any local learning store: keep the promotion input a project-recorded artifact, never a prose claim, and re-check policy fingerprints before reuse.
+- Off/observe/enforced plus an honest lifecycle label (`managed-runner`, `instruction-assisted`, `manual`) lets a host that cannot offer callbacks still adopt context without a false automation claim.
+
+### 2026-10-02 — Bounded delegation handoff
+- Preserve acceptance, failure counters, source state and verification references in a compact checkpoint; keep verbose execution history on disk. A fresh model session can reduce repeated context without erasing attempts or reducing task scope.

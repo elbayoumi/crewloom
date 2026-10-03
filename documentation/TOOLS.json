@@ -155,6 +155,41 @@
         "Authenticated Codex/Claude CLI only for model steps"
       ],
       "effect": "writes-project-artifacts-and-runtime-state"
+    },
+    {
+      "id": "project-context",
+      "skill": "context-guardian",
+      "path": "scripts/project_binding.py",
+      "description": "Project identity, checkout binding, entry, status, finalization, cancellation and relocation",
+      "example_args": "status --project /path/to/project --project-id sample-project",
+      "dependencies": [
+        "Python standard library",
+        "Git project for navigation indexing"
+      ],
+      "effect": "writes-project-configuration-and-runtime-state"
+    },
+    {
+      "id": "project-lessons",
+      "skill": "qa-test-automation-engineer",
+      "path": "scripts/project_lessons.py",
+      "description": "Record, verify with executor evidence, retrieve and review project lessons",
+      "example_args": "list --project /path/to/project",
+      "dependencies": [
+        "Python standard library",
+        "Recorded workflow evidence for promotion"
+      ],
+      "effect": "writes-project-runtime-state"
+    },
+    {
+      "id": "context-pilot",
+      "skill": "context-guardian",
+      "path": "scripts/context_pilot.py",
+      "description": "Reproducible cold and warm context pilot with byte comparison",
+      "example_args": "--out /tmp/crewloom-pilot.json",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "reads-project-and-writes-report"
     }
   ]
 }

@@ -1,0 +1,16 @@
+{
+  "project_id": "paperclip-public",
+  "language": "ar",
+  "source_roots": [
+    "ui"
+  ],
+  "seed": "ui/src/api/auth.ts",
+  "required_symbols": [
+    "function toSession(",
+    "function extractAuthError("
+  ],
+  "required_neighbours": [
+    "ui/src/api/response.ts"
+  ],
+  "limits": "navigation/context correctness only; not application build quality"
+}

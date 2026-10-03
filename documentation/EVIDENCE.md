@@ -122,3 +122,23 @@ The [model workflow execution](../examples/model-workflow/evidence.json) records
 The [trial evidence](../examples/evaluation/host-trials-20261001/README.md) contains five fresh Codex generations per condition (with/without full-stack role). All ten pass nine contract cases: a tie, not measured superiority. Two Claude generation attempts failed with no local authentication and eight remaining calls were blocked; no cross-host conclusion is available. Task and acceptance cases are public, scoring is deterministic and label-free, and the runner is also the coordinator. There is no independent human review claim.
 
 All 42 roles now have English project procedures as well as source Arabic playbooks, for 150 detailed role references. Documentation/structure checks do not validate every external-domain workflow. Provider calls are excluded from ordinary CI.
+
+## Automatic project context — corrected working tree, 2026-10-02
+
+Measured on this working tree; no release or archive claim is made here.
+
+| Check | Command | Result |
+| --- | --- | --- |
+| Repository gate | `python3 scripts/check_repository.py` | 298 cases: 292 pass, 6 Docker-gated skips |
+| Live Docker suite | `CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p "test_*.py"` | 238 cases, all pass, no skips |
+| Independent acceptance | `python3 -m unittest discover -s scripts -p "test_context_acceptance_boundaries.py"` | 27 cases, all pass |
+| Synthetic pilot | `python3 -m unittest discover -s scripts -p "test_context_pilot.py"` | both sizes execute acceptance inside Docker and finalize as verified |
+| Python 3.9 gate | repository gate inside `crewloom-python39-test:latest` | not re-measured since this correction; the earlier 287-case run with 9 skips is kept as history |
+
+The independently measured baseline at commit `71da4ca` was 152 cases; this tree adds 146 regressions, not the earlier draft's 126. Draft measurements recorded before the review are kept as history in [Brain/COMPLETED.md](../Brain/COMPLETED.md) and are not presented as final evidence.
+
+Rejected bad cases now covered include forked re-entrant lock ownership, a rejected task writing project metadata, shared range cache keys, generation churn on unchanged entry, forged or drifted executor evidence, provider output offered as acceptance, zero-exit failed artifacts promoted as a pass, optional evidence exceeding the frozen byte budget, out-of-scope files invalidating a scoped generation, decoder-skipped files evading the aggregate scan budget, an oversized declared body read before it was refused, first native entry freezing instructions it then rewrote, a reusable model step resolving another step's archived context, verified lessons surviving a changed declared source, and a managed entry failure that left the root reserved and uncancellable.
+
+Measured dense optional-navigation reproduction (local fixture, not the authorized client project): 1441 candidate ranges from 121 seed-related test files, 23 range records kept inside an 8192-byte `range_bytes` allowance with 1418 recorded omissions, a 44,729-byte frozen snapshot, and a 61,618-byte snapshot-plus-rules-plus-sources assembly under the unchanged 131,072-byte ceiling. Removing the independent range allowance makes the same fixture fail at 131,137 bytes.
+
+Still not measured: live provider token, cached-token, cost and answer-quality effects, host folder-open callbacks, JS/TS package and alias resolution, the two authorized real client pilots and the real dense-project rerun, which remain with the supervising agent.
