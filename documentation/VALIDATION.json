@@ -29,7 +29,7 @@
     "clean_commit": "accepted with hook enabled"
   },
   "clean_archive_check": "Initial 0.1.0 archive passed; 0.2.0 validated in working tree",
-  "hosted_ci": "Core Python matrix, dashboard and Docker workflow jobs configured; confirm after push",
+  "hosted_ci": "Current automatic-context PR head passed Python3.9/3.14, dashboard and actual Docker jobs before merge; historical release records above retain their original scope",
   "limits": [
     "CLI hosts remain outside Docker command isolation",
     "Claude live generation is unverified because local CLI is logged out",
@@ -284,7 +284,20 @@
       "conflict_resolution": "main a8dcff4 is an ancestor",
       "hosted_first_run": "https://github.com/elbayoumi/crewloom/actions/runs/37116755909",
       "hosted_first_run_result": "dashboard and isolated-workflows passed; validate 3.14 failed missing image; 3.9 cancelled by fail-fast",
-      "hosted_correction": "validate matrix explicitly pulls the required image before running unchanged acceptance; final hosted result is available on PR checks"
+      "hosted_correction": "validate matrix explicitly pulls the required image before running unchanged acceptance; final hosted result is available on PR checks",
+      "status": "merged into main",
+      "verified_pr_head": "13b29e47d6b507da92f79c43d541327315defe44",
+      "merge_commit": "d9e6c64f73f23265c86103bcca589e3b70ad3575",
+      "merged_at": "2026-10-03T10:43:43Z",
+      "hosted_verified_run": "https://github.com/elbayoumi/crewloom/actions/runs/37117271745",
+      "hosted_verified_jobs": [
+        "validate (3.9)",
+        "validate (3.14)",
+        "dashboard",
+        "isolated-workflows",
+        "GitGuardian Security Checks"
+      ],
+      "hosted_result": "all five checks success on exact PR head before merge"
     }
   },
   "project_concurrency": {

@@ -94,3 +94,7 @@
 ### 2026-10-03 — Published implementation
 - Done: Full automatic-context source and reproducible public proof uploaded to PR #2; conflict-free main integration, final archive/manifest, installation and actual commit gate verified.
 - Remaining: Confirm hosted matrix after its image prerequisite correction; private-client reconciliation, provider billing/quality measurement, richer parsers and verified native callbacks remain deferred extensions.
+
+### 2026-10-03 — Core plan complete and merged
+- Done: Automatic-context implementation, two frozen public pilots, independent boundaries, clean installation/archive, actual commit gate, main reconciliation, publication and every hosted PR check. PR #2 is merged; earlier publication/CI-pending entries are historical checkpoints.
+- Remaining extensions: Private-client registry reconciliation and rollout, controlled provider billing/quality studies, richer JS/TS resolution and verified native lifecycle callbacks. None is claimed by the delivered managed lifecycle.

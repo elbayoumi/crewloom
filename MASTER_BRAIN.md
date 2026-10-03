@@ -26,3 +26,6 @@ Concurrent workflow scope uses explicit project roots, process locks and paused-
 
 ### 2026-10-03 — Automatic project context implementation published
 Project-local identity, incremental maps, frozen context and executor-verified lessons are implemented and uploaded in PR #2. Public English/Arabic navigation pilots each pass nine frozen checks; provider billing and general answer-quality gains remain unmeasured. Managed lifecycle refresh is automatic; native operation is instruction-assisted and private-client adoption awaits registry reconciliation.
+
+### 2026-10-03 — Automatic-context core plan complete
+PR #2 is merged into public main as `d9e6c64` after all hosted checks pass on `13b29e4`. Managed lifecycle, public frozen pilot evidence and project isolation are delivered; private-client rollout, provider billing/quality studies and native host callbacks remain separate extensions.

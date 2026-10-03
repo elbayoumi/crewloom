@@ -140,3 +140,8 @@
 - Artifact: https://github.com/elbayoumi/crewloom/pull/2 at integrated head `4df2eae`; full implementation, public evidence and manifest uploaded without private client data.
 - Evidence: Final 609-file source archive has 608 verified file hashes; fresh editable installation reports 0.5.1 and installed CLI role validation/project status pass. Hosted dashboard and isolated-workflow jobs pass on the first run.
 - Limits: Hosted validate requires explicit default image preload; corrected in the existing matrix without removing tests. Current hosted result is visible on the PR; no new release tag asserted.
+
+### 2026-10-03 — Automatic project context merged
+- Artifact: PR #2 merged into public main at `d9e6c64` after exact head `13b29e4` passed every hosted check.
+- Evidence: https://github.com/elbayoumi/crewloom/actions/runs/37117271745 — Python 3.9/3.14 validation, dashboard tests/type checking/build, actual Docker workflows/pilot/grader and GitGuardian all pass. Actual commit hooks remained enabled; source manifest and archive checks pass.
+- Limits: No private-client rollout or new release tag; provider billing/quality and native callbacks remain deferred.
