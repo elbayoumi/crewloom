@@ -135,3 +135,8 @@
 - Impact: Bound project identity, incremental maps and executor-verified local lessons are available through managed lifecycle; native entry remains instruction-assisted.
 - Evidence: Actual commit hook 310 cases (304 pass, 6 skips); post-integration live Docker scripts 250/250; actual Python 3.9 gate 310 (301 pass, 9 skips); clean source archive gate 310 (304 pass, 6 skips); independent boundaries 30/30. English/Arabic public pilots each pass nine frozen checks, repeat one acceptance attempt, and verify one local lesson.
 - Limits: Provider bills and general answer quality unmeasured; no private-client rollout, no new release tag. GitHub checks and publication recorded separately after push.
+
+### 2026-10-03 — Reviewable automatic-context publication
+- Artifact: https://github.com/elbayoumi/crewloom/pull/2 at integrated head `4df2eae`; full implementation, public evidence and manifest uploaded without private client data.
+- Evidence: Final 609-file source archive has 608 verified file hashes; fresh editable installation reports 0.5.1 and installed CLI role validation/project status pass. Hosted dashboard and isolated-workflow jobs pass on the first run.
+- Limits: Hosted validate requires explicit default image preload; corrected in the existing matrix without removing tests. Current hosted result is visible on the PR; no new release tag asserted.

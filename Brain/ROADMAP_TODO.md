@@ -90,3 +90,7 @@
 ### 2026-10-03 — Integration verification
 - Done: Main reconciliation preserves declared input/output enforcement and per-root reservations; actual commit gate, live Docker, Python 3.9 and clean archive checks passed. Public English/Arabic pilot contracts and measurements are published as source fixtures.
 - Remaining: GitHub publication and hosted checks; provider billing/quality evaluation, private-client reconciliation, richer parsers and verified native callbacks remain deferred.
+
+### 2026-10-03 — Published implementation
+- Done: Full automatic-context source and reproducible public proof uploaded to PR #2; conflict-free main integration, final archive/manifest, installation and actual commit gate verified.
+- Remaining: Confirm hosted matrix after its image prerequisite correction; private-client reconciliation, provider billing/quality measurement, richer parsers and verified native callbacks remain deferred extensions.

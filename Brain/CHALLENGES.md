@@ -128,6 +128,11 @@
 - Fix: Require explicit task root and persist a project-bound active-workflow reservation; only matching continuation/cancellation may take over.
 - Check: Concurrent same/different-root, paused-task, cancellation and redirected reservation regressions. Direct host edits remain outside runner protection.
 
+### 2026-10-03 - The hosted validate job ran live acceptance without providing its pinned image
+- Cause: `context_pilot.docker_available` gates the live pilot suite on a reachable Docker daemon only (`docker info`), which hosted `ubuntu-latest` satisfies. The pinned `workflow.DEFAULT_IMAGE` was then absent from the fresh runner, so `workflow.inspect_image` correctly refused to execute and the acceptance ran as `executed=false`/`verified=false`, failing `acceptance_executed` and `finalization_verified` with CLI exit 2. `check_repository.py` discovers `scripts/test_*.py`, so the `validate` matrix inherited these live cases; only `isolated-workflows` pulled the image first. Local and archive runs passed because the local daemon already held it.
+- Response: the `validate` job now runs `docker pull python:3.14-slim` before the unchanged `check_repository.py` gate, mirroring the existing isolation job, so both matrix interpreters supply the prerequisite. The executor still refuses an absent pinned image; nothing was skipped, weakened or made to pull implicitly.
+- Check: `python3 -m unittest discover -s scripts -p test_context_pilot.py` passes all 7 cases including the 3 live ones that hosted CI failed on, and `python3 scripts/check_repository.py` reports 310 cases, 6 skips (the unchanged `CREWLOOM_DOCKER_TESTS` opt-in policy class) and exit 0.
+
 ### 2026-10-03 — Final evidence reconciliation
 - Cause: Earlier draft counts and interpreter coverage predated the hook-environment fix and main integration.
 - Solution: Preserve historical entries, label scripts versus total cases, and use actual post-integration 310-case gate, 250 live Docker cases and 30 independent boundaries in final evidence.

@@ -242,7 +242,12 @@
       "gate_cases": 310,
       "passed": 304,
       "skips": 6,
-      "result": "passed from extracted source without Git/runtime/build directories"
+      "result": "passed from extracted source without Git/runtime/build directories",
+      "files": 609,
+      "manifest_verified_files": 608,
+      "editable_install_version": "0.5.1",
+      "installed_cli_role_validation": "passed",
+      "installed_cli_project_status": "passed"
     },
     "independent_boundary_suite": {
       "cases": 30,
@@ -272,6 +277,14 @@
       "acceptance_attempts_per_project": 1,
       "verified_lessons": 2,
       "provider_usage": null
+    },
+    "publication": {
+      "pull_request": "https://github.com/elbayoumi/crewloom/pull/2",
+      "integrated_head": "4df2eae520e0d80307d38cfae5ada8f62ecfab55",
+      "conflict_resolution": "main a8dcff4 is an ancestor",
+      "hosted_first_run": "https://github.com/elbayoumi/crewloom/actions/runs/37116755909",
+      "hosted_first_run_result": "dashboard and isolated-workflows passed; validate 3.14 failed missing image; 3.9 cancelled by fail-fast",
+      "hosted_correction": "validate matrix explicitly pulls the required image before running unchanged acceptance; final hosted result is available on PR checks"
     }
   },
   "project_concurrency": {
