@@ -213,6 +213,6 @@ class MainActivity : AppCompatActivity() {
     private fun refreshStatus() {
         val store = PendingSmsStore.get(this)
         binding.textPending.text = "Pending queue: " + store.pendingCount()
-        binding.textLast.text = "Last status: " + store.lastStatus() + "\nDevice fingerprint: " + DeviceIdentity.fingerprint(this)
+        binding.textLast.text = "Last status: " + store.lastStatus() + "\nDevice fingerprint: " + DeviceIdentity.fingerprintShort(this)
     }
 }

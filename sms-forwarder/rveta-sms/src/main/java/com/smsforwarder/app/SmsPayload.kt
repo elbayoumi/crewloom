@@ -11,7 +11,8 @@ data class SmsPayload(
     val receivedAt: String,
     val deviceId: String,
     val messageId: String,
-    val senderName: String? = null
+    val senderName: String? = null,
+    val deviceInfo: String? = null
 ) {
     fun toJson(): String {
         val o = org.json.JSONObject()
@@ -21,6 +22,7 @@ data class SmsPayload(
         o.put("device_id", deviceId)
         o.put("message_id", messageId)
         if (!senderName.isNullOrBlank()) o.put("sender_name", senderName)
+        if (!deviceInfo.isNullOrBlank()) o.put("device_info", deviceInfo)
         return o.toString()
     }
 
