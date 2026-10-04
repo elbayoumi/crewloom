@@ -173,17 +173,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyPairingData(text: String): Boolean {
-        val uri = Uri.parse(text)
-        if (uri.scheme != "rveta" && uri.scheme != "https") return false
+        val raw = text.trim()
+        val uri = runCatching { Uri.parse(raw) }.getOrNull() ?: return false
         if (uri.host == "session") return true
-        val d = uri.getQueryParameter("d")?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
-        val t = uri.getQueryParameter("t")?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
-        val b = uri.getQueryParameter("b")
+
+        var d = uri.getQueryParameter("d")
+        var t = uri.getQueryParameter("t")
+        var b = uri.getQueryParameter("b")
+        if (d.isNullOrBlank() || t.isNullOrBlank()) {
+            val q = raw.substringAfter('?', "")
+            q.split('&').forEach { part ->
+                val kv = part.split('=', limit = 2)
+                if (kv.size == 2) {
+                    if (kv[0] == "d") d = kv[1]
+                    if (kv[0] == "t") t = kv[1]
+                    if (kv[0] == "b") b = kv[1]
+                }
+            }
+        }
+        val dv = d?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
+        val tv = t?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
         val config = AppConfig(this)
         if (!b.isNullOrBlank()) config.baseUrl = b
         if (config.baseUrl.isBlank()) config.baseUrl = "https://bmc.moaf.uk/sms-backend"
-        if (config.deviceId.isBlank()) config.deviceId = d
-        config.deviceToken = t
+        if (config.deviceId.isBlank()) config.deviceId = dv
+        config.deviceToken = tv
         lockDeviceId()
         return true
     }
