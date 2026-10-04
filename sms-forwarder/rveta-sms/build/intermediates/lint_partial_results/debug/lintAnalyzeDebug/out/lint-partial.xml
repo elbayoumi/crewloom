@@ -10,7 +10,7 @@
     <map id="UnusedResources">
         <entry
             name="model"
-            string=""/>
+            string="id[previewView(U),scanStatus(U)],layout[activity_scan(U)],string[scan_found(U)],style[Theme_AppCompat_NoActionBar(R)];;;;"/>
     </map>
 
 </incidents>

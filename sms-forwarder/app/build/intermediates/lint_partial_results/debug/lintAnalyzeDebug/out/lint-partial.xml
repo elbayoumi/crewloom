@@ -5,32 +5,32 @@
                     <map id="android.settings.APPLICATION_DETAILS_SETTINGS (used to start an activity)">
                         <location id="0"
                             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-                            line="113"
+                            line="135"
                             column="23"
-                            startOffset="5138"
-                            endLine="113"
+                            startOffset="5934"
+                            endLine="135"
                             endColumn="75"
-                            endOffset="5190"/>
+                            endOffset="5986"/>
                     </map>
                     <map id="android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS (used to start an activity)">
                         <location id="0"
                             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-                            line="129"
+                            line="151"
                             column="27"
-                            startOffset="5852"
-                            endLine="129"
+                            startOffset="6648"
+                            endLine="151"
                             endColumn="87"
-                            endOffset="5912"/>
+                            endOffset="6708"/>
                     </map>
                     <map id="android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS (used to start an activity)">
                         <location id="0"
                             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-                            line="122"
+                            line="144"
                             column="31"
-                            startOffset="5504"
-                            endLine="122"
+                            startOffset="6300"
+                            endLine="144"
                             endColumn="91"
-                            endOffset="5564"/>
+                            endOffset="6360"/>
                     </map>
             </map>
     </map>
@@ -44,7 +44,7 @@
     <map id="UnusedResources">
         <entry
             name="model"
-            string="attr[colorSurface(R),colorSurfaceContainer(R),colorPrimary(R),colorOnSurfaceVariant(R)],drawable[hero_bg(U)],id[editBaseUrl(U),editDeviceId(U),editToken(U),btnSave(U),textStatus(U),textPending(U),textLast(U),textPermission(U),btnTest(U),btnRefresh(U),btnPermissions(U),btnBattery(U)],layout[activity_main(U)],string[app_name(U)],style[Theme_SmsForwarder(U),Widget_Material3_TextInputLayout_OutlinedBox(R),Widget_Material3_Button_OutlinedButton(R),Theme_Material3_DayNight_NoActionBar(R)];11^0^4^1^2^14^15^3,13^16^2;;;"/>
+            string="attr[colorSurface(R),colorSurfaceContainer(R),colorPrimary(R),colorOnSurfaceVariant(R)],drawable[hero_bg(U),ic_launcher_background(U),ic_launcher_foreground(U)],id[editBaseUrl(U),editDeviceId(U),btnScan(U),btnSave(U),textStatus(U),textPending(U),textLast(U),textPermission(U),btnTest(U),btnRefresh(U),btnPermissions(U),btnBattery(U)],layout[activity_main(U)],mipmap[ic_launcher(U),ic_launcher_round(U)],string[app_name(U)],style[Theme_SmsForwarder(U),Widget_Material3_TextInputLayout_OutlinedBox(R),Widget_Material3_Button_OutlinedButton(R),Theme_Material3_DayNight_NoActionBar(R)];13^0^4^1^2^18^19^3,14^5^6,15^5^6,17^1a^2;;;"/>
     </map>
 
 </incidents>

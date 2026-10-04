@@ -1,1 +1,5 @@
 com.smsforwarder.app
+id previewView
+id scanStatus
+layout activity_scan
+string scan_found

@@ -14,10 +14,10 @@
       proguardRules="proguard.txt"/>
   <library
       name=":@@:rveta-sms::debug"
-      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/20d2d158cb10949afac0d9f73ef4aeb0/transformed/out/jars/classes.jar:/Users/macbook/.gradle/caches/8.14.3/transforms/20d2d158cb10949afac0d9f73ef4aeb0/transformed/out/jars/libs/R.jar"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/72f8c138174230faac3815f843a95999/transformed/out/jars/classes.jar:/Users/macbook/.gradle/caches/8.14.3/transforms/72f8c138174230faac3815f843a95999/transformed/out/jars/libs/R.jar"
       resolved="SmsForwarder:rveta-sms:unspecified"
       partialResultsDir="/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/build/intermediates/lint_partial_results/debug/lintAnalyzeDebug/out"
-      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/20d2d158cb10949afac0d9f73ef4aeb0/transformed/out"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/72f8c138174230faac3815f843a95999/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -544,6 +544,10 @@
       jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.0.21/618b539767b4899b4660a83006e052b63f1db551/kotlin-stdlib-2.0.21.jar"
       resolved="org.jetbrains.kotlin:kotlin-stdlib:2.0.21"/>
   <library
+      name="com.google.zxing:core:3.5.3@jar"
+      jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/com.google.zxing/core/3.5.3/ca1349214a356cd7958651b2d5a0e1f3811a9c4b/core-3.5.3.jar"
+      resolved="com.google.zxing:core:3.5.3"/>
+  <library
       name="org.jetbrains:annotations:23.0.0@jar"
       jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/23.0.0/8cc20c07506ec18e0834947b84a864bfc094484e/annotations-23.0.0.jar"
       resolved="org.jetbrains:annotations:23.0.0"/>
@@ -572,6 +576,71 @@
       name="androidx.constraintlayout:constraintlayout-solver:2.0.1@jar"
       jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/androidx.constraintlayout/constraintlayout-solver/2.0.1/30988fe2d77f3fe3bf7551bb8a8b795fad7e7226/constraintlayout-solver-2.0.1.jar"
       resolved="androidx.constraintlayout:constraintlayout-solver:2.0.1"/>
+  <library
+      name="androidx.camera:camera-video:1.4.1@aar"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/92d473a4f44fb92210ad5be069e9ee23/transformed/camera-video-1.4.1/jars/classes.jar"
+      resolved="androidx.camera:camera-video:1.4.1"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/92d473a4f44fb92210ad5be069e9ee23/transformed/camera-video-1.4.1"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
+  <library
+      name="androidx.camera:camera-lifecycle:1.4.1@aar"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/9fabf6203b38a02abcf69ad7a5110a4f/transformed/camera-lifecycle-1.4.1/jars/classes.jar"
+      resolved="androidx.camera:camera-lifecycle:1.4.1"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/9fabf6203b38a02abcf69ad7a5110a4f/transformed/camera-lifecycle-1.4.1"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
+  <library
+      name="androidx.camera:camera-camera2:1.4.1@aar"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/683975eb53b4b60df2d5474648e035de/transformed/camera-camera2-1.4.1/jars/classes.jar"
+      resolved="androidx.camera:camera-camera2:1.4.1"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/683975eb53b4b60df2d5474648e035de/transformed/camera-camera2-1.4.1"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
+  <library
+      name="androidx.camera:camera-core:1.4.1@aar"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/83882d8a158c08708ec42983582a8568/transformed/camera-core-1.4.1/jars/classes.jar"
+      resolved="androidx.camera:camera-core:1.4.1"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/83882d8a158c08708ec42983582a8568/transformed/camera-core-1.4.1"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
+  <library
+      name="androidx.camera:camera-view:1.4.1@aar"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/e8b0e58e0c9fe72c184cf3726d1ae37b/transformed/camera-view-1.4.1/jars/classes.jar"
+      resolved="androidx.camera:camera-view:1.4.1"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/e8b0e58e0c9fe72c184cf3726d1ae37b/transformed/camera-view-1.4.1"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
   <library
       name="androidx.emoji2:emoji2-views-helper:1.3.0@aar"
       jars="/Users/macbook/.gradle/caches/8.14.3/transforms/92ccd85bb63045032116e6f046a1f2f3/transformed/emoji2-views-helper-1.3.0/jars/classes.jar"
@@ -715,6 +784,19 @@
       jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/androidx.concurrent/concurrent-futures/1.1.0/50b7fb98350d5f42a4e49704b03278542293ba48/concurrent-futures-1.1.0.jar"
       resolved="androidx.concurrent:concurrent-futures:1.1.0"/>
   <library
+      name="androidx.exifinterface:exifinterface:1.3.2@aar"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/bbd67e460f599771ed4612f36f6edb3c/transformed/exifinterface-1.3.2/jars/classes.jar"
+      resolved="androidx.exifinterface:exifinterface:1.3.2"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/bbd67e460f599771ed4612f36f6edb3c/transformed/exifinterface-1.3.2"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
+  <library
       name="androidx.sqlite:sqlite-framework:2.4.0@aar"
       jars="/Users/macbook/.gradle/caches/8.14.3/transforms/ac62b78cfa6d87eddd781cf7ff35661e/transformed/sqlite-framework-2.4.0/jars/classes.jar"
       resolved="androidx.sqlite:sqlite-framework:2.4.0"
@@ -748,6 +830,10 @@
       name="com.google.crypto.tink:tink-android:1.8.0@jar"
       jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/com.google.crypto.tink/tink-android/1.8.0/bda82b49568d444a3b54773ca5aa487816473295/tink-android-1.8.0.jar"
       resolved="com.google.crypto.tink:tink-android:1.8.0"/>
+  <library
+      name="com.google.auto.value:auto-value-annotations:1.6.3@jar"
+      jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/com.google.auto.value/auto-value-annotations/1.6.3/b88c1bb7f149f6d2cc03898359283e57b08f39cc/auto-value-annotations-1.6.3.jar"
+      resolved="com.google.auto.value:auto-value-annotations:1.6.3"/>
   <library
       name="com.google.code.gson:gson:2.8.9@jar"
       jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.8.9/8a432c1d6825781e21a02db2e2c33c5fde2833b9/gson-2.8.9.jar"

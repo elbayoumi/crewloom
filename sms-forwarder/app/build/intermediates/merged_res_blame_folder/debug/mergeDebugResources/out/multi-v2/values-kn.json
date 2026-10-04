@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.smsforwarder.app-mergeDebugResources-39:/values-kn/values-kn.xml",
+            "outputFile": "com.smsforwarder.app-mergeDebugResources-44:/values-kn/values-kn.xml",
             "map": [
                 {
                     "source": "/Users/macbook/.gradle/caches/8.14.3/transforms/7121d8376603c5166a4a18d11f897d33/transformed/core-1.13.1/res/values-kn/values-kn.xml",

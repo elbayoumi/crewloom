@@ -17,6 +17,8 @@ import com.smsforwarder.app.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private val REQ_SCAN = 501
+
     private val neededPermissions = arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,12 +33,10 @@ class MainActivity : AppCompatActivity() {
         intent.getStringExtra("token")?.let { config.deviceToken = it }
         binding.editBaseUrl.setText(config.baseUrl)
         binding.editDeviceId.setText(config.deviceId)
-        binding.editToken.setText(config.deviceToken)
 
         binding.btnSave.setOnClickListener {
             config.baseUrl = binding.editBaseUrl.text.toString()
             config.deviceId = binding.editDeviceId.text.toString()
-            config.deviceToken = binding.editToken.text.toString()
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
             val store = PendingSmsStore.get(this)
             for (id in store.allIdsByState(DeliveryState.FAILED)) {
@@ -49,6 +49,13 @@ class MainActivity : AppCompatActivity() {
             refreshStatus()
         }
 
+        binding.btnScan.setOnClickListener {
+            try {
+                startActivityForResult(Intent(this, ScanQrActivity::class.java), REQ_SCAN)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Scanner unavailable", Toast.LENGTH_SHORT).show()
+            }
+        }
         binding.btnTest.setOnClickListener { runTest() }
         binding.btnRefresh.setOnClickListener { refreshStatus() }
         binding.btnPermissions.setOnClickListener { ensureSmsPermission() }
@@ -87,7 +94,6 @@ class MainActivity : AppCompatActivity() {
         intent.getStringExtra("token")?.let { config.deviceToken = it }
         binding.editBaseUrl.setText(config.baseUrl)
         binding.editDeviceId.setText(config.deviceId)
-        binding.editToken.setText(config.deviceToken)
     }
 
     override fun onResume() {
@@ -144,6 +150,34 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_SCAN && resultCode == RESULT_OK) {
+            val text = data?.getStringExtra("scan_result") ?: return
+            if (applyPairingData(text)) {
+                Toast.makeText(this, "Device linked", Toast.LENGTH_SHORT).show()
+                refreshStatus()
+            } else {
+                Toast.makeText(this, "Invalid QR code", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun applyPairingData(text: String): Boolean {
+        val uri = android.net.Uri.parse(text)
+        if (uri.scheme != "rveta" && uri.scheme != "https") return false
+        val d = uri.getQueryParameter("d")?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
+        val t = uri.getQueryParameter("t")?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
+        val b = uri.getQueryParameter("b")
+        val config = AppConfig(this)
+        if (!b.isNullOrBlank()) config.baseUrl = b
+        if (config.baseUrl.isBlank()) config.baseUrl = "https://bmc.moaf.uk/sms-backend"
+        config.deviceId = d
+        config.deviceToken = t
+        binding.editDeviceId.setText(d)
+        return true
     }
 
     private fun runTest() {
