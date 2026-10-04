@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val REQ_SCAN = 501
 
-    private val neededPermissions = arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS, Manifest.permission.READ_CONTACTS)
+    private val neededPermissions = arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
 
         val config = AppConfig(this)
         handlePairing(intent)
+        if (AppConfig(this).deviceId.isBlank()) AppConfig(this).deviceId = DeviceIdentity.stableId(this)
         intent.getStringExtra("base_url")?.let { config.baseUrl = it }
         intent.getStringExtra("device_id")?.let { config.deviceId = it }
         intent.getStringExtra("token")?.let { config.deviceToken = it }
@@ -89,6 +90,7 @@ class MainActivity : AppCompatActivity() {
         handlePairing(intent)
         val config = AppConfig(this)
         handlePairing(intent)
+        if (AppConfig(this).deviceId.isBlank()) AppConfig(this).deviceId = DeviceIdentity.stableId(this)
         intent.getStringExtra("base_url")?.let { config.baseUrl = it }
         intent.getStringExtra("device_id")?.let { config.deviceId = it }
         intent.getStringExtra("token")?.let { config.deviceToken = it }
@@ -207,6 +209,6 @@ class MainActivity : AppCompatActivity() {
     private fun refreshStatus() {
         val store = PendingSmsStore.get(this)
         binding.textPending.text = "Pending queue: " + store.pendingCount()
-        binding.textLast.text = "Last status: " + store.lastStatus()
+        binding.textLast.text = "Last status: " + store.lastStatus() + "\nDevice fingerprint: " + DeviceIdentity.fingerprint(this)
     }
 }
