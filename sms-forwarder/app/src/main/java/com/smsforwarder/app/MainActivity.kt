@@ -122,6 +122,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handlePairing(intent: Intent) {
+        val data = intent.data ?: return
+        if (data.scheme == "https" && data.host?.contains("bmc.moaf.uk") == true) {
+            val sid = data.getQueryParameter("session")
+            if (!sid.isNullOrBlank()) {
+                intent.data = Uri.parse("rveta://session?d=$sid")
+            }
+        }
         if (intent.data?.scheme != "rveta") return
         if (intent.data?.host == "session") {
             val sid = intent.data?.getQueryParameter("d") ?: return

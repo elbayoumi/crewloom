@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:2:1-33:12
-INJECTED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:2:1-33:12
-INJECTED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:2:1-33:12
-INJECTED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:2:1-33:12
+ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:2:1-40:12
+INJECTED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:2:1-40:12
+INJECTED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:2:1-40:12
+INJECTED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:2:1-40:12
 MERGED from [androidx.databinding:viewbinding:8.7.3] /Users/macbook/.gradle/caches/8.14.3/transforms/a6cb29c3317a3b8fec56d5bb0719c744/transformed/viewbinding-8.7.3/AndroidManifest.xml:2:1-7:12
 MERGED from [:rveta-sms] /Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:2:1-50:12
 MERGED from [com.google.android.material:material:1.12.0] /Users/macbook/.gradle/caches/8.14.3/transforms/5f7300f370742532b20193ca559d9f62/transformed/material-1.12.0/AndroidManifest.xml:17:1-24:12
@@ -75,8 +75,8 @@ ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidMan
 	android:name
 		ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:4:22-92
 application
-ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:6:5-31:19
-INJECTED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:6:5-31:19
+ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:6:5-38:19
+INJECTED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:6:5-38:19
 MERGED from [:rveta-sms] /Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:23:5-48:19
 MERGED from [:rveta-sms] /Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:23:5-48:19
 MERGED from [com.google.android.material:material:1.12.0] /Users/macbook/.gradle/caches/8.14.3/transforms/5f7300f370742532b20193ca559d9f62/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
@@ -122,7 +122,7 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/macb
 	android:usesCleartextTraffic
 		ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:13:9-45
 activity#com.smsforwarder.app.MainActivity
-ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:15:9-30:20
+ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:15:9-37:20
 	android:launchMode
 		ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:18:13-43
 	android:exported
@@ -139,8 +139,10 @@ category#android.intent.category.LAUNCHER
 ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:21:17-77
 	android:name
 		ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:21:27-74
-intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:host:pair+data:host:session+data:scheme:rveta+data:scheme:rveta
-ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:23:13-29:29
+intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:host:bmc.moaf.uk+data:pathPrefix:/sms-backend/go+data:scheme:https
+ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:23:13-28:29
+	android:autoVerify
+		ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:23:28-53
 action#android.intent.action.VIEW
 ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:24:17-69
 	android:name
@@ -154,11 +156,15 @@ ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidMan
 	android:name
 		ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:26:27-75
 data
-ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:27:17-68
+ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:27:17-112
 	android:host
-		ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:27:46-65
+		ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:27:46-72
 	android:scheme
 		ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:27:23-45
+	android:pathPrefix
+		ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:27:73-109
+intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:host:pair+data:host:session+data:scheme:rveta+data:scheme:rveta
+ADDED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:30:13-36:29
 uses-sdk
 INJECTED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml

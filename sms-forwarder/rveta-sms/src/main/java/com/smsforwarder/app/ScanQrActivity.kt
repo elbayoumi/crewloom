@@ -61,17 +61,28 @@ class ScanQrActivity : AppCompatActivity() {
         image.close()
         val source = PlanarYUVLuminanceSource(bytes, image.width, image.height, 0, 0, image.width, image.height, false)
         try {
-            val hints = mapOf(DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE))
-            val result = MultiFormatReader().apply { setHints(hints) }.decodeWithState(BinaryBitmap(HybridBinarizer(source)))
+            val hints = mapOf(
+                DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
+                DecodeHintType.TRY_HARDER to true
+            )
+            val text = MultiFormatReader().apply { setHints(hints) }
+                .decodeWithState(BinaryBitmap(HybridBinarizer(source))).text
+            if (!isOurs(text)) return
             done = true
             runOnUiThread {
                 findViewById<TextView>(R.id.scanStatus).text = getString(R.string.scan_found)
-                setResult(RESULT_OK, Intent().putExtra("scan_result", result.text))
+                setResult(RESULT_OK, Intent().putExtra("scan_result", text))
                 finish()
             }
         } catch (e: Exception) {
             // keep scanning
         }
+    }
+
+    private fun isOurs(text: String): Boolean {
+        val t = text.trim()
+        if (t.startsWith("rveta://")) return true
+        return (t.startsWith("http://") || t.startsWith("https://")) && t.contains("d=") && t.contains("t=")
     }
 
     override fun onDestroy() {
