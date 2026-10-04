@@ -2,6 +2,23 @@
 <incidents format="6" by="lint 8.7.3" type="conditional_incidents">
 
     <incident
+        id="BatteryLife"
+        severity="warning"
+        message="Use of `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
+            line="122"
+            column="47"
+            startOffset="5520"
+            endLine="122"
+            endColumn="90"
+            endOffset="5563"/>
+        <map>
+            <condition targetGE="23"/>
+        </map>
+    </incident>
+
+    <incident
         id="ObsoleteSdkInt"
         severity="warning"
         message="Unnecessary; SDK_INT is always >= 21">

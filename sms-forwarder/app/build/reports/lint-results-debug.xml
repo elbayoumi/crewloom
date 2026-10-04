@@ -20,6 +20,24 @@
     </issue>
 
     <issue
+        id="BatteryLife"
+        severity="Warning"
+        message="Use of `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html"
+        category="Correctness"
+        priority="5"
+        summary="Battery Life Issues"
+        explanation="This issue flags code that either&#xA;* negatively affects battery life, or&#xA;* uses APIs that have recently changed behavior to prevent background tasks from consuming memory and battery excessively.&#xA;&#xA;Generally, you should be using `WorkManager` instead.&#xA;&#xA;For more details on how to update your code, please see https://developer.android.com/topic/performance/background-optimization"
+        url="https://developer.android.com/topic/performance/background-optimization"
+        urls="https://developer.android.com/topic/performance/background-optimization"
+        errorLine1="                startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
+            line="122"
+            column="47"/>
+    </issue>
+
+    <issue
         id="GradleDependency"
         severity="Warning"
         message="A newer version of androidx.core:core-ktx than 1.13.1 is available: 1.19.1"
@@ -31,7 +49,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts"
-            line="45"
+            line="46"
             column="20"/>
     </issue>
 
@@ -47,7 +65,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts"
-            line="46"
+            line="47"
             column="20"/>
     </issue>
 
@@ -63,7 +81,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts"
-            line="47"
+            line="48"
             column="20"/>
     </issue>
 
@@ -77,22 +95,6 @@
         explanation="This detector looks for usages of libraries where the version you are using is not the current stable release. Using older versions is fine, and there are cases where you deliberately want to stick with an older version. However, you may simply not be aware that a more recent version is available, and that is what this lint check helps find."
         errorLine1="    implementation(&quot;androidx.work:work-runtime-ktx:2.10.0&quot;)"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts"
-            line="48"
-            column="20"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        severity="Warning"
-        message="A newer version of androidx.security:security-crypto than 1.1.0-alpha06 is available: 1.1.0"
-        category="Correctness"
-        priority="4"
-        summary="Obsolete Gradle Dependency"
-        explanation="This detector looks for usages of libraries where the version you are using is not the current stable release. Using older versions is fine, and there are cases where you deliberately want to stick with an older version. However, you may simply not be aware that a more recent version is available, and that is what this lint check helps find."
-        errorLine1="    implementation(&quot;androidx.security:security-crypto:1.1.0-alpha06&quot;)"
-        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts"
             line="49"
@@ -113,7 +115,7 @@
         errorLine2="                             ~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml"
-            line="12"
+            line="7"
             column="30"/>
     </issue>
 
@@ -134,6 +136,22 @@
     </issue>
 
     <issue
+        id="Overdraw"
+        severity="Warning"
+        message="Possible overdraw: Root element paints background `?attr/colorSurface` with a theme that also paints a background (inferred theme is `@style/Theme.SmsForwarder`)"
+        category="Performance"
+        priority="3"
+        summary="Overdraw: Painting regions more than once"
+        explanation="If you set a background drawable on a root view, then you should use a custom theme where the theme background is null. Otherwise, the theme background will be painted first, only to have your custom background completely cover it; this is called &quot;overdraw&quot;.&#xA;&#xA;NOTE: This detector relies on figuring out which layouts are associated with which activities based on scanning the Java code, and it&apos;s currently doing that using an inexact pattern matching algorithm. Therefore, it can incorrectly conclude which activity the layout is associated with and then wrongly complain that a background-theme is hidden.&#xA;&#xA;If you want your custom background on multiple pages, then you should consider making a custom theme with your custom background and just using that theme instead of a root element background.&#xA;&#xA;Of course it&apos;s possible that your custom drawable is translucent and you want it to be mixed with the background. However, you will get better performance if you pre-mix the background with your drawable and use that resulting image or color as a custom theme background instead."
+        errorLine1="    android:background=&quot;?attr/colorSurface&quot;>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
+            line="6"
+            column="5"/>
+    </issue>
+
+    <issue
         id="MissingApplicationIcon"
         severity="Warning"
         message="Should explicitly set `android:icon`, there is no default"
@@ -147,62 +165,80 @@
         errorLine2="     ~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml"
-            line="11"
+            line="6"
             column="6"/>
     </issue>
 
     <issue
-        id="Autofill"
+        id="SetTextI18n"
         severity="Warning"
-        message="Missing `autofillHints` attribute"
-        category="Usability"
-        priority="3"
-        summary="Use Autofill"
-        explanation="Specify an `autofillHints` attribute when targeting SDK version 26 or higher or explicitly specify that the view is not important for autofill. Your app can help an autofill service classify the data correctly by providing the meaning of each view that could be autofillable, such as views representing usernames, passwords, credit card fields, email addresses, etc.&#xA;&#xA;The hints can have any value, but it is recommended to use predefined values like &apos;username&apos; for a username or &apos;creditCardNumber&apos; for a credit card number. For a list of all predefined autofill hint constants, see the `AUTOFILL_HINT_` constants in the `View` reference at https://developer.android.com/reference/android/view/View.html.&#xA;&#xA;You can mark a view unimportant for autofill by specifying an `importantForAutofill` attribute on that view or a parent view. See https://developer.android.com/reference/android/view/View.html#setImportantForAutofill(int)."
-        url="https://developer.android.com/guide/topics/text/autofill.html"
-        urls="https://developer.android.com/guide/topics/text/autofill.html"
-        errorLine1="        &lt;EditText android:id=&quot;@+id/editBaseUrl&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:hint=&quot;API Base URL (https://...)&quot; android:inputType=&quot;textUri&quot; />"
-        errorLine2="         ~~~~~~~~">
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="            binding.textPermission.text = &quot;⚠ SMS permission is required — tap \&quot;Grant permissions\&quot;&quot;"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="12"
-            column="10"/>
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
+            line="80"
+            column="43"/>
     </issue>
 
     <issue
-        id="Autofill"
+        id="SetTextI18n"
         severity="Warning"
-        message="Missing `autofillHints` attribute"
-        category="Usability"
-        priority="3"
-        summary="Use Autofill"
-        explanation="Specify an `autofillHints` attribute when targeting SDK version 26 or higher or explicitly specify that the view is not important for autofill. Your app can help an autofill service classify the data correctly by providing the meaning of each view that could be autofillable, such as views representing usernames, passwords, credit card fields, email addresses, etc.&#xA;&#xA;The hints can have any value, but it is recommended to use predefined values like &apos;username&apos; for a username or &apos;creditCardNumber&apos; for a credit card number. For a list of all predefined autofill hint constants, see the `AUTOFILL_HINT_` constants in the `View` reference at https://developer.android.com/reference/android/view/View.html.&#xA;&#xA;You can mark a view unimportant for autofill by specifying an `importantForAutofill` attribute on that view or a parent view. See https://developer.android.com/reference/android/view/View.html#setImportantForAutofill(int)."
-        url="https://developer.android.com/guide/topics/text/autofill.html"
-        urls="https://developer.android.com/guide/topics/text/autofill.html"
-        errorLine1="        &lt;EditText android:id=&quot;@+id/editDeviceId&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:hint=&quot;Device ID&quot; android:inputType=&quot;text&quot; />"
-        errorLine2="         ~~~~~~~~">
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="            binding.textPermission.text = &quot;⚠ SMS permission is required — tap \&quot;Grant permissions\&quot;&quot;"
+        errorLine2="                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="13"
-            column="10"/>
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
+            line="80"
+            column="44"/>
     </issue>
 
     <issue
-        id="Autofill"
+        id="SetTextI18n"
         severity="Warning"
-        message="Missing `autofillHints` attribute"
-        category="Usability"
-        priority="3"
-        summary="Use Autofill"
-        explanation="Specify an `autofillHints` attribute when targeting SDK version 26 or higher or explicitly specify that the view is not important for autofill. Your app can help an autofill service classify the data correctly by providing the meaning of each view that could be autofillable, such as views representing usernames, passwords, credit card fields, email addresses, etc.&#xA;&#xA;The hints can have any value, but it is recommended to use predefined values like &apos;username&apos; for a username or &apos;creditCardNumber&apos; for a credit card number. For a list of all predefined autofill hint constants, see the `AUTOFILL_HINT_` constants in the `View` reference at https://developer.android.com/reference/android/view/View.html.&#xA;&#xA;You can mark a view unimportant for autofill by specifying an `importantForAutofill` attribute on that view or a parent view. See https://developer.android.com/reference/android/view/View.html#setImportantForAutofill(int)."
-        url="https://developer.android.com/guide/topics/text/autofill.html"
-        urls="https://developer.android.com/guide/topics/text/autofill.html"
-        errorLine1="        &lt;EditText android:id=&quot;@+id/editToken&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:hint=&quot;Device Token&quot; android:inputType=&quot;textPassword&quot; />"
-        errorLine2="         ~~~~~~~~">
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="            binding.textPermission.text = &quot;⚠ SMS permission is required — tap \&quot;Grant permissions\&quot;&quot;"
+        errorLine2="                                                                                ~~~~~~~~~~~~~~~~~">
         <location
-            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="14"
-            column="10"/>
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
+            line="80"
+            column="81"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="            binding.textPermission.text = &quot;✓ SMS permission granted&quot;"
+        errorLine2="                                           ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
+            line="84"
+            column="44"/>
     </issue>
 
     <issue
@@ -219,7 +255,7 @@
         errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="52"
+            line="136"
             column="40"/>
     </issue>
 
@@ -237,7 +273,7 @@
         errorLine2="                                          ^">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="65"
+            line="149"
             column="43"/>
     </issue>
 
@@ -255,7 +291,7 @@
         errorLine2="                                           ~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="65"
+            line="149"
             column="44"/>
     </issue>
 
@@ -273,7 +309,7 @@
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="75"
+            line="159"
             column="36"/>
     </issue>
 
@@ -291,7 +327,7 @@
         errorLine2="                                    ~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="75"
+            line="159"
             column="37"/>
     </issue>
 
@@ -309,7 +345,7 @@
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="76"
+            line="160"
             column="33"/>
     </issue>
 
@@ -327,24 +363,72 @@
         errorLine2="                                 ~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="76"
+            line="160"
             column="34"/>
     </issue>
 
     <issue
         id="HardcodedText"
         severity="Warning"
-        message="Hardcoded string &quot;API Base URL (https://...)&quot;, should use `@string` resource"
+        message="Hardcoded string &quot;SMS Forwarder&quot;, should use `@string` resource"
         category="Internationalization"
         priority="5"
         summary="Hardcoded text"
         explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="        &lt;EditText android:id=&quot;@+id/editBaseUrl&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:hint=&quot;API Base URL (https://...)&quot; android:inputType=&quot;textUri&quot; />"
-        errorLine2="                                                                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                android:text=&quot;SMS Forwarder&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="12"
-            column="122"/>
+            line="25"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        severity="Warning"
+        message="Hardcoded string &quot;Reliable SMS → backend delivery&quot;, should use `@string` resource"
+        category="Internationalization"
+        priority="5"
+        summary="Hardcoded text"
+        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
+        errorLine1="                android:text=&quot;Reliable SMS → backend delivery&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
+            line="34"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        severity="Warning"
+        message="Hardcoded string &quot;Configuration&quot;, should use `@string` resource"
+        category="Internationalization"
+        priority="5"
+        summary="Hardcoded text"
+        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
+        errorLine1="                &lt;TextView android:layout_width=&quot;wrap_content&quot; android:layout_height=&quot;wrap_content&quot; android:text=&quot;Configuration&quot; android:textStyle=&quot;bold&quot; android:textSize=&quot;17sp&quot; android:textColor=&quot;?attr/colorPrimary&quot; />"
+        errorLine2="                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
+            line="54"
+            column="100"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        severity="Warning"
+        message="Hardcoded string &quot;API Base URL&quot;, should use `@string` resource"
+        category="Internationalization"
+        priority="5"
+        summary="Hardcoded text"
+        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
+        errorLine1="                    android:hint=&quot;API Base URL&quot;>"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
+            line="61"
+            column="21"/>
     </issue>
 
     <issue
@@ -355,12 +439,12 @@
         priority="5"
         summary="Hardcoded text"
         explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="        &lt;EditText android:id=&quot;@+id/editDeviceId&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:hint=&quot;Device ID&quot; android:inputType=&quot;text&quot; />"
-        errorLine2="                                                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                    android:hint=&quot;Device ID&quot;>"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="13"
-            column="123"/>
+            line="75"
+            column="21"/>
     </issue>
 
     <issue
@@ -371,12 +455,12 @@
         priority="5"
         summary="Hardcoded text"
         explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="        &lt;EditText android:id=&quot;@+id/editToken&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:hint=&quot;Device Token&quot; android:inputType=&quot;textPassword&quot; />"
-        errorLine2="                                                                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                    android:hint=&quot;Device Token&quot;>"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="14"
-            column="120"/>
+            line="89"
+            column="21"/>
     </issue>
 
     <issue
@@ -387,44 +471,28 @@
         priority="5"
         summary="Hardcoded text"
         explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="        &lt;Button android:id=&quot;@+id/btnSave&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:text=&quot;Save&quot; />"
-        errorLine2="                                                                                                                   ~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                    android:text=&quot;Save&quot; />"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="16"
-            column="116"/>
+            line="103"
+            column="21"/>
     </issue>
 
     <issue
         id="HardcodedText"
         severity="Warning"
-        message="Hardcoded string &quot;Test connection&quot;, should use `@string` resource"
+        message="Hardcoded string &quot;Status&quot;, should use `@string` resource"
         category="Internationalization"
         priority="5"
         summary="Hardcoded text"
         explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="        &lt;Button android:id=&quot;@+id/btnTest&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:text=&quot;Test connection&quot; />"
-        errorLine2="                                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                &lt;TextView android:layout_width=&quot;wrap_content&quot; android:layout_height=&quot;wrap_content&quot; android:text=&quot;Status&quot; android:textStyle=&quot;bold&quot; android:textSize=&quot;17sp&quot; android:textColor=&quot;?attr/colorPrimary&quot; />"
+        errorLine2="                                                                                                   ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="17"
-            column="116"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        severity="Warning"
-        message="Hardcoded string &quot;Refresh status&quot;, should use `@string` resource"
-        category="Internationalization"
-        priority="5"
-        summary="Hardcoded text"
-        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="        &lt;Button android:id=&quot;@+id/btnRefresh&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:text=&quot;Refresh status&quot; />"
-        errorLine2="                                                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="18"
-            column="119"/>
+            line="123"
+            column="100"/>
     </issue>
 
     <issue
@@ -435,12 +503,12 @@
         priority="5"
         summary="Hardcoded text"
         explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="        &lt;TextView android:id=&quot;@+id/textStatus&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:text=&quot;Status: -&quot; />"
-        errorLine2="                                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                &lt;TextView android:id=&quot;@+id/textStatus&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:layout_marginTop=&quot;10dp&quot; android:text=&quot;Status: -&quot; />"
+        errorLine2="                                                                                                                                                                ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="20"
-            column="121"/>
+            line="125"
+            column="161"/>
     </issue>
 
     <issue
@@ -451,12 +519,12 @@
         priority="5"
         summary="Hardcoded text"
         explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="        &lt;TextView android:id=&quot;@+id/textPending&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:text=&quot;Pending queue: 0&quot; />"
-        errorLine2="                                                                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                &lt;TextView android:id=&quot;@+id/textPending&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:layout_marginTop=&quot;4dp&quot; android:text=&quot;Pending queue: 0&quot; />"
+        errorLine2="                                                                                                                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="21"
-            column="122"/>
+            line="126"
+            column="161"/>
     </issue>
 
     <issue
@@ -467,27 +535,123 @@
         priority="5"
         summary="Hardcoded text"
         explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="        &lt;TextView android:id=&quot;@+id/textLast&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:text=&quot;Last status: -&quot; />"
-        errorLine2="                                                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                &lt;TextView android:id=&quot;@+id/textLast&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:layout_marginTop=&quot;4dp&quot; android:text=&quot;Last status: -&quot; />"
+        errorLine2="                                                                                                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="22"
-            column="119"/>
+            line="127"
+            column="158"/>
     </issue>
 
     <issue
         id="HardcodedText"
         severity="Warning"
-        message="Hardcoded string &quot;Note: if your phone uses aggressive battery management (Xiaomi, Oppo, Realme, Huawei, Samsung), allow this app to run in the background. Force-stopping the app will stop SMS forwarding until reopened.&quot;, should use `@string` resource"
+        message="Hardcoded string &quot;Permission: -&quot;, should use `@string` resource"
         category="Internationalization"
         priority="5"
         summary="Hardcoded text"
         explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="            android:text=&quot;Note: if your phone uses aggressive battery management (Xiaomi, Oppo, Realme, Huawei, Samsung), allow this app to run in the background. Force-stopping the app will stop SMS forwarding until reopened.&quot; />"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                &lt;TextView android:id=&quot;@+id/textPermission&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;wrap_content&quot; android:layout_marginTop=&quot;8dp&quot; android:text=&quot;Permission: -&quot; />"
+        errorLine2="                                                                                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
-            line="25"
+            line="128"
+            column="164"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        severity="Warning"
+        message="Hardcoded string &quot;Test&quot;, should use `@string` resource"
+        category="Internationalization"
+        priority="5"
+        summary="Hardcoded text"
+        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
+        errorLine1="                        android:text=&quot;Test&quot; />"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
+            line="138"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        severity="Warning"
+        message="Hardcoded string &quot;Refresh&quot;, should use `@string` resource"
+        category="Internationalization"
+        priority="5"
+        summary="Hardcoded text"
+        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
+        errorLine1="                        android:text=&quot;Refresh&quot; />"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
+            line="145"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        severity="Warning"
+        message="Hardcoded string &quot;Reliability&quot;, should use `@string` resource"
+        category="Internationalization"
+        priority="5"
+        summary="Hardcoded text"
+        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
+        errorLine1="                &lt;TextView android:layout_width=&quot;wrap_content&quot; android:layout_height=&quot;wrap_content&quot; android:text=&quot;Reliability&quot; android:textStyle=&quot;bold&quot; android:textSize=&quot;17sp&quot; android:textColor=&quot;?attr/colorPrimary&quot; />"
+        errorLine2="                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
+            line="165"
+            column="100"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        severity="Warning"
+        message="Hardcoded string &quot;Grant permissions&quot;, should use `@string` resource"
+        category="Internationalization"
+        priority="5"
+        summary="Hardcoded text"
+        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
+        errorLine1="                    android:text=&quot;Grant permissions&quot; />"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
+            line="173"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        severity="Warning"
+        message="Hardcoded string &quot;Disable battery optimization&quot;, should use `@string` resource"
+        category="Internationalization"
+        priority="5"
+        summary="Hardcoded text"
+        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
+        errorLine1="                    android:text=&quot;Disable battery optimization&quot; />"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
+            line="181"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        severity="Warning"
+        message="Hardcoded string &quot;Force-stopping this app will pause forwarding until reopened. On Realme/Oppo/Xiaomi/Huawei, keep background running allowed.&quot;, should use `@string` resource"
+        category="Internationalization"
+        priority="5"
+        summary="Hardcoded text"
+        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
+        errorLine1="            android:text=&quot;Force-stopping this app will pause forwarding until reopened. On Realme/Oppo/Xiaomi/Huawei, keep background running allowed.&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml"
+            line="188"
             column="13"/>
     </issue>
 

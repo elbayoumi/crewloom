@@ -17,7 +17,7 @@ import com.smsforwarder.app.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val neededPermissions = arrayOf(Manifest.permission.RECEIVE_SMS)
+    private val neededPermissions = arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +52,12 @@ class MainActivity : AppCompatActivity() {
         binding.btnRefresh.setOnClickListener { refreshStatus() }
         binding.btnPermissions.setOnClickListener { ensureSmsPermission() }
         binding.btnBattery.setOnClickListener { openBatteryOptimization() }
+
+        val outboxPeriodic = androidx.work.PeriodicWorkRequestBuilder<OutboxWorker>(15, java.util.concurrent.TimeUnit.MINUTES)
+            .setConstraints(androidx.work.Constraints.Builder().setRequiredNetworkType(androidx.work.NetworkType.CONNECTED).build())
+            .build()
+        androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork("outbox_check", androidx.work.ExistingPeriodicWorkPolicy.KEEP, outboxPeriodic)
+        androidx.work.WorkManager.getInstance(this).enqueueUniqueWork("outbox_now", androidx.work.ExistingWorkPolicy.KEEP, androidx.work.OneTimeWorkRequestBuilder<OutboxWorker>().build())
 
         refreshStatus()
     }

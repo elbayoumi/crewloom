@@ -16,6 +16,19 @@
       externalAnnotations="annotations.zip"
       proguardRules="proguard.txt"/>
   <library
+      name=":@@:rveta-sms::debug"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/20d2d158cb10949afac0d9f73ef4aeb0/transformed/out/jars/classes.jar:/Users/macbook/.gradle/caches/8.14.3/transforms/20d2d158cb10949afac0d9f73ef4aeb0/transformed/out/jars/libs/R.jar"
+      resolved="SmsForwarder:rveta-sms:unspecified"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/20d2d158cb10949afac0d9f73ef4aeb0/transformed/out"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
+  <library
       name="com.google.android.material:material:1.12.0@aar"
       jars="/Users/macbook/.gradle/caches/8.14.3/transforms/5f7300f370742532b20193ca559d9f62/transformed/material-1.12.0/jars/classes.jar"
       resolved="com.google.android.material:material:1.12.0"
@@ -397,19 +410,6 @@
       externalAnnotations="annotations.zip"
       proguardRules="proguard.txt"/>
   <library
-      name="androidx.security:security-crypto:1.1.0-alpha06@aar"
-      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/2713b41d8df2a84fa23c1bb7357ec0db/transformed/security-crypto-1.1.0-alpha06/jars/classes.jar"
-      resolved="androidx.security:security-crypto:1.1.0-alpha06"
-      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/2713b41d8df2a84fa23c1bb7357ec0db/transformed/security-crypto-1.1.0-alpha06"
-      manifest="AndroidManifest.xml"
-      resFolder="res"
-      assetsFolder="assets"
-      lintJar="lint.jar"
-      publicResources="public.txt"
-      symbolFile="R.txt"
-      externalAnnotations="annotations.zip"
-      proguardRules="proguard.txt"/>
-  <library
       name="androidx.cursoradapter:cursoradapter:1.0.0@aar"
       jars="/Users/macbook/.gradle/caches/8.14.3/transforms/ea0b743fee0c8c61ad7681a52ca325e6/transformed/cursoradapter-1.0.0/jars/classes.jar"
       resolved="androidx.cursoradapter:cursoradapter:1.0.0"
@@ -545,18 +545,6 @@
       name="org.jetbrains.kotlin:kotlin-stdlib:2.0.21@jar"
       jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.0.21/618b539767b4899b4660a83006e052b63f1db551/kotlin-stdlib-2.0.21.jar"
       resolved="org.jetbrains.kotlin:kotlin-stdlib:2.0.21"/>
-  <library
-      name="junit:junit:4.13.2@jar"
-      jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/junit/junit/4.13.2/8ac9e16d933b6fb43bc7f576336b8f4d7eb5ba12/junit-4.13.2.jar"
-      resolved="junit:junit:4.13.2"/>
-  <library
-      name="org.json:json:20240303@jar"
-      jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/org.json/json/20240303/ebb88e8fb5122b7506d5cf1d69f1ccdb790d22a/json-20240303.jar"
-      resolved="org.json:json:20240303"/>
-  <library
-      name="org.hamcrest:hamcrest-core:1.3@jar"
-      jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar"
-      resolved="org.hamcrest:hamcrest-core:1.3"/>
   <library
       name="org.jetbrains:annotations:23.0.0@jar"
       jars="/Users/macbook/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/23.0.0/8cc20c07506ec18e0834947b84a864bfc094484e/annotations-23.0.0.jar"
@@ -703,6 +691,19 @@
       jars="/Users/macbook/.gradle/caches/8.14.3/transforms/85f081475d141e9e00b40f07c8035fb9/transformed/tracing-ktx-1.2.0/jars/classes.jar"
       resolved="androidx.tracing:tracing-ktx:1.2.0"
       folder="/Users/macbook/.gradle/caches/8.14.3/transforms/85f081475d141e9e00b40f07c8035fb9/transformed/tracing-ktx-1.2.0"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
+  <library
+      name="androidx.security:security-crypto:1.1.0-alpha06@aar"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/2713b41d8df2a84fa23c1bb7357ec0db/transformed/security-crypto-1.1.0-alpha06/jars/classes.jar"
+      resolved="androidx.security:security-crypto:1.1.0-alpha06"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/2713b41d8df2a84fa23c1bb7357ec0db/transformed/security-crypto-1.1.0-alpha06"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

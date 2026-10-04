@@ -13,6 +13,9 @@
       externalAnnotations="annotations.zip"
       proguardRules="proguard.txt"/>
   <library
+      name=":@@:rveta-sms::debug"
+      project=":rveta-sms"/>
+  <library
       name="com.google.android.material:material:1.12.0@aar"
       jars="/Users/macbook/.gradle/caches/8.14.3/transforms/5f7300f370742532b20193ca559d9f62/transformed/material-1.12.0/jars/classes.jar"
       resolved="com.google.android.material:material:1.12.0"
@@ -394,19 +397,6 @@
       externalAnnotations="annotations.zip"
       proguardRules="proguard.txt"/>
   <library
-      name="androidx.security:security-crypto:1.1.0-alpha06@aar"
-      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/2713b41d8df2a84fa23c1bb7357ec0db/transformed/security-crypto-1.1.0-alpha06/jars/classes.jar"
-      resolved="androidx.security:security-crypto:1.1.0-alpha06"
-      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/2713b41d8df2a84fa23c1bb7357ec0db/transformed/security-crypto-1.1.0-alpha06"
-      manifest="AndroidManifest.xml"
-      resFolder="res"
-      assetsFolder="assets"
-      lintJar="lint.jar"
-      publicResources="public.txt"
-      symbolFile="R.txt"
-      externalAnnotations="annotations.zip"
-      proguardRules="proguard.txt"/>
-  <library
       name="androidx.cursoradapter:cursoradapter:1.0.0@aar"
       jars="/Users/macbook/.gradle/caches/8.14.3/transforms/ea0b743fee0c8c61ad7681a52ca325e6/transformed/cursoradapter-1.0.0/jars/classes.jar"
       resolved="androidx.cursoradapter:cursoradapter:1.0.0"
@@ -688,6 +678,19 @@
       jars="/Users/macbook/.gradle/caches/8.14.3/transforms/85f081475d141e9e00b40f07c8035fb9/transformed/tracing-ktx-1.2.0/jars/classes.jar"
       resolved="androidx.tracing:tracing-ktx:1.2.0"
       folder="/Users/macbook/.gradle/caches/8.14.3/transforms/85f081475d141e9e00b40f07c8035fb9/transformed/tracing-ktx-1.2.0"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
+  <library
+      name="androidx.security:security-crypto:1.1.0-alpha06@aar"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/2713b41d8df2a84fa23c1bb7357ec0db/transformed/security-crypto-1.1.0-alpha06/jars/classes.jar"
+      resolved="androidx.security:security-crypto:1.1.0-alpha06"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/2713b41d8df2a84fa23c1bb7357ec0db/transformed/security-crypto-1.1.0-alpha06"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

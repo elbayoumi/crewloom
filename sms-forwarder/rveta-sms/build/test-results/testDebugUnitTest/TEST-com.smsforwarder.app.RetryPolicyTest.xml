@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.smsforwarder.app.RetryPolicyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-04T00:50:27.706Z" hostname="MacBooks-MacBook-Air.local" time="0.018">
+<testsuite name="com.smsforwarder.app.RetryPolicyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-04T01:37:17.228Z" hostname="MacBooks-MacBook-Air.local" time="0.015">
   <properties/>
-  <testcase name="retryableCodes" classname="com.smsforwarder.app.RetryPolicyTest" time="0.017"/>
+  <testcase name="retryableCodes" classname="com.smsforwarder.app.RetryPolicyTest" time="0.014"/>
   <testcase name="successCodesDelivered" classname="com.smsforwarder.app.RetryPolicyTest" time="0.0"/>
   <testcase name="permanentFailures" classname="com.smsforwarder.app.RetryPolicyTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
