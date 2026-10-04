@@ -22,18 +22,33 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SMS Forwarder"
+                android:text="Rveta SMS"
                 android:textSize="26sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Reliable SMS → backend delivery"
-                android:textSize="13sp"
-                android:textColor="#E9D5FF" />
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical">
+
+                <View
+                    android:id="@+id/pulseDot"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/pulse_dot" />
+
+                <TextView
+                    android:id="@+id/textLinked"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Not linked — scan a QR"
+                    android:textSize="13sp"
+                    android:textColor="#FFFFFF" />
+            </LinearLayout>
         </LinearLayout>
 
         <com.google.android.material.card.MaterialCardView
@@ -51,27 +66,29 @@
                 android:orientation="vertical"
                 android:padding="18dp">
 
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Configuration" android:textStyle="bold" android:textSize="17sp" android:textColor="?attr/colorPrimary" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pairing" android:textStyle="bold" android:textSize="17sp" android:textColor="?attr/colorPrimary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="14dp"
+                    android:text="Scan the QR shown on the web dashboard to link this phone. No manual configuration."
+                    android:textSize="13sp"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnScan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Scan QR to link"
+                    app:icon="@android:drawable/ic_menu_camera" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:hint="API Base URL">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/editBaseUrl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textUri" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="14dp"
                     android:hint="Device ID">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -82,29 +99,12 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnScan"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:text="Scan QR to link device"
-                    app:icon="@android:drawable/ic_menu_camera" />
-
-                <com.google.android.material.button.MaterialButton
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:id="@+id/btnCheckSends"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="Check pending sends now" />
-
-                <com.google.android.material.button.MaterialButton
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:id="@+id/btnSave"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="Save" />
-
+                    android:text="Save &amp; publish device" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -127,7 +127,7 @@
 
                 <TextView android:id="@+id/textStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Status: -" />
                 <TextView android:id="@+id/textPending" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Pending queue: 0" />
-                <TextView android:id="@+id/textLast" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Last status: -" />
+                <TextView android:id="@+id/textLast" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Last: -" />
                 <TextView android:id="@+id/textPermission" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Permission: -" />
 
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="14dp">
@@ -188,7 +188,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Force-stopping this app will pause forwarding until reopened. On Realme/Oppo/Xiaomi/Huawei, keep background running allowed."
+            android:text="Force-stopping the app pauses forwarding until reopened."
             android:textSize="12sp"
             android:textColor="?attr/colorOnSurfaceVariant" />
     </LinearLayout>

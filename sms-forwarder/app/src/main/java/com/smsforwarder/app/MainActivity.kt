@@ -1,13 +1,16 @@
 package com.smsforwarder.app
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.view.animation.LinearInterpolator
+import android.util.Log
 import android.os.PowerManager
 import android.provider.Settings
+import android.animation.ObjectAnimator
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -18,37 +21,18 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val REQ_SCAN = 501
-
     private val neededPermissions = arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS)
+    private var pulse: ObjectAnimator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val config = AppConfig(this)
         handlePairing(intent)
-        if (AppConfig(this).deviceId.isBlank()) AppConfig(this).deviceId = DeviceIdentity.stableId(this)
-        intent.getStringExtra("base_url")?.let { config.baseUrl = it }
-        intent.getStringExtra("device_id")?.let { config.deviceId = it }
-        intent.getStringExtra("token")?.let { config.deviceToken = it }
-        binding.editBaseUrl.setText(config.baseUrl)
+        val config = AppConfig(this)
+        if (config.deviceId.isBlank()) config.deviceId = DeviceIdentity.stableId(this)
         binding.editDeviceId.setText(config.deviceId)
-
-        binding.btnSave.setOnClickListener {
-            config.baseUrl = binding.editBaseUrl.text.toString()
-            config.deviceId = binding.editDeviceId.text.toString()
-            Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
-            val store = PendingSmsStore.get(this)
-            for (id in store.allIdsByState(DeliveryState.FAILED)) {
-                val rec = store.get(id)
-                if (rec != null && rec.lastError == "missing_config") {
-                    store.resetToPending(id)
-                    SmsReceiver.enqueue(this, id)
-                }
-            }
-            refreshStatus()
-        }
 
         binding.btnScan.setOnClickListener {
             try {
@@ -57,22 +41,76 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Scanner unavailable", Toast.LENGTH_SHORT).show()
             }
         }
-        binding.btnCheckSends.setOnClickListener {
-            RvetaSms.checkOutbox(this)
-            Toast.makeText(this, "Checking pending sends…", Toast.LENGTH_SHORT).show()
-        }
-        binding.btnTest.setOnClickListener { runTest() }
+        binding.btnSave.setOnClickListener { saveAndRegister() }
         binding.btnRefresh.setOnClickListener { refreshStatus() }
+        binding.btnTest.setOnClickListener { runTest() }
         binding.btnPermissions.setOnClickListener { ensureSmsPermission() }
         binding.btnBattery.setOnClickListener { openBatteryOptimization() }
 
-        val outboxPeriodic = androidx.work.PeriodicWorkRequestBuilder<OutboxWorker>(15, java.util.concurrent.TimeUnit.MINUTES)
+        scheduleOutboxCheck()
+        refreshStatus()
+        startPulse()
+    }
+
+    private fun startPulse() {
+        pulse?.cancel()
+        pulse = ObjectAnimator.ofFloat(binding.pulseDot, "alpha", 1f, 0.25f).apply {
+            duration = 900
+            repeatMode = ObjectAnimator.REVERSE
+            repeatCount = ObjectAnimator.INFINITE
+            interpolator = LinearInterpolator()
+            start()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        pulse?.cancel()
+    }
+
+    private fun saveAndRegister() {
+        val config = AppConfig(this)
+        val id = binding.editDeviceId.text.toString().trim()
+        if (id.isNotBlank()) config.deviceId = id
+        registerDevice()
+        Toast.makeText(this, "Registered", Toast.LENGTH_SHORT).show()
+        refreshStatus()
+    }
+
+    private fun registerDevice() {
+        val config = AppConfig(this)
+        if (config.deviceId.isBlank() || config.deviceToken.isBlank()) return
+        Thread {
+            try {
+                val info = DeviceIdentity.info(this).toString()
+                val body = org.json.JSONObject()
+                    .put("device_id", config.deviceId)
+                    .put("device_info", info)
+                    .toString()
+                val conn = (java.net.URL("https://bmc.moaf.uk/sms-backend/api/v1/devices/register").openConnection() as java.net.HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    doOutput = true
+                    connectTimeout = 10000
+                    readTimeout = 10000
+                    setRequestProperty("Authorization", "Bearer " + config.deviceToken)
+                    setRequestProperty("Content-Type", "application/json")
+                }
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                conn.responseCode
+                conn.disconnect()
+            } catch (e: Exception) {
+                Log.w("Rveta", "register failed")
+            }
+        }.start()
+    }
+
+    private fun scheduleOutboxCheck() {
+        val periodic = androidx.work.PeriodicWorkRequestBuilder<OutboxWorker>(15, java.util.concurrent.TimeUnit.MINUTES)
             .setConstraints(androidx.work.Constraints.Builder().setRequiredNetworkType(androidx.work.NetworkType.CONNECTED).build())
             .build()
-        androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork("outbox_check", androidx.work.ExistingPeriodicWorkPolicy.KEEP, outboxPeriodic)
-        androidx.work.WorkManager.getInstance(this).enqueueUniqueWork("outbox_now", androidx.work.ExistingWorkPolicy.KEEP, androidx.work.OneTimeWorkRequestBuilder<OutboxWorker>().build())
-
-        refreshStatus()
+        androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "outbox_check", androidx.work.ExistingPeriodicWorkPolicy.KEEP, periodic
+        )
     }
 
     private fun handlePairing(intent: Intent) {
@@ -82,6 +120,7 @@ class MainActivity : AppCompatActivity() {
             Thread {
                 try {
                     val cfg = AppConfig(this)
+                    val body = "{\"session\":\"" + sid + "\",\"token\":\"" + cfg.deviceToken + "\"}"
                     val conn = (java.net.URL(cfg.baseUrl.trimEnd('/') + "/api/session/grant").openConnection() as java.net.HttpURLConnection).apply {
                         requestMethod = "POST"
                         doOutput = true
@@ -90,7 +129,7 @@ class MainActivity : AppCompatActivity() {
                         setRequestProperty("Authorization", "Bearer " + cfg.deviceToken)
                         setRequestProperty("Content-Type", "application/json")
                     }
-                    conn.outputStream.use { it.write("{\"session\":\"$sid\"}".toByteArray()) }
+                    conn.outputStream.use { it.write(body.toByteArray()) }
                     val ok = conn.responseCode in 200..299
                     conn.disconnect()
                     runOnUiThread { Toast.makeText(this, if (ok) "Linked ✓" else "Link failed", Toast.LENGTH_SHORT).show() }
@@ -100,40 +139,58 @@ class MainActivity : AppCompatActivity() {
             }.start()
             return
         }
-        val config = AppConfig(this)
-        val d = intent.data?.getQueryParameter("d")
-        val t = intent.data?.getQueryParameter("t")
-        if (!d.isNullOrBlank() && !t.isNullOrBlank()) {
-            if (config.baseUrl.isBlank()) config.baseUrl = "https://bmc.moaf.uk/sms-backend"
-            config.deviceId = d
-            config.deviceToken = t
-            Toast.makeText(this, "Paired: $d", Toast.LENGTH_SHORT).show()
-        }
+        applyPairingData(intent.data?.toString() ?: "")
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         handlePairing(intent)
+        binding.editDeviceId.setText(AppConfig(this).deviceId)
+        refreshStatus()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_SCAN && resultCode == RESULT_OK) {
+            val text = data?.getStringExtra("scan_result") ?: return
+            if (applyPairingData(text)) {
+                registerDevice()
+                Toast.makeText(this, "Device linked", Toast.LENGTH_SHORT).show()
+                refreshStatus()
+            } else {
+                Toast.makeText(this, "Invalid QR code", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun applyPairingData(text: String): Boolean {
+        val uri = Uri.parse(text)
+        if (uri.scheme != "rveta" && uri.scheme != "https") return false
+        if (uri.host == "session") return true
+        val d = uri.getQueryParameter("d")?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
+        val t = uri.getQueryParameter("t")?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
+        val b = uri.getQueryParameter("b")
         val config = AppConfig(this)
-        handlePairing(intent)
-        if (AppConfig(this).deviceId.isBlank()) AppConfig(this).deviceId = DeviceIdentity.stableId(this)
-        intent.getStringExtra("base_url")?.let { config.baseUrl = it }
-        intent.getStringExtra("device_id")?.let { config.deviceId = it }
-        intent.getStringExtra("token")?.let { config.deviceToken = it }
-        binding.editBaseUrl.setText(config.baseUrl)
-        binding.editDeviceId.setText(config.deviceId)
+        if (!b.isNullOrBlank()) config.baseUrl = b
+        if (config.baseUrl.isBlank()) config.baseUrl = "https://bmc.moaf.uk/sms-backend"
+        config.deviceId = d
+        config.deviceToken = t
+        binding.editDeviceId.setText(d)
+        return true
     }
 
     override fun onResume() {
         super.onResume()
+        binding.editDeviceId.setText(AppConfig(this).deviceId)
+        if (AppConfig(this).deviceToken.isNotBlank()) registerDevice()
         if (missingPermissions().isNotEmpty()) {
-            binding.textPermission.text = "⚠ SMS permission is required — tap \"Grant permissions\""
-            binding.textPermission.setTextColor(android.graphics.Color.parseColor("#F44336"))
+            binding.textPermission.text = "SMS permission required"
+            binding.textPermission.setTextColor(Color.parseColor("#F44336"))
             ensureSmsPermission()
         } else {
-            binding.textPermission.text = "✓ SMS permission granted"
-            binding.textPermission.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
+            binding.textPermission.text = "SMS permission granted"
+            binding.textPermission.setTextColor(Color.parseColor("#4CAF50"))
         }
         refreshStatus()
     }
@@ -147,23 +204,20 @@ class MainActivity : AppCompatActivity() {
         val missing = missingPermissions()
         if (missing.isNotEmpty()) {
             if (missing.any { ActivityCompat.shouldShowRequestPermissionRationale(this, it) }) {
-                AlertDialog.Builder(this)
+                android.app.AlertDialog.Builder(this)
                     .setTitle("Permission required")
-                    .setMessage("This app must receive SMS to forward them to your backend. Please allow the permission.")
+                    .setMessage("This app needs SMS permission to forward your messages.")
                     .setPositiveButton("Allow") { _, _ -> ActivityCompat.requestPermissions(this, missing.toTypedArray(), 100) }
-                    .setNegativeButton("Open settings") { _, _ -> openAppSettings() }
-                    .setCancelable(false)
-                    .show()
+                    .setNegativeButton("Open settings") { _, _ ->
+                        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", packageName, null)
+                        })
+                    }
+                    .setCancelable(false).show()
             } else {
                 ActivityCompat.requestPermissions(this, missing.toTypedArray(), 100)
             }
         }
-    }
-
-    private fun openAppSettings() {
-        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.fromParts("package", packageName, null)
-        })
     }
 
     private fun openBatteryOptimization() {
@@ -174,45 +228,17 @@ class MainActivity : AppCompatActivity() {
                     data = Uri.parse("package:$packageName")
                 })
             } else {
-                Toast.makeText(this, "Battery optimization already disabled", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Already disabled", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQ_SCAN && resultCode == RESULT_OK) {
-            val text = data?.getStringExtra("scan_result") ?: return
-            if (applyPairingData(text)) {
-                Toast.makeText(this, "Device linked", Toast.LENGTH_SHORT).show()
-                refreshStatus()
-            } else {
-                Toast.makeText(this, "Invalid QR code", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun applyPairingData(text: String): Boolean {
-        val uri = android.net.Uri.parse(text)
-        if (uri.scheme != "rveta" && uri.scheme != "https") return false
-        val d = uri.getQueryParameter("d")?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
-        val t = uri.getQueryParameter("t")?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
-        val b = uri.getQueryParameter("b")
-        val config = AppConfig(this)
-        if (!b.isNullOrBlank()) config.baseUrl = b
-        if (config.baseUrl.isBlank()) config.baseUrl = "https://bmc.moaf.uk/sms-backend"
-        config.deviceId = d
-        config.deviceToken = t
-        binding.editDeviceId.setText(d)
-        return true
-    }
-
     private fun runTest() {
         val config = AppConfig(this)
-        if (config.baseUrl.isBlank() || config.deviceToken.isBlank() || config.deviceId.isBlank()) {
-            binding.textStatus.text = "Status: configure URL, token and device id first"
+        if (config.deviceId.isBlank() || config.deviceToken.isBlank()) {
+            binding.textStatus.text = "Scan a QR to link first"
             return
         }
         Thread {
@@ -226,17 +252,19 @@ class MainActivity : AppCompatActivity() {
             )
             val result = ApiClient(config.baseUrl).postSms(config.deviceToken, payload.toJson())
             runOnUiThread {
-                binding.textStatus.text = "Status: " + when {
-                    result.httpCode != null -> "HTTP ${result.httpCode}"
-                    else -> "error ${result.error}"
-                }
+                binding.textStatus.text = "Status: " + (result.httpCode?.let { "HTTP $it" } ?: "error ${result.error}")
             }
         }.start()
     }
 
     private fun refreshStatus() {
+        val config = AppConfig(this)
         val store = PendingSmsStore.get(this)
         binding.textPending.text = "Pending queue: " + store.pendingCount()
-        binding.textLast.text = "Last status: " + store.lastStatus() + "\nDevice fingerprint: " + DeviceIdentity.fingerprintShort(this)
+        binding.textLast.text = "Last: " + store.lastStatus()
+        binding.textLinked.text = if (config.deviceToken.isBlank()) "Not linked — scan a QR" else "Linked ✓"
+        binding.textLinked.setTextColor(
+            Color.parseColor(if (config.deviceToken.isBlank()) "#F44336" else "#4CAF50")
+        )
     }
 }

@@ -16,6 +16,10 @@
         "source": "com.smsforwarder.app-main-48:/layout/activity_main.xml"
     },
     {
+        "merged": "com.smsforwarder.app-debug-46:/drawable_pulse_dot.xml.flat",
+        "source": "com.smsforwarder.app-main-48:/drawable/pulse_dot.xml"
+    },
+    {
         "merged": "/Users/macbook/.gradle/daemon/8.14.3/com.smsforwarder.app-debug-46:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
         "source": "/Users/macbook/.gradle/daemon/8.14.3/com.smsforwarder.app-main-48:/mipmap-anydpi-v26/ic_launcher_round.xml"
     },

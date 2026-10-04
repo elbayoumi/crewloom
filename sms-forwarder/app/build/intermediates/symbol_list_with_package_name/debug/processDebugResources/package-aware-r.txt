@@ -3011,6 +3011,7 @@ drawable notification_template_icon_bg
 drawable notification_template_icon_low_bg
 drawable notification_tile_bg
 drawable notify_panel_notification_icon_bg
+drawable pulse_dot
 drawable test_level_drawable
 drawable tooltip_frame_dark
 drawable tooltip_frame_light
@@ -3103,7 +3104,6 @@ id blocking
 id bottom
 id bounce
 id btnBattery
-id btnCheckSends
 id btnPermissions
 id btnRefresh
 id btnSave
@@ -3170,7 +3170,6 @@ id easeIn
 id easeInOut
 id easeOut
 id edge
-id editBaseUrl
 id editDeviceId
 id edit_query
 id edit_text_id
@@ -3350,6 +3349,7 @@ id pressed
 id previewView
 id progress_circular
 id progress_horizontal
+id pulseDot
 id radio
 id ratio
 id rectangles
@@ -3435,6 +3435,7 @@ id text
 id text2
 id textEnd
 id textLast
+id textLinked
 id textPending
 id textPermission
 id textSpacerNoButtons
