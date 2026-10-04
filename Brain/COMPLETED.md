@@ -158,3 +158,10 @@
 - Device A6BIUOQCBADITWU8 (RMX3710/Realme) granted RECEIVE_SMS via dialog; E2E test passed: real incoming SMS (sender 01020472050) forwarded to backend, received 200, logged with ISO timestamp + UUID message_id; in-app Test button returns HTTP 200.
 - Fixed on-device crash: TextInputEditText missing layout_width/height (ANR dialog was InflateException). Added launch-intent config injection (base_url/device_id/token extras) for adb provisioning.
 - Truecaller hijacked foreground during UI dump tests; force-stopped.
+
+## 2026-10-04 — Rveta SMS: pairing QR, outbox send, multi-device
+- Backend: /opt/sms-api/server.py on 46.202.194.237 runs as systemd unit sms-api (restart-safe; earlier nohup processes died with shell). Apt-installed python3-qrcode for server-side QR.
+- Endpoints: POST /api/v1/incoming-sms, GET /api/messages (inbox page), POST /api/v1/outbox, GET /api/v1/outbox?device_id=, POST /api/v1/outbox/{id}/result, POST /api/v1/pair (creates device_id + device token), GET /api/v1/devices, GET /pair?d&t (PNG QR of rveta://pair?d=..&t=..).
+- Inbox page: device dropdown for send target, token field, send form, "pair new device" QR generator with polling list.
+- App (rveta-sms library): OutboxWorker (periodic 15 min + on-open), SmsManager send, device-scoped fetch; MainActivity handles rveta://pair deep link to set deviceId/token; RECEIVE_SMS+SEND_SMS forced requests; QR on app side removed (server generates QR).
+- Note: phone disconnected via USB late in session; E2E for pairing deep link not yet re-verified on device.

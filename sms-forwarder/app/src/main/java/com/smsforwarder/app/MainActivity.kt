@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val config = AppConfig(this)
+        handlePairing(intent)
         intent.getStringExtra("base_url")?.let { config.baseUrl = it }
         intent.getStringExtra("device_id")?.let { config.deviceId = it }
         intent.getStringExtra("token")?.let { config.deviceToken = it }
@@ -62,10 +63,25 @@ class MainActivity : AppCompatActivity() {
         refreshStatus()
     }
 
+    private fun handlePairing(intent: Intent) {
+        if (intent.data?.scheme != "rveta") return
+        val config = AppConfig(this)
+        val d = intent.data?.getQueryParameter("d")
+        val t = intent.data?.getQueryParameter("t")
+        if (!d.isNullOrBlank() && !t.isNullOrBlank()) {
+            if (config.baseUrl.isBlank()) config.baseUrl = "https://bmc.moaf.uk/sms-backend"
+            config.deviceId = d
+            config.deviceToken = t
+            Toast.makeText(this, "Paired: $d", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        handlePairing(intent)
         val config = AppConfig(this)
+        handlePairing(intent)
         intent.getStringExtra("base_url")?.let { config.baseUrl = it }
         intent.getStringExtra("device_id")?.let { config.deviceId = it }
         intent.getStringExtra("token")?.let { config.deviceToken = it }
@@ -76,7 +92,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        showQr(AppConfig(this))
         if (missingPermissions().isNotEmpty()) {
             binding.textPermission.text = "⚠ SMS permission is required — tap \"Grant permissions\""
             binding.textPermission.setTextColor(android.graphics.Color.parseColor("#F44336"))
@@ -153,17 +168,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }.start()
-    }
-
-    private fun showQr(config: AppConfig) {
-        try {
-            val text = "https://bmc.moaf.uk/sms-backend/inbox?device=" + config.deviceId
-            val hints = java.util.Hashtable<com.google.zxing.EncodeHintType, Any>()
-            val bitMatrix = com.google.zxing.qrcode.QRCodeWriter().encode(text, com.google.zxing.BarcodeFormat.QR_CODE, 512, 512, hints)
-            val bmp = android.graphics.Bitmap.createBitmap(512, 512, android.graphics.Bitmap.Config.RGB_565)
-            for (x in 0 until 512) for (y in 0 until 512) bmp.setPixel(x, y, if (bitMatrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
-            binding.imageQr.setImageBitmap(bmp)
-        } catch (e: Exception) { }
     }
 
     private fun refreshStatus() {
