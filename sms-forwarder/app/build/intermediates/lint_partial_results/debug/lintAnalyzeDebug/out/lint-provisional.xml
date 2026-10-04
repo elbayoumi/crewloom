@@ -9,10 +9,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="144"
             column="47"
-            startOffset="6316"
+            startOffset="6351"
             endLine="144"
             endColumn="90"
-            endOffset="6359"/>
+            endOffset="6394"/>
         <map>
             <condition targetGE="23"/>
         </map>

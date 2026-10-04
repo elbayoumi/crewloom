@@ -7,30 +7,30 @@
                             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
                             line="135"
                             column="23"
-                            startOffset="5934"
+                            startOffset="5969"
                             endLine="135"
                             endColumn="75"
-                            endOffset="5986"/>
+                            endOffset="6021"/>
                     </map>
                     <map id="android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS (used to start an activity)">
                         <location id="0"
                             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
                             line="151"
                             column="27"
-                            startOffset="6648"
+                            startOffset="6683"
                             endLine="151"
                             endColumn="87"
-                            endOffset="6708"/>
+                            endOffset="6743"/>
                     </map>
                     <map id="android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS (used to start an activity)">
                         <location id="0"
                             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
                             line="144"
                             column="31"
-                            startOffset="6300"
+                            startOffset="6335"
                             endLine="144"
                             endColumn="91"
-                            endOffset="6360"/>
+                            endOffset="6395"/>
                     </map>
             </map>
     </map>

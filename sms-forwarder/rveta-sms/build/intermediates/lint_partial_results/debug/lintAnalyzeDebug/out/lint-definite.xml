@@ -167,12 +167,12 @@
         message="Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed.">
         <location
             file="${:rveta-sms*debug*MAIN*sourceProvider*0*manifest*0}"
-            line="17"
+            line="18"
             column="13"
-            startOffset="861"
-            endLine="17"
+            startOffset="933"
+            endLine="18"
             endColumn="49"
-            endOffset="897"/>
+            endOffset="969"/>
     </incident>
 
     <incident

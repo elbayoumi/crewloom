@@ -13,6 +13,7 @@ data class PendingSms(
     val body: String,
     val receivedAtMillis: Long,
     val subscriptionId: Int,
+    val senderName: String?,
     val state: DeliveryState,
     val attempts: Int,
     val lastError: String?,
@@ -20,7 +21,7 @@ data class PendingSms(
     val updatedAt: Long
 )
 
-class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(context, "pending_sms.db", null, 2) {
+class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(context, "pending_sms.db", null, 3) {
 
     companion object {
         @Volatile private var INSTANCE: PendingSmsStore? = null
@@ -55,9 +56,12 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
             db.execSQL("DROP TABLE IF EXISTS pending_sms")
             onCreate(db)
         }
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE pending_sms ADD COLUMN sender_name TEXT")
+        }
     }
 
-    fun insertIfNew(sender: String, body: String, receivedAtMillis: Long, subscriptionId: Int): String? {
+    fun insertIfNew(sender: String, body: String, receivedAtMillis: Long, subscriptionId: Int, senderName: String?): String? {
         val now = System.currentTimeMillis()
         val id = UUID.randomUUID().toString()
         val values = ContentValues().apply {
@@ -66,6 +70,7 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
             put("body", body)
             put("received_at_ms", receivedAtMillis)
             put("subscription_id", subscriptionId)
+            put("sender_name", senderName)
             put("state", DeliveryState.PENDING.name)
             put("attempts", 0)
             put("created_at", now)
@@ -143,6 +148,7 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
     }
 
     private fun fromCursor(cursor: android.database.Cursor): PendingSms {
+        val nameIdx = cursor.getColumnIndex("sender_name")
         return PendingSms(
             messageId = cursor.getString(0),
             sender = cursor.getString(1),
@@ -153,7 +159,8 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
             attempts = cursor.getInt(6),
             lastError = cursor.getString(7),
             createdAt = cursor.getLong(8),
-            updatedAt = cursor.getLong(9)
+            updatedAt = cursor.getLong(9),
+            senderName = if (nameIdx >= 0) cursor.getString(nameIdx) else null
         )
     }
 }

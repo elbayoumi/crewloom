@@ -22,7 +22,8 @@ class SmsReceiver : BroadcastReceiver() {
             try {
                 val store = PendingSmsStore.get(context)
                 for (msg in SmsParser.parseIntent(intent)) {
-                    val id = store.insertIfNew(msg.sender, msg.body, msg.receivedAtMillis, msg.subscriptionId)
+                    val senderName = ContactResolver.lookup(context, msg.sender)
+                    val id = store.insertIfNew(msg.sender, msg.body, msg.receivedAtMillis, msg.subscriptionId, senderName)
                     if (id != null) enqueue(context, id)
                 }
                 store.cleanup()

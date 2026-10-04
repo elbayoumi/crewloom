@@ -159,10 +159,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="102"
             column="43"
-            startOffset="4420"
+            startOffset="4455"
             endLine="102"
             endColumn="101"
-            endOffset="4478"/>
+            endOffset="4513"/>
     </incident>
 
     <incident
@@ -173,10 +173,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="102"
             column="44"
-            startOffset="4421"
+            startOffset="4456"
             endLine="102"
             endColumn="79"
-            endOffset="4456"/>
+            endOffset="4491"/>
     </incident>
 
     <incident
@@ -187,10 +187,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="102"
             column="81"
-            startOffset="4458"
+            startOffset="4493"
             endLine="102"
             endColumn="98"
-            endOffset="4475"/>
+            endOffset="4510"/>
     </incident>
 
     <incident
@@ -201,10 +201,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="106"
             column="44"
-            startOffset="4667"
+            startOffset="4702"
             endLine="106"
             endColumn="68"
-            endOffset="4691"/>
+            endOffset="4726"/>
     </incident>
 
     <incident
@@ -215,10 +215,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="186"
             column="40"
-            startOffset="8244"
+            startOffset="8279"
             endLine="186"
             endColumn="88"
-            endOffset="8292"/>
+            endOffset="8327"/>
     </incident>
 
     <incident
@@ -229,10 +229,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="199"
             column="43"
-            startOffset="8845"
+            startOffset="8880"
             endLine="202"
             endColumn="18"
-            endOffset="9007"/>
+            endOffset="9042"/>
     </incident>
 
     <incident
@@ -243,10 +243,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="199"
             column="44"
-            startOffset="8846"
+            startOffset="8881"
             endLine="199"
             endColumn="52"
-            endOffset="8854"/>
+            endOffset="8889"/>
     </incident>
 
     <incident
@@ -257,10 +257,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="209"
             column="36"
-            startOffset="9162"
+            startOffset="9197"
             endLine="209"
             endColumn="76"
-            endOffset="9202"/>
+            endOffset="9237"/>
     </incident>
 
     <incident
@@ -271,10 +271,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="209"
             column="37"
-            startOffset="9163"
+            startOffset="9198"
             endLine="209"
             endColumn="52"
-            endOffset="9178"/>
+            endOffset="9213"/>
     </incident>
 
     <incident
@@ -285,10 +285,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="210"
             column="33"
-            startOffset="9235"
+            startOffset="9270"
             endLine="210"
             endColumn="69"
-            endOffset="9271"/>
+            endOffset="9306"/>
     </incident>
 
     <incident
@@ -299,10 +299,10 @@
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
             line="210"
             column="34"
-            startOffset="9236"
+            startOffset="9271"
             endLine="210"
             endColumn="47"
-            endOffset="9249"/>
+            endOffset="9284"/>
     </incident>
 
     <incident

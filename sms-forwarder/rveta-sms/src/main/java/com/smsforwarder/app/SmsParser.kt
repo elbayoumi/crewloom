@@ -17,25 +17,22 @@ object SmsParser {
     fun parseIntent(intent: Intent): List<ParsedSms> {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return emptyList()
         val parts = Telephony.Sms.Intents.getMessagesFromIntent(intent) ?: return emptyList()
+        if (parts.isEmpty()) return emptyList()
         val subscriptionId = intent.getIntExtra(EXTRA_SUBSCRIPTION, -1)
-        val grouped = LinkedHashMap<String, MutableList<android.telephony.SmsMessage>>()
+
+        val groups = LinkedHashMap<String, MutableList<android.telephony.SmsMessage>>()
         for (part in parts) {
-            val key = (part.displayOriginatingAddress ?: "") + "|" + part.timestampMillis
-            grouped.getOrPut(key) { mutableListOf() }.add(part)
+            val sender = part.displayOriginatingAddress ?: continue
+            groups.getOrPut(sender) { mutableListOf() }.add(part)
         }
-        val result = mutableListOf<ParsedSms>()
-        for (group in grouped.values) {
-            val sender = group.first().displayOriginatingAddress ?: continue
-            val body = group.joinToString("") { it.displayMessageBody ?: "" }
-            result.add(
-                ParsedSms(
-                    sender = sender,
-                    body = body,
-                    receivedAtMillis = group.first().timestampMillis,
-                    subscriptionId = subscriptionId
-                )
+
+        return groups.map { (sender, group) ->
+            ParsedSms(
+                sender = sender,
+                body = group.joinToString("") { it.displayMessageBody ?: "" },
+                receivedAtMillis = group.first().timestampMillis,
+                subscriptionId = subscriptionId
             )
         }
-        return result
     }
 }

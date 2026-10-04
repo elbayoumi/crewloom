@@ -32,7 +32,8 @@ class SmsForwardWorker(context: Context, params: WorkerParameters) : Worker(cont
             message = record.body,
             receivedAt = SmsPayload.formatTimestamp(record.receivedAtMillis),
             deviceId = config.deviceId,
-            messageId = record.messageId
+            messageId = record.messageId,
+            senderName = record.senderName
         )
 
         val result = ApiClient(config.baseUrl).postSms(config.deviceToken, payload.toJson())
