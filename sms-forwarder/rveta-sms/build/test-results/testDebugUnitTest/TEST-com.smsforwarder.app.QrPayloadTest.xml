@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.smsforwarder.app.QrPayloadTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-04T23:12:56.143Z" hostname="MacBooks-MacBook-Air.local" time="0.008">
+  <properties/>
+  <testcase name="dashboardPairHttpsLink" classname="com.smsforwarder.app.QrPayloadTest" time="0.005"/>
+  <testcase name="dashboardSessionHttpsLink" classname="com.smsforwarder.app.QrPayloadTest" time="0.002"/>
+  <testcase name="foreignQrIsInvalid" classname="com.smsforwarder.app.QrPayloadTest" time="0.0"/>
+  <testcase name="urlEncodedTokenStillRoutes" classname="com.smsforwarder.app.QrPayloadTest" time="0.001"/>
+  <testcase name="deepLinkSession" classname="com.smsforwarder.app.QrPayloadTest" time="0.0"/>
+  <testcase name="deepLinkPair" classname="com.smsforwarder.app.QrPayloadTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

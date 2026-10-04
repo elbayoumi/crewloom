@@ -123,38 +123,32 @@ class MainActivity : AppCompatActivity() {
 
     private fun handlePairing(intent: Intent) {
         val data = intent.data ?: return
-        if (data.scheme == "https" && data.host?.contains("bmc.moaf.uk") == true) {
-            val sid = data.getQueryParameter("session")
-            if (!sid.isNullOrBlank()) {
-                intent.data = Uri.parse("rveta://session?d=$sid")
-            }
+        if (data.scheme == "rveta" || data.scheme == "http" || data.scheme == "https") {
+            processQr(data.toString(), fromScan = false)
         }
-        if (intent.data?.scheme != "rveta") return
-        if (intent.data?.host == "session") {
-            val sid = intent.data?.getQueryParameter("d") ?: return
-            Thread {
-                try {
-                    val cfg = AppConfig(this)
-                    val body = "{\"session\":\"" + sid + "\",\"token\":\"" + cfg.deviceToken + "\"}"
-                    val conn = (java.net.URL(cfg.baseUrl.trimEnd('/') + "/api/session/grant").openConnection() as java.net.HttpURLConnection).apply {
-                        requestMethod = "POST"
-                        doOutput = true
-                        connectTimeout = 10000
-                        readTimeout = 10000
-                        setRequestProperty("Authorization", "Bearer " + cfg.deviceToken)
-                        setRequestProperty("Content-Type", "application/json")
-                    }
-                    conn.outputStream.use { it.write(body.toByteArray()) }
-                    val ok = conn.responseCode in 200..299
-                    conn.disconnect()
-                    runOnUiThread { Toast.makeText(this, if (ok) "Linked ✓" else "Link failed", Toast.LENGTH_SHORT).show() }
-                } catch (e: Exception) {
-                    runOnUiThread { Toast.makeText(this, "Link error", Toast.LENGTH_SHORT).show() }
+    }
+
+    private fun approveSession(sessionId: String) {
+        Thread {
+            try {
+                val cfg = AppConfig(this)
+                val body = "{\"session\":\"" + sessionId + "\",\"token\":\"" + cfg.deviceToken + "\"}"
+                val conn = (java.net.URL(cfg.baseUrl.trimEnd('/') + "/api/session/grant").openConnection() as java.net.HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    doOutput = true
+                    connectTimeout = 10000
+                    readTimeout = 10000
+                    setRequestProperty("Authorization", "Bearer " + cfg.deviceToken)
+                    setRequestProperty("Content-Type", "application/json")
                 }
-            }.start()
-            return
-        }
-        applyPairingData(intent.data?.toString() ?: "")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val ok = conn.responseCode in 200..299
+                conn.disconnect()
+                runOnUiThread { toast(if (ok) "Linked ✓" else "Link failed") }
+            } catch (e: Exception) {
+                runOnUiThread { toast("Link error") }
+            }
+        }.start()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -169,45 +163,65 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQ_SCAN && resultCode == RESULT_OK) {
             val text = data?.getStringExtra("scan_result") ?: return
-            if (applyPairingData(text)) {
-                registerDevice()
-                Toast.makeText(this, "Device linked", Toast.LENGTH_SHORT).show()
-                refreshStatus()
-            } else {
-                Toast.makeText(this, "Invalid QR code", Toast.LENGTH_SHORT).show()
-            }
+            processQr(text, fromScan = true)
         }
     }
 
-    private fun applyPairingData(text: String): Boolean {
-        val raw = text.trim()
-        val uri = runCatching { Uri.parse(raw) }.getOrNull() ?: return false
-        if (uri.host == "session") return true
+    /** Single handler for every QR source: in-app scanner and OS deep links. */
+    private fun processQr(rawText: String, fromScan: Boolean) {
+        val raw = rawText.trim()
+        val uri = runCatching { Uri.parse(raw) }.getOrNull()
+        if (uri == null) return toastInvalid(fromScan)
 
-        var d = uri.getQueryParameter("d")
-        var t = uri.getQueryParameter("t")
-        var b = uri.getQueryParameter("b")
-        if (d.isNullOrBlank() || t.isNullOrBlank()) {
-            val q = raw.substringAfter('?', "")
-            q.split('&').forEach { part ->
-                val kv = part.split('=', limit = 2)
-                if (kv.size == 2) {
-                    if (kv[0] == "d") d = kv[1]
-                    if (kv[0] == "t") t = kv[1]
-                    if (kv[0] == "b") b = kv[1]
-                }
-            }
+        val isWeb = uri.scheme == "http" || uri.scheme == "https"
+        val host = uri.host ?: ""
+        val session = uri.getQueryParameter("session") ?: param(raw, "session")
+        val deviceId = uri.getQueryParameter("d") ?: param(raw, "d")
+        val token = uri.getQueryParameter("t") ?: param(raw, "t")
+        val base = uri.getQueryParameter("b") ?: param(raw, "b")
+
+        // 1) laptop <-> phone session link (generated by the dashboard)
+        if (!session.isNullOrBlank() && (isWeb || uri.scheme == "rveta")) {
+            approveSession(session)
+            toast(if (fromScan) "Linking…" else "Linked ✓")
+            return
         }
-        val dv = d?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
-        val tv = t?.takeIf { it.isNotBlank() && it != "undefined" } ?: return false
-        val config = AppConfig(this)
-        if (!b.isNullOrBlank()) config.baseUrl = b
-        if (config.baseUrl.isBlank()) config.baseUrl = "https://bmc.moaf.uk/sms-backend"
-        if (config.deviceId.isBlank()) config.deviceId = dv
-        config.deviceToken = tv
-        lockDeviceId()
-        return true
+
+        // 2) device pairing link
+        if (!deviceId.isNullOrBlank() && !token.isNullOrBlank()) {
+            val config = AppConfig(this)
+            if (!base.isNullOrBlank()) config.baseUrl = base
+            if (config.baseUrl.isBlank()) config.baseUrl = "https://bmc.moaf.uk/sms-backend"
+            if (config.deviceId.isBlank()) config.deviceId = deviceId
+            config.deviceToken = token
+            lockDeviceId()
+            registerDevice()
+            refreshStatus()
+            toast("Device linked")
+            return
+        }
+
+        // 3) rveta://session?d=<sid>
+        if (uri.scheme == "rveta" && uri.host == "session") {
+            val sid = deviceId ?: return toastInvalid(fromScan)
+            approveSession(sid)
+            toast("Linking…")
+            return
+        }
+
+        toastInvalid(fromScan)
     }
+
+    private fun param(raw: String, key: String): String? =
+        raw.substringAfter('?', "").split('&').firstOrNull {
+            it.substringBefore('=') == key
+        }?.substringAfter('=', "")?.takeIf { it.isNotBlank() }
+
+    private fun toastInvalid(fromScan: Boolean) {
+        Toast.makeText(this, "Invalid QR code", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
     override fun onResume() {
         super.onResume()
