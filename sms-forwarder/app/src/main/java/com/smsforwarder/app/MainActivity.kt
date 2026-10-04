@@ -77,6 +77,29 @@ class MainActivity : AppCompatActivity() {
 
     private fun handlePairing(intent: Intent) {
         if (intent.data?.scheme != "rveta") return
+        if (intent.data?.host == "session") {
+            val sid = intent.data?.getQueryParameter("d") ?: return
+            Thread {
+                try {
+                    val cfg = AppConfig(this)
+                    val conn = (java.net.URL(cfg.baseUrl.trimEnd('/') + "/api/session/grant").openConnection() as java.net.HttpURLConnection).apply {
+                        requestMethod = "POST"
+                        doOutput = true
+                        connectTimeout = 10000
+                        readTimeout = 10000
+                        setRequestProperty("Authorization", "Bearer " + cfg.deviceToken)
+                        setRequestProperty("Content-Type", "application/json")
+                    }
+                    conn.outputStream.use { it.write("{\"session\":\"$sid\"}".toByteArray()) }
+                    val ok = conn.responseCode in 200..299
+                    conn.disconnect()
+                    runOnUiThread { Toast.makeText(this, if (ok) "Linked ✓" else "Link failed", Toast.LENGTH_SHORT).show() }
+                } catch (e: Exception) {
+                    runOnUiThread { Toast.makeText(this, "Link error", Toast.LENGTH_SHORT).show() }
+                }
+            }.start()
+            return
+        }
         val config = AppConfig(this)
         val d = intent.data?.getQueryParameter("d")
         val t = intent.data?.getQueryParameter("t")

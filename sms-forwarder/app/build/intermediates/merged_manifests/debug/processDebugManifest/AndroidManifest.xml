@@ -63,6 +63,9 @@
                 <data
                     android:host="pair"
                     android:scheme="rveta" />
+                <data
+                    android:host="session"
+                    android:scheme="rveta" />
             </intent-filter>
         </activity>
         <activity
