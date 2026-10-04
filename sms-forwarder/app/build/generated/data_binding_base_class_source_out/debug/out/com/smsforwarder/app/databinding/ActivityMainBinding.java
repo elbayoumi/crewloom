@@ -8,6 +8,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.google.android.material.button.MaterialButton;
@@ -46,6 +47,9 @@ public final class ActivityMainBinding implements ViewBinding {
   public final TextInputEditText editToken;
 
   @NonNull
+  public final AppCompatImageView imageQr;
+
+  @NonNull
   public final TextView textLast;
 
   @NonNull
@@ -61,8 +65,8 @@ public final class ActivityMainBinding implements ViewBinding {
       @NonNull MaterialButton btnPermissions, @NonNull MaterialButton btnRefresh,
       @NonNull MaterialButton btnSave, @NonNull MaterialButton btnTest,
       @NonNull TextInputEditText editBaseUrl, @NonNull TextInputEditText editDeviceId,
-      @NonNull TextInputEditText editToken, @NonNull TextView textLast,
-      @NonNull TextView textPending, @NonNull TextView textPermission,
+      @NonNull TextInputEditText editToken, @NonNull AppCompatImageView imageQr,
+      @NonNull TextView textLast, @NonNull TextView textPending, @NonNull TextView textPermission,
       @NonNull TextView textStatus) {
     this.rootView = rootView;
     this.btnBattery = btnBattery;
@@ -73,6 +77,7 @@ public final class ActivityMainBinding implements ViewBinding {
     this.editBaseUrl = editBaseUrl;
     this.editDeviceId = editDeviceId;
     this.editToken = editToken;
+    this.imageQr = imageQr;
     this.textLast = textLast;
     this.textPending = textPending;
     this.textPermission = textPermission;
@@ -154,6 +159,12 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.imageQr;
+      AppCompatImageView imageQr = ViewBindings.findChildViewById(rootView, id);
+      if (imageQr == null) {
+        break missingId;
+      }
+
       id = R.id.textLast;
       TextView textLast = ViewBindings.findChildViewById(rootView, id);
       if (textLast == null) {
@@ -179,7 +190,7 @@ public final class ActivityMainBinding implements ViewBinding {
       }
 
       return new ActivityMainBinding((ScrollView) rootView, btnBattery, btnPermissions, btnRefresh,
-          btnSave, btnTest, editBaseUrl, editDeviceId, editToken, textLast, textPending,
+          btnSave, btnTest, editBaseUrl, editDeviceId, editToken, imageQr, textLast, textPending,
           textPermission, textStatus);
     }
     String missingId = rootView.getResources().getResourceName(id);

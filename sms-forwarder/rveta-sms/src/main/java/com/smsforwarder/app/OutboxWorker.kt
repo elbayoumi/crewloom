@@ -15,7 +15,7 @@ class OutboxWorker(context: Context, params: WorkerParameters) : Worker(context,
         val config = AppConfig(applicationContext)
         if (config.baseUrl.isBlank() || config.deviceToken.isBlank()) return Result.success()
         return try {
-            val list = getPending(config.baseUrl, config.deviceToken)
+            val list = getPending(config.baseUrl, config.deviceToken, config.deviceId)
             for (i in 0 until list.length()) {
                 val o = list.getJSONObject(i)
                 val id = o.getLong("id")
@@ -33,8 +33,8 @@ class OutboxWorker(context: Context, params: WorkerParameters) : Worker(context,
         }
     }
 
-    private fun getPending(baseUrl: String, token: String): JSONArray {
-        val conn = (URL(baseUrl.trimEnd('/') + "/api/v1/outbox").openConnection() as HttpURLConnection).apply {
+    private fun getPending(baseUrl: String, token: String, deviceId: String): JSONArray {
+        val conn = (URL(baseUrl.trimEnd('/') + "/api/v1/outbox?device_id=$deviceId").openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
             connectTimeout = 15000
             readTimeout = 20000

@@ -9,6 +9,7 @@ id btnTest
 id editBaseUrl
 id editDeviceId
 id editToken
+id imageQr
 id textLast
 id textPending
 id textPermission

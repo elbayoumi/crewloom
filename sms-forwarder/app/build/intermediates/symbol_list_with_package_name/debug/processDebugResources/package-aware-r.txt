@@ -3213,6 +3213,7 @@ id ifRoom
 id ignore
 id ignoreRequest
 id image
+id imageQr
 id indeterminate
 id info
 id invisible
