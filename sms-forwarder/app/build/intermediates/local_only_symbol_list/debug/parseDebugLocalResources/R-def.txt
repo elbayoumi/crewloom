@@ -1,0 +1,18 @@
+R_DEF: Internal format may change without notice
+local
+drawable hero_bg
+id btnBattery
+id btnPermissions
+id btnRefresh
+id btnSave
+id btnTest
+id editBaseUrl
+id editDeviceId
+id editToken
+id textLast
+id textPending
+id textPermission
+id textStatus
+layout activity_main
+string app_name
+style Theme.SmsForwarder

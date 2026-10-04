@@ -145,3 +145,16 @@
 - Artifact: PR #2 merged into public main at `d9e6c64` after exact head `13b29e4` passed every hosted check.
 - Evidence: https://github.com/elbayoumi/crewloom/actions/runs/37117271745 — Python 3.9/3.14 validation, dashboard tests/type checking/build, actual Docker workflows/pilot/grader and GitGuardian all pass. Actual commit hooks remained enabled; source manifest and archive checks pass.
 - Limits: No private-client rollout or new release tag; provider billing/quality and native callbacks remain deferred.
+
+## 2026-10-04 — SMS Forwarder Android app built
+- Artifact: /Volumes/main/Projects/crewloom/sms-forwarder
+- Impact: New native Kotlin Android app (minSdk 26, compileSdk 35) forwarding SMS to POST /api/v1/incoming-sms via WorkManager queue, acquire.
+- Evidence: ./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease all green; app/build/outputs/apk/release/app-release-unsigned.apk produced; required standalone Gradle 8.14.3 from services.gradle.org (no local gradle binary); ANDROID_SDK at /opt/homebrew/share/android-commandlinetools.
+- Review gate: general-subagent final review found 14 findings; blockers fixed (shared SQLiteOpenHelper singleton, insertWithOnConflict, BROADCAST_SMS permission on receiver, goAsync in receivers, DB-attempt-only retry accounting, DELIVERED state retained for status, unique key broadened to sender+timestamp+subscription+body, encrypted-prefs no plaintext fallback, FAILED missing_config re-queued on save). Security-reviewer subagent unavailable (provider error); security checklist done inline.
+
+## 2026-10-04 — SMS Forwarder E2E on real device + backend
+- Backend deployed: /opt/sms-api/server.py on 46.202.194.237 (srv791731), token in /opt/sms-api/token, logs at /data/messages.log; nginx gateway exposes https://bmc.moaf.uk/sms-backend/ → 172.21.0.1:8085/
+- Base URL for app: https://bmc.moaf.uk/sms-backend
+- Device A6BIUOQCBADITWU8 (RMX3710/Realme) granted RECEIVE_SMS via dialog; E2E test passed: real incoming SMS (sender 01020472050) forwarded to backend, received 200, logged with ISO timestamp + UUID message_id; in-app Test button returns HTTP 200.
+- Fixed on-device crash: TextInputEditText missing layout_width/height (ANR dialog was InflateException). Added launch-intent config injection (base_url/device_id/token extras) for adb provisioning.
+- Truecaller hijacked foreground during UI dump tests; force-stopped.

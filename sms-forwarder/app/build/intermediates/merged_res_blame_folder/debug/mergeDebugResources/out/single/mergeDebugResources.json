@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.smsforwarder.app-debug-41:/layout_activity_main.xml.flat",
+        "source": "com.smsforwarder.app-main-43:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.smsforwarder.app-debug-41:/drawable_hero_bg.xml.flat",
+        "source": "com.smsforwarder.app-main-43:/drawable/hero_bg.xml"
+    }
+]

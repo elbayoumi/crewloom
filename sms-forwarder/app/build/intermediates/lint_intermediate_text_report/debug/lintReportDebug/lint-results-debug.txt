@@ -1,0 +1,200 @@
+/Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts:13: Warning: Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the android.os.Build.VERSION_CODES javadoc for details. [OldTargetApi]
+        targetSdk = 35
+        ~~~~~~~~~~~~~~
+
+   Explanation for issues of type "OldTargetApi":
+   When your application runs on a version of Android that is more recent than
+   your targetSdkVersion specifies that it has been tested with, various
+   compatibility modes kick in. This ensures that your application continues
+   to work, but it may look out of place. For example, if the targetSdkVersion
+   is less than 14, your app may get an option button in the UI.
+
+   To fix this issue, set the targetSdkVersion to the highest available value.
+   Then test your app to make sure everything works correctly. You may want to
+   consult the compatibility notes to see what changes apply to each version
+   you are adding support for:
+   https://developer.android.com/reference/android/os/Build.VERSION_CODES.html
+   as well as follow this guide:
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.
+   html
+
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.html
+
+/Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts:45: Warning: A newer version of androidx.core:core-ktx than 1.13.1 is available: 1.19.1 [GradleDependency]
+    implementation("androidx.core:core-ktx:1.13.1")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts:46: Warning: A newer version of androidx.appcompat:appcompat than 1.7.0 is available: 1.8.0 [GradleDependency]
+    implementation("androidx.appcompat:appcompat:1.7.0")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts:47: Warning: A newer version of com.google.android.material:material than 1.12.0 is available: 1.14.0 [GradleDependency]
+    implementation("com.google.android.material:material:1.12.0")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts:48: Warning: A newer version of androidx.work:work-runtime-ktx than 2.10.0 is available: 2.12.0 [GradleDependency]
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts:49: Warning: A newer version of androidx.security:security-crypto than 1.1.0-alpha06 is available: 1.1.0 [GradleDependency]
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "GradleDependency":
+   This detector looks for usages of libraries where the version you are using
+   is not the current stable release. Using older versions is fine, and there
+   are cases where you deliberately want to stick with an older version.
+   However, you may simply not be aware that a more recent version is
+   available, and that is what this lint check helps find.
+
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:12: Warning: The attribute android:allowBackup is deprecated from Android 12 and higher and may be removed in future versions. Consider adding the attribute android:dataExtractionRules specifying an @xml resource which configures cloud backups and device transfers on Android 12 and higher. [DataExtractionRules]
+        android:allowBackup="false"
+                             ~~~~~
+
+   Explanation for issues of type "DataExtractionRules":
+   Before Android 12, the attributes android:allowBackup and
+   android:fullBackupContent were used to configure all forms of backup,
+   including cloud backups, device-to-device transfers and adb backup.
+
+   In Android 12 and higher, these attributes have been deprecated and will
+   only apply to cloud backups. You should instead use the attribute
+   android:dataExtractionRules, specifying an @xml resource that configures
+   which files to back up, for cloud backups and for device-to-device
+   transfers, separately. If your minSdkVersion supports older versions,
+   you'll still want to specify an android:fullBackupContent resource if the
+   default behavior is not right for your app.
+
+   https://developer.android.com/about/versions/12/backup-restore#xml-changes
+   https://goo.gle/DataExtractionRules
+
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/values/themes.xml:3: Warning: Unnecessary; SDK_INT is always >= 21 [ObsoleteSdkInt]
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
+                                            ~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "ObsoleteSdkInt":
+   This check flags version checks that are not necessary, because the
+   minSdkVersion (or surrounding known API level) is already at least as high
+   as the version checked for.
+
+   Similarly, it also looks for resources in -vNN folders, such as values-v14
+   where the version qualifier is less than or equal to the minSdkVersion,
+   where the contents should be merged into the best folder.
+
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:11: Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
+    <application
+     ~~~~~~~~~~~
+
+   Explanation for issues of type "MissingApplicationIcon":
+   You should set an icon for the application as whole because there is no
+   default. This attribute must be set as a reference to a drawable resource
+   containing the image (for example @drawable/icon).
+
+   https://developer.android.com/studio/publish/preparing#publishing-configure
+
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:12: Warning: Missing autofillHints attribute [Autofill]
+        <EditText android:id="@+id/editBaseUrl" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="API Base URL (https://...)" android:inputType="textUri" />
+         ~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:13: Warning: Missing autofillHints attribute [Autofill]
+        <EditText android:id="@+id/editDeviceId" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Device ID" android:inputType="text" />
+         ~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:14: Warning: Missing autofillHints attribute [Autofill]
+        <EditText android:id="@+id/editToken" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Device Token" android:inputType="textPassword" />
+         ~~~~~~~~
+
+   Explanation for issues of type "Autofill":
+   Specify an autofillHints attribute when targeting SDK version 26 or higher
+   or explicitly specify that the view is not important for autofill. Your app
+   can help an autofill service classify the data correctly by providing the
+   meaning of each view that could be autofillable, such as views representing
+   usernames, passwords, credit card fields, email addresses, etc.
+
+   The hints can have any value, but it is recommended to use predefined
+   values like 'username' for a username or 'creditCardNumber' for a credit
+   card number. For a list of all predefined autofill hint constants, see the
+   AUTOFILL_HINT_ constants in the View reference at
+   https://developer.android.com/reference/android/view/View.html.
+
+   You can mark a view unimportant for autofill by specifying an
+   importantForAutofill attribute on that view or a parent view. See
+   https://developer.android.com/reference/android/view/View.html#setImportant
+   ForAutofill(int).
+
+   https://developer.android.com/guide/topics/text/autofill.html
+
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:52: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+            binding.textStatus.text = "Status: configure URL, token and device id first"
+                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:65: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                binding.textStatus.text = "Status: " + when {
+                                          ^
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:65: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                binding.textStatus.text = "Status: " + when {
+                                           ~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:75: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+        binding.textPending.text = "Pending queue: " + store.pendingCount()
+                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:75: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        binding.textPending.text = "Pending queue: " + store.pendingCount()
+                                    ~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:76: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+        binding.textLast.text = "Last status: " + store.lastStatus()
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:76: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        binding.textLast.text = "Last status: " + store.lastStatus()
+                                 ~~~~~~~~~~~~~
+
+   Explanation for issues of type "SetTextI18n":
+   When calling TextView#setText
+   * Never call Number#toString() to format numbers; it will not handle
+   fraction separators and locale-specific digits properly. Consider using
+   String#format with proper format specifications (%d or %f) instead.
+   * Do not pass a string literal (e.g. "Hello") to display text. Hardcoded
+   text can not be properly translated to other languages. Consider using
+   Android resource strings instead.
+   * Do not build messages by concatenating text chunks. Such messages can not
+   be properly translated.
+
+   https://developer.android.com/guide/topics/resources/localization.html
+
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:12: Warning: Hardcoded string "API Base URL (https://...)", should use @string resource [HardcodedText]
+        <EditText android:id="@+id/editBaseUrl" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="API Base URL (https://...)" android:inputType="textUri" />
+                                                                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:13: Warning: Hardcoded string "Device ID", should use @string resource [HardcodedText]
+        <EditText android:id="@+id/editDeviceId" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Device ID" android:inputType="text" />
+                                                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:14: Warning: Hardcoded string "Device Token", should use @string resource [HardcodedText]
+        <EditText android:id="@+id/editToken" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Device Token" android:inputType="textPassword" />
+                                                                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:16: Warning: Hardcoded string "Save", should use @string resource [HardcodedText]
+        <Button android:id="@+id/btnSave" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Save" />
+                                                                                                                   ~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:17: Warning: Hardcoded string "Test connection", should use @string resource [HardcodedText]
+        <Button android:id="@+id/btnTest" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Test connection" />
+                                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:18: Warning: Hardcoded string "Refresh status", should use @string resource [HardcodedText]
+        <Button android:id="@+id/btnRefresh" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Refresh status" />
+                                                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:20: Warning: Hardcoded string "Status: -", should use @string resource [HardcodedText]
+        <TextView android:id="@+id/textStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Status: -" />
+                                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:21: Warning: Hardcoded string "Pending queue: 0", should use @string resource [HardcodedText]
+        <TextView android:id="@+id/textPending" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Pending queue: 0" />
+                                                                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:22: Warning: Hardcoded string "Last status: -", should use @string resource [HardcodedText]
+        <TextView android:id="@+id/textLast" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Last status: -" />
+                                                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:25: Warning: Hardcoded string "Note: if your phone uses aggressive battery management (Xiaomi, Oppo, Realme, Huawei, Samsung), allow this app to run in the background. Force-stopping the app will stop SMS forwarding until reopened.", should use @string resource [HardcodedText]
+            android:text="Note: if your phone uses aggressive battery management (Xiaomi, Oppo, Realme, Huawei, Samsung), allow this app to run in the background. Force-stopping the app will stop SMS forwarding until reopened." />
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "HardcodedText":
+   Hardcoding text attributes directly in layout files is bad for several
+   reasons:
+
+   * When creating configuration variations (for example for landscape or
+   portrait) you have to repeat the actual text (and keep it up to date when
+   making changes)
+
+   * The application cannot be translated to other languages by just adding
+   new translations for existing string resources.
+
+   There are quickfixes to automatically extract this hardcoded string into a
+   resource lookup.
+
+0 errors, 29 warnings

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <EditText android:id="@+id/editBaseUrl" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="API Base URL (https://...)" android:inputType="textUri" />
+        <EditText android:id="@+id/editDeviceId" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Device ID" android:inputType="text" />
+        <EditText android:id="@+id/editToken" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Device Token" android:inputType="textPassword" />
+
+        <Button android:id="@+id/btnSave" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Save" />
+        <Button android:id="@+id/btnTest" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Test connection" />
+        <Button android:id="@+id/btnRefresh" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Refresh status" />
+
+        <TextView android:id="@+id/textStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Status: -" />
+        <TextView android:id="@+id/textPending" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Pending queue: 0" />
+        <TextView android:id="@+id/textLast" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Last status: -" />
+
+        <TextView android:id="@+id/textNote" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp"
+            android:text="Note: if your phone uses aggressive battery management (Xiaomi, Oppo, Realme, Huawei, Samsung), allow this app to run in the background. Force-stopping the app will stop SMS forwarding until reopened." />
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,15 @@
+R_DEF: Internal format may change without notice
+local
+id btnRefresh
+id btnSave
+id btnTest
+id editBaseUrl
+id editDeviceId
+id editToken
+id textLast
+id textNote
+id textPending
+id textStatus
+layout activity_main
+string app_name
+style Theme.SmsForwarder

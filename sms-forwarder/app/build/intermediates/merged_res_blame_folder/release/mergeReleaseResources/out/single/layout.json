@@ -1,0 +1,6 @@
+[
+    {
+        "merged": "com.smsforwarder.app-mergeReleaseResources-40:/layout/activity_main.xml",
+        "source": "com.smsforwarder.app-main-42:/layout/activity_main.xml"
+    }
+]

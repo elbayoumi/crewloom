@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.7.3" type="partial_results">
+    <map id="UnsafeIntentLaunch">
+            <map id="unprotected">
+                <entry
+                    name="com.smsforwarder.app.BootReceiver"
+                    boolean="true"/>
+                <entry
+                    name="com.smsforwarder.app.MainActivity"
+                    boolean="true"/>
+            </map>
+    </map>
+    <map id="UnusedResources">
+        <entry
+            name="model"
+            string="attr[colorPrimary(R)],id[editBaseUrl(U),editDeviceId(U),editToken(U),btnSave(U),btnTest(U),btnRefresh(U),textStatus(U),textPending(U),textLast(U),textNote(D)],layout[activity_main(U)],string[app_name(U)],style[Theme_SmsForwarder(U),Theme_Material3_DayNight_NoActionBar(R)];d^e^0;;;"/>
+    </map>
+
+</incidents>
