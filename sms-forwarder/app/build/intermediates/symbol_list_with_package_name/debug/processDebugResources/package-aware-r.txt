@@ -3170,7 +3170,7 @@ id easeIn
 id easeInOut
 id easeOut
 id edge
-id editDeviceId
+id editName
 id edit_query
 id edit_text_id
 id elastic
@@ -3433,6 +3433,7 @@ id tag_unhandled_key_listeners
 id tag_window_insets_animation_callback
 id text
 id text2
+id textDeviceId
 id textEnd
 id textLast
 id textLinked

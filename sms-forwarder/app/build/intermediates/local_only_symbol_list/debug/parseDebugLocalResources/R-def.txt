@@ -10,8 +10,9 @@ id btnRefresh
 id btnSave
 id btnScan
 id btnTest
-id editDeviceId
+id editName
 id pulseDot
+id textDeviceId
 id textLast
 id textLinked
 id textPending

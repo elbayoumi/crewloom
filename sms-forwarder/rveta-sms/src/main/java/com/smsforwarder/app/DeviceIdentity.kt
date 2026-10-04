@@ -12,10 +12,12 @@ import java.util.UUID
 
 object DeviceIdentity {
 
+    /** Immutable per-installation id, derived only from hardware/OS identity. Never user editable. */
     @SuppressLint("HardwareIds")
-    fun stableId(context: Context): String {
-        val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown"
-        return "rv-" + UUID.nameUUIDFromBytes(androidId.toByteArray()).toString().take(8)
+    fun immutableId(context: Context): String {
+        val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "no-android-id"
+        val seed = "$androidId|${Build.MANUFACTURER}|${Build.MODEL}|${Build.DEVICE}|${Build.BOARD}"
+        return "rv-" + UUID.nameUUIDFromBytes(seed.toByteArray()).toString().take(12)
     }
 
     @SuppressLint("HardwareIds")
@@ -39,7 +41,8 @@ object DeviceIdentity {
     @SuppressLint("HardwareIds")
     fun serialNumber(): String {
         return try {
-            val s = @Suppress("DEPRECATION") android.os.Build.SERIAL
+            @Suppress("DEPRECATION")
+            val s = Build.SERIAL
             if (!s.isNullOrBlank() && s != "unknown") s else "restricted_by_android"
         } catch (e: Exception) {
             "restricted_by_android"
@@ -51,6 +54,7 @@ object DeviceIdentity {
         val o = JSONObject()
         val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown"
         val mac = macAddress()
+        o.put("device_id", immutableId(context))
         o.put("android_id", androidId)
         o.put("mac_address", if (mac == "02:00:00:00:00:00") "restricted_by_android" else mac)
         o.put("serial", serialNumber())
@@ -58,6 +62,8 @@ object DeviceIdentity {
         o.put("brand", Build.BRAND)
         o.put("model", Build.MODEL)
         o.put("device", Build.DEVICE)
+        o.put("board", Build.BOARD)
+        o.put("fingerprint_build", Build.FINGERPRINT.take(48))
         o.put("os_version", Build.VERSION.RELEASE)
         o.put("sdk", Build.VERSION.SDK_INT)
         o.put("abi", Build.SUPPORTED_ABIS.firstOrNull() ?: "unknown")

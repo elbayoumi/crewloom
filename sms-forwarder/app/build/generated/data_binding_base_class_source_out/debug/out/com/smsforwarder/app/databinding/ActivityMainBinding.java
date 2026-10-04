@@ -40,10 +40,13 @@ public final class ActivityMainBinding implements ViewBinding {
   public final MaterialButton btnTest;
 
   @NonNull
-  public final TextInputEditText editDeviceId;
+  public final TextInputEditText editName;
 
   @NonNull
   public final View pulseDot;
+
+  @NonNull
+  public final TextView textDeviceId;
 
   @NonNull
   public final TextView textLast;
@@ -63,8 +66,8 @@ public final class ActivityMainBinding implements ViewBinding {
   private ActivityMainBinding(@NonNull ScrollView rootView, @NonNull MaterialButton btnBattery,
       @NonNull MaterialButton btnPermissions, @NonNull MaterialButton btnRefresh,
       @NonNull MaterialButton btnSave, @NonNull MaterialButton btnScan,
-      @NonNull MaterialButton btnTest, @NonNull TextInputEditText editDeviceId,
-      @NonNull View pulseDot, @NonNull TextView textLast, @NonNull TextView textLinked,
+      @NonNull MaterialButton btnTest, @NonNull TextInputEditText editName, @NonNull View pulseDot,
+      @NonNull TextView textDeviceId, @NonNull TextView textLast, @NonNull TextView textLinked,
       @NonNull TextView textPending, @NonNull TextView textPermission,
       @NonNull TextView textStatus) {
     this.rootView = rootView;
@@ -74,8 +77,9 @@ public final class ActivityMainBinding implements ViewBinding {
     this.btnSave = btnSave;
     this.btnScan = btnScan;
     this.btnTest = btnTest;
-    this.editDeviceId = editDeviceId;
+    this.editName = editName;
     this.pulseDot = pulseDot;
+    this.textDeviceId = textDeviceId;
     this.textLast = textLast;
     this.textLinked = textLinked;
     this.textPending = textPending;
@@ -146,15 +150,21 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.editDeviceId;
-      TextInputEditText editDeviceId = ViewBindings.findChildViewById(rootView, id);
-      if (editDeviceId == null) {
+      id = R.id.editName;
+      TextInputEditText editName = ViewBindings.findChildViewById(rootView, id);
+      if (editName == null) {
         break missingId;
       }
 
       id = R.id.pulseDot;
       View pulseDot = ViewBindings.findChildViewById(rootView, id);
       if (pulseDot == null) {
+        break missingId;
+      }
+
+      id = R.id.textDeviceId;
+      TextView textDeviceId = ViewBindings.findChildViewById(rootView, id);
+      if (textDeviceId == null) {
         break missingId;
       }
 
@@ -189,8 +199,8 @@ public final class ActivityMainBinding implements ViewBinding {
       }
 
       return new ActivityMainBinding((ScrollView) rootView, btnBattery, btnPermissions, btnRefresh,
-          btnSave, btnScan, btnTest, editDeviceId, pulseDot, textLast, textLinked, textPending,
-          textPermission, textStatus);
+          btnSave, btnScan, btnTest, editName, pulseDot, textDeviceId, textLast, textLinked,
+          textPending, textPermission, textStatus);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

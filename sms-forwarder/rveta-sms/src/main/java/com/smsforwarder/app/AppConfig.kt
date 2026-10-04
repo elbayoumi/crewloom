@@ -32,6 +32,10 @@ class AppConfig(context: Context) {
         get() = prefs.getString("device_id", "") ?: ""
         set(value) = prefs.edit().putString("device_id", value.trim()).apply()
 
+    var deviceName: String
+        get() = prefs.getString("device_name", "") ?: ""
+        set(value) = prefs.edit().putString("device_name", value.trim()).apply()
+
     var deviceToken: String
         get() = securePrefs?.getString("device_token", "") ?: ""
         set(value) {

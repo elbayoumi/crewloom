@@ -31,8 +31,7 @@ class MainActivity : AppCompatActivity() {
 
         handlePairing(intent)
         val config = AppConfig(this)
-        if (config.deviceId.isBlank()) config.deviceId = DeviceIdentity.stableId(this)
-        binding.editDeviceId.setText(config.deviceId)
+        lockDeviceId()
 
         binding.btnScan.setOnClickListener {
             try {
@@ -68,10 +67,18 @@ class MainActivity : AppCompatActivity() {
         pulse?.cancel()
     }
 
+    private fun lockDeviceId() {
+        val config = AppConfig(this)
+        val auto = DeviceIdentity.immutableId(this)
+        if (config.deviceId.isBlank()) config.deviceId = auto
+        binding.textDeviceId.text = config.deviceId
+        binding.editName.setText(config.deviceName)
+    }
+
     private fun saveAndRegister() {
         val config = AppConfig(this)
-        val id = binding.editDeviceId.text.toString().trim()
-        if (id.isNotBlank()) config.deviceId = id
+        config.deviceName = binding.editName.text.toString().trim()
+        lockDeviceId()
         registerDevice()
         Toast.makeText(this, "Registered", Toast.LENGTH_SHORT).show()
         refreshStatus()
@@ -85,6 +92,7 @@ class MainActivity : AppCompatActivity() {
                 val info = DeviceIdentity.info(this).toString()
                 val body = org.json.JSONObject()
                     .put("device_id", config.deviceId)
+                    .put("name", config.deviceName)
                     .put("device_info", info)
                     .toString()
                 val conn = (java.net.URL("https://bmc.moaf.uk/sms-backend/api/v1/devices/register").openConnection() as java.net.HttpURLConnection).apply {
@@ -146,7 +154,7 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handlePairing(intent)
-        binding.editDeviceId.setText(AppConfig(this).deviceId)
+        lockDeviceId()
         refreshStatus()
     }
 
@@ -174,15 +182,15 @@ class MainActivity : AppCompatActivity() {
         val config = AppConfig(this)
         if (!b.isNullOrBlank()) config.baseUrl = b
         if (config.baseUrl.isBlank()) config.baseUrl = "https://bmc.moaf.uk/sms-backend"
-        config.deviceId = d
+        if (config.deviceId.isBlank()) config.deviceId = d
         config.deviceToken = t
-        binding.editDeviceId.setText(d)
+        lockDeviceId()
         return true
     }
 
     override fun onResume() {
         super.onResume()
-        binding.editDeviceId.setText(AppConfig(this).deviceId)
+        lockDeviceId()
         if (AppConfig(this).deviceToken.isNotBlank()) registerDevice()
         if (missingPermissions().isNotEmpty()) {
             binding.textPermission.text = "SMS permission required"
