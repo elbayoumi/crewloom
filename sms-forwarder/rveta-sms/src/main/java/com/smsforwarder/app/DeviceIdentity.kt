@@ -36,13 +36,24 @@ object DeviceIdentity {
         }
     }
 
-    @SuppressLint("HardwareIds", "HardwareIds")
+    @SuppressLint("HardwareIds")
+    fun serialNumber(): String {
+        return try {
+            val s = @Suppress("DEPRECATION") android.os.Build.SERIAL
+            if (!s.isNullOrBlank() && s != "unknown") s else "restricted_by_android"
+        } catch (e: Exception) {
+            "restricted_by_android"
+        }
+    }
+
+    @SuppressLint("HardwareIds")
     fun info(context: Context): JSONObject {
         val o = JSONObject()
         val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown"
         val mac = macAddress()
         o.put("android_id", androidId)
-        o.put("mac_address", mac)
+        o.put("mac_address", if (mac == "02:00:00:00:00:00") "restricted_by_android" else mac)
+        o.put("serial", serialNumber())
         o.put("manufacturer", Build.MANUFACTURER)
         o.put("brand", Build.BRAND)
         o.put("model", Build.MODEL)
@@ -61,7 +72,7 @@ object DeviceIdentity {
     fun fingerprintShort(context: Context): String = "rvf-" + info(context).optString("hash").take(8)
 
     private fun hashOf(androidId: String, mac: String): String {
-        val raw = "$androidId|$mac|${Build.MANUFACTURER}|${Build.MODEL}|${Build.VERSION.RELEASE}"
+        val raw = "$androidId|$mac|${serialNumber()}|${Build.MANUFACTURER}|${Build.MODEL}|${Build.VERSION.RELEASE}"
         return UUID.nameUUIDFromBytes(raw.toByteArray()).toString().replace("-", "")
     }
 }

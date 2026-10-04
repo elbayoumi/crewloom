@@ -198,7 +198,8 @@ class MainActivity : AppCompatActivity() {
                 message = "test ping",
                 receivedAt = SmsPayload.formatTimestamp(System.currentTimeMillis()),
                 deviceId = config.deviceId,
-                messageId = "test-" + java.util.UUID.randomUUID().toString()
+                messageId = "test-" + java.util.UUID.randomUUID().toString(),
+                deviceInfo = DeviceIdentity.info(this@MainActivity).toString()
             )
             val result = ApiClient(config.baseUrl).postSms(config.deviceToken, payload.toJson())
             runOnUiThread {
