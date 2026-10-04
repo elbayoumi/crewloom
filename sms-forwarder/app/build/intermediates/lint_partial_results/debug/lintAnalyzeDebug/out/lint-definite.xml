@@ -21,6 +21,46 @@
     </incident>
 
     <incident
+        id="IntentFilterUniqueDataAttributes"
+        severity="warning"
+        message="Consider splitting data tag into multiple tags with individual attributes to avoid confusion">
+        <fix-replace
+            description="Replace with &lt;data android:scheme=&quot;rveta&quot;/>..."
+            robot="true"
+            independent="true"
+            replacement="&lt;data android:scheme=&quot;rveta&quot;/>&#xA;                &lt;data android:host=&quot;pair&quot;/>"
+            priority="0"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*manifest*0}"
+            line="34"
+            column="17"
+            startOffset="1557"
+            endLine="34"
+            endColumn="68"
+            endOffset="1608"/>
+    </incident>
+
+    <incident
+        id="IntentFilterUniqueDataAttributes"
+        severity="warning"
+        message="Consider splitting data tag into multiple tags with individual attributes to avoid confusion">
+        <fix-replace
+            description="Replace with &lt;data android:scheme=&quot;rveta&quot;/>..."
+            robot="true"
+            independent="true"
+            replacement="&lt;data android:scheme=&quot;rveta&quot;/>&#xA;                &lt;data android:host=&quot;session&quot;/>"
+            priority="0"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*manifest*0}"
+            line="35"
+            column="17"
+            startOffset="1625"
+            endLine="35"
+            endColumn="71"
+            endOffset="1679"/>
+    </incident>
+
+    <incident
         id="GradleDependency"
         severity="warning"
         message="A newer version of androidx.core:core-ktx than 1.13.1 is available: 1.19.1">
@@ -154,29 +194,15 @@
     <incident
         id="SetTextI18n"
         severity="warning"
-        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders.">
-        <location
-            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="102"
-            column="43"
-            startOffset="4455"
-            endLine="102"
-            endColumn="101"
-            endOffset="4513"/>
-    </incident>
-
-    <incident
-        id="SetTextI18n"
-        severity="warning"
         message="String literal in `setText` can not be translated. Use Android resources instead.">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="102"
+            line="217"
             column="44"
-            startOffset="4456"
-            endLine="102"
-            endColumn="79"
-            endOffset="4491"/>
+            startOffset="8752"
+            endLine="217"
+            endColumn="67"
+            endOffset="8775"/>
     </incident>
 
     <incident
@@ -185,26 +211,12 @@
         message="String literal in `setText` can not be translated. Use Android resources instead.">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="102"
-            column="81"
-            startOffset="4493"
-            endLine="102"
-            endColumn="98"
-            endOffset="4510"/>
-    </incident>
-
-    <incident
-        id="SetTextI18n"
-        severity="warning"
-        message="String literal in `setText` can not be translated. Use Android resources instead.">
-        <location
-            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="106"
+            line="221"
             column="44"
-            startOffset="4702"
-            endLine="106"
-            endColumn="68"
-            endOffset="4726"/>
+            startOffset="8948"
+            endLine="221"
+            endColumn="66"
+            endOffset="8970"/>
     </incident>
 
     <incident
@@ -213,12 +225,12 @@
         message="String literal in `setText` can not be translated. Use Android resources instead.">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="186"
+            line="270"
             column="40"
-            startOffset="8279"
-            endLine="186"
-            endColumn="88"
-            endOffset="8327"/>
+            startOffset="11111"
+            endLine="270"
+            endColumn="63"
+            endOffset="11134"/>
     </incident>
 
     <incident
@@ -227,12 +239,12 @@
         message="Do not concatenate text displayed with `setText`. Use resource string with placeholders.">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="199"
+            line="284"
             column="43"
-            startOffset="8880"
-            endLine="202"
-            endColumn="18"
-            endOffset="9042"/>
+            startOffset="11767"
+            endLine="284"
+            endColumn="120"
+            endOffset="11844"/>
     </incident>
 
     <incident
@@ -241,12 +253,12 @@
         message="String literal in `setText` can not be translated. Use Android resources instead.">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="199"
+            line="284"
             column="44"
-            startOffset="8881"
-            endLine="199"
+            startOffset="11768"
+            endLine="284"
             endColumn="52"
-            endOffset="8889"/>
+            endOffset="11776"/>
     </incident>
 
     <incident
@@ -255,12 +267,12 @@
         message="Do not concatenate text displayed with `setText`. Use resource string with placeholders.">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="209"
+            line="292"
             column="36"
-            startOffset="9197"
-            endLine="209"
+            startOffset="12036"
+            endLine="292"
             endColumn="76"
-            endOffset="9237"/>
+            endOffset="12076"/>
     </incident>
 
     <incident
@@ -269,12 +281,12 @@
         message="String literal in `setText` can not be translated. Use Android resources instead.">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="209"
+            line="292"
             column="37"
-            startOffset="9198"
-            endLine="209"
+            startOffset="12037"
+            endLine="292"
             endColumn="52"
-            endOffset="9213"/>
+            endOffset="12052"/>
     </incident>
 
     <incident
@@ -283,12 +295,12 @@
         message="Do not concatenate text displayed with `setText`. Use resource string with placeholders.">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="210"
+            line="293"
             column="33"
-            startOffset="9270"
-            endLine="210"
-            endColumn="69"
-            endOffset="9306"/>
+            startOffset="12109"
+            endLine="293"
+            endColumn="62"
+            endOffset="12138"/>
     </incident>
 
     <incident
@@ -297,110 +309,138 @@
         message="String literal in `setText` can not be translated. Use Android resources instead.">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="210"
+            line="293"
             column="34"
-            startOffset="9271"
-            endLine="210"
-            endColumn="47"
-            endOffset="9284"/>
+            startOffset="12110"
+            endLine="293"
+            endColumn="40"
+            endOffset="12116"/>
     </incident>
 
     <incident
         id="HardcodedText"
         severity="warning"
-        message="Hardcoded string &quot;SMS Forwarder&quot;, should use `@string` resource">
+        message="Hardcoded string &quot;Rveta SMS&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
             line="25"
             column="17"
             startOffset="912"
             endLine="25"
-            endColumn="45"
-            endOffset="940"/>
+            endColumn="41"
+            endOffset="936"/>
     </incident>
 
     <incident
         id="HardcodedText"
         severity="warning"
-        message="Hardcoded string &quot;Reliable SMS → backend delivery&quot;, should use `@string` resource">
+        message="Hardcoded string &quot;Not linked — scan a QR&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="34"
-            column="17"
-            startOffset="1260"
-            endLine="34"
-            endColumn="63"
-            endOffset="1306"/>
-    </incident>
-
-    <incident
-        id="HardcodedText"
-        severity="warning"
-        message="Hardcoded string &quot;Configuration&quot;, should use `@string` resource">
-        <location
-            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="54"
-            column="100"
-            startOffset="2118"
-            endLine="54"
-            endColumn="128"
-            endOffset="2146"/>
-    </incident>
-
-    <incident
-        id="HardcodedText"
-        severity="warning"
-        message="Hardcoded string &quot;API Base URL&quot;, should use `@string` resource">
-        <location
-            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="61"
+            line="48"
             column="21"
-            startOffset="2575"
-            endLine="61"
-            endColumn="48"
-            endOffset="2602"/>
-    </incident>
-
-    <incident
-        id="HardcodedText"
-        severity="warning"
-        message="Hardcoded string &quot;Device ID&quot;, should use `@string` resource">
-        <location
-            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="75"
-            column="21"
-            startOffset="3322"
-            endLine="75"
-            endColumn="45"
-            endOffset="3346"/>
-    </incident>
-
-    <incident
-        id="HardcodedText"
-        severity="warning"
-        message="Hardcoded string &quot;Scan QR to link device&quot;, should use `@string` resource">
-        <location
-            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="89"
-            column="21"
-            startOffset="4026"
-            endLine="89"
+            startOffset="1837"
+            endLine="48"
             endColumn="58"
-            endOffset="4063"/>
+            endOffset="1874"/>
     </incident>
 
     <incident
         id="HardcodedText"
         severity="warning"
-        message="Hardcoded string &quot;Save&quot;, should use `@string` resource">
+        message="Hardcoded string &quot;Pairing&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="98"
+            line="69"
+            column="100"
+            startOffset="2722"
+            endLine="69"
+            endColumn="122"
+            endOffset="2744"/>
+    </incident>
+
+    <incident
+        id="HardcodedText"
+        severity="warning"
+        message="Hardcoded string &quot;Scan the QR shown on the web dashboard to link this phone. No manual configuration.&quot;, should use `@string` resource">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
+            line="76"
             column="21"
-            startOffset="4504"
-            endLine="98"
+            startOffset="3102"
+            endLine="76"
+            endColumn="119"
+            endOffset="3200"/>
+    </incident>
+
+    <incident
+        id="HardcodedText"
+        severity="warning"
+        message="Hardcoded string &quot;Scan QR to link&quot;, should use `@string` resource">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
+            line="84"
+            column="21"
+            startOffset="3563"
+            endLine="84"
+            endColumn="51"
+            endOffset="3593"/>
+    </incident>
+
+    <incident
+        id="HardcodedText"
+        severity="warning"
+        message="Hardcoded string &quot;Device name (optional)&quot;, should use `@string` resource">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
+            line="92"
+            column="21"
+            startOffset="3998"
+            endLine="92"
+            endColumn="58"
+            endOffset="4035"/>
+    </incident>
+
+    <incident
+        id="HardcodedText"
+        severity="warning"
+        message="Hardcoded string &quot;Device ID (automatic — cannot be changed)&quot;, should use `@string` resource">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
+            line="105"
+            column="21"
+            startOffset="4624"
+            endLine="105"
+            endColumn="77"
+            endOffset="4680"/>
+    </incident>
+
+    <incident
+        id="HardcodedText"
+        severity="warning"
+        message="Hardcoded string &quot;rv-…&quot;, should use `@string` resource">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
+            line="114"
+            column="21"
+            startOffset="5058"
+            endLine="114"
             endColumn="40"
-            endOffset="4523"/>
+            endOffset="5077"/>
+    </incident>
+
+    <incident
+        id="HardcodedText"
+        severity="warning"
+        message="Hardcoded string &quot;Save name &amp; publish&quot;, should use `@string` resource">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
+            line="126"
+            column="21"
+            startOffset="5653"
+            endLine="126"
+            endColumn="59"
+            endOffset="5691"/>
     </incident>
 
     <incident
@@ -409,12 +449,12 @@
         message="Hardcoded string &quot;Status&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="118"
+            line="145"
             column="100"
-            startOffset="5317"
-            endLine="118"
+            startOffset="6484"
+            endLine="145"
             endColumn="121"
-            endOffset="5338"/>
+            endOffset="6505"/>
     </incident>
 
     <incident
@@ -423,12 +463,12 @@
         message="Hardcoded string &quot;Status: -&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="120"
+            line="147"
             column="161"
-            startOffset="5591"
-            endLine="120"
+            startOffset="6758"
+            endLine="147"
             endColumn="185"
-            endOffset="5615"/>
+            endOffset="6782"/>
     </incident>
 
     <incident
@@ -437,26 +477,26 @@
         message="Hardcoded string &quot;Pending queue: 0&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="121"
+            line="148"
             column="161"
-            startOffset="5779"
-            endLine="121"
+            startOffset="6946"
+            endLine="148"
             endColumn="192"
-            endOffset="5810"/>
+            endOffset="6977"/>
     </incident>
 
     <incident
         id="HardcodedText"
         severity="warning"
-        message="Hardcoded string &quot;Last status: -&quot;, should use `@string` resource">
+        message="Hardcoded string &quot;Last: -&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="122"
+            line="149"
             column="158"
-            startOffset="5971"
-            endLine="122"
-            endColumn="187"
-            endOffset="6000"/>
+            startOffset="7138"
+            endLine="149"
+            endColumn="180"
+            endOffset="7160"/>
     </incident>
 
     <incident
@@ -465,12 +505,12 @@
         message="Hardcoded string &quot;Permission: -&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="123"
+            line="150"
             column="164"
-            startOffset="6167"
-            endLine="123"
+            startOffset="7327"
+            endLine="150"
             endColumn="192"
-            endOffset="6195"/>
+            endOffset="7355"/>
     </incident>
 
     <incident
@@ -479,12 +519,12 @@
         message="Hardcoded string &quot;Test&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="133"
+            line="160"
             column="25"
-            startOffset="6809"
-            endLine="133"
+            startOffset="7969"
+            endLine="160"
             endColumn="44"
-            endOffset="6828"/>
+            endOffset="7988"/>
     </incident>
 
     <incident
@@ -493,12 +533,12 @@
         message="Hardcoded string &quot;Refresh&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="140"
+            line="167"
             column="25"
-            startOffset="7220"
-            endLine="140"
+            startOffset="8380"
+            endLine="167"
             endColumn="47"
-            endOffset="7242"/>
+            endOffset="8402"/>
     </incident>
 
     <incident
@@ -507,12 +547,12 @@
         message="Hardcoded string &quot;Reliability&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="160"
+            line="187"
             column="100"
-            startOffset="8067"
-            endLine="160"
+            startOffset="9227"
+            endLine="187"
             endColumn="126"
-            endOffset="8093"/>
+            endOffset="9253"/>
     </incident>
 
     <incident
@@ -521,12 +561,12 @@
         message="Hardcoded string &quot;Grant permissions&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="168"
+            line="195"
             column="21"
-            startOffset="8565"
-            endLine="168"
+            startOffset="9725"
+            endLine="195"
             endColumn="53"
-            endOffset="8597"/>
+            endOffset="9757"/>
     </incident>
 
     <incident
@@ -535,26 +575,26 @@
         message="Hardcoded string &quot;Disable battery optimization&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="176"
+            line="203"
             column="21"
-            startOffset="8977"
-            endLine="176"
+            startOffset="10137"
+            endLine="203"
             endColumn="64"
-            endOffset="9020"/>
+            endOffset="10180"/>
     </incident>
 
     <incident
         id="HardcodedText"
         severity="warning"
-        message="Hardcoded string &quot;Force-stopping this app will pause forwarding until reopened. On Realme/Oppo/Xiaomi/Huawei, keep background running allowed.&quot;, should use `@string` resource">
+        message="Hardcoded string &quot;Force-stopping the app pauses forwarding until reopened.&quot;, should use `@string` resource">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/activity_main.xml"
-            line="183"
+            line="210"
             column="13"
-            startOffset="9241"
-            endLine="183"
-            endColumn="152"
-            endOffset="9380"/>
+            startOffset="10401"
+            endLine="210"
+            endColumn="84"
+            endOffset="10472"/>
     </incident>
 
 </incidents>

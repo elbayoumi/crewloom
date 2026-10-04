@@ -55,19 +55,23 @@ class ScanQrActivity : AppCompatActivity() {
 
     private fun analyze(image: ImageProxy) {
         if (done) { image.close(); return }
-        val buffer = image.planes[0].buffer
-        val bytes = ByteArray(image.width * image.height)
-        buffer.get(bytes)
+        val plane = image.planes[0]
+        val w = image.width
+        val h = image.height
+        val rowStride = plane.rowStride
+        val raw = ByteArray(rowStride * h)
+        plane.buffer.get(raw)
         image.close()
-        val source = PlanarYUVLuminanceSource(bytes, image.width, image.height, 0, 0, image.width, image.height, false)
+        val bytes = ScannerDecoder.cropCenter(raw, rowStride, w, h)
+        val side = Math.sqrt(bytes.size.toDouble()).toInt()
         try {
             val hints = mapOf(
                 DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
                 DecodeHintType.TRY_HARDER to true
             )
-            val text = MultiFormatReader().apply { setHints(hints) }
-                .decodeWithState(BinaryBitmap(HybridBinarizer(source))).text
-            if (!isOurs(text)) return
+            val text = ScannerDecoder.decode(bytes, side, side)
+        if (text == null) return
+            if (!ScannerDecoder.isOurs(text)) return
             done = true
             runOnUiThread {
                 findViewById<TextView>(R.id.scanStatus).text = getString(R.string.scan_found)
@@ -77,12 +81,6 @@ class ScanQrActivity : AppCompatActivity() {
         } catch (e: Exception) {
             // keep scanning
         }
-    }
-
-    private fun isOurs(text: String): Boolean {
-        val t = text.trim()
-        if (t.startsWith("rveta://")) return true
-        return (t.startsWith("http://") || t.startsWith("https://")) && t.contains("d=") && t.contains("t=")
     }
 
     override fun onDestroy() {

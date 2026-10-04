@@ -20,7 +20,7 @@
 
    https://developer.android.com/distribute/best-practices/develop/target-sdk.html
 
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:144: Warning: Use of REQUEST_IGNORE_BATTERY_OPTIMIZATIONS violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html [BatteryLife]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:256: Warning: Use of REQUEST_IGNORE_BATTERY_OPTIMIZATIONS violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html [BatteryLife]
                 startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -35,6 +35,50 @@
    For more details on how to update your code, please see
    https://developer.android.com/topic/performance/background-optimization
 
+
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:34: Warning: Consider splitting data tag into multiple tags with individual attributes to avoid confusion [IntentFilterUniqueDataAttributes]
+                <data android:scheme="rveta" android:host="pair" />
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/AndroidManifest.xml:35: Warning: Consider splitting data tag into multiple tags with individual attributes to avoid confusion [IntentFilterUniqueDataAttributes]
+                <data android:scheme="rveta" android:host="session" />
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "IntentFilterUniqueDataAttributes":
+   <intent-filter> <data> tags should only declare a single unique attribute
+   (i.e. scheme OR host, but not both). This better matches the runtime
+   behavior of intent filters, as they combine all of the declared data
+   attributes into a single matcher which is allowed to handle any combination
+   across attribute types.
+
+   For example, the following two <intent-filter> declarations are the same:
+   <intent-filter>
+       <data android:scheme="http" android:host="example.com" />
+       <data android:scheme="https" android:host="example.org" />
+   </intent-filter>
+
+   <intent-filter>
+       <data android:scheme="http"/>
+       <data android:scheme="https"/>
+       <data android:host="example.com" />
+       <data android:host="example.org" />
+   </intent-filter>
+
+   They both handle all of the following:
+   * http://example.com
+   * https://example.com
+   * http://example.org
+   * https://example.org
+
+   The second one better communicates the combining behavior and is clearer to
+   an external reader that one should not rely on the scheme/host being self
+   contained. It is not obvious in the first that http://example.org is also
+   matched, which can lead to confusion (or incorrect behavior) with a more
+   complex set of schemes/hosts.
+
+   Note that this does not apply to host + port, as those must be declared in
+   the same <data> tag and are only associated with each other.
+
+   https://developer.android.com/guide/components/intents-filters
 
 /Volumes/main/Projects/crewloom/sms-forwarder/app/build.gradle.kts:46: Warning: A newer version of androidx.core:core-ktx than 1.13.1 is available: 1.19.1 [GradleDependency]
     implementation("androidx.core:core-ktx:1.13.1")
@@ -134,39 +178,33 @@
    application iconwill not show if your monochrome attribute is not also
    specified in android:roundIcon.
 
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:102: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
-            binding.textPermission.text = "⚠ SMS permission is required — tap \"Grant permissions\""
-                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:102: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
-            binding.textPermission.text = "⚠ SMS permission is required — tap \"Grant permissions\""
-                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:102: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
-            binding.textPermission.text = "⚠ SMS permission is required — tap \"Grant permissions\""
-                                                                                ~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:106: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
-            binding.textPermission.text = "✓ SMS permission granted"
-                                           ~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:186: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
-            binding.textStatus.text = "Status: configure URL, token and device id first"
-                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:199: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
-                binding.textStatus.text = "Status: " + when {
-                                          ^
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:199: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
-                binding.textStatus.text = "Status: " + when {
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:217: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+            binding.textPermission.text = "SMS permission required"
+                                           ~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:221: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+            binding.textPermission.text = "SMS permission granted"
+                                           ~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:270: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+            binding.textStatus.text = "Scan a QR to link first"
+                                       ~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:284: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+                binding.textStatus.text = "Status: " + (result.httpCode?.let { "HTTP $it" } ?: "error ${result.error}")
+                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:284: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                binding.textStatus.text = "Status: " + (result.httpCode?.let { "HTTP $it" } ?: "error ${result.error}")
                                            ~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:209: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:292: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
         binding.textPending.text = "Pending queue: " + store.pendingCount()
                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:209: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:292: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
         binding.textPending.text = "Pending queue: " + store.pendingCount()
                                     ~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:210: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
-        binding.textLast.text = "Last status: " + store.lastStatus()
-                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:210: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
-        binding.textLast.text = "Last status: " + store.lastStatus()
-                                 ~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:293: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+        binding.textLast.text = "Last: " + store.lastStatus()
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:293: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        binding.textLast.text = "Last: " + store.lastStatus()
+                                 ~~~~~~
 
    Explanation for issues of type "SetTextI18n":
    When calling TextView#setText
@@ -181,60 +219,66 @@
 
    https://developer.android.com/guide/topics/resources/localization.html
 
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:25: Warning: Hardcoded string "SMS Forwarder", should use @string resource [HardcodedText]
-                android:text="SMS Forwarder"
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:34: Warning: Hardcoded string "Reliable SMS → backend delivery", should use @string resource [HardcodedText]
-                android:text="Reliable SMS → backend delivery"
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:54: Warning: Hardcoded string "Configuration", should use @string resource [HardcodedText]
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Configuration" android:textStyle="bold" android:textSize="17sp" android:textColor="?attr/colorPrimary" />
-                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:61: Warning: Hardcoded string "API Base URL", should use @string resource [HardcodedText]
-                    android:hint="API Base URL">
-                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:75: Warning: Hardcoded string "Device ID", should use @string resource [HardcodedText]
-                    android:hint="Device ID">
-                    ~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:89: Warning: Hardcoded string "Scan QR to link device", should use @string resource [HardcodedText]
-                    android:text="Scan QR to link device"
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:25: Warning: Hardcoded string "Rveta SMS", should use @string resource [HardcodedText]
+                android:text="Rveta SMS"
+                ~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:48: Warning: Hardcoded string "Not linked — scan a QR", should use @string resource [HardcodedText]
+                    android:text="Not linked — scan a QR"
                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:98: Warning: Hardcoded string "Save", should use @string resource [HardcodedText]
-                    android:text="Save" />
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:69: Warning: Hardcoded string "Pairing", should use @string resource [HardcodedText]
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pairing" android:textStyle="bold" android:textSize="17sp" android:textColor="?attr/colorPrimary" />
+                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:76: Warning: Hardcoded string "Scan the QR shown on the web dashboard to link this phone. No manual configuration.", should use @string resource [HardcodedText]
+                    android:text="Scan the QR shown on the web dashboard to link this phone. No manual configuration."
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:84: Warning: Hardcoded string "Scan QR to link", should use @string resource [HardcodedText]
+                    android:text="Scan QR to link"
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:92: Warning: Hardcoded string "Device name (optional)", should use @string resource [HardcodedText]
+                    android:hint="Device name (optional)">
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:105: Warning: Hardcoded string "Device ID (automatic — cannot be changed)", should use @string resource [HardcodedText]
+                    android:text="Device ID (automatic — cannot be changed)"
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:114: Warning: Hardcoded string "rv-…", should use @string resource [HardcodedText]
+                    android:text="rv-…"
                     ~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:118: Warning: Hardcoded string "Status", should use @string resource [HardcodedText]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:126: Warning: Hardcoded string "Save name & publish", should use @string resource [HardcodedText]
+                    android:text="Save name &amp; publish" />
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:145: Warning: Hardcoded string "Status", should use @string resource [HardcodedText]
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Status" android:textStyle="bold" android:textSize="17sp" android:textColor="?attr/colorPrimary" />
                                                                                                    ~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:120: Warning: Hardcoded string "Status: -", should use @string resource [HardcodedText]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:147: Warning: Hardcoded string "Status: -", should use @string resource [HardcodedText]
                 <TextView android:id="@+id/textStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Status: -" />
                                                                                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:121: Warning: Hardcoded string "Pending queue: 0", should use @string resource [HardcodedText]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:148: Warning: Hardcoded string "Pending queue: 0", should use @string resource [HardcodedText]
                 <TextView android:id="@+id/textPending" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Pending queue: 0" />
                                                                                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:122: Warning: Hardcoded string "Last status: -", should use @string resource [HardcodedText]
-                <TextView android:id="@+id/textLast" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Last status: -" />
-                                                                                                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:123: Warning: Hardcoded string "Permission: -", should use @string resource [HardcodedText]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:149: Warning: Hardcoded string "Last: -", should use @string resource [HardcodedText]
+                <TextView android:id="@+id/textLast" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Last: -" />
+                                                                                                                                                             ~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:150: Warning: Hardcoded string "Permission: -", should use @string resource [HardcodedText]
                 <TextView android:id="@+id/textPermission" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Permission: -" />
                                                                                                                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:133: Warning: Hardcoded string "Test", should use @string resource [HardcodedText]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:160: Warning: Hardcoded string "Test", should use @string resource [HardcodedText]
                         android:text="Test" />
                         ~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:140: Warning: Hardcoded string "Refresh", should use @string resource [HardcodedText]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:167: Warning: Hardcoded string "Refresh", should use @string resource [HardcodedText]
                         android:text="Refresh" />
                         ~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:160: Warning: Hardcoded string "Reliability", should use @string resource [HardcodedText]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:187: Warning: Hardcoded string "Reliability", should use @string resource [HardcodedText]
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Reliability" android:textStyle="bold" android:textSize="17sp" android:textColor="?attr/colorPrimary" />
                                                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:168: Warning: Hardcoded string "Grant permissions", should use @string resource [HardcodedText]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:195: Warning: Hardcoded string "Grant permissions", should use @string resource [HardcodedText]
                     android:text="Grant permissions" />
                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:176: Warning: Hardcoded string "Disable battery optimization", should use @string resource [HardcodedText]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:203: Warning: Hardcoded string "Disable battery optimization", should use @string resource [HardcodedText]
                     android:text="Disable battery optimization" />
                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:183: Warning: Hardcoded string "Force-stopping this app will pause forwarding until reopened. On Realme/Oppo/Xiaomi/Huawei, keep background running allowed.", should use @string resource [HardcodedText]
-            android:text="Force-stopping this app will pause forwarding until reopened. On Realme/Oppo/Xiaomi/Huawei, keep background running allowed."
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/res/layout/activity_main.xml:210: Warning: Hardcoded string "Force-stopping the app pauses forwarding until reopened.", should use @string resource [HardcodedText]
+            android:text="Force-stopping the app pauses forwarding until reopened."
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    Explanation for issues of type "HardcodedText":
    Hardcoding text attributes directly in layout files is bad for several
@@ -250,4 +294,4 @@
    There are quickfixes to automatically extract this hardcoded string into a
    resource lookup.
 
-0 errors, 41 warnings
+0 errors, 43 warnings

@@ -1,5 +1,8 @@
 com.smsforwarder.app
+drawable scanner_frame
+drawable scanner_scrim
 id previewView
 id scanStatus
 layout activity_scan
 string scan_found
+string scan_hint
