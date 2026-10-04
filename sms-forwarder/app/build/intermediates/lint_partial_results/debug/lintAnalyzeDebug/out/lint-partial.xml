@@ -5,32 +5,32 @@
                     <map id="android.settings.APPLICATION_DETAILS_SETTINGS (used to start an activity)">
                         <location id="0"
                             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-                            line="241"
+                            line="276"
                             column="39"
-                            startOffset="9929"
-                            endLine="241"
+                            startOffset="10982"
+                            endLine="276"
                             endColumn="91"
-                            endOffset="9981"/>
+                            endOffset="11034"/>
                     </map>
                     <map id="android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS (used to start an activity)">
                         <location id="0"
                             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-                            line="263"
+                            line="298"
                             column="27"
-                            startOffset="10855"
-                            endLine="263"
+                            startOffset="11908"
+                            endLine="298"
                             endColumn="87"
-                            endOffset="10915"/>
+                            endOffset="11968"/>
                     </map>
                     <map id="android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS (used to start an activity)">
                         <location id="0"
                             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-                            line="256"
+                            line="291"
                             column="31"
-                            startOffset="10528"
-                            endLine="256"
+                            startOffset="11581"
+                            endLine="291"
                             endColumn="91"
-                            endOffset="10588"/>
+                            endOffset="11641"/>
                     </map>
             </map>
     </map>

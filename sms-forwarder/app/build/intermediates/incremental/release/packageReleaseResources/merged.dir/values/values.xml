@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:ns1="http://schemas.android.com/tools">
-    <string name="app_name">SMS Forwarder</string>
+    <string name="app_name">Rveta SMS</string>
     <style name="Theme.SmsForwarder" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:statusBarColor" ns1:targetApi="l">?attr/colorPrimary</item>
     </style>

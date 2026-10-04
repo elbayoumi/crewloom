@@ -18,10 +18,10 @@
       proguardRules="proguard.txt"/>
   <library
       name=":@@:rveta-sms::debug"
-      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/5c23aefae81a10de79ff673290712266/transformed/out/jars/classes.jar:/Users/macbook/.gradle/caches/8.14.3/transforms/5c23aefae81a10de79ff673290712266/transformed/out/jars/libs/R.jar"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/da502ccfb317942f21f395a9fed6378f/transformed/out/jars/classes.jar:/Users/macbook/.gradle/caches/8.14.3/transforms/da502ccfb317942f21f395a9fed6378f/transformed/out/jars/libs/R.jar"
       resolved="SmsForwarder:rveta-sms:unspecified"
       provided="true"
-      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/5c23aefae81a10de79ff673290712266/transformed/out"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/da502ccfb317942f21f395a9fed6378f/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

@@ -80,8 +80,18 @@ class MainActivity : AppCompatActivity() {
         config.deviceName = binding.editName.text.toString().trim()
         lockDeviceId()
         registerDevice()
+        recoverFailed()
         Toast.makeText(this, "Registered", Toast.LENGTH_SHORT).show()
         refreshStatus()
+    }
+
+    /** Re-queue messages that failed only because configuration was missing. */
+    private fun recoverFailed() {
+        val store = PendingSmsStore.get(this)
+        for (id in store.failedIds("missing_config")) {
+            store.resetToPending(id)
+            SmsReceiver.enqueue(this, id)
+        }
     }
 
     private fun registerDevice() {
@@ -95,7 +105,8 @@ class MainActivity : AppCompatActivity() {
                     .put("name", config.deviceName)
                     .put("device_info", info)
                     .toString()
-                val conn = (java.net.URL("https://bmc.moaf.uk/sms-backend/api/v1/devices/register").openConnection() as java.net.HttpURLConnection).apply {
+                val base = config.baseUrl.trimEnd('/')
+                val conn = (java.net.URL(base + "/api/v1/devices/register").openConnection() as java.net.HttpURLConnection).apply {
                     requestMethod = "POST"
                     doOutput = true
                     connectTimeout = 10000
@@ -132,7 +143,10 @@ class MainActivity : AppCompatActivity() {
         Thread {
             try {
                 val cfg = AppConfig(this)
-                val body = "{\"session\":\"" + sessionId + "\",\"token\":\"" + cfg.deviceToken + "\"}"
+                val body = org.json.JSONObject()
+                    .put("session", sessionId)
+                    .put("token", cfg.deviceToken)
+                    .toString()
                 val conn = (java.net.URL(cfg.baseUrl.trimEnd('/') + "/api/session/grant").openConnection() as java.net.HttpURLConnection).apply {
                     requestMethod = "POST"
                     doOutput = true
@@ -175,6 +189,7 @@ class MainActivity : AppCompatActivity() {
 
         val isWeb = uri.scheme == "http" || uri.scheme == "https"
         val host = uri.host ?: ""
+        if (isWeb && !isTrustedHost(host)) return toastInvalid(fromScan)
         val session = uri.getQueryParameter("session") ?: param(raw, "session")
         val deviceId = uri.getQueryParameter("d") ?: param(raw, "d")
         val token = uri.getQueryParameter("t") ?: param(raw, "t")
@@ -215,7 +230,13 @@ class MainActivity : AppCompatActivity() {
     private fun param(raw: String, key: String): String? =
         raw.substringAfter('?', "").split('&').firstOrNull {
             it.substringBefore('=') == key
-        }?.substringAfter('=', "")?.takeIf { it.isNotBlank() }
+        }?.substringAfter('=', "")
+            ?.let { runCatching { Uri.decode(it) }.getOrDefault(it) }
+            ?.takeIf { it.isNotBlank() }
+
+    /** Only our own backend may reconfigure this device. */
+    private fun isTrustedHost(host: String): Boolean =
+        host == "bmc.moaf.uk" || host == "www.bmc.moaf.uk"
 
     private fun toastInvalid(fromScan: Boolean) {
         Toast.makeText(this, "Invalid QR code", Toast.LENGTH_SHORT).show()
@@ -306,8 +327,14 @@ class MainActivity : AppCompatActivity() {
         binding.textPending.text = "Pending queue: " + store.pendingCount()
         binding.textLast.text = "Last: " + store.lastStatus()
         binding.textLinked.text = if (config.deviceToken.isBlank()) "Not linked — scan a QR" else "Linked ✓"
+        val storeBroken = AppConfig(this).tokenStoreError != null
+        binding.textLinked.text = when {
+            storeBroken -> "Secure storage unavailable — pairing cannot save"
+            config.deviceToken.isBlank() -> "Not linked — scan a QR"
+            else -> "Linked ✓"
+        }
         binding.textLinked.setTextColor(
-            Color.parseColor(if (config.deviceToken.isBlank()) "#F44336" else "#4CAF50")
+            Color.parseColor(if (storeBroken || config.deviceToken.isBlank()) "#F44336" else "#4CAF50")
         )
     }
 }

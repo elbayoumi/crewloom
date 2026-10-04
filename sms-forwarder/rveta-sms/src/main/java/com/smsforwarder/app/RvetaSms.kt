@@ -18,9 +18,10 @@ object RvetaSms {
     fun checkOutbox(context: Context) {
         val req = androidx.work.OneTimeWorkRequestBuilder<OutboxWorker>()
             .setConstraints(androidx.work.Constraints.Builder().setRequiredNetworkType(androidx.work.NetworkType.CONNECTED).build())
+            .setBackoffCriteria(androidx.work.BackoffPolicy.EXPONENTIAL, 30, java.util.concurrent.TimeUnit.SECONDS)
             .build()
         androidx.work.WorkManager.getInstance(context).enqueueUniqueWork(
-            "outbox_now", androidx.work.ExistingWorkPolicy.REPLACE, req
+            "outbox_now", androidx.work.ExistingWorkPolicy.APPEND_OR_REPLACE, req
         )
     }
 

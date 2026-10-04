@@ -1,3 +1,4 @@
+-keep class androidx.camera.core.impl.MetadataHolderService { <init>(); }
 -keep class androidx.core.app.CoreComponentFactory { <init>(); }
 -keep class androidx.profileinstaller.ProfileInstallReceiver { <init>(); }
 -keep class androidx.room.MultiInstanceInvalidationService { <init>(); }
@@ -15,6 +16,7 @@
 -keep class androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver { <init>(); }
 -keep class com.smsforwarder.app.BootReceiver { <init>(); }
 -keep class com.smsforwarder.app.MainActivity { <init>(); }
+-keep class com.smsforwarder.app.ScanQrActivity { <init>(); }
 -keep class com.smsforwarder.app.SmsReceiver { <init>(); }
 -keep class android.widget.Space { <init>(android.content.Context, android.util.AttributeSet); }
 
@@ -54,6 +56,8 @@
 
 -keep class androidx.appcompat.widget.ViewStubCompat { <init>(android.content.Context, android.util.AttributeSet); }
 
+-keep class androidx.camera.view.PreviewView { <init>(android.content.Context, android.util.AttributeSet); }
+
 -keep class androidx.constraintlayout.helper.widget.Flow { <init>(android.content.Context, android.util.AttributeSet); }
 
 -keep class androidx.constraintlayout.widget.ConstraintLayout { <init>(android.content.Context, android.util.AttributeSet); }
@@ -71,6 +75,8 @@
 -keep class com.google.android.material.button.MaterialButton { <init>(android.content.Context, android.util.AttributeSet); }
 
 -keep class com.google.android.material.button.MaterialButtonToggleGroup { <init>(android.content.Context, android.util.AttributeSet); }
+
+-keep class com.google.android.material.card.MaterialCardView { <init>(android.content.Context, android.util.AttributeSet); }
 
 -keep class com.google.android.material.chip.Chip { <init>(android.content.Context, android.util.AttributeSet); }
 

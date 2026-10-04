@@ -2,29 +2,6 @@
 <incidents format="6" by="lint 8.7.3" type="incidents">
 
     <incident
-        id="SuspiciousIndentation"
-        severity="error"
-        message="Suspicious indentation: This is indented but is not nested under the previous expression (`if (text == null) re`...)">
-        <location
-            file="${:rveta-sms*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/ScanQrActivity.kt"
-            line="74"
-            column="13"
-            startOffset="3125"
-            endLine="74"
-            endColumn="53"
-            endOffset="3165"/>
-        <location
-            file="${:rveta-sms*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/ScanQrActivity.kt"
-            line="73"
-            column="9"
-            startOffset="3088"
-            endLine="73"
-            endColumn="33"
-            endOffset="3112"
-            message="Previous statement here"/>
-    </incident>
-
-    <incident
         id="GradleDependency"
         severity="warning"
         message="A newer version of androidx.core:core-ktx than 1.13.1 is available: 1.19.1">

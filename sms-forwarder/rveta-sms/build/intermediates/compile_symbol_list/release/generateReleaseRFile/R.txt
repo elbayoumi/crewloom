@@ -1,0 +1,7 @@
+int drawable scanner_frame 0x0
+int drawable scanner_scrim 0x0
+int id previewView 0x0
+int id scanStatus 0x0
+int layout activity_scan 0x0
+int string scan_found 0x0
+int string scan_hint 0x0

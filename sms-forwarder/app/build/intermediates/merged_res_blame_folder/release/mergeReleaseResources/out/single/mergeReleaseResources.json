@@ -1,6 +1,30 @@
 [
     {
-        "merged": "com.smsforwarder.app-release-41:/layout_activity_main.xml.flat",
-        "source": "com.smsforwarder.app-main-42:/layout/activity_main.xml"
+        "merged": "com.smsforwarder.app-release-46:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.smsforwarder.app-main-47:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "com.smsforwarder.app-release-46:/drawable_hero_bg.xml.flat",
+        "source": "com.smsforwarder.app-main-47:/drawable/hero_bg.xml"
+    },
+    {
+        "merged": "com.smsforwarder.app-release-46:/drawable_pulse_dot.xml.flat",
+        "source": "com.smsforwarder.app-main-47:/drawable/pulse_dot.xml"
+    },
+    {
+        "merged": "com.smsforwarder.app-release-46:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.smsforwarder.app-main-47:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.smsforwarder.app-release-46:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.smsforwarder.app-main-47:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.smsforwarder.app-release-46:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.smsforwarder.app-main-47:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.smsforwarder.app-release-46:/layout_activity_main.xml.flat",
+        "source": "com.smsforwarder.app-main-47:/layout/activity_main.xml"
     }
 ]

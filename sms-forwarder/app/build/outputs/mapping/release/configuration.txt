@@ -1,4 +1,5 @@
 # The proguard configuration file for the following section is /Volumes/main/Projects/crewloom/sms-forwarder/app/build/intermediates/aapt_proguard_file/release/processReleaseResources/aapt_rules.txt
+-keep class androidx.camera.core.impl.MetadataHolderService { <init>(); }
 -keep class androidx.core.app.CoreComponentFactory { <init>(); }
 -keep class androidx.profileinstaller.ProfileInstallReceiver { <init>(); }
 -keep class androidx.room.MultiInstanceInvalidationService { <init>(); }
@@ -16,6 +17,7 @@
 -keep class androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver { <init>(); }
 -keep class com.smsforwarder.app.BootReceiver { <init>(); }
 -keep class com.smsforwarder.app.MainActivity { <init>(); }
+-keep class com.smsforwarder.app.ScanQrActivity { <init>(); }
 -keep class com.smsforwarder.app.SmsReceiver { <init>(); }
 -keep class android.widget.Space { <init>(android.content.Context, android.util.AttributeSet); }
 
@@ -55,6 +57,8 @@
 
 -keep class androidx.appcompat.widget.ViewStubCompat { <init>(android.content.Context, android.util.AttributeSet); }
 
+-keep class androidx.camera.view.PreviewView { <init>(android.content.Context, android.util.AttributeSet); }
+
 -keep class androidx.constraintlayout.helper.widget.Flow { <init>(android.content.Context, android.util.AttributeSet); }
 
 -keep class androidx.constraintlayout.widget.ConstraintLayout { <init>(android.content.Context, android.util.AttributeSet); }
@@ -72,6 +76,8 @@
 -keep class com.google.android.material.button.MaterialButton { <init>(android.content.Context, android.util.AttributeSet); }
 
 -keep class com.google.android.material.button.MaterialButtonToggleGroup { <init>(android.content.Context, android.util.AttributeSet); }
+
+-keep class com.google.android.material.card.MaterialCardView { <init>(android.content.Context, android.util.AttributeSet); }
 
 -keep class com.google.android.material.chip.Chip { <init>(android.content.Context, android.util.AttributeSet); }
 
@@ -253,6 +259,46 @@
 
 
 # End of content from /Users/macbook/.gradle/caches/8.14.3/transforms/5f7300f370742532b20193ca559d9f62/transformed/material-1.12.0/proguard.txt
+# The proguard configuration file for the following section is /Users/macbook/.gradle/caches/8.14.3/transforms/683975eb53b4b60df2d5474648e035de/transformed/camera-camera2-1.4.1/proguard.txt
+# Copyright (C) 2020 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This is necessary for default initialization using Camera2Config
+-keep public class androidx.camera.camera2.Camera2Config$DefaultProvider { *; }
+
+# End of content from /Users/macbook/.gradle/caches/8.14.3/transforms/683975eb53b4b60df2d5474648e035de/transformed/camera-camera2-1.4.1/proguard.txt
+# The proguard configuration file for the following section is /Users/macbook/.gradle/caches/8.14.3/transforms/83882d8a158c08708ec42983582a8568/transformed/camera-core-1.4.1/proguard.txt
+# Copyright (C) 2023 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Keeps the quirk classes to prevent them from being merged incorrectly. For more information,
+# please see b/278818703. Preserve Quirk subclasses and their names for correct name mapping in
+# QuirkSettings.
+-keep,allowshrinking class ** extends androidx.camera.core.impl.Quirk
+
+# End of content from /Users/macbook/.gradle/caches/8.14.3/transforms/83882d8a158c08708ec42983582a8568/transformed/camera-core-1.4.1/proguard.txt
 # The proguard configuration file for the following section is /Users/macbook/.gradle/caches/8.14.3/transforms/47a18bae8a4f26b076f704aaffc74e58/transformed/appcompat-1.7.0/proguard.txt
 # Copyright (C) 2018 The Android Open Source Project
 #
@@ -518,34 +564,6 @@
 -assumenosideeffects class androidx.startup.StartupLogger { public static <methods>; }
 
 # End of content from /Users/macbook/.gradle/caches/8.14.3/transforms/c8f0e3cedb84e00d613d771f11ad8255/transformed/startup-runtime-1.1.1/proguard.txt
-# The proguard configuration file for the following section is /Users/macbook/.gradle/caches/8.14.3/transforms/b088dfa0d5cc38fb0c2900bb3a97b731/transformed/versionedparcelable-1.1.1/proguard.txt
--keep class * implements androidx.versionedparcelable.VersionedParcelable
--keep public class android.support.**Parcelizer { *; }
--keep public class androidx.**Parcelizer { *; }
--keep public class androidx.versionedparcelable.ParcelImpl
-
-# End of content from /Users/macbook/.gradle/caches/8.14.3/transforms/b088dfa0d5cc38fb0c2900bb3a97b731/transformed/versionedparcelable-1.1.1/proguard.txt
-# The proguard configuration file for the following section is /Users/macbook/.gradle/caches/8.14.3/transforms/e693fc7a31aad24f1a2c55dbe2108ffa/transformed/rules/lib/META-INF/proguard/androidx-annotations.pro
--keep,allowobfuscation @interface androidx.annotation.Keep
--keep @androidx.annotation.Keep class * {*;}
-
--keepclasseswithmembers class * {
-    @androidx.annotation.Keep <methods>;
-}
-
--keepclasseswithmembers class * {
-    @androidx.annotation.Keep <fields>;
-}
-
--keepclasseswithmembers class * {
-    @androidx.annotation.Keep <init>(...);
-}
-
--keepclassmembers,allowobfuscation class * {
-  @androidx.annotation.DoNotInline <methods>;
-}
-
-# End of content from /Users/macbook/.gradle/caches/8.14.3/transforms/e693fc7a31aad24f1a2c55dbe2108ffa/transformed/rules/lib/META-INF/proguard/androidx-annotations.pro
 # The proguard configuration file for the following section is /Users/macbook/.gradle/caches/8.14.3/transforms/73745837846b662035a6d83cc5828ece/transformed/rules/lib/META-INF/com.android.tools/r8/coroutines.pro
 # When editing this file, update the following files as well:
 # - META-INF/proguard/coroutines.pro
@@ -600,6 +618,34 @@
 }
 
 # End of content from /Users/macbook/.gradle/caches/8.14.3/transforms/c9fde4a0b635348c4592174e1ca302e3/transformed/rules/lib/META-INF/com.android.tools/r8-from-1.6.0/coroutines.pro
+# The proguard configuration file for the following section is /Users/macbook/.gradle/caches/8.14.3/transforms/b088dfa0d5cc38fb0c2900bb3a97b731/transformed/versionedparcelable-1.1.1/proguard.txt
+-keep class * implements androidx.versionedparcelable.VersionedParcelable
+-keep public class android.support.**Parcelizer { *; }
+-keep public class androidx.**Parcelizer { *; }
+-keep public class androidx.versionedparcelable.ParcelImpl
+
+# End of content from /Users/macbook/.gradle/caches/8.14.3/transforms/b088dfa0d5cc38fb0c2900bb3a97b731/transformed/versionedparcelable-1.1.1/proguard.txt
+# The proguard configuration file for the following section is /Users/macbook/.gradle/caches/8.14.3/transforms/e693fc7a31aad24f1a2c55dbe2108ffa/transformed/rules/lib/META-INF/proguard/androidx-annotations.pro
+-keep,allowobfuscation @interface androidx.annotation.Keep
+-keep @androidx.annotation.Keep class * {*;}
+
+-keepclasseswithmembers class * {
+    @androidx.annotation.Keep <methods>;
+}
+
+-keepclasseswithmembers class * {
+    @androidx.annotation.Keep <fields>;
+}
+
+-keepclasseswithmembers class * {
+    @androidx.annotation.Keep <init>(...);
+}
+
+-keepclassmembers,allowobfuscation class * {
+  @androidx.annotation.DoNotInline <methods>;
+}
+
+# End of content from /Users/macbook/.gradle/caches/8.14.3/transforms/e693fc7a31aad24f1a2c55dbe2108ffa/transformed/rules/lib/META-INF/proguard/androidx-annotations.pro
 # The proguard configuration file for the following section is /Users/macbook/.gradle/caches/8.14.3/transforms/952890df0cb8c37a875f11da24bd68d8/transformed/rules/lib/META-INF/proguard/protobuf.pro
 # Recently Protobuf Javalite introduced a change that relies on reflection,
 # which doesn't work with Proguard. This rule keeps the reflection usages in

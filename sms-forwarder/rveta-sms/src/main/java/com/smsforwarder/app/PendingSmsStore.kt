@@ -40,6 +40,7 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
                 body TEXT NOT NULL,
                 received_at_ms INTEGER NOT NULL,
                 subscription_id INTEGER NOT NULL,
+                sender_name TEXT,
                 state TEXT NOT NULL,
                 attempts INTEGER NOT NULL,
                 last_error TEXT,
@@ -76,8 +77,12 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
             put("created_at", now)
             put("updated_at", now)
         }
-        val result = writableDatabase.insertWithOnConflict("pending_sms", null, values, SQLiteDatabase.CONFLICT_IGNORE)
-        return if (result != -1L) id else null
+        return try {
+            val result = writableDatabase.insertWithOnConflict("pending_sms", null, values, SQLiteDatabase.CONFLICT_IGNORE)
+            if (result != -1L) id else null
+        } catch (e: SQLiteConstraintException) {
+            null
+        }
     }
 
     fun get(messageId: String): PendingSms? {
@@ -120,6 +125,16 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
         )
     }
 
+    fun failedIds(error: String): List<String> {
+        val out = mutableListOf<String>()
+        val cursor = readableDatabase.rawQuery(
+            "SELECT message_id FROM pending_sms WHERE state=? AND last_error=?",
+            arrayOf(DeliveryState.FAILED.name, error)
+        )
+        try { while (cursor.moveToNext()) out.add(cursor.getString(0)) } finally { cursor.close() }
+        return out
+    }
+
     fun delete(messageId: String) {
         writableDatabase.delete("pending_sms", "message_id=?", arrayOf(messageId))
     }
@@ -129,10 +144,11 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
         val cutoffFailed = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
         writableDatabase.delete("pending_sms", "state=? AND updated_at<?", arrayOf(DeliveryState.DELIVERED.name, cutoffDelivered.toString()))
         writableDatabase.delete("pending_sms", "state=? AND updated_at<?", arrayOf(DeliveryState.FAILED.name, cutoffFailed.toString()))
+        // Bound only already-delivered history; PENDING rows are never discarded.
         val cap = 500
         writableDatabase.execSQL(
-            "DELETE FROM pending_sms WHERE state='PENDING' AND message_id NOT IN (SELECT message_id FROM pending_sms WHERE state='PENDING' ORDER BY created_at DESC LIMIT ?)",
-            arrayOf(cap)
+            "DELETE FROM pending_sms WHERE state='DELIVERED' AND message_id NOT IN (SELECT message_id FROM pending_sms WHERE state='DELIVERED' ORDER BY created_at DESC LIMIT ?)",
+            arrayOf<Any?>(cap)
         )
     }
 
@@ -155,7 +171,8 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
             body = cursor.getString(2),
             receivedAtMillis = cursor.getLong(3),
             subscriptionId = cursor.getInt(4),
-            state = DeliveryState.valueOf(cursor.getString(5)),
+            state = runCatching { DeliveryState.valueOf(cursor.getString(5)) }
+                .getOrDefault(DeliveryState.PENDING),
             attempts = cursor.getInt(6),
             lastError = cursor.getString(7),
             createdAt = cursor.getLong(8),

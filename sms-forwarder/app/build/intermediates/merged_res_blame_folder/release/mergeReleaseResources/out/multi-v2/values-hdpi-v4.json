@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.smsforwarder.app-mergeReleaseResources-39:/values-hdpi-v4/values-hdpi-v4.xml",
+            "outputFile": "com.smsforwarder.app-mergeReleaseResources-44:/values-hdpi-v4/values-hdpi-v4.xml",
             "map": [
                 {
                     "source": "/Users/macbook/.gradle/caches/8.14.3/transforms/47a18bae8a4f26b076f704aaffc74e58/transformed/appcompat-1.7.0/res/values-hdpi-v4/values-hdpi-v4.xml",

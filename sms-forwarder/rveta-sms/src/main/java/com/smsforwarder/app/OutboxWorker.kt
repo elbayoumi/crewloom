@@ -11,6 +11,10 @@ import org.json.JSONArray
 
 class OutboxWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
 
+    companion object {
+        private const val MAX_ATTEMPTS = 10
+    }
+
     override fun doWork(): Result {
         val config = AppConfig(applicationContext)
         if (config.baseUrl.isBlank() || config.deviceToken.isBlank()) return Result.success()
@@ -29,22 +33,25 @@ class OutboxWorker(context: Context, params: WorkerParameters) : Worker(context,
             }
             Result.success()
         } catch (e: Exception) {
-            Result.retry()
+            if (runAttemptCount >= MAX_ATTEMPTS) Result.success() else Result.retry()
         }
     }
 
     private fun getPending(baseUrl: String, token: String, deviceId: String): JSONArray {
-        val conn = (URL(baseUrl.trimEnd('/') + "/api/v1/outbox?device_id=$deviceId").openConnection() as HttpURLConnection).apply {
+        val conn = (URL(baseUrl.trimEnd('/') + "/api/v1/outbox?device_id=" + java.net.URLEncoder.encode(deviceId, "UTF-8")).openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
             connectTimeout = 15000
             readTimeout = 20000
             setRequestProperty("Authorization", "Bearer $token")
         }
-        val code = conn.responseCode
-        if (code !in 200..299) return JSONArray()
-        val body = conn.inputStream.bufferedReader().readText()
-        conn.disconnect()
-        return JSONArray(body)
+        return try {
+            if (conn.responseCode !in 200..299) JSONArray() else JSONArray(conn.inputStream.bufferedReader().readText())
+        } catch (e: Exception) {
+            JSONArray()
+        } finally {
+            runCatching { conn.errorStream?.close() }
+            conn.disconnect()
+        }
     }
 
     private fun postResult(baseUrl: String, token: String, id: Long, status: String) {
@@ -57,7 +64,7 @@ class OutboxWorker(context: Context, params: WorkerParameters) : Worker(context,
                 setRequestProperty("Authorization", "Bearer $token")
                 setRequestProperty("Content-Type", "application/json")
             }
-            conn.outputStream.use { it.write("{\"status\":\"$status\"}".toByteArray()) }
+            conn.outputStream.use { it.write(org.json.JSONObject().put("status", status).toString().toByteArray(Charsets.UTF_8)) }
             conn.responseCode
             conn.disconnect()
         } catch (e: Exception) { Log.w("Outbox", "result post failed") }

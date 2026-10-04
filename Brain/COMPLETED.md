@@ -165,3 +165,14 @@
 - Inbox page: device dropdown for send target, token field, send form, "pair new device" QR generator with polling list.
 - App (rveta-sms library): OutboxWorker (periodic 15 min + on-open), SmsManager send, device-scoped fetch; MainActivity handles rveta://pair deep link to set deviceId/token; RECEIVE_SMS+SEND_SMS forced requests; QR on app side removed (server generates QR).
 - Note: phone disconnected via USB late in session; E2E for pairing deep link not yet re-verified on device.
+
+## 2026-10-05 — Rveta SMS: independent code review + fixes
+- Review found 5 blockers, 13 majors. Fixed the functional ones:
+  - B1: `sender_name` missing from CREATE TABLE — fresh installs crashed on EVERY SMS (no migration runs on fresh DB). Now in schema + regression test.
+  - B2: camera buffer sized by stride math instead of `buffer.remaining()` → BufferUnderflowException killed the analyzer thread and leaked ImageProxy (permanent scanner death). Now sizes from the buffer, always closes in finally, rejects pixelStride != 1.
+  - B3/M1: QR could rewrite baseUrl/deviceId/token from any https host → added trusted-host allowlist (bmc.moaf.uk) and URL-decoded params.
+  - B4: EncryptedSharedPreferences failure silently discarded the token → now surfaced in the UI as "Secure storage unavailable".
+  - B5: registerDevice() hardcoded the backend → now uses config.baseUrl.
+- Reliability: cleanup() no longer deletes undelivered PENDING rows; FAILED(missing_config) rows recover on save/boot; outbox work switched to APPEND_OR_REPLACE so inbound SMS can't cancel an in-flight send; outbox retries bounded; connection/errorStream leaks fixed; M9 JSON injection fixed via JSONObject.
+- Tests: 20 unit tests pass (added DbSchemaTest regression guards, QrPayloadTest, ScannerDecoderTest).
+- Build: debug + release unsigned APK both build; lint clean of errors.

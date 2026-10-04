@@ -55,31 +55,29 @@ class ScanQrActivity : AppCompatActivity() {
 
     private fun analyze(image: ImageProxy) {
         if (done) { image.close(); return }
-        val plane = image.planes[0]
-        val w = image.width
-        val h = image.height
-        val rowStride = plane.rowStride
-        val raw = ByteArray(rowStride * h)
-        plane.buffer.get(raw)
-        image.close()
-        val bytes = ScannerDecoder.cropCenter(raw, rowStride, w, h)
-        val side = Math.sqrt(bytes.size.toDouble()).toInt()
         try {
-            val hints = mapOf(
-                DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
-                DecodeHintType.TRY_HARDER to true
-            )
-            val text = ScannerDecoder.decode(bytes, side, side)
-        if (text == null) return
+            val plane = image.planes[0]
+            // Only safe when luminance bytes are contiguous; otherwise decode is meaningless.
+            if (plane.pixelStride != 1) return
+            val buffer = plane.buffer
+            val raw = ByteArray(buffer.remaining())
+            buffer.get(raw)
+            val side = ScannerDecoder.cropCenter(raw, plane.rowStride, image.width, image.height)
+            if (side.size < 100) return
+            val dim = Math.sqrt(side.size.toDouble()).toInt()
+            val text = ScannerDecoder.decode(side, dim, dim) ?: return
             if (!ScannerDecoder.isOurs(text)) return
             done = true
             runOnUiThread {
-                findViewById<TextView>(R.id.scanStatus).text = getString(R.string.scan_found)
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                findViewById<TextView>(R.id.scanStatus)?.text = getString(R.string.scan_found)
                 setResult(RESULT_OK, Intent().putExtra("scan_result", text))
                 finish()
             }
         } catch (e: Exception) {
             // keep scanning
+        } finally {
+            image.close()
         }
     }
 

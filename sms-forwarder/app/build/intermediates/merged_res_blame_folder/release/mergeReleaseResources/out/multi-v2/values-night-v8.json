@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.smsforwarder.app-mergeReleaseResources-39:/values-night-v8/values-night-v8.xml",
+            "outputFile": "com.smsforwarder.app-mergeReleaseResources-44:/values-night-v8/values-night-v8.xml",
             "map": [
                 {
                     "source": "/Users/macbook/.gradle/caches/8.14.3/transforms/5f7300f370742532b20193ca559d9f62/transformed/material-1.12.0/res/values-night-v8/values-night-v8.xml",

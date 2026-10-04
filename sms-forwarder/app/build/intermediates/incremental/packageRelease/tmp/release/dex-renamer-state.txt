@@ -1,4 +1,4 @@
-#Sun Oct 04 02:04:46 EEST 2026
+#Mon Oct 05 02:42:58 EEST 2026
 base.0=/Volumes/main/Projects/crewloom/sms-forwarder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 path.0=classes.dex
 renamed.0=classes.dex
