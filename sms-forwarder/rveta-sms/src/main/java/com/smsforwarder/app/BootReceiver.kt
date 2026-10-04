@@ -15,6 +15,7 @@ class BootReceiver : BroadcastReceiver() {
                 for (id in store.allIdsByState(DeliveryState.PENDING)) {
                     SmsReceiver.enqueue(context, id)
                 }
+                RvetaSms.checkOutbox(context)
             } finally {
                 pending.finish()
             }

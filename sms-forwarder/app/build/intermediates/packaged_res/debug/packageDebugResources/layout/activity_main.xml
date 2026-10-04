@@ -91,6 +91,14 @@
 
                 <com.google.android.material.button.MaterialButton
                     style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:id="@+id/btnCheckSends"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Check pending sends now" />
+
+                <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:id="@+id/btnSave"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -25,6 +25,9 @@ public final class ActivityMainBinding implements ViewBinding {
   public final MaterialButton btnBattery;
 
   @NonNull
+  public final MaterialButton btnCheckSends;
+
+  @NonNull
   public final MaterialButton btnPermissions;
 
   @NonNull
@@ -58,14 +61,15 @@ public final class ActivityMainBinding implements ViewBinding {
   public final TextView textStatus;
 
   private ActivityMainBinding(@NonNull ScrollView rootView, @NonNull MaterialButton btnBattery,
-      @NonNull MaterialButton btnPermissions, @NonNull MaterialButton btnRefresh,
-      @NonNull MaterialButton btnSave, @NonNull MaterialButton btnScan,
-      @NonNull MaterialButton btnTest, @NonNull TextInputEditText editBaseUrl,
-      @NonNull TextInputEditText editDeviceId, @NonNull TextView textLast,
-      @NonNull TextView textPending, @NonNull TextView textPermission,
+      @NonNull MaterialButton btnCheckSends, @NonNull MaterialButton btnPermissions,
+      @NonNull MaterialButton btnRefresh, @NonNull MaterialButton btnSave,
+      @NonNull MaterialButton btnScan, @NonNull MaterialButton btnTest,
+      @NonNull TextInputEditText editBaseUrl, @NonNull TextInputEditText editDeviceId,
+      @NonNull TextView textLast, @NonNull TextView textPending, @NonNull TextView textPermission,
       @NonNull TextView textStatus) {
     this.rootView = rootView;
     this.btnBattery = btnBattery;
+    this.btnCheckSends = btnCheckSends;
     this.btnPermissions = btnPermissions;
     this.btnRefresh = btnRefresh;
     this.btnSave = btnSave;
@@ -109,6 +113,12 @@ public final class ActivityMainBinding implements ViewBinding {
       id = R.id.btnBattery;
       MaterialButton btnBattery = ViewBindings.findChildViewById(rootView, id);
       if (btnBattery == null) {
+        break missingId;
+      }
+
+      id = R.id.btnCheckSends;
+      MaterialButton btnCheckSends = ViewBindings.findChildViewById(rootView, id);
+      if (btnCheckSends == null) {
         break missingId;
       }
 
@@ -178,9 +188,9 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityMainBinding((ScrollView) rootView, btnBattery, btnPermissions, btnRefresh,
-          btnSave, btnScan, btnTest, editBaseUrl, editDeviceId, textLast, textPending,
-          textPermission, textStatus);
+      return new ActivityMainBinding((ScrollView) rootView, btnBattery, btnCheckSends,
+          btnPermissions, btnRefresh, btnSave, btnScan, btnTest, editBaseUrl, editDeviceId,
+          textLast, textPending, textPermission, textStatus);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

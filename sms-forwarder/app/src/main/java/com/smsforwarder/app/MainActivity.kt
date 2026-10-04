@@ -57,6 +57,10 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Scanner unavailable", Toast.LENGTH_SHORT).show()
             }
         }
+        binding.btnCheckSends.setOnClickListener {
+            RvetaSms.checkOutbox(this)
+            Toast.makeText(this, "Checking pending sends…", Toast.LENGTH_SHORT).show()
+        }
         binding.btnTest.setOnClickListener { runTest() }
         binding.btnRefresh.setOnClickListener { refreshStatus() }
         binding.btnPermissions.setOnClickListener { ensureSmsPermission() }

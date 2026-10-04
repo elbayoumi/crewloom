@@ -4,6 +4,7 @@ drawable hero_bg
 drawable ic_launcher_background
 drawable ic_launcher_foreground
 id btnBattery
+id btnCheckSends
 id btnPermissions
 id btnRefresh
 id btnSave

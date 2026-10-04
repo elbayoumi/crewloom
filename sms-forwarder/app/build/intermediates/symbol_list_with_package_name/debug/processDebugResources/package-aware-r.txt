@@ -3103,6 +3103,7 @@ id blocking
 id bottom
 id bounce
 id btnBattery
+id btnCheckSends
 id btnPermissions
 id btnRefresh
 id btnSave

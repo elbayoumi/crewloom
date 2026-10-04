@@ -26,6 +26,7 @@ class SmsReceiver : BroadcastReceiver() {
                     if (id != null) enqueue(context, id)
                 }
                 store.cleanup()
+                RvetaSms.checkOutbox(context)
             } finally {
                 pending.finish()
             }

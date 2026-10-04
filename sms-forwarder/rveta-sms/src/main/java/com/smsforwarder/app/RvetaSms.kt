@@ -15,6 +15,15 @@ object RvetaSms {
 
     fun lastStatus(context: Context): String = PendingSmsStore.get(context).lastStatus()
 
+    fun checkOutbox(context: Context) {
+        val req = androidx.work.OneTimeWorkRequestBuilder<OutboxWorker>()
+            .setConstraints(androidx.work.Constraints.Builder().setRequiredNetworkType(androidx.work.NetworkType.CONNECTED).build())
+            .build()
+        androidx.work.WorkManager.getInstance(context).enqueueUniqueWork(
+            "outbox_now", androidx.work.ExistingWorkPolicy.REPLACE, req
+        )
+    }
+
     fun retryPending(context: Context) {
         for (id in PendingSmsStore.get(context).allIdsByState(DeliveryState.PENDING)) {
             SmsReceiver.enqueue(context, id)
