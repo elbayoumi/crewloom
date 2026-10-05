@@ -111,6 +111,7 @@ jobs:
         with:
           python-version: '3.14'
       - run: python3 -m pip install build 'setuptools>=77,<81' wheel
+      - run: docker pull python:3.14-slim
       - name: Build from sdist, install and use outside checkout
         env:
           CREWLOOM_DISTRIBUTION_TESTS: '1'
