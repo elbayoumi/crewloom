@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "integration-workflow",
+  "language": "en",
+  "criteria": "criteria.md",
+  "steps": [
+    {
+      "id": "accept-combined",
+      "role": "qa-test-automation-engineer",
+      "kind": "command",
+      "summary": "Accept the combined result of every task through the generated command",
+      "argv": ["python3", "tools/check_combined.py"],
+      "timeout_seconds": 240,
+      "inputs": [
+        "src/billing.py",
+        "src/planning.py",
+        "src/report.py",
+        "src/app.py",
+        "artifacts/billing_acceptance.json",
+        "artifacts/planning_acceptance.json",
+        "artifacts/report_acceptance.json",
+        "src/money.py",
+        "src/scheduling_support.py",
+        "tools/check_combined.py",
+        "data/ledger_en.json",
+        "data/ledger_ar.json"
+      ],
+      "outputs": [
+        "artifacts/combined_acceptance.json"
+      ]
+    },
+    {
+      "id": "helper-tests",
+      "role": "qa-test-automation-engineer",
+      "kind": "command",
+      "summary": "Run the frozen fixture tests for the reused helpers in the integrated candidate",
+      "argv": ["python3", "tools/run_helper_tests.py"],
+      "timeout_seconds": 180,
+      "inputs": [
+        "tools/run_helper_tests.py",
+        "tests/test_money.py",
+        "tests/test_scheduling_support.py",
+        "src/money.py",
+        "src/scheduling_support.py"
+      ],
+      "outputs": [
+        "artifacts/helper_tests.json"
+      ]
+    }
+  ]
+}

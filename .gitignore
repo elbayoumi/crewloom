@@ -11,3 +11,7 @@ dist/
 node_modules/
 .next/
 scripts/*.egg-info/
+
+/build/
+*.egg-info/
+*.tsbuildinfo

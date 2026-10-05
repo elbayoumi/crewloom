@@ -10,7 +10,9 @@
 
 Crewloom is a repository-native toolkit for specialist AI agent work. Choose a role, give it your project inputs, keep working memory, and check the result with local tools. Use your existing agent host and model.
 
-The toolkit brings together **42 English role guides**, **150 detailed reference documents**, **14 catalogued Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic.
+The toolkit brings together **42 English role guides**, **150 detailed reference documents**, **18 catalogued Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic.
+
+Managed workflows add project and checkout identities, frozen context, isolated Docker acceptance, credential-scoped review, and concurrent task worktrees. [Native lifecycle setup](documentation/HOST_LIFECYCLE.md) connects supported host callbacks; [agency readiness](documentation/READINESS.md) reports client evidence without modifying client projects. See [enforcement boundaries](documentation/ENFORCEMENT.md) for what each execution path actually covers.
 
 ## Execute a software workflow
 
@@ -27,6 +29,13 @@ python3 scripts/crewloom.py workflow handoff --project /tmp/crewloom-demo
 Use a fresh destination. Commands run inside Docker with network access disabled and only the selected project mounted. The example tests a supplied Unicode implementation in English and Arabic; it demonstrates execution, not model-generated feature quality.
 
 For real model-generated source, run the [bounded model workflow](examples/model-workflow/README.md) with Codex or Claude and verify it in Docker. Compare repeated submissions with the [provider-trial harness](examples/evaluation/unicode-slug/HOST_TRIALS.md).
+
+For a complete application with parallel billing and planning tasks, dependency-aware integration,
+English and Arabic reports, and credential-reviewed publication, run the
+[concurrent development example](documentation/DEVELOPMENT_EXAMPLE.md). Its acceptance uses real
+worktrees and Docker; the automated regression suite substitutes only provider generation.
+The [controlled context study](documentation/CONTEXT_STUDY.md) measures input tokens, cache usage,
+latency and held-out correctness separately. Missing provider metrics remain unknown.
 
 Use the [software task plan](workflows/software-feature.json) for agent-produced work. Read [execution and failure handling](documentation/EXECUTION.md), [host setup](documentation/HOSTS.md), and [objective evaluation](examples/evaluation/unicode-slug/README.md).
 
@@ -62,7 +71,7 @@ pip install -e .            # from the clone; adds the `crewloom` command
 crewloom install --host claude --target /path/to/your/project --skill frontend-ux-auditor
 ```
 
-`--host claude` copies roles to `.claude/skills`; `--host agents` copies them to `.agents/skills` for hosts that read that folder (omit `--skill` for all 42). Existing roles are never overwritten without `--force`. Copied roles are static: re-run the command after pulling updates. Tools stay in the clone (`crewloom run ...`), because the pip install is editable and refers to the checkout.
+`--host claude` copies roles to `.claude/skills`; `--host agents` copies them to `.agents/skills` for hosts that read that folder (omit `--skill` for all 42). Existing roles are never overwritten without `--force`. Copied roles are static: re-run the command after pulling updates. A normal `pip install .` builds a local wheel with the Python runtime, role resources, adapters and examples. The editable command above keeps a development link to the clone. The optional Node dashboard runs from a source checkout.
 
 ## Live dashboard
 
@@ -72,7 +81,7 @@ crewloom dashboard          # needs Node 20+; opens on http://localhost:4317
 
 ![Dashboard demo: role status, tool runs, and live updates](assets/dashboard-demo.gif)
 
-Monitor roles, memory, and tool runs live with the optional [web dashboard](dashboard/README.md) ([MP4 version](assets/dashboard-demo.mp4)); it has no authentication, so keep it on localhost.
+Monitor roles, memory, and tool runs live with the optional [web dashboard](dashboard/README.md) ([MP4 version](assets/dashboard-demo.mp4)). Every dashboard API route and the event stream require authentication: `crewloom dashboard` writes a generated token to an owner-only file and prints its path, and `CREWLOOM_DASHBOARD_TOKEN` sets it explicitly. Keep the default `127.0.0.1` bind unless you configured a credential.
 
 See [evidence from real projects](documentation/EVIDENCE.md), including a false positive.
 
@@ -145,3 +154,15 @@ crewloom project finish --project /path/to/your/project --project-id sample-proj
 ```
 
 Entry creates missing metadata and refreshes existing ones without rewriting your constitution or role memory. `status` reports whether the lifecycle is managed by the Crewloom runner, instruction-assisted or manual; opening a folder never triggers it by itself. `finish` completes a task only from recorded executor evidence; `--verification` records an operator attestation and keeps the task awaiting verification. See [the pilot](documentation/PROJECT_CONTEXT.md#measurements) for measured cold/warm behaviour.
+
+## Run independent tasks concurrently
+
+Independent tasks in one project run as a batch instead of one after another. Each task gets its own Git worktree under the project's `.crewloom`, runs the same isolated Docker executor, and a dependent task reads its ancestors' committed output:
+
+```bash
+crewloom coordinator validate --project /path/to/your/project --project-id sample-project --manifest coordinator.json
+crewloom coordinator run      --project /path/to/your/project --project-id sample-project --manifest coordinator.json
+crewloom coordinator prepare  --project /path/to/your/project --project-id sample-project --manifest coordinator.json
+```
+
+The checked-out tree changes only after an explicit reviewed decision moves it by one recorded fast-forward. See [the coordinator](documentation/COORDINATOR.md) and its [Arabic guide](documentation/COORDINATOR.ar.md).

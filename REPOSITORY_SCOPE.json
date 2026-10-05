@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "project_id": "crewloom-toolkit",
+  "directories": [
+    ".agents",
+    ".githooks",
+    ".github",
+    "adapters",
+    "assets",
+    "Brain",
+    "dashboard",
+    "documentation",
+    "examples",
+    "scripts",
+    "workflows"
+  ],
+  "files": [
+    ".gitignore",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "crewloom.project.json",
+    "LICENSE",
+    "MANIFEST.in",
+    "MASTER_BRAIN.md",
+    "NOTICE",
+    "PKG-INFO",
+    "pyproject.toml",
+    "README.ar.md",
+    "README.md",
+    "REPOSITORY_SCOPE.json",
+    "SECURITY.md",
+    "setup.cfg"
+  ],
+  "purpose": "This checkout contains the Crewloom toolkit. Independent applications require their own canonical root and repository; registering a new toolkit directory requires reviewed scope changes."
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "id": "report-workflow",
+  "language": "en",
+  "criteria": "criteria.md",
+  "steps": [
+    {
+      "id": "generate",
+      "role": "fullstack-mvp-engineer",
+      "kind": "model",
+      "summary": "Implement the combined report module and the ledgerline command from the report contract, on top of the merged billing and planning modules",
+      "host": "__MODEL_HOST__",
+      "model": "__MODEL__",
+      "timeout_seconds": 300,
+      "inputs": [
+        "contracts/report.md",
+        "src/billing.py",
+        "src/planning.py"
+      ],
+      "outputs": [
+        "src/report.py",
+        "src/app.py"
+      ]
+    },
+    {
+      "id": "accept",
+      "role": "qa-test-automation-engineer",
+      "kind": "command",
+      "summary": "Run the generated report and command in the container over the merged ancestors",
+      "argv": ["python3", "tools/check_report.py"],
+      "timeout_seconds": 240,
+      "inputs": [
+        "src/report.py",
+        "src/app.py",
+        "src/billing.py",
+        "src/planning.py",
+        "src/money.py",
+        "src/scheduling_support.py",
+        "tools/check_report.py",
+        "data/ledger_en.json",
+        "data/ledger_ar.json",
+        "artifacts/billing_acceptance.json",
+        "artifacts/planning_acceptance.json"
+      ],
+      "outputs": [
+        "artifacts/report_acceptance.json"
+      ]
+    }
+  ]
+}

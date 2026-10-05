@@ -1,2 +1,0 @@
--dontwarn javax.annotation.**
--dontwarn org.jetbrains.annotations.**

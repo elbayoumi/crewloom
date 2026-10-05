@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "owner": "crewloom-host-lifecycle",
+  "note": "Project-local Codex hook template. Placeholders are rendered by host_lifecycle.install; the rendered control-config digest is passed back to every callback as --config-sha.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 20,
+            "additionalContextLimit": 65536
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 120
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}

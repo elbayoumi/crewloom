@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-05",
+  "kind": "actual-provider-application-pilot",
+  "host": "opencode",
+  "model_requested": "opencode/space-bunny-free",
+  "planned_tasks": 3,
+  "dispatched_generation_attempts": 2,
+  "generation_retries": 0,
+  "study_trial": false,
+  "generation_timeout_seconds": 300,
+  "workers": 2,
+  "result": "blocked",
+  "billing": {
+    "generation": "finished",
+    "acceptance": "failed",
+    "failed_case": "missing_description_is_refused"
+  },
+  "planning": {
+    "generation": "timed-out",
+    "process_group": "terminated"
+  },
+  "report_task": "blocked by dependencies",
+  "root_head": "unchanged",
+  "generated_outputs_committed": false,
+  "publication": "refused",
+  "runtime_sha256": {
+    "scripts/task_coordinator.py": "0eb7dd567794185c00994239d237b26bb5ee2559e0b82b29be0e27143202f991",
+    "scripts/workflow.py": "1e3bae74d7aa2c998847c2823126712e8a1c723f64f9b5fb514cf42e5c052d17",
+    "scripts/model_host.py": "edff3e9fbee8273d922676acd4100009f97e92ded4df431166f1e0e0db392134"
+  },
+  "reference_application_acceptance": {
+    "cases": 37,
+    "passed": 37,
+    "docker_enabled": true,
+    "provider_transport": "deterministic stand-in",
+    "scope": "application semantics, real isolated workflows, combined acceptance, credential-reviewed publication, same-batch permission recovery"
+  },
+  "limits": [
+    "The application fixture and orchestration passed; this actual provider attempt did not produce a verified application.",
+    "No provider-quality claim follows from stand-in tests.",
+    "Failure evidence is retained; neither task was replaced or retried."
+  ]
+}

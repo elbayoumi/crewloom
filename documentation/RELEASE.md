@@ -45,3 +45,15 @@ Provider CLI processes remain trusted host dependencies outside the Docker comma
 ## 0.5.1
 
 Workflow task actions require an explicit project root. Project ownership persists while a manual task awaits an artifact; other workflows cannot take that root until completion or explicit cancellation. Cancellation preserves partial files and failure history. Concurrent same-root rejection, parallel distinct-root execution and runtime reservation boundaries are verified. Direct host edits are outside the runner guards.
+
+## 0.6.0 development metadata
+
+`version = "0.6.0.dev0"`. This is a development version, not a tag or a published release.
+
+- Installable distributions: a standard wheel and an sdist build from `pyproject.toml` with a pinned `setuptools>=77,<81` backend and no runtime dependencies. One explicit resolver (`scripts/crewloom_resources.py`) maps repository paths to either a checkout or the installed data package, so `list`, `show`, `install`, `context`, `validate`, `project` and `workflow` all work outside the source checkout without duplicating the role tree, reading the working directory, or relying on an editable path.
+- The flat runtime is declared as `py-modules`, including `js_syntax`, which `repo_map` imports at module scope so an installed navigation index always has it. The one optional extra, `crewloom[syntax]`, pins `tree-sitter==0.23.2`, `tree-sitter-javascript==0.23.1` and `tree-sitter-typescript==0.23.2`. Without it every command still works and the generated map records that approximate extraction was used.
+- The sdist carries the approved public source: role trees, documentation, examples, English/Arabic guides, `LICENSE`, `NOTICE`, `MASTER_BRAIN.md`, `Brain/`, `.github/`, `.githooks/`, and the dashboard sources referenced by the README. It never carries `.crewloom`, `node_modules`, generated builds, or logs.
+- The dashboard is not bundled in the wheel because its Node dependencies are not. Running `crewloom dashboard` from an installed wheel prints that diagnosis with exit 2 instead of a missing-file traceback; start it from a checkout or unpacked sdist.
+- Dashboard authentication is required on every API read, write and the event stream. The generated token is written to an owner-only runtime file and only its path is printed.
+
+`CREWLOOM_DISTRIBUTION_TESTS=1` builds and installs both artifacts and exercises them outside the checkout. It is opt-in and never part of the commit gate.

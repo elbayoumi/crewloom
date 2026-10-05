@@ -7,7 +7,7 @@
 أدوات وإجراءات لتنظيم شغل وكلاء الذكاء الاصطناعي داخل الريبو: تختار الدور، توفر بيانات المشروع، تحفظ الذاكرة، وتفحص المخرجات.
 
 - **42 دليل دور بالإنجليزية** و**150 مراجع تفصيلية** تتضمن إجراءات المصدر بالعربية.
-- **14 أداة Python** للفحوص والسياق وقياس الموارد والتوقيت والإنفاق.
+- **18 أداة Python** للفحوص والسياق وقياس الموارد والتوقيت والإنفاق.
 - خمس ملفات ذاكرة لكل دور، وفحوص قبل الـcommit وفي GitHub Actions.
 
 ## ابدأ عمليًا
@@ -44,7 +44,7 @@ crewloom install --host claude --target /path/to/project --skill frontend-ux-aud
 crewloom dashboard
 ```
 
-`--host claude` ينسخ الأدوار إلى `.claude/skills`، و`--host agents` إلى `.agents/skills`. لا يكتب فوق دور موجود بدون `--force`. الداشبورد يحتاج Node 20+ وبلا مصادقة، فاستخدمه على localhost فقط. انظر [الداشبورد](dashboard/README.md).
+`--host claude` ينسخ الأدوار إلى `.claude/skills`، و`--host agents` إلى `.agents/skills`. لا يكتب فوق دور موجود بدون `--force`. الداشبورد يحتاج Node 20+، وكل مسارات الـ API وبث الأحداث تتطلب مصادقة: `crewloom dashboard` يكتب رمزًا مولّدًا في ملف للمالك وحده ويطبع مساره فقط، أو اضبط `CREWLOOM_DASHBOARD_TOKEN` صراحةً. اترك الربط الافتراضي على `127.0.0.1` ما لم تُهيّئ رمزًا. انظر [الداشبورد](dashboard/README.md).
 
 ## مسار برمجي قابل للتشغيل
 
@@ -69,3 +69,19 @@ crewloom project finish --project /path/to/project --project-id sample-project -
 ```
 
 الدخول ينشئ الناقص ويحدّث الموجود دون إعادة كتابة دستور مشروعك أو ذاكرة أدوارك. `status` يوضّح هل دورة الحياة يديرها مشغّل Crewloom أم أنها مُساعَدة بتعليمات أم يدوية؛ فتح المجلد لا يستدعي شيئًا وحده. `finish` لا يعلن الاكتمال إلا من أدلة تنفيذ مسجّلة، أما `--verification` فيسجّل إقرارًا يدويًا ويُبقي المهمة بانتظار التحقق. راجع [القياس التجريبي](documentation/PROJECT_CONTEXT.md#measurements) للسلوك المقيس فعليًا.
+
+## تنفيذ المهام المستقلة على نحو متزامن
+
+المهام المستقلة في مشروع واحد تُنفَّذ كدفعة واحدة: لكل مهمة شجرة عمل Git خاصة داخل `.crewloom`، وتعمل داخلها نفس منفّذ Docker المعزول، وتقرأ المهمة التابعة مخرجات أسلافها الملتزَمة فعلًا.
+
+```bash
+crewloom coordinator validate --project /path/to/project --project-id sample-project --manifest coordinator.json
+crewloom coordinator run      --project /path/to/project --project-id sample-project --manifest coordinator.json
+crewloom coordinator prepare  --project /path/to/project --project-id sample-project --manifest coordinator.json
+```
+
+لا تتغيّر الشجرة المفحوصة إلا بعد قرار مراجعة صريح ينقلها بخطوة «تقدّم سريع» واحدة مسجّلة. راجع [دليل المنسّق](documentation/COORDINATOR.ar.md) و[مرجعه الإنجليزي](documentation/COORDINATOR.md).
+
+إعداد دورة التشغيل في الأدوات المدعومة: [دليل التشغيل التلقائي](documentation/HOST_LIFECYCLE.md). فحص ملفات تجهيز العملاء دون تعديلها: [دليل الجاهزية](documentation/READINESS.md).
+
+[مثال تطوير تطبيق كامل](documentation/DEVELOPMENT_EXAMPLE.md): مهام فواتير وتخطيط متوازية، تقرير عربي أو إنجليزي، دمج واختبارات Docker، ثم نشر بمراجعة موثقة. اختبارات المكتبة تستبدل توليد المزوّد فقط بكود مرجعي؛ لا تمثل قياسًا لجودة النموذج. [دراسة السياق](documentation/CONTEXT_STUDY.md) تقيس التوكنز والكاش والوقت والصحة بصورة منفصلة، وتترك القياسات غير المتاحة مجهولة.

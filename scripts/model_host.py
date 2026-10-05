@@ -1,9 +1,17 @@
-"""Bounded text generation through installed Codex and Claude CLIs.
+"""Bounded text generation through installed Codex, Claude and OpenCode CLIs.
 
 Hosts receive explicit text, not the project checkout. Only validated artifacts
 are copied back. CLI authentication is managed by the operator, never Crewloom.
+
+Installed CLIs are a native host exception, not an OS sandbox: the flags below
+bound what the CLI is asked to do, not what the process may reach. The OpenCode
+adapter additionally runs in a fresh scratch directory with a task-scoped
+configuration home, a deny-all agent profile and no project discovery, because
+the CLI merges global configuration into every run and `--pure` alone only
+suppresses external plugins.
 """
 import json
+import math
 import os
 import signal
 import shutil
@@ -12,33 +20,117 @@ import tempfile
 import time
 from pathlib import Path
 
-HOSTS = ('codex', 'claude', 'openai', 'anthropic')
+HOSTS = ('codex', 'claude', 'opencode', 'openai', 'anthropic')
+# Hosts reached through an installed CLI, which is the explicit operator exception.
+CLI_HOSTS = ('codex', 'claude', 'opencode')
 MAX_TEXT = 256 * 1024
 MAX_ARTIFACT_BYTES = 1024 * 1024
+# The prompt travels as one argv element for hosts without verified stdin support,
+# so an oversized prompt is refused instead of silently truncated.
+MAX_ARGV_TEXT = 128 * 1024
 SCHEMA = {'type':'object','properties':{'artifacts':{'type':'array','items':{'type':'object',
     'properties':{'path':{'type':'string'},'content':{'type':'string'}},
     'required':['path','content'],'additionalProperties':False}}},
     'required':['artifacts'],'additionalProperties':False}
+USAGE_KEYS = ('input_tokens','uncached_input_tokens','cached_input_tokens','cache_write_tokens',
+              'output_tokens','reasoning_tokens','total_tokens')
+CODEX_TOKEN_FIELDS = ('input_tokens','cached_input_tokens','output_tokens','reasoning_tokens','total_tokens')
+OPENCODE_AGENT = 'crewloom-text'
+OPENCODE_REQUIRED_FLAGS = ('run','--pure','--model','--agent','--format','--dir')
+# Present in the verified 1.18.32 binary. Presence is recorded as symbol evidence,
+# not as verified behaviour; failed isolation must reject a measurement instead of
+# overriding a managed administrative setting.
+OPENCODE_DISABLE_SWITCHES = ('OPENCODE_DISABLE_CLAUDE_CODE','OPENCODE_DISABLE_CLAUDE_CODE_PROMPT',
+                             'OPENCODE_DISABLE_CLAUDE_CODE_SKILLS','OPENCODE_DISABLE_EXTERNAL_SKILLS',
+                             'OPENCODE_DISABLE_PROJECT_CONFIG','OPENCODE_DISABLE_DEFAULT_PLUGINS')
+OPENCODE_EVENTS = ('step_start','text','step_finish')
+
+
+class HostUnavailable(ValueError):
+    """The host or its local authentication is unavailable, so this host cannot run.
+
+    Distinct from an ordinary rejection: a study records it against the host and
+    stops only that host, while a failed artifact or quality grade is retained
+    in the denominator and never replaced by an early retry.
+    """
+
+
+def _text(stream):
+    """One captured stream as text; an uncaptured stream reads as empty, never as bytes."""
+    return stream if isinstance(stream,str) else ''
 
 
 def probe(host):
+    """Whether an installed CLI can run bounded generation, as that binary reports it itself.
+
+    A supported CLI may print a successful help text to either stream, so every required
+    flag is looked for in both; a nonzero exit stays a refusal even when it names them all.
+    The version is read from whichever stream carries it and is never inferred from the
+    executable or its flags, so a CLI that reports none is not credited with an identity.
+    """
     if host not in HOSTS:
-        raise ValueError('Host must be codex or claude')
+        raise ValueError('Host must be codex, claude or opencode')
     executable=shutil.which(host)
     if not executable:
-        raise ValueError('Install '+host+' and authenticate it locally first')
-    flags=('exec','--help') if host=='codex' else ('--help',)
+        raise HostUnavailable('Install '+host+' and authenticate it locally first')
+    if host=='codex':flags,required=('exec','--help'),('--ignore-user-config','--output-schema','--ephemeral','--sandbox')
+    elif host=='opencode':flags,required=('run','--help'),OPENCODE_REQUIRED_FLAGS
+    else:flags,required=('--help',),('--tools','--json-schema','--strict-mcp-config','--setting-sources','--no-session-persistence')
     result=subprocess.run([executable,*flags],capture_output=True,text=True,timeout=10)
-    required=('--ignore-user-config','--output-schema','--ephemeral','--sandbox') if host=='codex' else ('--tools','--json-schema','--strict-mcp-config','--setting-sources','--no-session-persistence')
-    if result.returncode or any(flag not in result.stdout for flag in required):
-        raise ValueError('Unsupported '+host+' CLI: required bounded-generation flags missing')
-    version=subprocess.run([executable,'--version'],capture_output=True,text=True,timeout=10).stdout.strip()
-    return {'host':host,'executable':executable,'version':version,'generation_supported':True,
-            'authentication_verified':False}
+    # The newline separator keeps a flag from being matched across the two streams.
+    help_text=_text(result.stdout)+'\n'+_text(result.stderr)
+    if result.returncode or any(flag not in help_text for flag in required):
+        raise HostUnavailable('Unsupported '+host+' CLI: required bounded-generation flags missing')
+    reported=subprocess.run([executable,'--version'],capture_output=True,text=True,timeout=10)
+    version=(_text(reported.stdout) or _text(reported.stderr)).strip()
+    info={'host':host,'executable':executable,'version':version,'generation_supported':True,
+          'authentication_verified':False}
+    if host=='opencode':info['disable_switches']=list(OPENCODE_DISABLE_SWITCHES)
+    return info
 
 
-def command(host, executable, scratch, model=None):
+def opencode_agent_config(model=None):
+    """The deny-all profile OpenCode runs under, and nothing wider.
+
+    A permission denial hides one skill; the skill tool exposes the whole list,
+    so the profile disables it as well as every runtime tool. Managed
+    administrative settings still win over this file and are never overridden.
+    """
+    profile={'permission':{'*':'deny'},'tools':{'*':False,'skill':False},'share':'disabled',
+             'agent':{OPENCODE_AGENT:{'mode':'primary','permission':{'*':'deny'},
+                                      'tools':{'*':False,'skill':False},
+                                      'prompt':'Answer with text only. Use no tools and return only the '
+                                               'requested JSON artifact.'}}}
+    if model:profile['agent'][OPENCODE_AGENT]['model']=model;profile['model']=model
+    return profile
+
+
+def opencode_environment(scratch, profile):
+    """Child environment for one OpenCode call: task-scoped configuration, no new HOME.
+
+    `XDG_CONFIG_HOME` moves the configuration directory the CLI merges; `HOME`
+    and `CODEX_HOME` are left exactly as the operator set them so an existing
+    local authentication file is still found and never copied or rewritten.
+    """
+    configuration=Path(scratch)/'xdg-configuration'
+    configuration.mkdir(parents=True,exist_ok=True)
+    env={'XDG_CONFIG_HOME':str(configuration),'OPENCODE_CONFIG':str(profile)}
+    env.update({name:'1' for name in OPENCODE_DISABLE_SWITCHES})
+    return env
+
+
+def command(host, executable, scratch, model=None, prompt=None):
     schema=scratch/'schema.json';schema.write_text(json.dumps(SCHEMA))
+    if host=='opencode':
+        profile=scratch/'opencode.json'
+        profile.write_text(json.dumps(opencode_agent_config(model)))
+        argv=[executable,'run','--pure','--agent',OPENCODE_AGENT,'--format','json',
+              '--dir',str(scratch)]
+        if model:argv.extend(['--model',model])
+        if prompt is not None:
+            if len(prompt.encode())>MAX_ARGV_TEXT:raise ValueError('Host prompt exceeds the argv budget')
+            argv.append(prompt)
+        return argv
     if host=='codex':
         argv=[executable,'exec','--ignore-user-config','--ephemeral','--skip-git-repo-check',
               '--sandbox','read-only','--cd',str(scratch),'--output-schema',str(schema),
@@ -62,7 +154,175 @@ def command(host, executable, scratch, model=None):
     return argv
 
 
+def _count(value, label):
+    """One reported token or cost count: a real nonnegative integer, or unknown.
+
+    Booleans are integers in Python and NaN is a float, so both are refused
+    rather than turned into a plausible looking metric.
+    """
+    if value is None:return None
+    if isinstance(value,bool) or not isinstance(value,int):
+        raise ValueError('Host reported an invalid '+label+' count')
+    if value<0:raise ValueError('Host reported an invalid '+label+' count')
+    return value
+
+
+def _cost(value):
+    if value is None:return None
+    if isinstance(value,bool) or not isinstance(value,(int,float)):
+        raise ValueError('Host reported an invalid cost')
+    if isinstance(value,float) and (math.isnan(value) or math.isinf(value)):
+        raise ValueError('Host reported an invalid cost')
+    if value<0:raise ValueError('Host reported an invalid cost')
+    return value
+
+
+def _opencode_steps(usage):
+    """Every observed model step in raw form; a bare token block counts as one step."""
+    if isinstance(usage,dict) and 'steps' in usage:
+        steps=usage['steps']
+        if not isinstance(steps,list):raise ValueError('Malformed OpenCode usage evidence')
+        return list(steps)
+    if not isinstance(usage,dict):raise ValueError('Malformed provider usage evidence')
+    return [usage]
+
+
+def _opencode_metrics(steps):
+    """Normalize OpenCode step_finish tokens, where cache is separate from input."""
+    totals={key:0 for key in USAGE_KEYS};known={key:True for key in USAGE_KEYS}
+    if not steps:return {key:None for key in USAGE_KEYS}
+    for step in steps:
+        if step is None:
+            # The step finished but reported no counts, so nothing it did is measurable.
+            known={key:False for key in USAGE_KEYS}
+            continue
+        if not isinstance(step,dict):raise ValueError('Malformed OpenCode usage evidence')
+        cache=step.get('cache')
+        if cache is not None and not isinstance(cache,dict):raise ValueError('Malformed OpenCode usage evidence')
+        cache=cache or {}
+        uncached=_count(step.get('input'),'input token')
+        cached=_count(cache.get('read'),'cached input token')
+        write=_count(cache.get('write'),'cache write token')
+        output=_count(step.get('output'),'output token')
+        reasoning=_count(step.get('reasoning'),'reasoning token')
+        reported=_count(step.get('total'),'total token')
+        if None in (uncached,cached,write):input_tokens=None
+        else:input_tokens=uncached+cached+write
+        if reported is not None:total=reported
+        elif input_tokens is not None and output is not None:
+            total=input_tokens+output+(reasoning or 0)
+        else:total=None
+        values={'input_tokens':input_tokens,'uncached_input_tokens':uncached,
+                'cached_input_tokens':cached,'cache_write_tokens':write,'output_tokens':output,
+                'reasoning_tokens':reasoning,'total_tokens':total}
+        for key,value in values.items():
+            # One step that reported nothing makes the aggregate for that count
+            # unknown; summing only the steps that did report would understate it.
+            if value is None:known[key]=False
+            else:totals[key]+=value
+    return {key:(totals[key] if known[key] else None) for key in USAGE_KEYS}
+
+
+def _codex_metrics(usage):
+    """Normalize Codex turn.completed usage, where cached input is a subset of input."""
+    input_tokens=_count(usage.get('input_tokens'),'input token')
+    cached=_count(usage.get('cached_input_tokens'),'cached input token')
+    output=_count(usage.get('output_tokens'),'output token')
+    reasoning=_count(usage.get('reasoning_tokens'),'reasoning token')
+    reported=_count(usage.get('total_tokens'),'total token')
+    if input_tokens is None or cached is None:uncached=None
+    else:uncached=input_tokens-cached
+    if reported is not None:total=reported
+    elif input_tokens is not None and output is not None:total=input_tokens+output
+    else:total=None
+    return {'input_tokens':input_tokens,'uncached_input_tokens':uncached,'cached_input_tokens':cached,
+            'cache_write_tokens':None,'output_tokens':output,'reasoning_tokens':reasoning,
+            'total_tokens':total}
+
+
+def usage_metrics(host, usage):
+    """Public provider-usage normalization; raw evidence is never rewritten.
+
+    Every value is an integer or None. Absent counts stay unknown instead of
+    becoming zero, and an invalid reported count is refused rather than rounded
+    into a believable number.
+    """
+    if host=='opencode':return _opencode_metrics(_opencode_steps(usage))
+    if host=='codex':
+        if not isinstance(usage,dict):raise ValueError('Malformed provider usage evidence')
+        return _codex_metrics(usage)
+    raise ValueError('Usage normalization is defined for codex and opencode')
+
+
+def _structured_text(text):
+    """A whole JSON object is a structured response; prose around it is commentary."""
+    candidate=text.strip()
+    if not candidate.startswith('{') or not candidate.endswith('}'):return None
+    try:value=json.loads(candidate)
+    except ValueError:raise ValueError('Host emitted malformed structured JSON')
+    if not isinstance(value,dict):raise ValueError('Host structured response is not an object')
+    return value
+
+
+def parse_opencode(stdout, scratch):
+    """Decode one tool-free OpenCode run from its JSONL event stream.
+
+    Any real tool event, error event, unsupported event, incomplete finish or
+    ambiguous artifact refuses the whole run even when a valid final artifact is
+    also present, and every observed model step keeps its own raw usage.
+    """
+    steps=[];costs=[];priceless=0;finished=0;last_finish=-1;last_answer=-2
+    model_reported=None;finals=[];diagnostics=0
+    for index,line in enumerate(stdout.splitlines()):
+        if not line.strip():continue
+        try:event=json.loads(line)
+        except ValueError:raise ValueError('Host emitted a malformed event stream')
+        if not isinstance(event,dict):raise ValueError('Host emitted a malformed event stream')
+        kind=event.get('type');part=event.get('part')
+        part=part if isinstance(part,dict) else {}
+        state=part.get('state') if isinstance(part.get('state'),dict) else {}
+        if kind=='tool_use' or part.get('type')=='tool':
+            raise ValueError('Host attempted a tool; generated artifacts rejected')
+        if kind=='error' or state.get('status')=='error':
+            raise ValueError('Host returned a failed generation')
+        if kind not in OPENCODE_EVENTS:
+            raise ValueError('Host emitted an unsupported event type; generation refused')
+        if model_reported is None:
+            # Only a genuinely observed model identifier is reported; the requested
+            # model is recorded separately and never substituted for a missing one.
+            for candidate in (part.get('model'),event.get('model')):
+                if isinstance(candidate,str) and candidate.strip():
+                    model_reported=candidate;break
+        if kind=='step_finish':
+            if part.get('reason')!='stop':
+                raise ValueError('Host generation did not complete successfully')
+            finished+=1;last_finish=index
+            steps.append(part.get('tokens'))
+            if part.get('cost') is not None:costs.append(_cost(part['cost']))
+            else:priceless+=1
+        elif kind=='text':
+            text=part.get('text')
+            if not isinstance(text,str):raise ValueError('Host emitted a malformed text part')
+            value=_structured_text(text)
+            if value is not None:
+                finals.append(value);last_answer=index
+    # A finished model step is required evidence of generation, and it must come
+    # after the artifact it is supposed to have produced: an earlier step's
+    # completion says nothing about a response that started afterwards.
+    if not finished:raise ValueError('Host did not complete generation')
+    if last_finish<last_answer:raise ValueError('Host generation did not complete after its final response')
+    if len(finals)>1:raise ValueError('Host returned more than one structured response')
+    if not finals:raise ValueError('Host did not return a structured artifact')
+    usage={'steps':steps,'observed_model_steps':len(steps),'model_reported':model_reported,
+           'cost_reported':bool(costs),'host_diagnostic_items':diagnostics}
+    # One step without a reported cost prices nothing: a known zero from another
+    # step is not this step's price, so the total stays unknown.
+    return finals[0],usage,(sum(costs) if costs and not priceless else None)
+
+
 def parse_response(host, stdout, scratch):
+    if host=='opencode':
+        return parse_opencode(stdout,scratch)
     if host=='claude':
         value=json.loads(stdout)
         if not isinstance(value,dict):raise ValueError('Malformed Claude response')
@@ -74,7 +334,7 @@ def parse_response(host, stdout, scratch):
         if artifacts is None:
             artifacts=json.loads(value.get('result',''))
         return artifacts,value.get('usage',{}),value.get('total_cost_usd')
-    usage={};completed=False;diagnostics=0
+    totals={};details={};completed=False;diagnostics=0;turns=0
     for line in stdout.splitlines():
         event=json.loads(line)
         if event.get('type') in ('turn.failed','error'):
@@ -84,9 +344,20 @@ def parse_response(host, stdout, scratch):
         if item and item.get('type') not in ('reasoning','agent_message','error'):
             raise ValueError('Host attempted a tool; generated artifacts rejected')
         if event.get('type')=='turn.completed':
-            usage=event.get('usage',{});completed=True
+            turns+=1;completed=True
+            block=event.get('usage') or {}
+            if not isinstance(block,dict):raise ValueError('Malformed provider usage evidence')
+            # Every observed turn contributes its own counts; last-turn tokens
+            # alone would understate a multi-turn generation. Fields this adapter
+            # does not interpret are retained verbatim instead of being summed.
+            for key,value in block.items():
+                if key in CODEX_TOKEN_FIELDS:
+                    if isinstance(value,bool) or not isinstance(value,int):
+                        raise ValueError('Host reported an invalid usage count')
+                    totals[key]=totals.get(key,0)+value
+                elif key not in details:details[key]=value
     if not completed:raise ValueError('Host did not complete generation')
-    usage={**usage,'host_diagnostic_items':diagnostics}
+    usage={**totals,**details,'host_diagnostic_items':diagnostics,'observed_model_steps':turns}
     response=scratch/'response.json'
     if not response.is_file() or response.is_symlink():
         raise ValueError('Host did not return a structured response')
@@ -112,11 +383,29 @@ def validate_artifacts(value, outputs):
     return found
 
 
-def generate(host, prompt, outputs, timeout=180, model=None):
+def _retain(evidence, name, path):
+    """Copy one bounded transport log into an explicitly requested evidence folder.
+
+    Nothing is retained unless the caller asked for it, because host output may
+    contain configuration. A caller that opts in owns reviewing the copy before
+    publication; that decision is never made here.
+    """
+    if evidence is None:return
+    folder=Path(evidence);folder.mkdir(parents=True,exist_ok=True)
+    target=folder/name
+    try:data=Path(path).read_bytes()
+    except OSError:return
+    if len(data)>2*MAX_ARTIFACT_BYTES:data=data[:2*MAX_ARTIFACT_BYTES]
+    target.write_bytes(data)
+
+
+def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
     """One adapter entry point for every generation host.
 
     API providers keep their own tool-free RPC boundary and their own explicit model and
     credential requirements; installed CLIs are probed for bounded-generation flags.
+    `evidence` is an optional directory for the exact prompt and bounded transport
+    logs; it is never written unless a caller explicitly requests it.
     """
     from provider_gateway import PROVIDERS
     if host in PROVIDERS:
@@ -125,19 +414,28 @@ def generate(host, prompt, outputs, timeout=180, model=None):
     info=probe(host)
     if len(prompt.encode())>MAX_TEXT:raise ValueError('Host prompt exceeds 256 KiB')
     started=time.monotonic()
+    if evidence is not None:
+        folder=Path(evidence).resolve();folder.mkdir(parents=True,exist_ok=True)
+        (folder/'prompt.txt').write_text(prompt,encoding='utf-8')
     with tempfile.TemporaryDirectory(prefix='crewloom-host-') as folder:
         scratch=Path(folder).resolve()
-        argv=command(host,info['executable'],scratch,model)
+        argv=command(host,info['executable'],scratch,model,prompt)
         # Preserve CLI auth location; never forward arbitrary project variables.
         env={key:value for key,value in os.environ.items() if key in
              ('PATH','HOME','USER','LANG','LC_ALL','TMPDIR','SYSTEMROOT','CODEX_HOME',
               'CODEX_API_KEY','OPENAI_API_KEY','ANTHROPIC_API_KEY','CLAUDE_CODE_OAUTH_TOKEN')}
+        if host=='opencode':
+            # Fresh scratch outside the checkout, task-scoped configuration home,
+            # no project discovery and no external skills or plugins. HOME and
+            # CODEX_HOME are untouched, so no user auth file is read, copied or
+            # rewritten by Crewloom.
+            env.update(opencode_environment(scratch,scratch/'opencode.json'))
         stdout_path=scratch/'stdout';stderr_path=scratch/'stderr'
         with stdout_path.open('w') as out,stderr_path.open('w') as err:
             process=subprocess.Popen(argv,cwd=scratch,stdin=subprocess.PIPE,stdout=out,stderr=err,
                                      text=True,env=env,start_new_session=True)
             try:
-                pending=prompt
+                pending=prompt if host in ('codex','claude') else None
                 while True:
                     if time.monotonic()-started>timeout:
                         raise ValueError('Host generation timed out; process group terminated')
@@ -148,15 +446,28 @@ def generate(host, prompt, outputs, timeout=180, model=None):
                     except subprocess.TimeoutExpired:
                         pending=None
             except (ValueError,KeyboardInterrupt):
-                os.killpg(process.pid,signal.SIGKILL);process.communicate();raise
+                os.killpg(process.pid,signal.SIGKILL);process.communicate()
+                _retain(evidence,'stdout',stdout_path);_retain(evidence,'stderr',stderr_path)
+                raise
+        _retain(evidence,'stdout',stdout_path);_retain(evidence,'stderr',stderr_path)
         # Do not copy host error output into project/public records: may contain credentials.
         if process.returncode:raise ValueError('Host generation failed (exit '+str(process.returncode)+'); check local authentication and provider limits')
         if stdout_path.stat().st_size>2*MAX_ARTIFACT_BYTES:raise ValueError('Host response exceeds size limit')
         value,usage,cost=parse_response(host,stdout_path.read_text(),scratch)
         artifacts=validate_artifacts(value,outputs)
-        return artifacts,{'host':host,'host_version':info['version'],'model_requested':model,
+        record={'host':host,'host_version':info['version'],'model_requested':model,
+            'model_reported':usage.get('model_reported') if isinstance(usage,dict) else None,
+            'prompt_bytes':len(prompt.encode()),
             'duration_ms':round((time.monotonic()-started)*1000),'usage':usage,'cost_usd':cost,
             'execution_boundary':'text-generation in temporary directory; artifacts validated by Crewloom'}
+        if host in ('codex','opencode'):
+            # The requested model and the model the host actually reported stay
+            # separate: a stream without model metadata reports null, never the request.
+            record['usage_metrics']=usage_metrics(host,usage)
+        if host in CLI_HOSTS:
+            record['native_host_exception']=True
+            record['execution_boundary']+='; installed CLI, native host exception, not an OS sandbox'
+        return artifacts,record
 
 
 

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "billing-workflow",
+  "language": "en",
+  "criteria": "criteria.md",
+  "steps": [
+    {
+      "id": "generate",
+      "role": "fullstack-mvp-engineer",
+      "kind": "model",
+      "summary": "Implement the invoicing module from the billing contract",
+      "host": "__MODEL_HOST__",
+      "model": "__MODEL__",
+      "timeout_seconds": 300,
+      "inputs": [
+        "contracts/invoicing.md"
+      ],
+      "outputs": [
+        "src/billing.py"
+      ]
+    },
+    {
+      "id": "accept",
+      "role": "qa-test-automation-engineer",
+      "kind": "command",
+      "summary": "Run the generated invoice module in the container and check its totals",
+      "argv": ["python3", "tools/check_billing.py"],
+      "timeout_seconds": 180,
+      "inputs": [
+        "src/billing.py",
+        "src/money.py",
+        "tools/check_billing.py",
+        "data/ledger_en.json"
+      ],
+      "outputs": [
+        "artifacts/billing_acceptance.json"
+      ]
+    }
+  ]
+}

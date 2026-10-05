@@ -10,6 +10,17 @@
 
 ## Unreleased
 
+- Package the Python runtime, all 42 roles, native adapters and runnable examples in a wheel and source archive; add an optional pinned JavaScript/TypeScript syntax backend.
+- Add isolated concurrent model-task worktrees, dependency integration, combined Docker acceptance, credential-scoped review and recoverable artifact publication.
+- Add version-scoped native lifecycle setup, explicit context delivery and tool guards, terminal-session refresh and bounded private event logs.
+- Add a complete English/Arabic reporting application and a frozen full-source/selected-map study with held-out grading and nullable provider measurements.
+- Require dashboard authentication, CSRF checks and revocable sessions; add read-only registered-project readiness.
+- Run repository regression files through sequential bounded invocations, retaining recursive discovery and failure/timeout propagation.
+- Add a mandatory repository scope gate (`REPOSITORY_SCOPE.json`): an unregistered top-level directory or file, a foreign project ID, a missing or malformed contract and case or path collisions are refused, even when ignored. An independent application belongs in its own repository.
+- Fix OpenCode context delivery: the adapter replaced `output.system` instead of extending the host-owned array, so the hook ran but the model received nothing. Verified against a real OpenCode 1.18.32 host.
+- Record the first frozen context study honestly: Codex full-source passed all held-out checks, the selected map passed none, OpenCode produced no scored trial; no saving is claimed.
+- Make the native lifecycle tests portable to hosted CI (no host binaries, case-sensitive filesystems) and verify the gate on Python 3.9 and 3.14.
+
 - `grid-safety` no longer flags fixed floors inside breakpoint-prefixed Tailwind grids that fit the breakpoint.
 - Add a with/without-role evaluation on a seeded fixture (result: tie, inconclusive) to `documentation/EVIDENCE.md`.
 - Add `palette-drift` (13th tool): flags literal colors outside the approved design tokens.

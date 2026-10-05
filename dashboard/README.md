@@ -17,7 +17,7 @@ Set `CREWLOOM_ROOT` to point at another checkout (default: the parent directory)
 | --- | --- |
 | 42 role rows: status, open tasks, completed entries, open challenges, last memory update | `.agents/skills/<id>/brain/*.md` |
 | Role detail with `SKILL.md` and all five memory files | same |
-| Tool runner for the 12 registered tools | `documentation/TOOLS.json` via `crewloom.py run` |
+| Tool runner for the 18 registered tools | `documentation/TOOLS.json` via `crewloom.py run` |
 | Recent runs (CLI and dashboard) with exit code and duration | `.crewloom/runs.jsonl` |
 | Repository checks button | `scripts/check_repository.py` |
 
@@ -29,8 +29,25 @@ Updates arrive through Server-Sent Events (`/api/events`): editing a memory file
 - `healthy`: no attention signal and at least one run or completed entry.
 - `idle`: no runs and no completed entries.
 
+## Authentication
+
+Every API read, every API write, and the event stream require authentication. There is no anonymous mode: a server started without a configured credential answers `503` rather than serving project data.
+
+| Variable | Meaning |
+| --- | --- |
+| `CREWLOOM_DASHBOARD_TOKEN` | The single access secret. Server-only: never declare it as `NEXT_PUBLIC_*`, or it ships in the browser bundle. `crewloom dashboard` generates one and writes it to `<project>/.crewloom/dashboard-token` with mode `0600`, printing only the path. |
+| `CREWLOOM_DASHBOARD_HOST` / `CREWLOOM_DASHBOARD_PORT` | The bind address, which also defines the trusted origins. |
+| `CREWLOOM_DASHBOARD_SCHEME` | `https` marks the session cookie `Secure`. |
+| `CREWLOOM_DASHBOARD_ORIGINS` | Extra exact origins, comma separated, for a reverse proxy. |
+
+`POST /api/auth/login` exchanges the token for a signed, HttpOnly, `SameSite=Strict` session cookie that expires after an hour. It refuses a missing or foreign `Origin`, so a page on another site cannot make a browser adopt a session, and the token is read from the request body so it never enters a URL, history, or access log. `DELETE /api/auth/login` revokes the session the server issued and clears the cookie. Mutations additionally need an exact trusted `Origin`; the allowlist is built from the variables above and never from the request, so a forged `Host` cannot widen it.
+
+For automation, send `Authorization: Bearer $CREWLOOM_DASHBOARD_TOKEN` on any route. A browser never adds that header on its own, so a bearer caller is exempt from the origin rule by construction.
+
+Server-side session revocation is per process: restarting the dashboard invalidates every session.
+
 ## Safety
 
-The API runs only tools registered in `TOOLS.json`, rejects absolute or `..` path arguments, caps output at 20 KB and run time at 60 s. There is no authentication: bind it to localhost only and do not expose it to a network.
+The API runs only tools registered in `TOOLS.json`, rejects absolute or `..` path arguments, caps output at 20 KB and run time at 60 s. Binding to a non-loopback interface still requires an explicitly configured credential. Authentication is an integrity boundary, not a sandbox: any process running as the operator can read the dashboard's environment.
 
 Project selection and isolation: [project guide](../documentation/PROJECTS.md).

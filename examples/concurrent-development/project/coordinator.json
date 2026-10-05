@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "id": "__BATCH_ID__",
+  "project_id": "__PROJECT_ID__",
+  "base": "HEAD",
+  "workers": 2,
+  "language": "en",
+  "tasks": [
+    {
+      "id": "billing",
+      "workflow": "workflows/billing.json",
+      "depends_on": [],
+      "native_host_cli": "__NATIVE_HOST_CLI__"
+    },
+    {
+      "id": "planning",
+      "workflow": "workflows/planning.json",
+      "depends_on": [],
+      "native_host_cli": "__NATIVE_HOST_CLI__"
+    },
+    {
+      "id": "report",
+      "workflow": "workflows/report.json",
+      "depends_on": ["billing", "planning"],
+      "native_host_cli": "__NATIVE_HOST_CLI__"
+    }
+  ],
+  "integration": {
+    "workflow": "workflows/integration.json"
+  }
+}

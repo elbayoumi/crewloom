@@ -6,21 +6,117 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 import threading
+import unicodedata
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
-LIBRARY = Path(__file__).resolve().parents[1]
+import crewloom_resources as resources
+
+LIBRARY = resources.distribution_root()
+ROLES = resources.roles_dir()
 ID = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*$')
 MEMORY = ('ARCHITECTURE', 'COMPLETED', 'CHALLENGES', 'IDEAS_VAULT', 'ROADMAP_TODO')
+# Project policy files a declared artifact may never name. `crewloom.project.json` is the local
+# project binding, and `REPOSITORY_SCOPE.json` is the reviewed declaration of which top-level files
+# and directories belong to this project at all. Both are the authority that decides what a managed
+# run is allowed to produce, so a step output can never become either of them: a run that could
+# widen its own project scope, or replace the policy that authorised it, would be reviewing itself.
+# These are the project policy files; Git state, the native host configuration trees and the root
+# host configuration files are refused by `RESERVED_KEYS` and `NATIVE_KEYS` instead.
+PROTECTED = ('crewloom.project.json', 'REPOSITORY_SCOPE.json')
+# Runtime and Git state a declared artifact may never name, in any spelling a filesystem is
+# willing to resolve. APFS and HFS+ compare names without case or normalization, so `Result.txt`,
+# `result.txt` and an NFD spelling of either are one file there while staying different strings;
+# the portable answer is to compare the folded forms before every reserved-name and collision
+# check rather than to ask the host filesystem which way it resolves a name.
+RESERVED = ('.crewloom', '.git')
+# The native host configuration trees, and the root host configuration files themselves. `.codex`,
+# `.claude` and `.opencode` are where Codex, Claude Code and OpenCode actually read project
+# configuration and plugins from, and `opencode.json`/`opencode.jsonc` in the project root are
+# OpenCode's own project configuration (https://opencode.ai/docs/config/). A declared artifact that
+# names one of these is asking to become the authority that decides what a host agent may write, so
+# declaring it never grants it. Crewloom's own installer still writes `.codex/hooks.json`,
+# `.claude/settings.json` and `.opencode/plugins/crewloom-lifecycle.js`: that is an explicitly
+# authorized control write through the metadata path, not a declared agent artifact, and it is
+# deliberately not routed through this boundary.
+NATIVE_TREES = ('.codex', '.claude', '.opencode')
+NATIVE_CONFIGS = ('opencode.json', 'opencode.jsonc')
 DEFAULT_IMAGE = 'python:3.14-slim'
 
 
-def digest(value):
-    return hashlib.sha256(value).hexdigest()
+def folded(value):
+    """One spelling-independent form of a path component.
+
+    Case folding plus NFC is the conservative portable comparison: two components that fold
+    together are refused as one destination on every platform, including a genuinely
+    case-sensitive one where they would have been two files. Nothing is probed and no host
+    setting is read, so the decision is the same on a developer Mac, in CI and in a container.
+    """
+    return unicodedata.normalize('NFC', str(value)).casefold()
+
+
+PROTECTED_KEYS = frozenset(folded(name) for name in PROTECTED)
+RESERVED_KEYS = frozenset(folded(name) for name in RESERVED)
+NATIVE_KEYS = frozenset(folded(name) for name in NATIVE_TREES + NATIVE_CONFIGS)
+
+
+def path_key(relative):
+    """The key that decides whether two declared project paths are one destination.
+
+    `first.txt` and `./first.txt` fold to one key for the same reason `Result.txt` and
+    `result.txt` do: the key is the path as names are compared, not as they were spelled.
+    """
+    return '/'.join(folded(part) for part in Path(relative).parts)
+
+
+def physical_identity(path):
+    """The device and inode a path resolves to, or ``None`` when nothing is there.
+
+    Lexical containment cannot see a case alias, because macOS `resolve()` keeps the spelling
+    the caller asked for: `(root/'VENDOR')` and `(root/'vendor')` stay different strings for a
+    directory that is demonstrably one inode. Identity is what the filesystem itself used to
+    answer the same question.
+    """
+    try:
+        info = os.stat(path)
+    except OSError:
+        return None
+    return info.st_dev, info.st_ino
+
+
+def inside(path, containers):
+    """Whether one resolved path lies inside any of these roots, compared physically as well.
+
+    The lexical test is kept because it also covers a container that does not exist yet, and
+    every existing ancestor of the path is then compared by device and inode with every
+    container. That reaches a trusted root through any spelling the host resolves to it, and
+    it decides a destination that does not exist yet by its nearest existing ancestor, so no
+    probe file and no host configuration change is needed to know which filesystem this is.
+    """
+    identities = set()
+    for container in containers:
+        container = Path(container)
+        if path.is_relative_to(container):
+            return True
+        identity = physical_identity(container)
+        if identity is not None:
+            identities.add(identity)
+    if not identities:
+        return False
+    walk = Path(path)
+    while True:
+        identity = physical_identity(walk)
+        if identity is not None and identity in identities:
+            return True
+        parent = walk.parent
+        if parent == walk:
+            return False
+        walk = parent
 
 
 def safe_path(root, value, internal=False):
@@ -35,15 +131,92 @@ def safe_path(root, value, internal=False):
             current = current / part
             if current.is_symlink():
                 raise ValueError('Runtime state path may not use symlinks')
-    if not internal and any(part in ('.crewloom', '.git') for part in (*Path(value).parts, *path.relative_to(root).parts)):
+    if not internal and any(folded(part) in RESERVED_KEYS
+                            for part in (*Path(value).parts, *path.relative_to(root).parts)):
         raise ValueError('Workflow artifacts cannot use runtime or Git state')
     return path
+
+
+def native_authorities(root):
+    """The exact native host authority paths of one project: three trees and two root configs.
+
+    These are the only paths compared by identity, so the check answers "is this one file the
+    host's own policy" with a fixed number of `stat` calls instead of a project scan.
+    """
+    return [Path(root) / name for name in NATIVE_TREES + NATIVE_CONFIGS]
+
+
+def host_authority_conflict(root, relative):
+    """The native host authority one declared path reaches, however it is spelled, or ``None``.
+
+    Three spellings have to be caught, because a reserved file can be reached without ever being
+    written down. `src/../.codex/hooks.json` names an ordinary directory first, and a symlinked
+    `alias -> .codex` never spells the tree at all, so the resolved path is compared exactly as the
+    written one is. Case and normalization are folded on both sides because APFS and HFS+ resolve
+    them as one name; nothing is probed and no host setting is read, so the answer is the same on a
+    developer Mac, in CI and in a container.
+
+    A hardlink is one inode behind two names, so no spelling of the declared path shows the tree it
+    belongs to: `ordinary.json` linked to `opencode.json` reaches the host's own configuration while
+    spelling nothing reserved. What does reach it is the file's own identity, so the declared path
+    is compared by device and inode with this project's exact native authorities. That is a fixed
+    set of paths, not a recursive scan, so the check stays bounded however large the project is.
+
+    Only a *name* or a *file* is reserved, never a subtree pattern: `src/settings.json` and
+    `docs/.claude-notes.md` stay ordinary project configuration.
+    """
+    parts = Path(relative).parts
+    resolved = Path(root / relative).resolve()
+    try:
+        parts = tuple(parts) + resolved.relative_to(root).parts
+    except ValueError:
+        # A path that leaves the project is not this project's host authority. The caller has
+        # already refused such a path, and a resolution error is raised rather than swallowed,
+        # because a check that quietly passes when it cannot answer is not a check.
+        pass
+    for part in parts:
+        if folded(part) in NATIVE_KEYS:
+            return part
+    for authority in native_authorities(root):
+        if inside(resolved, [authority]):
+            return str(authority)
+    return None
+
+
+def declared_path(root, relative):
+    """One declared step artifact path, refusing project control and host authority files.
+
+    `crewloom.project.json` sets the enforcement policy, and `REPOSITORY_SCOPE.json` declares which
+    top-level files and directories belong to this project. The reviewer issuance authority now
+    lives under `.crewloom`, which `safe_path` already refuses as runtime state, so a step
+    may neither read it nor replace it and cannot forge a reviewer proof or weaken the
+    policy that authorised it. A native host configuration tree or root host configuration file
+    is refused for the same reason and by the same rule: the host reads its own policy from
+    there, so a managed step that could write it could switch off the guard constraining it.
+    This is the artifact boundary only: Crewloom's own control paths still resolve through
+    `safe_path` and its installer writes its own control configuration as metadata.
+
+    Every name is folded before it is matched, so `CREWLOOM.PROJECT.JSON` and
+    `repository_scope.json` are refused on a case-insensitive filesystem where they are the same
+    files, and refused identically everywhere else so the rule a step is held to does not depend
+    on the host it runs on.
+    """
+    path = safe_path(root, relative)
+    if folded(Path(relative).name) in PROTECTED_KEYS:
+        raise ValueError('Workflow artifacts cannot use project control files: ' + str(relative))
+    if host_authority_conflict(root, relative) is not None:
+        raise ValueError('Workflow artifacts cannot use native host configuration: ' + str(relative))
+    return path
+
+
+def digest(value):
+    return hashlib.sha256(value).hexdigest()
 
 
 def hashes(root, paths):
     result = {}
     for relative in paths:
-        path = safe_path(root, relative)
+        path = declared_path(root, relative)
         if not path.is_file() or not path.stat().st_size:
             raise ValueError('Missing or empty artifact: ' + relative)
         if path.stat().st_size>16*1024*1024:raise ValueError('Artifact input budget exceeded: '+relative)
@@ -72,13 +245,14 @@ def read_plan(root, filename):
     if not isinstance(steps, list) or not steps:
         raise ValueError('Workflow needs at least one step')
     seen = set()
-    outputs = set(); output_targets = set()
+    outputs = set(); output_targets = set(); output_keys = set()
+    plan_path = safe_path(root, filename); plan_key = path_key(filename)
     for step in steps:
         if not isinstance(step, dict) or not ID.fullmatch(str(step.get('id', ''))) or step['id'] in seen:
             raise ValueError('Step IDs must be unique kebab-case')
         seen.add(step['id'])
         role = step.get('role')
-        if not isinstance(role, str) or not ID.fullmatch(role) or not (LIBRARY / '.agents/skills' / role / 'SKILL.md').is_file():
+        if not isinstance(role, str) or not ID.fullmatch(role) or not (ROLES / role / 'SKILL.md').is_file():
             raise ValueError('Unknown role')
         kind = step.get('kind', 'command')
         if kind not in ('command', 'task', 'model') or not isinstance(step.get('summary'), str) or not step['summary'].strip():
@@ -102,15 +276,20 @@ def read_plan(root, filename):
                 raise ValueError('Each step needs inputs and nonempty outputs lists')
             for value in values:
                 resolved = safe_path(root, value)
-                if field == 'outputs' and (resolved == safe_path(root, filename) or any(resolved == safe_path(root, old) for old in outputs)):
+                if field == 'outputs' and (resolved == plan_path or path_key(value) == plan_key
+                                           or any(resolved == safe_path(root, old) for old in outputs)):
                     raise ValueError('Each artifact needs one owner and cannot overwrite the plan')
                 if value in outputs and field == 'outputs':
                     raise ValueError('Each artifact needs one owner')
         for value in step['outputs']:
             target = safe_path(root, value)
-            if target in output_targets:
+            key = path_key(value)
+            if target in output_targets or key in output_keys:
+                # The folded key is compared too, so two steps cannot own one artifact by
+                # spelling it two ways where the filesystem would resolve both to one file.
                 raise ValueError('Each artifact needs one owner after canonicalization')
             output_targets.add(target)
+            output_keys.add(key)
             if value in outputs or value == filename:
                 raise ValueError('Each artifact needs one owner and cannot overwrite the plan')
             outputs.add(value)
@@ -148,13 +327,183 @@ def _lock_depth():
     return state['depth']
 
 
+def _lock_owner(record):
+    """Whether the process that recorded this lock can still be running.
+
+    Signal 0 performs the kernel's existence and permission check without delivering anything,
+    so a lock left behind by a killed writer is recognised as abandoned instead of blocking the
+    project for good. That probe is POSIX-only: Python documents `os.kill(pid, 0)` on Windows as
+    `TerminateProcess`, which would terminate the recorded process rather than inspect it, so no
+    platform whose semantics are not verified here is probed at all. Every uncertain case counts
+    as alive: an unreadable record, a missing or nonsensical pid, a pid this process may not
+    inspect, and every pid on a platform without a safe probe all keep the lock, so reclamation
+    never lets a second writer in on a guess and never signals a process it did not mean to
+    touch. A recycled pid reads as alive, which fails closed and only asks the operator to clear
+    the file, and that is also the only way a lock is released on a non-POSIX host: native
+    Windows support is truthful about being manual there, not automatic.
+    """
+    pid = record.get('pid') if isinstance(record, dict) else None
+    if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0 or pid == os.getpid():
+        return True
+    if os.name != 'posix':
+        return True
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except (PermissionError, OSError):
+        return True
+    return True
+
+
+def _lock_record(path):
+    """The ownership record in a lock file, or ``None`` when it is not a readable one."""
+    try:
+        record = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return None
+    return record if isinstance(record, dict) and 'pid' in record else None
+
+
+# The only entries a live reclaimer creates inside its claim directory. Nothing else is ever
+# deleted inside a `.reclaim` path on its behalf, so a claim this protocol does not recognise
+# is left exactly as it is found and blocks the lock for an operator to reconcile by hand.
+CLAIM_ENTRIES = ('owner.json', 'pin')
+
+
+def _owned_claim(claim):
+    """The claim directory when it is a real one this protocol created, else ``None``.
+
+    A `.reclaim` path that is a symlink, is not a directory, or holds anything other than the
+    two entries above is refused outright. Deleting unrecognised contents would delete files
+    this protocol never created, and following a symlinked claim would delete files in whatever
+    directory it happens to point at, so neither is ever attempted.
+    """
+    if claim.is_symlink() or not claim.is_dir():
+        return None
+    try:
+        found = sorted(item.name for item in claim.iterdir())
+    except OSError:
+        return None
+    if any(name not in CLAIM_ENTRIES for name in found):
+        return None
+    if any((claim / name).is_symlink() or not (claim / name).is_file() for name in found):
+        return None
+    return claim
+
+
+def _discard_claim(claim):
+    """Remove exactly the entries a reclaimer created, and nothing else.
+
+    `rmdir` succeeds only on an empty directory, so a claim a competing reclaimer is still
+    using, or one holding unrecognised contents, stays in place rather than being emptied. A
+    single named `unlink` is used rather than a recursive walk, so no directory tree outside
+    the claim can be reached from here at all.
+    """
+    if claim.is_symlink() or not claim.is_dir():
+        return False
+    for name in CLAIM_ENTRIES:
+        item = claim / name
+        if item.is_symlink():
+            return False
+        try:
+            item.unlink()
+        except FileNotFoundError:
+            pass
+        except OSError:
+            return False
+    try:
+        claim.rmdir()
+    except OSError:
+        return False
+    return True
+
+
+def _claim_reclamation(folder):
+    """Take the exclusive right to reclaim this folder's lock, or ``None``.
+
+    Reclamation itself needs mutual exclusion, otherwise two callers observing the same stale
+    file would each conclude it was theirs to remove and both would then create a lock. The
+    claim is a directory created with `mkdir`, which is atomic and fails when the name exists.
+    A claim left behind by a reclaimer that was itself killed is reconciled exactly once, by
+    deleting only its two recorded entries before retrying; a live, unreadable or unrecognised
+    claim is left alone and blocks, as it must.
+    """
+    claim = folder / '.reclaim'
+    for attempt in (1, 2):
+        try:
+            claim.mkdir(mode=0o700)
+        except FileExistsError:
+            existing = _owned_claim(claim)
+            if attempt == 2 or existing is None:
+                return None
+            record = _lock_record(existing / 'owner.json')
+            if record is None or _lock_owner(record):
+                return None
+            if not _discard_claim(existing):
+                return None
+            continue
+        (claim / 'owner.json').write_text(json.dumps({'pid': os.getpid()}, sort_keys=True))
+        return claim
+    return None
+
+
+def _release_reclamation(claim):
+    if claim is None:
+        return
+    _discard_claim(claim)
+
+
+def _reclaim(folder, path):
+    """Remove a lock whose owning process is provably gone; otherwise leave it untouched.
+
+    The observed file is pinned with `link()` before its record is read, so the decision is made
+    about one exact inode. The stale file is removed only while `path` still names that same
+    inode: a competing reclaimer that installed its own live lock in between therefore keeps it,
+    and this caller fails closed instead of deleting the winner's lock with a record it read
+    before the winner existed. While the stale file is still present an ordinary acquirer cannot
+    create `path` at all, and the reclamation claim admits one reclaimer, so at most one managed
+    caller can conclude it holds the root.
+
+    A lock path that is a symlink is never read, pinned or removed: this protocol only ever
+    creates a regular file there, so a link at that name is someone else's and is left alone.
+    """
+    if path.is_symlink():
+        return False
+    claim = _claim_reclamation(folder)
+    if claim is None:
+        return False
+    pin = claim / 'pin'
+    try:
+        os.link(path, pin)
+    except OSError:
+        _release_reclamation(claim)
+        return False
+    try:
+        record = _lock_record(pin)
+        if record is None or _lock_owner(record):
+            return False
+        pinned = os.stat(pin)
+        current = os.stat(path)
+        if (pinned.st_dev, pinned.st_ino) != (current.st_dev, current.st_ino):
+            return False
+        path.unlink()
+        return True
+    except OSError:
+        return False
+    finally:
+        _release_reclamation(claim)
+
+
 @contextmanager
 def project_lock(folder, reentrant=False):
     """The single project lock protocol; internal callers may compose it re-entrantly.
 
     External writers still contend on the same `O_CREAT|O_EXCL` lock file, so a second
-    process is rejected whether it uses `lock` or `project_lock`. Re-entrancy is scoped to
-    one process and one thread, so a forked child contends instead of inheriting ownership.
+    process is rejected whether it uses `lock` or `project_lock`. A lock left behind by a
+    process that was killed mid-step is reclaimed exactly once, because that residue belongs to
+    an interrupted run rather than to a live writer. Re-entrancy is scoped to one process and
+    one thread, so a forked child contends instead of inheriting ownership.
     """
     folder.mkdir(parents=True, exist_ok=True)
     depth = _lock_depth()
@@ -170,13 +519,18 @@ def project_lock(folder, reentrant=False):
     try:
         fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
     except FileExistsError:
-        raise ValueError('Workflow locked: another execution or interrupted host owns the lock')
+        if not _reclaim(folder, path):
+            raise ValueError('Workflow locked: another execution or interrupted host owns the lock')
+        try:
+            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        except FileExistsError:
+            raise ValueError('Workflow locked: another execution or interrupted host owns the lock')
     try:
-        if reentrant:
-            depth[key] = depth.get(key, 0) + 1
         with os.fdopen(fd, 'w') as stream:
             stream.write(json.dumps({'pid': os.getpid(), 'thread': threading.get_ident(),
                                      'folder': key[2]}, sort_keys=True))
+        if reentrant:
+            depth[key] = depth.get(key, 0) + 1
         yield
     finally:
         if reentrant:
@@ -294,6 +648,31 @@ def docker_execute(root, argv, image_id, timeout, writable=None):
             'output': output, 'output_truncated': discarded[0], 'image_id': image_id, 'network': 'none'}
 
 
+def review_policy(root):
+    """Effective manual-review policy, read from the bound project configuration."""
+    import reviewer_credentials
+    return reviewer_credentials.policy(root)
+
+
+def review_proof(root, plan, step, outputs, reviewer=None, review_token=None):
+    """One credential-verified or explicitly declared reviewer proof for a task step."""
+    import reviewer_credentials
+    return reviewer_credentials.authorize(root, plan['id'], step, outputs, plan.get('criteria'),
+                                         label=reviewer, token=review_token)
+
+
+def review_state(root, plan, step, record):
+    """Whether a recorded task review still authorizes this step, artifact set, and project."""
+    import reviewer_credentials
+    try:
+        outputs = hashes(root, step['outputs'])
+    except ValueError:
+        return 'stale'
+    settings = review_policy(root)
+    method = reviewer_credentials.CREDENTIAL_METHOD if settings['mode'] == 'verified' else reviewer_credentials.LABEL_METHOD
+    return reviewer_credentials.verify_record(root, record, step, plan['id'], outputs, plan.get('criteria'), method)
+
+
 def verify_completed(root, state):
     for ident, record in state['steps'].items():
         if record.get('status') != 'complete':
@@ -319,10 +698,24 @@ def project_role(root, role):
 def handoff(root, plan, state):
     verify_completed(root, state)
     next_step = next((s for s in plan['steps'] if state['steps'].get(s['id'], {}).get('status') != 'complete'), None)
+    completed = {}
+    for key, value in state['steps'].items():
+        if value.get('status') != 'complete':
+            continue
+        step = next((item for item in plan['steps'] if item['id'] == key), None)
+        review = value.get('review')
+        completed[key] = {**{field: value[field] for field in ('role', 'summary', 'inputs', 'outputs', 'reviewer', 'review') if field in value},
+                          'attempt_count': len(value['attempts']),
+                          'image_id': value['attempts'][-1].get('image_id') if value['attempts'] else None,
+                          'review_state': review_state(root, plan, step, value) if step and step.get('kind') == 'task' else None}
     return {'project_root': str(root), 'workflow': plan['id'], 'language': plan.get('language', 'en'),
             'status': state['status'], 'next_step': next_step,
             'role_setup': project_role(root, next_step['role']) if next_step else None,
-            'completed': {key: {**{field: value[field] for field in ('role', 'summary', 'inputs', 'outputs', 'reviewer') if field in value}, 'attempt_count': len(value['attempts']), 'image_id': value['attempts'][-1].get('image_id') if value['attempts'] else None} for key, value in state['steps'].items() if value.get('status') == 'complete'},
+            'completed': completed,
+            'review_policy': review_policy(root),
+            'review_limitation': 'A verified reviewer credential proves possession of a registered principal’s '
+                                 'secret, not the presence of an independent human reviewer. Acceptance commands '
+                                 'and lesson promotion still require recorded executor evidence.',
             'next_step_state': ({**{field: state['steps'].get(next_step['id'], {}).get(field) for field in ('status', 'error')}, 'attempt_count': len(state['steps'].get(next_step['id'], {}).get('attempts', []))} if next_step else None),
             'state_file': str(runtime(root, plan['id']) / 'state.json'),
             'blocker': state.get('error'),
@@ -398,11 +791,11 @@ def cancel(root, plan, fingerprint, reason='operator request'):
                 'instruction':'Cancellation preserves files and failure history; use a new workflow ID for new work.'}
 
 
-def run(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False):
+def run(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None):
     """Reserve the root, execute under the shared project lock, then finalize recorded evidence."""
     with project_lock(safe_path(root, '.crewloom', internal=True), reentrant=True):
         try:
-            result = _execute(root, plan, fingerprint, image, accept, reviewer, allow_host_cli)
+            result = _execute(root, plan, fingerprint, image, accept, reviewer, allow_host_cli, review_token)
         except BaseException:
             _settle(root, plan, fingerprint, enforce=False)
             raise
@@ -543,8 +936,14 @@ def project_context_cancel(root, task_id, reason):
     return None
 
 
-def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False):
+def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None):
     with project_lock(safe_path(root, '.crewloom', internal=True), reentrant=True):
+        # An interrupted grouped publication is reconciled before this run reads any workflow
+        # state, builds a frozen context, evaluates a publish gate or records acceptance, so a
+        # half-published group is never the baseline any of them observe. A destination that no
+        # longer matches its journal is refused here, before this run reserves the root.
+        from execution_policy import recover as recover_publications
+        recover_publications(root)
         folder, state = state_for(root, plan, fingerprint)
         if state['status'] == 'cancelled':
             raise ValueError('Cancelled workflow cannot resume; use a new workflow ID')
@@ -574,6 +973,13 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
                     current=digest(build_prompt(root,step,plan.get('language','en'),plan['id'],consumed).encode())
                     if record.get('context_sha256')!=current:
                         raise ValueError('Model context changed or old evidence lacks context hash; review and use a new workflow ID')
+                if step.get('kind') == 'task' and review_policy(root)['mode'] == 'verified':
+                    # Verified mode fails closed: a recorded review that was edited, replays
+                    # another project or task, or no longer covers these bytes cannot be reused.
+                    recorded = review_state(root, plan, step, record)
+                    if recorded != 'valid':
+                        raise ValueError('Recorded reviewer proof for ' + step['id'] + ' is ' + recorded
+                                         + '; start a new workflow ID rather than reusing this state')
                 continue
             if lifecycle_mode(root): project_context_checkpoint(root, plan, state, step)
             try:
@@ -585,9 +991,11 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
             if step.get('kind') == 'task':
                 if accept != step['id']:
                     state['status'] = 'awaiting_task'; save(folder, state); return handoff(root, plan, state)
-                if not isinstance(reviewer, str) or not reviewer.strip() or len(reviewer) > 100 or reviewer.strip() == step['role']:
-                    raise ValueError('Task completion needs a reviewer identifier different from the owning role')
-                record.update(status='complete', inputs=inputs, outputs=hashes(root, step['outputs']), reviewer=reviewer)
+                # Authorize before any state is written: a refused reviewer records nothing.
+                outputs = hashes(root, step['outputs'])
+                review = review_proof(root, plan, step, outputs, reviewer, review_token)
+                record.update(status='complete', inputs=inputs, outputs=outputs,
+                              reviewer=review['principal'], review=review)
                 state['status'] = 'complete' if step is plan['steps'][-1] else 'pending'
                 save(folder, state)
                 return handoff(root, plan, state)
@@ -603,7 +1011,7 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
             except ValueError as exc:
                 state['status'] = 'blocked'; state['error'] = str(exc); save(folder, state)
                 raise
-            signature = digest(json.dumps({'inputs': inputs, 'argv': step['argv'], 'outputs': step['outputs'], 'image_id': image_id, 'broker_sha256': digest((LIBRARY/'scripts/execution_policy.py').read_bytes())}, sort_keys=True).encode())
+            signature = digest(json.dumps({'inputs': inputs, 'argv': step['argv'], 'outputs': step['outputs'], 'image_id': image_id, 'broker_sha256': digest(resources.module_file('execution_policy.py').read_bytes())}, sort_keys=True).encode())
             if sum(a['signature'] == signature and a['status'] != 'succeeded' for a in ledger['attempts']) >= 2:
                 state['status'] = 'blocked'; save(folder, state)
                 raise ValueError('Two attempts exhausted for unchanged command and inputs')
@@ -631,7 +1039,11 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
                         raise ValueError('Unchanged pre-existing output is not fresh execution evidence: ' + rel)
             except ValueError as exc:
                 project_attempt['status'] = 'failed'; save_ledger(root, ledger)
-                record['status'] = 'failed'; state['status'] = 'failed'; record['error'] = str(exc)
+                # The run carries the same cause as the step it stopped on, so every reader of
+                # this finished run learns which acceptance failed and why, instead of finding a
+                # `failed` status with no recorded cause next to it.
+                record['status'] = 'failed'; state['status'] = 'failed'
+                record['error'] = str(exc); state['error'] = str(exc)
                 save(folder, state); return handoff(root, plan, state)
             project_attempt['status'] = 'succeeded'; save_ledger(root, ledger)
             record['status'] = 'complete'; record.pop('error', None); save(folder, state)
@@ -643,7 +1055,10 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
     import model_host as host_module
     from model_host import build_prompt, generate
     try:
-        if step['host'] in ('codex','claude') and not allow_host_cli:
+        # Every installed-CLI host, not a hardcoded pair, needs the explicit operator opt-in.
+        # The list is owned by the adapter, so a host added there is guarded here too instead of
+        # becoming a CLI-execution path the gate does not know about.
+        if step['host'] in host_module.CLI_HOSTS and not allow_host_cli:
             raise ValueError('Host CLI execution is disabled in enforced mode; use openai/anthropic or explicit operator --allow-host-cli')
         from provider_gateway import MAX_PROJECT_MODEL_REQUESTS
         if sum(a.get('kind')=='model' for a in ledger['attempts']) >= MAX_PROJECT_MODEL_REQUESTS:
@@ -665,8 +1080,8 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
         signature=digest(json.dumps({'prompt':prompt,'host':step['host'],'model':step.get('model'),
                                     'timeout':step.get('timeout_seconds',180),
                                     'adapter_sha256':digest(Path(host_module.__file__).read_bytes()),
-                                    'gateway_sha256':digest((LIBRARY/'scripts/provider_gateway.py').read_bytes()),
-                                    'broker_sha256':digest((LIBRARY/'scripts/execution_policy.py').read_bytes())},sort_keys=True).encode())
+                                    'gateway_sha256':digest(resources.module_file('provider_gateway.py').read_bytes()),
+                                    'broker_sha256':digest(resources.module_file('execution_policy.py').read_bytes())},sort_keys=True).encode())
         if sum(a['signature']==signature and a['status']!='succeeded' for a in ledger['attempts'])>=2:
             raise ValueError('Two attempts exhausted for unchanged model task and inputs')
         attempt={'signature':signature,'status':'running','started_at':time.time()}
@@ -725,8 +1140,13 @@ def main(argv=None):
     parser.add_argument('--image', default=DEFAULT_IMAGE)
     parser.add_argument('--host', choices=('agents', 'claude'))
     parser.add_argument('--step'); parser.add_argument('--reviewer'); parser.add_argument('--reason')
+    parser.add_argument('--reviewer-token-stdin', action='store_true',
+                        help='Read the reviewer credential from standard input; it is never a command argument')
     parser.add_argument('--allow-host-cli', action='store_true', help='Operator opt-in to legacy CLI hosts outside the enforced boundary')
-    parser.add_argument('--model-host', choices=('codex', 'claude', 'openai', 'anthropic'))
+    # The doctor offers exactly the hosts the adapter names, so a host added there is checkable
+    # here instead of hidden. This only probes an installed CLI; generation stays gated above.
+    from model_host import HOSTS as MODEL_HOST_CHOICES
+    parser.add_argument('--model-host', choices=MODEL_HOST_CHOICES)
     args = parser.parse_args(argv)
     if args.action != 'doctor' and not args.project:
         parser.error('Task actions require --project; the current directory is not project identity')
@@ -743,7 +1163,10 @@ def main(argv=None):
                 result = cancel(root, plan, fingerprint, args.reason or 'operator request')
             else:
                 if args.action == 'accept' and not args.step: raise ValueError('Accept needs --step')
-                result = run(root, plan, fingerprint, args.image, args.step if args.action == 'accept' else None, args.reviewer, args.allow_host_cli)
+                import reviewer_credentials
+                token = reviewer_credentials.credential_from_environment(sys.stdin if args.reviewer_token_stdin else None)
+                result = run(root, plan, fingerprint, args.image, args.step if args.action == 'accept' else None,
+                             args.reviewer, args.allow_host_cli, token)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0 if args.action in ('status', 'handoff', 'accept', 'cancel') or result.get('status') == 'complete' or result.get('isolated_execution_ready') else 2
     except (ValueError, OSError, subprocess.SubprocessError) as exc:

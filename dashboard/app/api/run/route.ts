@@ -1,8 +1,11 @@
-import { appendRun, readTools, runTool } from '@/lib/repo.ts';
+import { appendRun, readTools, runTool } from '../../../lib/repo.ts';
+import { guard } from '../../../lib/auth.ts';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
+  const denied = guard(req);
+  if (denied) return denied;
   let body: { tool?: unknown; args?: unknown };
   try { body = await req.json(); } catch { return Response.json({ error: 'Invalid JSON' }, { status: 400 }); }
   if (typeof body.tool !== 'string' || !Array.isArray(body.args) || !body.args.every((a) => typeof a === 'string')) {
