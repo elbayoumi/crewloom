@@ -389,6 +389,8 @@ class RealHookCommitBoundaries(unittest.TestCase):
         self.root = Path(folder.name).resolve()
         self.checkout()
         self.git('init', '-q')
+        self.git('config', 'gc.auto', '0')
+        self.git('config', 'maintenance.auto', 'false')
         self.git('config', 'user.name', 'Scope fixture')
         self.git('config', 'user.email', 'scope@example.invalid')
         self.git('config', 'commit.gpgsign', 'false')

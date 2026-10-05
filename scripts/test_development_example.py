@@ -239,6 +239,8 @@ class SetupRefusalTests(unittest.TestCase):
         outer = self.base / 'outer'
         outer.mkdir()
         git(outer, 'init', '-q')
+        git(outer, 'config', 'gc.auto', '0')
+        git(outer, 'config', 'maintenance.auto', 'false')
         self.assert_refused(outer / 'project', 'inside the Git work tree')
 
     def test_a_missing_exact_model_is_refused(self):
