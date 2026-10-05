@@ -10,6 +10,27 @@ import model_host as h
 import workflow as w
 
 
+def fake_cli(folder, name, cases):
+    """One real POSIX shell CLI that answers only the listed argv and refuses every other one.
+
+    Each case is argv, text, streams and exit code; a stream is a name or a
+    (text, stream) pair when the two streams have to differ.
+    """
+    lines=['#!/bin/sh','case "$*" in']
+    for argv,text,streams,code in cases:
+        streams=(streams,) if isinstance(streams,str) else tuple(streams)
+        printed=[]
+        for item in streams:
+            words,stream=item if isinstance(item,tuple) else (text,item)
+            if words is not None:
+                printed.append("printf '%s\\n' '"+words+"'"+(' 1>&2' if stream=='stderr' else ''))
+        body=(' '.join(printed)+'; ' if printed else '')+'exit '+str(code)
+        lines.append('  "'+argv+'") '+body+';;')
+    lines+=['  *) exit 1;;','esac']
+    binary=Path(folder)/name;binary.write_text('\n'.join(lines)+'\n');binary.chmod(0o755)
+    return binary
+
+
 class ArtifactTests(unittest.TestCase):
     def test_exact_declared_set(self):
         self.assertEqual(h.validate_artifacts({'artifacts':[{'path':'src/a.py','content':'print(1)'}]},['src/a.py']),{'src/a.py':'print(1)'})
@@ -177,6 +198,44 @@ class ModelWorkflowTests(unittest.TestCase):
             prompt=h.build_prompt(self.root,self.plan['steps'][0],'ar')
         self.assertIn('Implement a bounded feature',prompt);self.assertEqual(json.loads(prompt.split('\n',1)[1])['language'],'ar')
         self.assertNotIn('FOREIGN PRIVATE TEXT',prompt)
+
+
+class ProbeStreamTests(unittest.TestCase):
+    """A supported CLI may print its own successful help and version to stderr.
+
+    The binaries here are real executables rather than mocked replies, because the
+    defect was a stream the probe never read: a reply object that carries stderr
+    proves nothing about what the installed CLI actually prints.
+    """
+    FLAGS=' '.join(h.OPENCODE_REQUIRED_FLAGS)
+
+    def probe_with(self, cases):
+        with tempfile.TemporaryDirectory() as folder:
+            binary=fake_cli(folder,'opencode',cases)
+            with patch.object(h.shutil,'which',return_value=str(binary)):
+                return h.probe('opencode')
+
+    def test_successful_stderr_help_and_stderr_version_are_read_from_the_binary(self):
+        info=self.probe_with([('run --help',self.FLAGS,'stderr',0),('--version','1.18.32','stderr',0)])
+        self.assertTrue(info['generation_supported'])
+        self.assertEqual(info['version'],'1.18.32')
+        # Reading either stream is not evidence about who is signed in.
+        self.assertFalse(info['authentication_verified'])
+
+    def test_stdout_help_is_still_recognised_and_an_unreported_version_is_not_invented(self):
+        info=self.probe_with([('run --help',self.FLAGS,'stdout',0),('--version',None,('stdout','stderr'),0)])
+        self.assertTrue(info['generation_supported'])
+        self.assertEqual(info['version'],'','A CLI that reports no version is credited with none')
+
+    def test_failed_help_naming_every_flag_in_both_streams_is_still_refused(self):
+        with self.assertRaises(h.HostUnavailable):
+            self.probe_with([('run --help',self.FLAGS,('stdout','stderr'),2)])
+
+    def test_a_flag_split_across_the_two_streams_is_not_a_match(self):
+        halves=((' '.join(h.OPENCODE_REQUIRED_FLAGS[:-1])+'--pu','stdout'),
+                (h.OPENCODE_REQUIRED_FLAGS[-1][2:],'stderr'))
+        with self.assertRaises(h.HostUnavailable):
+            self.probe_with([('run --help',None,halves,0)])
 
 
 if __name__=='__main__':unittest.main()

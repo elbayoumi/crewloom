@@ -2,8 +2,10 @@
 
 The map is a navigation index, not a source of truth. Every refresh re-reads and
 re-hashes candidate bytes, so reuse saves parsing and transmitted context only.
-Python extraction uses the standard AST; JS/TS extraction stays approximate and
-its unresolved imports are reported rather than hidden.
+Python extraction uses the standard AST; JavaScript and TypeScript use real syntax
+trees when the optional `crewloom[syntax]` extra is installed and a labelled
+approximate extractor otherwise. Module specifiers this index cannot follow are
+reported rather than hidden.
 """
 import argparse
 import ast
@@ -17,6 +19,8 @@ import subprocess
 import sys
 import tempfile
 import time
+
+import js_syntax
 
 EXTENSIONS={'.py','.js','.jsx','.ts','.tsx','.mjs','.cjs'}
 JS_EXTENSIONS=('.ts','.tsx','.js','.jsx','.mjs','.cjs')
@@ -46,7 +50,10 @@ MAX_SEED_SYMBOLS=12
 CACHE_RELATIVE='.crewloom/index/map.json'
 GENERATION_VERSION=2
 SCHEMA_VERSION=2
-PARSER_VERSIONS={'python-ast':2,'approximate-js-ts':3,'syntax-error':2}
+# Cache keys name the exact extractor: a grammar upgrade changes the `ts-ast` revision, and
+# the approximate fallback keeps its own version so changing either one re-parses.
+PARSER_VERSIONS={'python-ast':2,'approximate-js-ts':4,'ts-ast':js_syntax.revision(),'syntax-error':2}
+JS_GRAMMAR=js_syntax.available()
 NOT_A_GIT_PROJECT='Repository map requires a Git project; initialize Git explicitly'
 NO_GIT_WORK_TREE='Repository map requires a Git project with a work tree at this root; bare repositories are unsupported'
 # Git reads its repository location, index and configuration from the environment as well as from
@@ -187,7 +194,7 @@ def python_candidates(seed,imports):
 
 
 def js_candidates(seed,spec):
-    """Resolve relative JS/TS specifiers; package and alias resolution is a deferred adapter."""
+    """Relative JS/TS specifier candidates, kept for the approximate fallback path."""
     if not spec.startswith('.'):return []
     base=posixpath.normpath(posixpath.join(posixpath.dirname(seed),spec))
     return [base+extension for extension in JS_EXTENSIONS]+[posixpath.join(base,'index'+extension) for extension in JS_EXTENSIONS]
@@ -195,9 +202,9 @@ def js_candidates(seed,spec):
 
 def structure(name,text):
     """Extract bounded navigation facts; unsupported syntax stays visible as incomplete."""
-    parser='python-ast' if name.endswith('.py') else 'approximate-js-ts'
-    symbols=[];imports=[];notes=[]
-    if parser=='python-ast':
+    symbols=[];imports=[];notes=[];complete=True
+    if name.endswith('.py'):
+        parser='python-ast'
         try:tree=ast.parse(text)
         except SyntaxError:
             return {'symbols':[],'imports':[],'parser':'syntax-error','symbols_truncated':0,'imports_truncated':0,
@@ -211,7 +218,18 @@ def structure(name,text):
                 module=node.module or ''
                 imports.append({'module':module,'relative':node.level,'names':[alias.name for alias in node.names],
                                 'raw':'from '+'.'*node.level+module+' import '+', '.join(alias.name for alias in node.names)})
+    elif JS_GRAMMAR and Path(name).suffix in js_syntax.GRAMMARS:
+        # The real syntax tree, so declarations inside comments, strings and template
+        # literals are not symbols and nested definitions are found where they are.
+        parser='ts-ast'
+        found=js_syntax.extract(name,text)
+        symbols=found['symbols'];imports=found['imports'];notes=found['notes']
+        # A syntax error, a parse-budget stop or an unfollowable module load means this file's
+        # graph is a subset of the file. Carrying that through is what keeps a partial parse
+        # out of the generation's `graph_complete` claim.
+        complete=bool(found['complete'])
     else:
+        parser='approximate-js-ts'
         pattern=r'(?m)^\s*(?:export\s+)?(?:default\s+)?(?:async\s+)?(function|class|interface|type|const|let)\s+([\w$]+)'
         for match in re.finditer(pattern,text):
             symbols.append({'name':match[2],'line':text.count('\n',0,match.start())+1,'end':None,'kind':match[1]})
@@ -223,7 +241,7 @@ def structure(name,text):
     imports.sort(key=lambda item:item['raw'])
     imports_truncated=max(0,len(imports)-MAX_IMPORTS);imports=imports[:MAX_IMPORTS]
     return {'symbols':symbols,'imports':imports,'parser':parser,'symbols_truncated':truncated,
-            'imports_truncated':imports_truncated,'notes':notes,'complete':True}
+            'imports_truncated':imports_truncated,'notes':notes,'complete':complete}
 
 
 def _external_python(spec):
@@ -232,9 +250,15 @@ def _external_python(spec):
     return bool(tops) and all(top in STDLIB for top in tops)
 
 
-def link(name,entry,files):
-    """Attach resolved neighbours and the unresolved specifiers this index cannot follow."""
-    neighbours=set();unresolved=set()
+def link(name,entry,files,resolver=None):
+    """Attach resolved neighbours and the specifiers this index cannot follow.
+
+    A specifier that names a package outside the project is recorded as external as well as
+    unresolved: it is not a broken edge, and this index still cannot link it. Alias, dynamic
+    and workspace-package outcomes are recorded as notes so a reader never has to guess why
+    an edge is or is not present.
+    """
+    neighbours=set();unresolved=set();external=set();notes=set()
     if entry['parser']=='python-ast':
         for spec in entry['imports']:
             candidates=[candidate for candidate in python_candidates(name,[spec])
@@ -244,11 +268,26 @@ def link(name,entry,files):
             else:unresolved.add(spec['raw'])
     else:
         for spec in entry['imports']:
-            candidates=[candidate for candidate in js_candidates(name,spec['module'])
-                        if candidate in files and candidate!=name]
-            if candidates:neighbours.update(candidates)
-            else:unresolved.add(spec['raw'])
+            if resolver is None:
+                candidates=[candidate for candidate in js_candidates(name,spec['module'])
+                            if candidate in files and candidate!=name]
+                status='resolved' if candidates else ('external' if not spec['module'].startswith('.') else 'unresolved')
+            else:
+                candidates,status=resolver.resolve(name,spec)
+                candidates=[candidate for candidate in candidates if candidate!=name]
+            if candidates:
+                neighbours.update(candidates)
+                if status.startswith('ambiguous'):notes.add('ts-alias-ambiguous:'+spec['module'])
+                if status.endswith('+dynamic'):notes.add('ts-dynamic-import-resolved:'+spec['module'])
+                if status=='workspace-package-not-indexed':notes.add('ts-workspace-package-not-indexed')
+                continue
+            unresolved.add(spec['module'])
+            if status=='external':external.add(spec['module'])
+            if status.endswith('unresolved'):notes.add('ts-resolution-unresolved:'+spec['module'])
+            if status.endswith('refused'):notes.add('ts-resolution-refused:'+spec['module'])
+            if status=='workspace-package-not-indexed':notes.add('ts-workspace-package-not-indexed')
     return dict(entry,neighbours=sorted(neighbours),unresolved=sorted(unresolved)[:MAX_IMPORTS],
+                external=sorted(external)[:MAX_IMPORTS],notes=sorted(set(entry['notes'])|notes),
                 complete=entry['complete'] and not unresolved)
 
 
@@ -335,6 +374,34 @@ def inventory(root, state, source_roots, excluded):
     return sorted(selected)
 
 
+def module_configuration(root, state, excluded):
+    """Read and validate every module configuration in scope before the index is written.
+
+    Resolution depends on configuration, so a hostile or cyclic `extends` chain must fail
+    before any generation is published rather than after edges were computed from it. Only
+    exclusions apply here: a configuration governs the sources beneath it, so it is read
+    even when `source_roots` does not cover its own directory.
+    """
+    names=[name for name in state['names']
+           if Path(name).name in js_syntax.CONFIG_NAMES and not excluded.intersection(Path(name).parts)]
+    return js_syntax.Resolver(root,names,excluded)
+
+
+def module_configuration_digest(root, config=None):
+    """The fingerprint of the module configuration in scope, without parsing a source file.
+
+    Resolution depends on this configuration, so a frozen generation records the digest it
+    resolved against. Rewriting an alias target or a workspace package entry point moves every
+    edge it decides while leaving every source hash untouched, so this is the only signal that
+    the navigation a task was given no longer describes the project. Only the bounded
+    configuration files are read, which keeps the check cheap enough for a publication gate.
+    """
+    root = Path(root).resolve()
+    state = git_state(root)
+    _, excluded = scope_for(root, config)
+    return module_configuration(root, state, excluded).config_sha256
+
+
 def build(root,rebuild=False,config=None):
     """Re-hash every indexed candidate, reuse unchanged parses and write one atomic generation."""
     import workflow as w
@@ -346,6 +413,8 @@ def build(root,rebuild=False,config=None):
     folder,cache=cache_paths(root)
     prior,prior_state=({},'rebuilt-forced') if rebuild else read_cache(cache,root,scope)
     state=git_state(root)
+    # Configuration is read and validated first: an invalid one must never reach a generation.
+    resolver=module_configuration(root,state,excluded)
     files={};entries={};total=0;reused=0;parsed=0;skipped=0
     for name in state['names']:
         parts=Path(name).parts
@@ -370,16 +439,18 @@ def build(root,rebuild=False,config=None):
             entry=structure(name,text);entry['sha256']=fingerprint
             entry['parser_version']=PARSER_VERSIONS.get(entry['parser'],0);parsed+=1
         files[name]=None;entries[name]=entry
+    resolver.bind(files)
     for name in sorted(files):
-        files[name]=link(name,entries[name],files)
+        files[name]=link(name,entries[name],files,resolver)
     ordered=files
     renamed=[{'from':old,'to':new} for new,old in sorted(state['renamed'].items()) if new in ordered]
     incomplete=sorted(name for name,entry in ordered.items() if not entry['complete'])
-    unsupported=sorted({note for entry in ordered.values() for note in entry['notes']})
+    unsupported=sorted({note for entry in ordered.values() for note in entry['notes']}|set(resolver.notes))
     value={'generation':GENERATION_VERSION,'schema_version':SCHEMA_VERSION,
            'project_root':str(root),'project_id':scope['project_id'],'checkout_id':scope['checkout_id'],
            'parser_versions':PARSER_VERSIONS,'git':{'branch':state['branch'],'head':state['head']},
            'prior_state':prior_state,'stale':False,'files':ordered,
+           'syntax':js_syntax.capability(JS_GRAMMAR),'config_sha256':resolver.config_sha256,
            'incomplete_files':incomplete,'unsupported':unsupported,'graph_complete':not incomplete}
     data=json.dumps(value,ensure_ascii=False,separators=(',',':')).encode()
     if len(data)>8*MAX_FILE:raise ValueError('Map cache exceeds budget')
@@ -398,6 +469,7 @@ def build(root,rebuild=False,config=None):
                   'renamed':renamed,'branch':state['branch'],'head':state['head'],'prior_state':prior_state,
                   'legacy_cache_migrated':migrated,
                   'generation':GENERATION_VERSION,'incomplete_files':len(incomplete),'graph_complete':not incomplete,
+                  'syntax':value['syntax']['parser'],'config_sha256':resolver.config_sha256,
                   'duration_ms':round((time.monotonic()-started)*1000)}
 
 

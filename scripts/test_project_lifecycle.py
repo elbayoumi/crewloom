@@ -215,6 +215,60 @@ class ManagedLifecycleTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'context finalization refused'):
                 w.run(self.root, parsed, fingerprint, 'image')
 
+    def interrupt(self, relative, original, applied):
+        """Leave one interrupted publication exactly as a killed writer would."""
+        import execution_policy as broker
+        (self.root / relative).write_bytes(original)
+        folder = broker._internal(self.root, 'pending', '0000000000001-killed')
+        (folder / broker.BACKUP).mkdir(parents=True); (folder / broker.PAYLOAD).mkdir()
+        (folder / broker.BACKUP / '0.bin').write_bytes(original)
+        (folder / broker.PAYLOAD / '0.bin').write_bytes(applied)
+        broker._write_record(folder / 'journal.json', {
+            'schema_version': broker.JOURNAL_VERSION, 'transaction': '0000000000001-killed',
+            'project_root': str(self.root), 'created_at': '2026-01-01T00:00:00Z', 'state': 'prepared',
+            'inputs': {}, 'created_parents': [],
+            'entries': [{'index': 0, 'path': relative, 'state': 'replacing', 'existed': True,
+                         'mode': 0o644, 'bytes': len(applied), 'original_sha256': w.digest(original),
+                         'new_sha256': w.digest(applied)}]})
+        (self.root / relative).write_bytes(applied)
+        return folder
+
+    def test_an_interrupted_publication_is_reconciled_before_context_entry_freezes(self):
+        self.enable('enforced')
+        self.interrupt('output.txt', b'original output\n', b'half published\n')
+        result = pb.enter(self.root, 'managed-project', 'recovered-feature', ROLE,
+                          seeds=['input.txt'], sources=['input.txt'], criteria_path='criteria.md')
+        self.assertEqual(result['recovered_publications'][0]['restored'], ['output.txt'])
+        self.assertEqual((self.root / 'output.txt').read_bytes(), b'original output\n')
+        self.assertFalse((self.root / '.crewloom' / 'transactions' / 'pending' /
+                          '0000000000001-killed').exists())
+        stored = pc.load(self.root, {'task_id': 'recovered-feature'})
+        self.assertEqual([item['path'] for item in stored['bodies']], ['input.txt'])
+
+    def test_a_foreign_edit_blocks_entry_before_any_context_is_written(self):
+        self.enable('enforced')
+        self.interrupt('output.txt', b'original output\n', b'half published\n')
+        (self.root / 'output.txt').write_bytes(b'an independent user edit\n')
+        with self.assertRaisesRegex(ValueError, 'Ambiguous interrupted publication'):
+            pb.enter(self.root, 'managed-project', 'blocked-feature', ROLE,
+                     seeds=['input.txt'], sources=['input.txt'], criteria_path='criteria.md')
+        self.assertEqual((self.root / 'output.txt').read_bytes(), b'an independent user edit\n')
+        self.assertIsNone(pb.task_state(self.root, 'blocked-feature'))
+        self.assertIsNone(pb.reservation(self.root))
+        self.assertFalse((self.root / '.crewloom' / 'context' / 'blocked-feature.json').exists())
+        self.assertTrue((self.root / '.crewloom' / 'transactions' / 'pending' /
+                         '0000000000001-killed').is_dir())
+
+    def test_a_managed_run_reconciles_an_interrupted_publication_before_reserving(self):
+        self.enable('observe')
+        self.interrupt('output.txt', b'original output\n', b'half published\n')
+        self.assertEqual(self.run_plan()['status'], 'complete')
+        self.assertEqual((self.root / 'output.txt').read_text(), 'verified')
+        self.assertEqual(json.loads((self.root / '.crewloom' / 'transactions' / 'receipts' /
+                                     (sorted(item.name for item in (self.root / '.crewloom' /
+                                      'transactions' / 'receipts').iterdir())[0])).read_text())['state'],
+                         'committed')
+
 
 if __name__ == '__main__':
     unittest.main()

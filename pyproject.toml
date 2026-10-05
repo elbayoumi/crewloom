@@ -1,16 +1,25 @@
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools>=77,<81"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "crewloom"
-version = "0.5.1"
+version = "0.6.0.dev0"
 description = "Repository-native specialist agent skills, working memory, bilingual context packs, and checks."
 readme = "README.md"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.9"
 dependencies = []
 keywords = ["agent-skills", "ai-agents", "bilingual"]
+
+# The toolkit itself has no runtime dependency and every core tool runs on the standard
+# library alone. `js_syntax` is imported by `repo_map` at module scope, so it is always part
+# of the flat runtime, but the grammars it uses are the one optional set: without this extra
+# installed the exact JS/TS parse is unavailable and the map falls back to the approximate
+# extractor, which it reports rather than hiding.
+[project.optional-dependencies]
+syntax = ["tree-sitter==0.23.2", "tree-sitter-javascript==0.23.1", "tree-sitter-typescript==0.23.2"]
 
 [project.urls]
 Homepage = "https://github.com/elbayoumi/crewloom"
@@ -19,5 +28,40 @@ Homepage = "https://github.com/elbayoumi/crewloom"
 crewloom = "crewloom:main"
 
 [tool.setuptools]
-package-dir = { "" = "scripts" }
-py-modules = ["crewloom", "workflow", "evaluate_feature", "model_host", "evaluate_hosts", "execution_policy", "provider_gateway", "repo_map", "project_binding", "project_context", "project_lessons", "context_pilot"]
+packages = ["crewloom_data", "crewloom_data.assets", "crewloom_data.documentation", "crewloom_data.workflows",
+            "crewloom_data.examples", "crewloom_data.examples.evaluation", "crewloom_data.examples.mcp",
+            "crewloom_data.examples.seo", "crewloom_data.examples.ui", "crewloom_data.examples.video",
+            "crewloom_data.examples.workflows", "crewloom_data.adapters", "crewloom_data.adapters.codex",
+            "crewloom_data.adapters.claude", "crewloom_data.adapters.opencode"]
+py-modules = ["crewloom", "crewloom_resources", "workflow", "evaluate_feature", "model_host", "evaluate_hosts", "execution_policy", "provider_gateway", "repo_map", "js_syntax", "project_binding", "project_context", "project_lessons", "context_pilot", "reviewer_credentials", "task_coordinator", "agency_readiness", "host_lifecycle"]
+
+# Role trees and documentation stay in the repository exactly once. The wheel maps the
+# repository root into one data package, so installed roles keep the same relative
+# depth they have in a checkout and every role script that climbs four levels to find its
+# siblings resolves the installed tree. `crewloom_resources` reads either layout, so no
+# role tree is duplicated, nothing depends on the working directory, and no editable
+# path is baked in.
+[tool.setuptools.package-dir]
+"" = "scripts"
+"crewloom_data" = "."
+
+[tool.setuptools.package-data]
+"crewloom_data" = [
+  "REPOSITORY_SCOPE.json",
+  ".agents/skills/*/SKILL.md",
+  ".agents/skills/*/brain/*.md",
+  ".agents/skills/*/references/*",
+  ".agents/skills/*/scripts/*.py",
+  "documentation/*.md",
+  "documentation/*.json",
+  "documentation/*.txt",
+  "examples/**/*.json",
+  "examples/**/*.py",
+  "examples/**/*.md",
+  "examples/**/*.txt",
+  "workflows/*.json",
+  "assets/*.svg",
+  "adapters/**/*.json",
+  "adapters/**/*.js",
+  "adapters/**/*.md",
+]

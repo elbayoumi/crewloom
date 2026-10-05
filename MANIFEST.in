@@ -1,0 +1,37 @@
+include REPOSITORY_SCOPE.json
+include LICENSE
+include NOTICE
+include README.md
+include README.ar.md
+include AGENTS.md
+include CHANGELOG.md
+include CONTRIBUTING.md
+include SECURITY.md
+include MASTER_BRAIN.md
+
+recursive-include .agents *.md *.py
+recursive-include Brain *.md
+recursive-include documentation *.md *.json *.txt
+recursive-include scripts *.py
+recursive-include workflows *.json
+recursive-include examples *
+recursive-include assets *.svg *.gif *.mp4
+recursive-include adapters *.json *.js *.md
+recursive-include .githooks *
+recursive-include .github *.md *.yml *.yaml
+recursive-include dashboard *.ts *.tsx *.json *.mjs *.css *.md *.svg
+
+# Private runtime state, generated output, and dependencies never belong in a distribution.
+prune .crewloom
+prune build
+prune dist
+prune node_modules
+prune dashboard/node_modules
+prune dashboard/.next
+recursive-exclude scripts/crewloom.egg-info *
+recursive-exclude .crewloom *
+recursive-exclude node_modules *
+recursive-exclude dashboard/node_modules *
+recursive-exclude dashboard/.next *
+
+global-exclude __pycache__ *.pyc *.pyo .DS_Store *.log

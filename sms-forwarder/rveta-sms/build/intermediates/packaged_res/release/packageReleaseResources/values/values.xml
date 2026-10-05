@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="scan_found">تم العثور على الـ QR · جاري الربط…</string>
-    <string name="scan_hint">وجّه الكاميرا نحو مربع الـ QR</string>
-</resources>

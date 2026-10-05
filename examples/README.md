@@ -1,6 +1,6 @@
 # Run real examples
 
-These synthetic inputs contain no client data. They exercise local tools and do not connect to accounts or publish anything.
+These synthetic inputs contain no client data. The six local checks below need no accounts. Model-generation examples require provider access and keep publication scoped to their disposable project.
 
 | Example | Command | Expected result |
 | --- | --- | --- |
@@ -15,3 +15,6 @@ SEO packet word count is declared metadata, not a generated article. MCP `your_s
 
 - [Model-generated software feature](model-workflow/README.md): authenticated CLI generation, scoped artifacts and isolated acceptance.
 - [Repeated host trials](evaluation/unicode-slug/HOST_TRIALS.md): frozen protocol, anonymized submissions and deterministic scoring.
+
+- [Concurrent development application](concurrent-development/README.md): three model tasks, isolated worktrees, combined acceptance, credential review and English/Arabic reports.
+- [Controlled context study](context-study/README.md): frozen full-source/selected-map comparisons with isolated held-out grading.

@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "project_id": "context-study-fixture",
+  "description": "Small synthetic project for the controlled context study.",
+  "source_roots": [
+    "src"
+  ],
+  "exclude": []
+}

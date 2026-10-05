@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "id": "planning-workflow",
+  "language": "en",
+  "criteria": "criteria.md",
+  "steps": [
+    {
+      "id": "generate",
+      "role": "fullstack-mvp-engineer",
+      "kind": "model",
+      "summary": "Implement the priority planning module from the planning contract",
+      "host": "__MODEL_HOST__",
+      "model": "__MODEL__",
+      "timeout_seconds": 300,
+      "inputs": [
+        "contracts/planning.md"
+      ],
+      "outputs": [
+        "src/planning.py"
+      ]
+    },
+    {
+      "id": "accept",
+      "role": "qa-test-automation-engineer",
+      "kind": "command",
+      "summary": "Run the generated planning module in the container and check its order",
+      "argv": ["python3", "tools/check_planning.py"],
+      "timeout_seconds": 180,
+      "inputs": [
+        "src/planning.py",
+        "src/scheduling_support.py",
+        "tools/check_planning.py",
+        "data/ledger_en.json",
+        "data/ledger_ar.json"
+      ],
+      "outputs": [
+        "artifacts/planning_acceptance.json"
+      ]
+    }
+  ]
+}

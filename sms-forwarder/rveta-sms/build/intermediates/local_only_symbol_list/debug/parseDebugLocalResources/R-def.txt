@@ -1,9 +1,0 @@
-R_DEF: Internal format may change without notice
-local
-drawable scanner_frame
-drawable scanner_scrim
-id previewView
-id scanStatus
-layout activity_scan
-string scan_found
-string scan_hint

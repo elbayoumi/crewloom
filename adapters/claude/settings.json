@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "owner": "crewloom-host-lifecycle",
+  "note": "Project-local Claude Code hook template. Rendered by host_lifecycle.install; Claude 2.1.150 is installed-schema-ready but was logged out, so no callback has been observed and no delivery is claimed.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 120
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__CREWLOOM_BRIDGE_COMMAND__",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}

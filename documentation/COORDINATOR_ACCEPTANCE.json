@@ -1,0 +1,244 @@
+{
+  "recorded_at": "2026-10-04T11:12:52+00:00",
+  "model": "opencode/space-bunny-free",
+  "scope": "B2 concurrent worktree coordinator: one real three-task batch with reviewed publication",
+  "runtime": {
+    "python": "3.14.7",
+    "image": "python:3.14-slim",
+    "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+    "git": "git version 2.50.1 (Apple Git-155)",
+    "host_filesystem_case_insensitive": true
+  },
+  "real_docker_execution": true,
+  "provider_calls": 0,
+  "fixture": {
+    "project_id": "coordinator-fixture",
+    "base_commit": "9a6664a9bd6f3ff2c6647b8c55593bef4e6219c0",
+    "tasks": [
+      "left",
+      "right",
+      "combine"
+    ],
+    "workers": 2,
+    "disposable_root": true
+  },
+  "validate": {
+    "status": "validated",
+    "batch": "feature-batch",
+    "project_root": "/private/var/folders/t7/bd6ryhns66d0tc2yx2m6w2kr0000gn/T/crewloom-coordinator-6h8ef8f1",
+    "project_id": "coordinator-fixture",
+    "checkout_id": "71ed54643c4848868ab0f7511d9ee73f",
+    "base": "HEAD",
+    "base_commit": "9a6664a9bd6f3ff2c6647b8c55593bef4e6219c0",
+    "head": "9a6664a9bd6f3ff2c6647b8c55593bef4e6219c0",
+    "workers": 2,
+    "tasks": [
+      "left",
+      "right",
+      "combine"
+    ],
+    "order": [
+      "left",
+      "right",
+      "combine"
+    ],
+    "integration_workflow": "workflows/integration.json",
+    "required_integration_inputs": [
+      "combine.txt",
+      "left.txt",
+      "right.txt"
+    ],
+    "manifest": "coordinator.json",
+    "manifest_sha256": "5daafc4abe10d21baef5634aaa2d934081664e6c1d9715ca4931131e7f11f2df",
+    "untracked_paths_at_base": 0,
+    "git": {
+      "git_dir": "/private/var/folders/t7/bd6ryhns66d0tc2yx2m6w2kr0000gn/T/crewloom-coordinator-6h8ef8f1/.git",
+      "work_tree": "/private/var/folders/t7/bd6ryhns66d0tc2yx2m6w2kr0000gn/T/crewloom-coordinator-6h8ef8f1"
+    },
+    "limits": {
+      "max_workers": 4,
+      "max_tasks": 32,
+      "max_state_bytes": 524288,
+      "max_event_bytes": 262144
+    }
+  },
+  "run": {
+    "status": "verified",
+    "workers_overlapped": true,
+    "tasks": [
+      {
+        "id": "left",
+        "status": "verified",
+        "branch": "crewloom/feature-batch/left",
+        "worktree": ".crewloom/worktrees/feature-batch/left",
+        "commit": "f44483098620e49975fd27c1b1fd9c8fa92ccce1",
+        "checkout_id": "ea76233042834b2189c512e88509f5b7",
+        "declared_outputs": [
+          "left.txt"
+        ],
+        "dependencies": [],
+        "duration_ms": 579,
+        "executor_evidence": [
+          {
+            "step": "build",
+            "signature": "ad89477babf90956d91ad9c7759089ced697b8dbd3ddae2bb2790ebf4a35771c",
+            "exit_code": 0,
+            "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+            "outputs": {
+              "left.txt": "38a565c2ce3e511ed509caed372e4006719a4f960ae5f665928fc5b49325b183"
+            }
+          }
+        ]
+      },
+      {
+        "id": "right",
+        "status": "verified",
+        "branch": "crewloom/feature-batch/right",
+        "worktree": ".crewloom/worktrees/feature-batch/right",
+        "commit": "e9ca0d6566262c2534a349463f865d0565d92041",
+        "checkout_id": "ad290b44bc9e4a4ebdfb901313101fee",
+        "declared_outputs": [
+          "right.txt"
+        ],
+        "dependencies": [],
+        "duration_ms": 630,
+        "executor_evidence": [
+          {
+            "step": "build",
+            "signature": "6058ae29f9d17869cde40f8f3ccd8804e468b771e701da79dee744481c9c04ce",
+            "exit_code": 0,
+            "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+            "outputs": {
+              "right.txt": "e86202f7ca7a316ed418c205fb9d43b24c382e24698cddd6fd6c8b4a38934de7"
+            }
+          }
+        ]
+      },
+      {
+        "id": "combine",
+        "status": "verified",
+        "branch": "crewloom/feature-batch/combine",
+        "worktree": ".crewloom/worktrees/feature-batch/combine",
+        "commit": "80504d5df2a1be9df4b1189422112f6249e604e4",
+        "checkout_id": "04beaf29eb5147d48a84e79ba2b4ebb8",
+        "declared_outputs": [
+          "combine.txt"
+        ],
+        "dependencies": [
+          "left",
+          "right"
+        ],
+        "duration_ms": 625,
+        "executor_evidence": [
+          {
+            "step": "build",
+            "signature": "7cf3d21f7fbefc847bb44a7aa872c1ddbbaaf40830acfdfde97c1ee019a2c25e",
+            "exit_code": 0,
+            "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+            "outputs": {
+              "combine.txt": "529ae01849f71dd0ae90d134a371abb4cd4416629b5e6fb753fdad99f64d4e3d"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "prepare": {
+    "status": "review_ready",
+    "head": "cdf699b8852786dd003294580dc381445a675caa",
+    "base": "9a6664a9bd6f3ff2c6647b8c55593bef4e6219c0",
+    "diff_sha256": "321a3b667c45337de678934acad7b8bdd61d4c7ddccbdc4f54b97e170c1cee04",
+    "merged": [
+      "left",
+      "right",
+      "combine"
+    ],
+    "declared_outputs": [
+      "artifacts/acceptance.json"
+    ],
+    "reviewed_artifacts": 4,
+    "executor_evidence": [
+      {
+        "step": "accept",
+        "signature": "ae47806f8bf5404c5135a69e30455e9570f5bd142882e6b94486829d2ff85be7",
+        "exit_code": 0,
+        "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+        "outputs": {
+          "artifacts/acceptance.json": "1397be44d8d52697be02c283890d718146dd6ee488a43a747a5c6be25682e26c"
+        }
+      }
+    ],
+    "state_file": "/private/var/folders/t7/bd6ryhns66d0tc2yx2m6w2kr0000gn/T/crewloom-coordinator-6h8ef8f1/.crewloom/worktrees/feature-batch/integration/.crewloom/workflows/integration-workflow/state.json"
+  },
+  "combined_acceptance": {
+    "combined_acceptance": true,
+    "artifacts": {
+      "combine.txt": {
+        "present": true,
+        "marker_found": true,
+        "sha256": "529ae01849f71dd0ae90d134a371abb4cd4416629b5e6fb753fdad99f64d4e3d"
+      },
+      "left.txt": {
+        "present": true,
+        "marker_found": true,
+        "sha256": "38a565c2ce3e511ed509caed372e4006719a4f960ae5f665928fc5b49325b183"
+      },
+      "right.txt": {
+        "present": true,
+        "marker_found": true,
+        "sha256": "e86202f7ca7a316ed418c205fb9d43b24c382e24698cddd6fd6c8b4a38934de7"
+      }
+    }
+  },
+  "review": {
+    "status": "reviewed",
+    "batch": "feature-batch",
+    "principal": "reviewer-alex",
+    "method": "declared-label",
+    "expected_base": "9a6664a9bd6f3ff2c6647b8c55593bef4e6219c0",
+    "candidate_head": "cdf699b8852786dd003294580dc381445a675caa",
+    "diff_sha256": "321a3b667c45337de678934acad7b8bdd61d4c7ddccbdc4f54b97e170c1cee04",
+    "reviewed_artifacts": 4,
+    "proof_sha256": "04bfc6d5cdf9cc31ff224eac451f7b974b2570df2da89064a563dbf4873c3af2",
+    "review_policy": {
+      "mode": "label",
+      "allow_self_review": false
+    },
+    "limitation": "A credential proves possession of a registered principal secret, not the presence of an independent human reviewer. In declared-label mode the identifier names a reviewer without authenticating one."
+  },
+  "publish": {
+    "status": "published",
+    "publication": {
+      "expected_base": "9a6664a9bd6f3ff2c6647b8c55593bef4e6219c0",
+      "candidate_head": "cdf699b8852786dd003294580dc381445a675caa",
+      "diff_sha256": "321a3b667c45337de678934acad7b8bdd61d4c7ddccbdc4f54b97e170c1cee04",
+      "published_head": "cdf699b8852786dd003294580dc381445a675caa",
+      "principal": "reviewer-alex",
+      "method": "declared-label",
+      "proof_sha256": "04bfc6d5cdf9cc31ff224eac451f7b974b2570df2da89064a563dbf4873c3af2",
+      "nonce": "a3d912b4361a03ff6256df829e1516d4",
+      "project_id": "coordinator-fixture",
+      "checkout_id": "71ed54643c4848868ab0f7511d9ee73f",
+      "at": "2026-10-04T11:12:52+00:00",
+      "untracked_preserved": 0,
+      "worktrees_retained": true
+    }
+  },
+  "root_head_after_publication": "cdf699b8852786dd003294580dc381445a675caa",
+  "root_equals_candidate": true,
+  "worktrees_retained": [
+    "combine",
+    "integration",
+    "left",
+    "locks",
+    "right"
+  ],
+  "claims": [
+    "Three tasks ran the real managed Docker executor concurrently in three linked worktrees.",
+    "The dependent task read its ancestors integrated commits, not the untouched base.",
+    "The combined acceptance ran once over the integrated tree and checked every artifact.",
+    "The root changed only by one recorded fast-forward after an explicit review decision.",
+    "The fixture scripts supply the artifacts, so this proves orchestration, isolation, integration and publication rather than model-generated code."
+  ],
+  "model_field_scope": "Implementation host, not an artifact-generation provider; this historical batch made zero provider calls."
+}

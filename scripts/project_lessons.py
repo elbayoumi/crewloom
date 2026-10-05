@@ -479,7 +479,7 @@ def export_reviewed(root, destination, approved, reviewer):
               'reviewer': str(reviewer)[:100], 'exported_at': now(), 'lessons': lessons,
               'instruction': 'Reviewed project knowledge only; importing into another project re-verifies evidence.'}
     target = Path(destination).resolve()
-    if target.is_relative_to(Path(root).resolve() / '.crewloom'):
+    if w.inside(target, (Path(root).resolve() / '.crewloom',)):
         raise ValueError('Export packets belong outside runtime state; choose a reviewed destination')
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(canonical(packet) + '\n', encoding='utf-8')

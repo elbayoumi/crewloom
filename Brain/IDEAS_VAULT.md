@@ -45,3 +45,20 @@ A future scheduler should preserve canonical root and active-workflow reservatio
 
 ### 2026-10-03 — Keep savings tied to frozen tasks
 Compare complete declared inputs and unchanged acceptance contracts across context modes before claiming billed-token or quality gains; current public byte measurements are navigation evidence only.
+
+### 2026-10-04 — Validate automatic context as a complete chain
+Verify callback delivery, explicit project/session/turn identity, fresh declared source, guarded edits and recorded executor acceptance separately. Installation or idle status cannot establish successful context use. Provider usage remains a measured, nullable field rather than an inferred saving from source bytes.
+
+### 2026-10-04 — Aggregate request admission for concurrent worktrees
+A future batch-level request counter should reserve remaining generation slots before dispatch, reconcile them against worker ledgers and preserve reservations across failures and resume. The current managed request ceiling applies to one checkout ledger; do not describe it as a provider-account or aggregate multi-checkout billing cap.
+
+- Native adapter acceptance must include the actual launcher configuration shape and distinguish configuration readiness from observed context delivery. Offline callback tests cannot establish host parsing or production callback behavior.
+
+### 2026-10-05 — Preserve native boundary evidence
+Store a bounded, project-owned callback schema receipt alongside version and source fingerprints. Verify allowed edits, refused edits and post-edit refresh separately: a denial caused by a broken payload parser cannot establish a useful guard. Keep installation readiness, callback observation, actual model context use and executor acceptance as distinct claims.
+
+### 2026-10-05 — Editable CLI exposure
+Use a dedicated pipx environment for a globally discoverable development CLI; record its source checkout explicitly so a later worktree move is followed by a deliberate reinstall.
+
+### 2026-10-05 — Dependency-closure maps
+A map that always includes the bodies of every symbol the selected module imports could keep the token cut without the quality collapse seen in the first study; test it as a new preregistered arm, not a retrofit.

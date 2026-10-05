@@ -5,15 +5,29 @@ import json
 import importlib.util
 import os
 import re
+import secrets
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ROOT / '.agents' / 'skills'
+import crewloom_resources as resources
+from crewloom_resources import ResourceError
+
+LOOPBACK = ('127.0.0.1', '::1', 'localhost')
+
+
+def library_root():
+    """Root that holds role trees and documentation for this installation."""
+    return resources.distribution_root()
+
+
+def skills_dir():
+    """Directory holding the 42 role trees for this installation."""
+    return resources.roles_dir()
 
 
 def log_run(tool, skill, code, seconds, project=None):
@@ -33,7 +47,8 @@ def log_run(tool, skill, code, seconds, project=None):
 
 
 def load_validator():
-    path = SKILLS / 'skill-forge-recruiter' / 'scripts' / 'validate_skill.py'
+    path = resources.require('.agents/skills/skill-forge-recruiter/scripts/validate_skill.py',
+                            'Role structure validator')
     spec = importlib.util.spec_from_file_location('crewloom_validator', path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -46,7 +61,8 @@ SKILL_ID = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*')
 
 def install_skills(target, host, names, force):
     """Copy role folders into a project's host skill directory; returns (installed, errors)."""
-    available = sorted(p.parent.name for p in SKILLS.glob('*/SKILL.md'))
+    source_root = resources.roles_dir()
+    available = resources.role_ids()
     wanted = names or available
     errors = [f'Unknown skill: {n}' for n in wanted if n not in available]
     if errors:
@@ -64,15 +80,15 @@ def install_skills(target, host, names, force):
             return [], [f'Refusing symlink install destination: {candidate}']
     # Validate every copied destination before any role is changed.
     for name in wanted:
-        for source in (SKILLS / name).rglob('*'):
-            relative = source.relative_to(SKILLS / name)
+        for source in (source_root / name).rglob('*'):
+            relative = source.relative_to(source_root / name)
             candidate = destination / name / relative
             if not candidate.resolve().is_relative_to(target.resolve()):
                 return [], [f'Install file escapes project through a symlink: {candidate}']
     destination.mkdir(parents=True, exist_ok=True)
     for name in wanted:
         role = destination / name
-        shutil.copytree(SKILLS / name, role, dirs_exist_ok=True,
+        shutil.copytree(source_root / name, role, dirs_exist_ok=True,
                         ignore=shutil.ignore_patterns('__pycache__', '*.pyc', 'brain'))
         brain = role / 'brain'
         brain.mkdir(exist_ok=True)
@@ -81,28 +97,150 @@ def install_skills(target, host, names, force):
             if memory.exists():
                 continue
             if filename == 'ARCHITECTURE':
-                shutil.copyfile(SKILLS / name / 'brain' / 'ARCHITECTURE.md', memory)
+                shutil.copyfile(source_root / name / 'brain' / 'ARCHITECTURE.md', memory)
             else:
                 memory.write_text(f'# {filename.replace("_", " ").title()}\n\nNo project-specific entries recorded yet.\n', encoding='utf-8')
     return wanted, []
 
 
-def run_dashboard(port, project):
-    folder = ROOT / 'dashboard'
+MIN_DASHBOARD_TOKEN = 32
+
+
+def dashboard_token():
+    """Server-only dashboard secret: environment in, environment out, never an argument.
+
+    A value shorter than the generated secret is refused rather than accepted. A short
+    "password" that authorizes project reads and tool runs is not meaningfully different
+    from no authentication, so the server treats it as unconfigured.
+    """
+    configured = os.environ.get('CREWLOOM_DASHBOARD_TOKEN', '').strip()
+    return configured if len(configured) >= MIN_DASHBOARD_TOKEN else None
+
+
+def write_dashboard_secret(project, token):
+    """Publish the generated login secret to an owner-only file, never to stdout.
+
+    A printed secret reaches scrollback, terminal scrollback, CI logs, and every process
+    that captures this process's output. The file lives in the project's runtime directory
+    with mode 0600, so only the owner can read it, and only its path is printed. The
+    temporary file is created exclusively under a random name: a predictable name would let
+    a pre-planted symlink redirect a secret write into another project.
+    """
+    path = project / '.crewloom' / 'dashboard-token'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.parent.is_symlink() or path.is_symlink():
+        raise ValueError('Refusing a symlinked dashboard credential path: ' + str(path))
+    descriptor, name = tempfile.mkstemp(dir=str(path.parent), prefix='dashboard-token.', suffix='.tmp')
+    try:
+        os.fchmod(descriptor, 0o600)
+        with os.fdopen(descriptor, 'w', encoding='utf-8') as handle:
+            handle.write(token + '\n')
+        os.replace(name, path)
+    finally:
+        if os.path.exists(name):
+            os.unlink(name)
+    os.chmod(path, 0o600)
+    return path
+
+
+def dashboard_binding_allowed(hostname):
+    """A non-loopback interface is refused unless authentication was configured explicitly."""
+    return hostname in LOOPBACK or dashboard_token() is not None
+
+
+def run_dashboard(port, project, hostname):
+    """Start the authenticated dashboard, or explain exactly what is missing."""
+    try:
+        folder = resources.dashboard_dir()
+    except ResourceError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
     npm = shutil.which('npm')
     if not npm:
         print('npm not found: install Node 20+ to use the dashboard', file=sys.stderr)
         return 1
+    if not dashboard_binding_allowed(hostname):
+        print('Refusing a non-loopback dashboard bind without configured authentication. '
+              f'Set CREWLOOM_DASHBOARD_TOKEN to at least {MIN_DASHBOARD_TOKEN} characters, or '
+              'keep the default 127.0.0.1.', file=sys.stderr)
+        return 2
+    token = dashboard_token()
+    generated = token is None
+    if generated:
+        token = secrets.token_urlsafe(32)
     if not (folder / 'node_modules').is_dir():
         code = subprocess.run([npm, 'install', '--no-audit', '--no-fund'], cwd=folder, check=False).returncode
         if code:
             return code
-    env = {**os.environ, 'CREWLOOM_ROOT': str(ROOT), 'CREWLOOM_PROJECT': str(project)}
-    return subprocess.run([npm, 'run', 'dev', '--', '-p', str(port)], cwd=folder, env=env, check=False).returncode
+    # The token travels in the child environment only: never an argument, so it stays out of
+    # process listings, access logs, browser history, and the selected project's run records.
+    env = {**os.environ, 'CREWLOOM_ROOT': str(library_root()), 'CREWLOOM_PROJECT': str(project),
+           'CREWLOOM_DASHBOARD_TOKEN': token, 'CREWLOOM_DASHBOARD_PORT': str(port),
+           'CREWLOOM_DASHBOARD_HOST': hostname}
+    if generated:
+        try:
+            secret = write_dashboard_secret(project, token)
+        except OSError as exc:
+            print(f'Could not write the dashboard credential file: {exc}', file=sys.stderr)
+            return 2
+        print(f'Dashboard access token written to {secret} (owner-only).')
+    print(f'Open http://{hostname}:{port} and paste that token into the sign-in box.')
+    return subprocess.run([npm, 'run', 'dev', '--', '-H', hostname, '-p', str(port)],
+                          cwd=folder, env=env, check=False).returncode
+
+
+def read_tools():
+    """The runtime tool registry, read from installed resources rather than the checkout."""
+    registry = resources.require('documentation/TOOLS.json', 'Tool registry')
+    value = json.loads(registry.read_text(encoding='utf-8'))
+    tools = value.get('tools') if isinstance(value, dict) else None
+    if not isinstance(tools, list) or not tools or any(not isinstance(item, dict) or 'id' not in item or 'path' not in item for item in tools):
+        raise ValueError('Malformed tool registry: ' + str(registry))
+    return tools
+
+
+def tool_path(item):
+    """Resolve a registered tool inside this installation, never outside it."""
+    path = resources.resolve(item['path']).resolve()
+    roots = [root.resolve() for root in resources.installed_roots()]
+    if not any(root == path or root in path.parents for root in roots) or not path.is_file():
+        raise ValueError('Tool path is missing or escapes the installed resources: ' + str(item['path']))
+    return path
 
 
 PATH_FLAGS = {'--project-dir', '--file', '--config', '--packet', '--snapshot', '--tokens', '--out', '--exceptions', '--project'}
 POSITIONAL_PATH_TOOLS = {'workflow-contract', 'delivery-evidence'}
+
+# Commands whose parser, defaults and exit codes live in another module. They declare no arguments
+# here on purpose: the caller's argv is forwarded untouched, so a new flag on the child needs no
+# change here and cannot be silently dropped by an intermediate list of arguments to keep in step.
+DELEGATED = {'host': 'host_lifecycle', 'readiness': 'agency_readiness'}
+STUDY_ARGUMENTS = ('context', 'study')
+
+
+def delegated_command(argv):
+    """The `(module, argv)` a public command hands to its owning module, or ``None``.
+
+    `host`, `readiness` and `context study` are decided before this file's own parser runs, because
+    `argparse.REMAINDER` cannot forward a flag. A remainder placeholder only captures the tokens
+    that follow the first non-option word, so `crewloom readiness --project-id X` — the whole
+    documented shape of a command that has no subcommand — would be refused here with
+    "unrecognized arguments", and `crewloom host --help` would print a usage line naming no option
+    at all instead of the host lifecycle commands that actually exist.
+
+    The forwarded argv is exactly the argv the caller typed. Nothing is inspected, rewritten or
+    reordered, so the owning module keeps its own usage text, defaults and refusal messages, and
+    this file can never grow a stale copy of them.
+    """
+    if tuple(argv[:2]) == STUDY_ARGUMENTS:
+        # `evaluate_hosts.main` is the single real entry point for both collection modes. It
+        # recognizes `--study` itself and hands over to the study collector, so this command and
+        # the legacy `evaluate-hosts` invocation are one code path rather than two parsers that
+        # can drift apart. Nothing is dropped and no existing flag changes meaning.
+        return 'evaluate_hosts', ['--study', *argv[2:]]
+    if argv and argv[0] in DELEGATED:
+        return DELEGATED[argv[0]], list(argv[1:])
+    return None
 
 
 def validate_project_paths(tool, arguments, project):
@@ -129,9 +267,16 @@ def validate_project_paths(tool, arguments, project):
 
 
 def main():
-    if not SKILLS.is_dir():
-        print('Crewloom needs a repository checkout; install with `pip install -e .` from a clone.', file=sys.stderr)
+    try:
+        resources.layout()
+    except ResourceError as exc:
+        print(str(exc), file=sys.stderr)
         return 1
+    arguments = sys.argv[1:]
+    handed_over = delegated_command(arguments)
+    if handed_over is not None:
+        module, argv = handed_over
+        return importlib.import_module(module).main(argv)
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('list', help='List available skill IDs')
@@ -173,6 +318,11 @@ def main():
     context.add_argument('skill')
     context.add_argument('--out', required=True)
     context.add_argument('--language', choices=('en', 'ar'), default='en')
+    # `host` and `readiness` are registered so `crewloom --help` and the usage line list them.
+    # They take no arguments here: `delegated_command` hands their whole argv to the owning module
+    # before this parser runs, which is the only way a flag can survive the hand-over.
+    commands.add_parser('host', help='Install, observe, guard and verify native host callbacks')
+    commands.add_parser('readiness', help='Read-only rollout readiness for one registered project')
     install = commands.add_parser('install', help='Copy roles into a project for your agent host')
     install.add_argument('--host', choices=sorted(HOST_DIRS), required=True,
                          help='claude -> .claude/skills, agents -> .agents/skills')
@@ -182,6 +332,12 @@ def main():
     dash = commands.add_parser('dashboard', help='Start the live dashboard (needs Node 20+)')
     dash.add_argument('--project', default='.', help='Project monitored by this dashboard process')
     dash.add_argument('--port', type=int, default=4317)
+    dash.add_argument('--host', default='127.0.0.1',
+                      help='Interface to bind; a non-loopback value requires configured authentication')
+    reviewer = commands.add_parser('reviewer', help='Manage credential-verified reviewer identities')
+    reviewer.add_argument('reviewer_arguments', nargs=argparse.REMAINDER)
+    coordinator = commands.add_parser('coordinator', help='Run a concurrent, reviewed DAG of isolated project worktrees')
+    coordinator.add_argument('coordinator_arguments', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     if args.command == 'evaluate':
         from evaluate_feature import main as evaluate_main
@@ -208,11 +364,17 @@ def main():
     if args.command == 'workflow':
         from workflow import main as workflow_main
         return workflow_main(args.workflow_arguments)
+    if args.command == 'reviewer':
+        from reviewer_credentials import main as reviewer_main
+        return reviewer_main(args.reviewer_arguments)
+    if args.command == 'coordinator':
+        from task_coordinator import main as coordinator_main
+        return coordinator_main(args.coordinator_arguments)
     project = Path(getattr(args, 'project', None) or '.').resolve()
     if not project.is_dir():
         parser.error('Project root must be an existing directory')
     if args.command == 'dashboard':
-        return run_dashboard(args.port, project)
+        return run_dashboard(args.port, project, args.host)
     if args.command == 'install':
         for name in args.skill:
             if not SKILL_ID.fullmatch(name):
@@ -225,7 +387,7 @@ def main():
         print(f'Installed {len(installed)} roles into {Path(args.target).resolve() / HOST_DIRS[args.host]}')
         return 0
     if args.command in ('tools', 'run'):
-        tools = json.loads((ROOT / 'documentation' / 'TOOLS.json').read_text())['tools']
+        tools = read_tools()
         if args.command == 'tools':
             for item in tools:
                 print(f"{item['id']:20} {item['description']}")
@@ -233,9 +395,10 @@ def main():
         item = next((item for item in tools if item['id'] == args.tool), None)
         if item is None:
             parser.error('Unknown registered tool')
-        path = (ROOT / item['path']).resolve()
-        if ROOT not in path.parents or not path.is_file():
-            parser.error('Tool path is missing or escapes the repository')
+        try:
+            path = tool_path(item)
+        except (ResourceError, ValueError) as exc:
+            parser.error(str(exc))
         arguments = args.arguments[1:] if args.arguments and args.arguments[0] == '--' else args.arguments
         try:
             if any(not candidate.resolve().is_relative_to(project) for candidate in (project / '.crewloom', project / '.crewloom/runs.jsonl')):
@@ -243,27 +406,30 @@ def main():
             validate_project_paths(item['id'], arguments, project)
         except (OSError, ValueError) as exc:
             parser.error(str(exc))
-        if item['id'] == 'context' and project != ROOT and '--project' not in arguments:
+        if item['id'] == 'context' and project != resources.distribution_root() and '--project' not in arguments:
             arguments = ['--project', str(project), *arguments]
         started = time.monotonic()
         code = subprocess.run([sys.executable, str(path), *arguments], cwd=project, check=False).returncode
         log_run(item['id'], item['skill'], code, time.monotonic() - started, project)
         return code
     if args.command == 'list':
-        for path in sorted(SKILLS.glob('*/SKILL.md')):
-            print(path.parent.name)
+        for ident in resources.role_ids():
+            print(ident)
         return 0
     name = getattr(args, 'skill', None)
     if name and not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', name):
         parser.error('Invalid skill ID')
-    if name and not (SKILLS / name / 'SKILL.md').is_file():
-        parser.error('Unknown skill ID')
+    if name:
+        try:
+            role = resources.role_dir(name)
+        except ResourceError:
+            parser.error('Unknown skill ID')
     if args.command == 'show':
-        print((SKILLS / name / 'SKILL.md').read_text(encoding='utf-8'))
+        print((role / 'SKILL.md').read_text(encoding='utf-8'))
         return 0
     if args.command == 'validate':
         validator = load_validator()
-        names = [name] if name else [p.parent.name for p in sorted(SKILLS.glob('*/SKILL.md'))]
+        names = [name] if name else resources.role_ids()
         failures = {ident: validator.check(ident) for ident in names}
         failures = {ident: errors for ident, errors in failures.items() if errors}
         for ident, errors in failures.items():
@@ -271,7 +437,8 @@ def main():
         if not failures:
             print(f'PASS: {len(names)} skills')
         return 1 if failures else 0
-    script = SKILLS / 'context-guardian' / 'scripts' / 'context_pack.py'
+    script = resources.require('.agents/skills/context-guardian/scripts/context_pack.py',
+                              'Context pack generator')
     context_args = [sys.executable, str(script), '--skill', name, '--out', args.out, '--language', args.language]
     if args.project:
         context_args += ['--project', str(project)]

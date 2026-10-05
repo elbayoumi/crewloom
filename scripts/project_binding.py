@@ -30,6 +30,7 @@ BINDING_RELATIVE = '.crewloom/binding.json'
 RESERVATION_RELATIVE = '.crewloom/active_task.json'
 SCHEMA_VERSION = 1
 MODES = ('off', 'observe', 'enforced')
+REVIEW_MODES = ('label', 'verified')
 LIFECYCLES = ('managed-runner', 'instruction-assisted', 'manual')
 TASK_STATES = ('active', 'awaiting_verification', 'complete', 'failed', 'cancelled', 'interrupted')
 TERMINAL_STATES = ('complete', 'failed')
@@ -191,6 +192,20 @@ def _budget(value, label, low, high):
     return value
 
 
+def _validate_review(block):
+    """Opt-in manual-review policy. An absent block keeps the compatible declared-label mode."""
+    if block is None:
+        return
+    if not isinstance(block, dict) or set(block) - {'mode', 'allow_self_review'}:
+        raise ValueError('Policy review needs a mode and allow_self_review')
+    if block.get('mode') not in REVIEW_MODES:
+        raise ValueError('Policy review mode must be one of: ' + ', '.join(REVIEW_MODES))
+    if not isinstance(block.get('allow_self_review'), bool):
+        raise ValueError('Policy review allow_self_review must be true or false')
+    if block['mode'] == 'label' and block['allow_self_review']:
+        raise ValueError('A declared label cannot be the owning role, so allow_self_review only applies to verified mode')
+
+
 def validate_config(value, root):
     """Strict schema: an unknown or malformed field blocks the project instead of guessing."""
     unknown = set(value) - {'schema_version', 'project_id', 'tooling', 'policy', 'source_roots',
@@ -212,7 +227,7 @@ def validate_config(value, root):
     if tooling.get('owns_client_code') is not False:
         raise ValueError('Tooling attribution must declare owns_client_code false')
     policy = value.get('policy')
-    if not isinstance(policy, dict) or set(policy) - {'mode', 'managed_lifecycle', 'evidence_only'}:
+    if not isinstance(policy, dict) or set(policy) - {'mode', 'managed_lifecycle', 'evidence_only', 'review'}:
         raise ValueError('Project configuration needs a policy block')
     if policy.get('mode') not in MODES:
         raise ValueError('Policy mode must be one of: ' + ', '.join(MODES))
@@ -223,6 +238,7 @@ def validate_config(value, root):
         raise ValueError('Policy mode off cannot enable a managed lifecycle')
     if policy['mode'] == 'enforced' and not policy['managed_lifecycle']:
         raise ValueError('Enforced context requires the managed lifecycle to be enabled explicitly')
+    _validate_review(policy.get('review'))
     _relative_list(value.get('source_roots'), 'source_roots', allow_dot=True)
     _relative_list(value.get('exclude'), 'exclude')
     if value.get('language') not in LANGUAGES:
@@ -729,12 +745,13 @@ def enter(root, project_id=None, task_id=None, role=None, config_path=None, regi
                     'instructions_preserved': state['instructions_preserved'],
                     'context': previous.get('context'), 'verified': previous.get('verified'),
                     'verification': previous.get('verification', []), 'metrics': previous.get('metrics', {}),
-                    'roles': sorted(state['roles']),
+                    'roles': sorted(state['roles']), 'recovered_publications': [],
                     'instruction': 'This task was already finalized; its evidence and context are unchanged.'}
         evidence_only = bool(registry and registry['evidence_only']) or config['policy']['evidence_only']
         if evidence_only and config['policy']['mode'] == 'enforced':
             raise ValueError('needs_reconciliation allows evidence gathering only; enforced context is not authorized')
         preflight_ownership(root, task_id)
+        recovered_publications = reconcile_publications(root)
         criteria = read_criteria(root, criteria_path)
         # The bounded managed block is written before the freeze, never after: a generation
         # that hashes the pre-write instructions file is stale the moment entry returns.
@@ -754,7 +771,8 @@ def enter(root, project_id=None, task_id=None, role=None, config_path=None, regi
                        'evidence_only': evidence_only,
                        'registry_control_status': registry['control_status'] if registry else None,
                        'created_at': (previous or {}).get('created_at') or now(),
-                       'updated_at': now(), 'criteria': criteria, 'interrupted_tasks': interrupted})
+                       'updated_at': now(), 'criteria': criteria, 'interrupted_tasks': interrupted,
+                       'recovered_publications': recovered_publications})
         if context:
             record['context'] = {'generation': context['generation'], 'sha256': context['sha256'],
                                  'semantic_sha256': context['semantic_sha256'],
@@ -774,7 +792,7 @@ def enter(root, project_id=None, task_id=None, role=None, config_path=None, regi
             'created': state['created'], 'instructions_updated': instructions,
             'instructions_preserved': state['instructions_preserved'], 'context': record.get('context'),
             'omissions': (record.get('context') or {}).get('omissions', 0), 'roles': sorted(state['roles']),
-            'interrupted_tasks': interrupted}
+            'interrupted_tasks': interrupted, 'recovered_publications': recovered_publications}
 
 
 def finish(root, project_id, task_id, changed=(), verification=(), role=None, lessons=(), hold_lock=True,
@@ -893,6 +911,18 @@ def cancel(root, project_id, task_id, reason, hold_lock=True):
     return {'status': 'cancelled', 'task_id': task_id, 'idempotent': False,
             'changed_files': state.get('changed_files', []),
             'instruction': 'Cancellation preserves files, evidence and lesson history; start new work under a new task ID.'}
+
+
+def reconcile_publications(root):
+    """Undo an interrupted grouped publication before this task builds any frozen context.
+
+    Identity and ownership are already proven by `preflight_ownership`, so this is the first
+    point at which writing is safe. It runs before the criteria, instruction and context files
+    are touched and before the root is reserved, so a half-published group from a writer that
+    was killed can never be read as the starting state of a new task or gate its freshness.
+    """
+    import execution_policy as broker
+    return broker.recover(root)
 
 
 def reconcile(root):

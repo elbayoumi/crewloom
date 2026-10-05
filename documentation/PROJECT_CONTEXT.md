@@ -127,7 +127,9 @@ The synthetic suite measures two project sizes so the crossover is reported rath
 
 - Bounded selection helps once indexed source exceeds its fixed overhead; small projects can be larger than the full context.
 - JS/TS symbol extraction and dependency resolution are approximate and incomplete by design.
-- Reviewer and reviewer-provided verification identifiers are declared, not authenticated.
+- Reviewer identities are declared by default; a project that opts into `policy.review.mode: verified` requires an authenticated registered principal, which still proves credential possession rather than independent human review. See [execution](EXECUTION.md).
 - Project context controls Crewloom-managed entry and finalization; arbitrary host tools and host folder-open events remain outside it.
 
 The [two frozen public-project runs](../examples/evaluation/project-context-20261003/README.md) passed all nine navigation/context checks in English and Arabic, including the full declared source, managed finalization, verified lessons and one-attempt reuse. Selected payloads were 43,231 bytes for Crewloom and 54,106 bytes for the scoped Paperclip UI. These are navigation byte measurements; provider token and cost effects remain unknown.
+
+Before client rollout, use the [readiness guide](READINESS.md) to check one explicit registered project against current recorded evidence without modifying its registry, configuration or memory.

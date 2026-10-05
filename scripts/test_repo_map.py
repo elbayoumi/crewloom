@@ -132,9 +132,19 @@ class MapTests(unittest.TestCase):
         (self.root/'src/util.ts').write_text('export function helper() { return 1; }\n')
         value,_=m.build(self.root)
         self.assertEqual(value['files']['src/app.ts']['neighbours'],['src/util.ts'])
-        self.assertEqual(value['files']['src/app.ts']['unresolved'],['react'])
+        # A package outside the project is classified external and still counted unresolved,
+        # because this index cannot link it either way.
+        self.assertEqual(value['files']['src/app.ts']['external'],['react'])
+        self.assertIn('react','\n'.join(value['files']['src/app.ts']['unresolved']))
         self.assertFalse(value['graph_complete'])
-        self.assertIn('js-ts-symbols-approximate-no-tree-sitter',value['unsupported'])
+        if m.JS_GRAMMAR:
+            self.assertEqual(value['files']['src/app.ts']['parser'],'ts-ast')
+            self.assertNotIn('js-ts-symbols-approximate-no-tree-sitter',value['unsupported'])
+            self.assertTrue(value['syntax']['available'])
+        else:
+            self.assertEqual(value['files']['src/app.ts']['parser'],'approximate-js-ts')
+            self.assertIn('js-ts-symbols-approximate-no-tree-sitter',value['unsupported'])
+            self.assertFalse(value['syntax']['available'])
 
     def test_syntax_error_file_is_visible_as_incomplete(self):
         (self.root/'broken.py').write_text('def oops(\n')

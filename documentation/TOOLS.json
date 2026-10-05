@@ -190,6 +190,17 @@
         "Python standard library"
       ],
       "effect": "reads-project-and-writes-report"
+    },
+    {
+      "id": "agency-readiness",
+      "skill": "context-guardian",
+      "path": "scripts/agency_readiness.py",
+      "description": "Read-only rollout readiness for one registered agency project",
+      "example_args": "--project-id sample-client --project-root /path/to/project --agency-root /path/to/agency --registry .agents/project-control/registry.json",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "reads-project-and-agency-registry"
     }
   ]
 }

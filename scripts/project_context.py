@@ -307,10 +307,11 @@ def snapshot(root, binding, task_id, role, config, criteria, seeds, language=Non
                'rules': rules, 'criteria': list(criteria), 'criteria_file': criteria_file,
                'configuration': config_facts(root, config),
                'navigation': {'text': navigation, 'stats': selection},
-               'map': {'generation': stats['generation'], 'files': stats['files'],
-                       'scan_bytes': stats['scan_bytes'], 'branch': stats['branch'], 'head': stats['head'],
-                       'graph_complete': stats['graph_complete'], 'source_roots': config.get('source_roots'),
-                       'indexed_names': sorted(value['files'])[:MAX_INDEXED_NAMES],
+'map': {'generation': stats['generation'], 'files': stats['files'],
+                        'scan_bytes': stats['scan_bytes'], 'branch': stats['branch'], 'head': stats['head'],
+                        'graph_complete': stats['graph_complete'], 'source_roots': config.get('source_roots'),
+                        'syntax_parser': stats['syntax'], 'module_config_sha256': stats['config_sha256'],
+                        'indexed_names': sorted(value['files'])[:MAX_INDEXED_NAMES],
                        'indexed_names_count': len(value['files']),
                        'indexed_names_sha256': w.digest(canonical(sorted(value['files'])).encode()),
                        'indexed_names_truncated': len(value['files']) > MAX_INDEXED_NAMES,
@@ -517,10 +518,13 @@ def configuration_drift(root, context):
 
 
 def index_drift(root, context):
-    """A branch switch or a create/delete/rename inside the indexed scope invalidates the snapshot.
+    """A branch switch, a create/delete/rename, or a resolution change invalidates the snapshot.
 
     The candidate inventory is recomputed with the same scope, exclusions and skips the index
     itself uses, so a file outside the configured scope never invalidates a frozen generation.
+    Module resolution configuration is compared too: a rewritten alias target or workspace
+    package entry point changes every edge it decides while no source byte changes, so without
+    this the frozen navigation would still read as current.
     """
     import repo_map
     import project_binding as pb
@@ -538,6 +542,13 @@ def index_drift(root, context):
         drift.append('branch: ' + str(recorded.get('branch')) + ' -> ' + str(state['branch']))
     if state['head'] != recorded.get('head'):
         drift.append('head: index generation recorded a different commit')
+    if recorded.get('module_config_sha256'):
+        try:
+            resolution = repo_map.module_configuration_digest(root, config)
+        except (ValueError, OSError, subprocess.SubprocessError) as exc:
+            return drift + ['index: module configuration is unreadable: ' + str(exc)]
+        if resolution != recorded['module_config_sha256']:
+            drift.append('index: module alias or package resolution configuration changed')
     if recorded.get('indexed_names_sha256'):
         # The full name list is not stored; its digest still detects every in-scope added,
         # removed or renamed path, and the bounded sample explains the difference.

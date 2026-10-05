@@ -30,6 +30,24 @@ Workflow execution requires Docker and a locally available image. See [execution
 | [context-generations](../scripts/project_context.py) | Frozen per-task context with hash-validated code ranges | `python3 scripts/crewloom.py project enter --project /path/to/project --project-id id --task-id task --role context-guardian` |
 | [project-lessons](../scripts/project_lessons.py) | Evidence-linked lessons; promotion needs executor evidence | `python3 scripts/crewloom.py lesson list --project /path/to/project` |
 | [navigation-index](../scripts/repo_map.py) | Versioned project symbol index with verified reuse | `python3 scripts/crewloom.py map --project /path/to/git-project --query login` |
+| [syntax-resolution](../scripts/js_syntax.py) | Real JS/TS syntax trees and bounded project-local module resolution used by the navigation index | `python3 -c "import js_syntax; print(js_syntax.available())"` |
 | [context-pilot](../scripts/context_pilot.py) | Reproducible cold/warm pilot and context byte comparison | `python3 scripts/context_pilot.py --out /tmp/pilot.json` |
+| [reviewer-credentials](../scripts/reviewer_credentials.py) | Credential-verified reviewer identities with signed, scoped, revocable approvals | `python3 scripts/crewloom.py reviewer status --project /path/to/project` |
+| [resource-resolver](../scripts/crewloom_resources.py) | Resolves roles, documentation and dashboard sources in a checkout or an installed distribution | `python3 scripts/crewloom.py list` |
+| [agency-readiness](../scripts/agency_readiness.py) | Read-only evidence and rollout readiness for one explicitly registered project | `python3 scripts/agency_readiness.py --project-id sample-client --project-root /path/to/project --agency-root /path/to/agency --registry .agents/project-control/registry.json` |
+
+The [readiness guide](READINESS.md) explains required evidence, exit statuses and the optional private report directory. Readiness does not reconcile project records or deploy changes.
 
 Project context is opt-in per project and never changes workflow isolation. See [project context](PROJECT_CONTEXT.md).
+
+## Optional syntax extra
+
+Every core tool above runs on the Python standard library alone. The navigation index reads real JS/TS syntax trees and `tsconfig` aliases only when the one optional extra is installed:
+
+```
+python3 -m pip install 'crewloom[syntax]'   # tree-sitter 0.23.2, javascript 0.23.1, typescript 0.23.2
+```
+
+Without it the same commands still work and the generated map records that approximate extraction was used, so a missing extra is reported rather than hidden. `map --help` and the map metadata name the parser that produced each index.
+
+Native host setup and callback boundaries: [Native host lifecycle](HOST_LIFECYCLE.md).
