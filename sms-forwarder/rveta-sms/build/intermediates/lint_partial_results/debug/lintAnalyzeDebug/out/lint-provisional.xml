@@ -14,12 +14,12 @@
             value="fullSensor"/>
         <location
             file="${:rveta-sms*debug*MAIN*sourceProvider*0*manifest*0}"
-            line="17"
+            line="25"
             column="13"
-            startOffset="861"
-            endLine="17"
+            startOffset="1273"
+            endLine="25"
             endColumn="49"
-            endOffset="897"/>
+            endOffset="1309"/>
         <map>
             <condition library="false"/>
         </map>

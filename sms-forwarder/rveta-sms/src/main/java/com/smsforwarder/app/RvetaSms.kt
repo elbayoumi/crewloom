@@ -15,6 +15,11 @@ object RvetaSms {
 
     fun lastStatus(context: Context): String = PendingSmsStore.get(context).lastStatus()
 
+    /** Fast path: hold a live connection while the web dashboard is open. */
+    fun syncPushMode(context: Context, dashboardOpen: Boolean) {
+        if (dashboardOpen) PushService.start(context) else PushService.stop(context)
+    }
+
     fun checkOutbox(context: Context) {
         val req = androidx.work.OneTimeWorkRequestBuilder<OutboxWorker>()
             .setConstraints(androidx.work.Constraints.Builder().setRequiredNetworkType(androidx.work.NetworkType.CONNECTED).build())

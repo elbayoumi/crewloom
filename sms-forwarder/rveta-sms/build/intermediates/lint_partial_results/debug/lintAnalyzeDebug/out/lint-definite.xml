@@ -167,12 +167,42 @@
         message="Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed.">
         <location
             file="${:rveta-sms*debug*MAIN*sourceProvider*0*manifest*0}"
-            line="17"
+            line="25"
             column="13"
-            startOffset="861"
-            endLine="17"
+            startOffset="1273"
+            endLine="25"
             endColumn="49"
-            endOffset="897"/>
+            endOffset="1309"/>
+    </incident>
+
+    <incident
+        id="ObsoleteSdkInt"
+        severity="warning"
+        message="Unnecessary; SDK_INT is always >= 26">
+        <fix-data conditional="true"/>
+        <location
+            file="${:rveta-sms*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/PushService.kt"
+            line="33"
+            column="21"
+            startOffset="1129"
+            endLine="33"
+            endColumn="89"
+            endOffset="1197"/>
+    </incident>
+
+    <incident
+        id="ObsoleteSdkInt"
+        severity="warning"
+        message="Unnecessary; SDK_INT is always >= 26">
+        <fix-data conditional="true"/>
+        <location
+            file="${:rveta-sms*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/PushService.kt"
+            line="71"
+            column="13"
+            startOffset="2566"
+            endLine="71"
+            endColumn="81"
+            endOffset="2634"/>
     </incident>
 
     <incident

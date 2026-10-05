@@ -16,6 +16,7 @@
 -keep class androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver { <init>(); }
 -keep class com.smsforwarder.app.BootReceiver { <init>(); }
 -keep class com.smsforwarder.app.MainActivity { <init>(); }
+-keep class com.smsforwarder.app.PushService { <init>(); }
 -keep class com.smsforwarder.app.ScanQrActivity { <init>(); }
 -keep class com.smsforwarder.app.SmsReceiver { <init>(); }
 -keep class android.widget.Space { <init>(android.content.Context, android.util.AttributeSet); }

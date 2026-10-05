@@ -23,68 +23,86 @@
 14    <uses-permission android:name="android.permission.CAMERA" />
 14-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:8:5-65
 14-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:8:22-62
-15
-16    <uses-feature
-16-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:9:5-85
-17        android:name="android.hardware.camera"
-17-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:9:19-57
-18        android:required="false" />
-18-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:9:58-82
-19
-20    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-20-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:10:5-79
-20-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:10:22-76
-21    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-21-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:11:5-81
-21-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:11:22-78
+15    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+15-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:9:5-77
+15-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:9:22-74
+16    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+16-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:10:5-87
+16-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:10:22-84
+17    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+17-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:11:5-77
+17-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:11:22-74
+18
+19    <uses-feature
+19-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:12:5-85
+20        android:name="android.hardware.camera"
+20-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:12:19-57
+21        android:required="false" />
+21-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:12:58-82
 22
-23    <application>
-23-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:13:5-39:19
-24        <activity
-24-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:14:9-18:66
-25            android:name="com.smsforwarder.app.ScanQrActivity"
-25-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:15:13-63
-26            android:exported="false"
-26-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:16:13-37
-27            android:screenOrientation="portrait"
-27-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:17:13-49
-28            android:theme="@style/Theme.AppCompat.NoActionBar" />
-28-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:18:13-63
-29
-30        <receiver
-30-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:20:9-29:20
-31            android:name="com.smsforwarder.app.SmsReceiver"
-31-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:21:13-60
-32            android:enabled="true"
-32-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:22:13-35
-33            android:exported="true"
-33-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:25:13-36
-34            android:permission="android.permission.BROADCAST_SMS"
-34-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:24:13-66
-35            android:priority="999" >
-35-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:23:13-35
-36            <intent-filter>
-36-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:26:13-28:29
-37                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-37-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:27:17-82
-37-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:27:25-79
-38            </intent-filter>
-39        </receiver>
-40        <receiver
-40-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:31:9-38:20
-41            android:name="com.smsforwarder.app.BootReceiver"
-41-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:32:13-61
-42            android:enabled="true"
-42-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:33:13-35
-43            android:exported="true" >
-43-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:34:13-36
+23    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+23-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:13:5-79
+23-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:13:22-76
+24    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+24-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:14:5-81
+24-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:14:22-78
+25
+26    <application>
+26-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:16:5-47:19
+27        <service
+27-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:17:9-20:56
+28            android:name="com.smsforwarder.app.PushService"
+28-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:18:13-60
+29            android:exported="false"
+29-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:19:13-37
+30            android:foregroundServiceType="dataSync" />
+30-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:20:13-53
+31
+32        <activity
+32-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:22:9-26:66
+33            android:name="com.smsforwarder.app.ScanQrActivity"
+33-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:23:13-63
+34            android:exported="false"
+34-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:24:13-37
+35            android:screenOrientation="portrait"
+35-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:25:13-49
+36            android:theme="@style/Theme.AppCompat.NoActionBar" />
+36-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:26:13-63
+37
+38        <receiver
+38-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:28:9-37:20
+39            android:name="com.smsforwarder.app.SmsReceiver"
+39-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:29:13-60
+40            android:enabled="true"
+40-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:30:13-35
+41            android:exported="true"
+41-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:33:13-36
+42            android:permission="android.permission.BROADCAST_SMS"
+42-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:32:13-66
+43            android:priority="999" >
+43-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:31:13-35
 44            <intent-filter>
-44-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:35:13-37:29
-45                <action android:name="android.intent.action.BOOT_COMPLETED" />
-45-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:36:17-79
-45-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:36:25-76
+44-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:34:13-36:29
+45                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+45-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:35:17-82
+45-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:35:25-79
 46            </intent-filter>
 47        </receiver>
-48    </application>
-49
-50</manifest>
+48        <receiver
+48-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:39:9-46:20
+49            android:name="com.smsforwarder.app.BootReceiver"
+49-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:40:13-61
+50            android:enabled="true"
+50-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:41:13-35
+51            android:exported="true" >
+51-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:42:13-36
+52            <intent-filter>
+52-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:43:13-45:29
+53                <action android:name="android.intent.action.BOOT_COMPLETED" />
+53-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:44:17-79
+53-->/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/src/main/AndroidManifest.xml:44:25-76
+54            </intent-filter>
+55        </receiver>
+56    </application>
+57
+58</manifest>

@@ -20,7 +20,7 @@
 
    https://developer.android.com/distribute/best-practices/develop/target-sdk.html
 
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:291: Warning: Use of REQUEST_IGNORE_BATTERY_OPTIMIZATIONS violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html [BatteryLife]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:320: Warning: Use of REQUEST_IGNORE_BATTERY_OPTIMIZATIONS violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html [BatteryLife]
                 startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -178,31 +178,31 @@
    application iconwill not show if your monochrome attribute is not also
    specified in android:roundIcon.
 
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:252: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:281: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
             binding.textPermission.text = "SMS permission required"
                                            ~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:256: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:285: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
             binding.textPermission.text = "SMS permission granted"
                                            ~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:305: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:334: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
             binding.textStatus.text = "Scan a QR to link first"
                                        ~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:319: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:348: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
                 binding.textStatus.text = "Status: " + (result.httpCode?.let { "HTTP $it" } ?: "error ${result.error}")
                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:319: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:348: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
                 binding.textStatus.text = "Status: " + (result.httpCode?.let { "HTTP $it" } ?: "error ${result.error}")
                                            ~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:327: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:356: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
         binding.textPending.text = "Pending queue: " + store.pendingCount()
                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:327: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:356: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
         binding.textPending.text = "Pending queue: " + store.pendingCount()
                                     ~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:328: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:357: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
         binding.textLast.text = "Last: " + store.lastStatus()
                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:328: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt:357: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
         binding.textLast.text = "Last: " + store.lastStatus()
                                  ~~~~~~
 

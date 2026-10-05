@@ -18,6 +18,9 @@
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -26,7 +29,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <permission
         android:name="com.smsforwarder.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
@@ -78,6 +80,12 @@
                     android:scheme="rveta" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name="com.smsforwarder.app.PushService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <activity
             android:name="com.smsforwarder.app.ScanQrActivity"
             android:exported="false"

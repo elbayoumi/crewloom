@@ -33,7 +33,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="291"
+            line="320"
             column="47"/>
     </issue>
 
@@ -245,7 +245,7 @@
         errorLine2="                                           ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="252"
+            line="281"
             column="44"/>
     </issue>
 
@@ -263,7 +263,7 @@
         errorLine2="                                           ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="256"
+            line="285"
             column="44"/>
     </issue>
 
@@ -281,7 +281,7 @@
         errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="305"
+            line="334"
             column="40"/>
     </issue>
 
@@ -299,7 +299,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="319"
+            line="348"
             column="43"/>
     </issue>
 
@@ -317,7 +317,7 @@
         errorLine2="                                           ~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="319"
+            line="348"
             column="44"/>
     </issue>
 
@@ -335,7 +335,7 @@
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="327"
+            line="356"
             column="36"/>
     </issue>
 
@@ -353,7 +353,7 @@
         errorLine2="                                    ~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="327"
+            line="356"
             column="37"/>
     </issue>
 
@@ -371,7 +371,7 @@
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="328"
+            line="357"
             column="33"/>
     </issue>
 
@@ -389,7 +389,7 @@
         errorLine2="                                 ~~~~~~">
         <location
             file="/Volumes/main/Projects/crewloom/sms-forwarder/app/src/main/java/com/smsforwarder/app/MainActivity.kt"
-            line="328"
+            line="357"
             column="34"/>
     </issue>
 

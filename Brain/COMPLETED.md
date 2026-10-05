@@ -176,3 +176,14 @@
 - Reliability: cleanup() no longer deletes undelivered PENDING rows; FAILED(missing_config) rows recover on save/boot; outbox work switched to APPEND_OR_REPLACE so inbound SMS can't cancel an in-flight send; outbox retries bounded; connection/errorStream leaks fixed; M9 JSON injection fixed via JSONObject.
 - Tests: 20 unit tests pass (added DbSchemaTest regression guards, QrPayloadTest, ScannerDecoderTest).
 - Build: debug + release unsigned APK both build; lint clean of errors.
+
+## 2026-10-05 — Rveta SMS: instant send + per-device intelligence
+- Root cause of slow sending: outbox was only drained by a 15-minute periodic WorkManager job. Added PushService (foreground, short-poll every 3s) that runs ONLY while a web dashboard session is open and stops itself otherwise (no permanent foreground service).
+- Bugs found and fixed during the work:
+  - `startForeground(id, notification)` without a service type throws on Android 14+ (targetSdk 35) → the service silently never started. Now passes FOREGROUND_SERVICE_TYPE_DATA_SYNC and catches failures.
+  - SSE long-lived push through the Cloudflare/nginx path was unreliable → replaced with a short-poll loop against /api/v1/push/status.
+  - Server sent `"dashboard": 1` (int) while the device compared against `true` → link dropped immediately. Now sends a real boolean.
+  - Items queued while the link was down were never picked up → dispatch now runs once on every (re)connect as a catch-up.
+- Extracted OutboxDispatcher so both the push service (instant) and the periodic worker (fallback) share one implementation.
+- Measured on device RMX3710: send latency 1.2-4.8s (was up to 15 min). Offline test: message queued while phone network was off stayed PENDING and flushed within 10s of reconnect.
+- Dashboard: per-device panel listing every number seen by that device with message counts, last message and timestamp; devices identified by surname only.

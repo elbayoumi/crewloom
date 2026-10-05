@@ -7,12 +7,12 @@
         message="Use of `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html">
         <location
             file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/smsforwarder/app/MainActivity.kt"
-            line="291"
+            line="320"
             column="47"
-            startOffset="11597"
-            endLine="291"
+            startOffset="13016"
+            endLine="320"
             endColumn="90"
-            endOffset="11640"/>
+            endOffset="13059"/>
         <map>
             <condition targetGE="23"/>
         </map>

@@ -14,10 +14,10 @@
       proguardRules="proguard.txt"/>
   <library
       name=":@@:rveta-sms::release"
-      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/3faa0b109ab8a2a6c9c6c171e8e2e231/transformed/out/jars/classes.jar:/Users/macbook/.gradle/caches/8.14.3/transforms/3faa0b109ab8a2a6c9c6c171e8e2e231/transformed/out/jars/libs/R.jar"
+      jars="/Users/macbook/.gradle/caches/8.14.3/transforms/efd6e582e331174d1a5cf700375fcc9f/transformed/out/jars/classes.jar:/Users/macbook/.gradle/caches/8.14.3/transforms/efd6e582e331174d1a5cf700375fcc9f/transformed/out/jars/libs/R.jar"
       resolved="SmsForwarder:rveta-sms:unspecified"
       partialResultsDir="/Volumes/main/Projects/crewloom/sms-forwarder/rveta-sms/build/intermediates/lint_vital_partial_results/release/lintVitalAnalyzeRelease/out"
-      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/3faa0b109ab8a2a6c9c6c171e8e2e231/transformed/out"
+      folder="/Users/macbook/.gradle/caches/8.14.3/transforms/efd6e582e331174d1a5cf700375fcc9f/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

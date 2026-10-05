@@ -27913,6 +27913,8 @@ com.smsforwarder.app.DeliveryState:
     public static kotlin.enums.EnumEntries getEntries()
 com.smsforwarder.app.DeviceIdentity:
     public final java.lang.String fingerprintShort(android.content.Context)
+com.smsforwarder.app.OutboxDispatcher:
+    private static final java.lang.String TAG
 com.smsforwarder.app.OutboxWorker:
     private static final int MAX_ATTEMPTS
 com.smsforwarder.app.ParsedSms:
@@ -27942,6 +27944,10 @@ com.smsforwarder.app.PendingSms:
     public final long getUpdatedAt()
 com.smsforwarder.app.PendingSmsStore:
     public final void delete(java.lang.String)
+com.smsforwarder.app.PushService:
+    private static final java.lang.String CHANNEL
+    private static final long POLL_MS
+    private static final java.lang.String TAG
 com.smsforwarder.app.R$drawable
 com.smsforwarder.app.R$id:
     private void <init>()
@@ -49322,8 +49328,12 @@ com.smsforwarder.app.MainActivity:
     public static void saveAndRegister()
     public static void scheduleOutboxCheck()
     public static void startPulse()
+    public final void syncPush()
     public final void toast(java.lang.String)
     public final void toastInvalid()
+com.smsforwarder.app.OutboxDispatcher:
+    public static final com.smsforwarder.app.OutboxDispatcher INSTANCE
+    static void <clinit>()
 com.smsforwarder.app.OutboxWorker$Companion
 com.smsforwarder.app.OutboxWorker:
     public static final com.smsforwarder.app.OutboxWorker$Companion Companion
@@ -49347,6 +49357,12 @@ com.smsforwarder.app.PendingSmsStore:
     public static java.lang.String lastStatus()
     public static int pendingCount()
     public final void resetToPending(java.lang.String)
+com.smsforwarder.app.PushService$Companion
+com.smsforwarder.app.PushService:
+    public static final com.smsforwarder.app.PushService$Companion Companion
+    static void <clinit>()
+    public static void loop()
+    public static void sleep(long)
 com.smsforwarder.app.R$id
 com.smsforwarder.app.R$layout
 com.smsforwarder.app.R$string
@@ -49356,6 +49372,7 @@ com.smsforwarder.app.RetryPolicy
 com.smsforwarder.app.RvetaSms:
     public static final com.smsforwarder.app.RvetaSms INSTANCE
     static void <clinit>()
+    public static void syncPushMode()
 com.smsforwarder.app.ScanQrActivity:
     public static void analyze()
 com.smsforwarder.app.ScannerDecoder:
