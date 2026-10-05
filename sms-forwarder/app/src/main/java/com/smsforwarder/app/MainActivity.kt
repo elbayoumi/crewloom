@@ -21,7 +21,11 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val REQ_SCAN = 501
-    private val neededPermissions = arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS)
+    private val neededPermissions = arrayOf(
+        Manifest.permission.RECEIVE_SMS,
+        Manifest.permission.SEND_SMS,
+        Manifest.permission.POST_NOTIFICATIONS
+    )
     private var pulse: ObjectAnimator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -8,25 +8,23 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
-import org.json.JSONObject
+import java.io.BufferedReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
 /**
- * Fast-send mode. While the web dashboard is open, the device polls a tiny status
- * endpoint on a short interval and drains the outbox immediately, so a message sent
- * from the dashboard reaches the phone within seconds instead of waiting for the
- * periodic WorkManager window. The service stops itself when no dashboard is open,
- * so the app never holds a permanent foreground service.
+ * Keeps a live event stream open so a message queued on the dashboard is picked up in
+ * about a second, instead of waiting for a scheduler window. A slow poll runs as a
+ * safety net so nothing is lost if the stream drops, and the service keeps running
+ * while the device is linked so it survives the app being closed.
  */
 class PushService : Service() {
 
     companion object {
         private const val TAG = "RvetaPush"
         private const val CHANNEL = "rveta_push"
-        private const val POLL_FAST_MS = 3000L    // dashboard open -> seconds
-        private const val POLL_SLOW_MS = 60_000L   // idle -> once a minute
+        private const val FALLBACK_MS = 60_000L
         private const val PREFS = "runtime"
         const val KEY_FAST_SEND = "fast_send_enabled"
 
@@ -60,18 +58,19 @@ class PushService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (running) return START_STICKY
         try {
+            val n = buildNotification("Connected")
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                startForeground(1, buildNotification("Instant send active"), android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                startForeground(1, n, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
             } else {
-                startForeground(1, buildNotification("Instant send active"))
+                startForeground(1, n)
             }
         } catch (e: Exception) {
             Log.e(TAG, "startForeground failed: " + e.javaClass.simpleName)
             stopSelf()
             return START_NOT_STICKY
         }
-        if (running) return START_STICKY
         running = true
         Thread({ loop() }, "rveta-push").apply { isDaemon = true }.start()
         return START_STICKY
@@ -81,7 +80,11 @@ class PushService : Service() {
         val manager = getSystemService(NotificationManager::class.java)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL, "Forwarding", NotificationManager.IMPORTANCE_LOW)
+                NotificationChannel(CHANNEL, "Forwarding", NotificationManager.IMPORTANCE_LOW).apply {
+                    setShowBadge(false)
+                    enableVibration(false)
+                    setSound(null, null)
+                }
             )
         }
         return Notification.Builder(this, CHANNEL)
@@ -89,32 +92,12 @@ class PushService : Service() {
             .setContentText(text)
             .setSmallIcon(android.R.drawable.stat_sys_upload_done)
             .setOngoing(true)
+            .setShowWhen(false)
             .build()
-    }
-
-    private fun dashboardOpen(config: AppConfig): Boolean {
-        val url = config.baseUrl.trimEnd('/') + "/api/v1/push/status?device_id=" +
-            URLEncoder.encode(config.deviceId, "UTF-8")
-        val conn = (URL(url).openConnection() as HttpURLConnection).apply {
-            requestMethod = "GET"
-            connectTimeout = 8000
-            readTimeout = 8000
-            setRequestProperty("Authorization", "Bearer " + config.deviceToken)
-        }
-        return try {
-            if (conn.responseCode !in 200..299) false
-            else JSONObject(conn.inputStream.bufferedReader().readText()).optBoolean("dashboard_open", false)
-        } catch (e: Exception) {
-            false
-        } finally {
-            runCatching { conn.errorStream?.close() }
-            conn.disconnect()
-        }
     }
 
     private fun loop() {
         while (running) {
-            var wait = POLL_SLOW_MS
             try {
                 if (!isEnabled(this)) {
                     stopSelf()
@@ -125,19 +108,44 @@ class PushService : Service() {
                     sleep(10_000)
                     continue
                 }
-                if (dashboardOpen(config)) {
-                    // Dashboard in use: deliver in seconds.
-                    OutboxDispatcher.dispatch(this)
-                    wait = POLL_FAST_MS
-                } else {
-                    // Idle: still deliver queued messages, just less often.
-                    OutboxDispatcher.dispatch(this)
-                    wait = POLL_SLOW_MS
-                }
+                // Always drain once up front: catches anything queued while we were away.
+                OutboxDispatcher.dispatch(this)
+                streamOnce(config)
             } catch (e: Exception) {
                 Log.w(TAG, "loop: " + e.javaClass.simpleName)
             }
-            sleep(wait)
+            if (running) sleep(FALLBACK_MS)
+        }
+    }
+
+    /** Holds the event stream open; each server event triggers an immediate send. */
+    private fun streamOnce(config: AppConfig) {
+        val url = config.baseUrl.trimEnd('/') + "/api/v1/push?device_id=" +
+            URLEncoder.encode(config.deviceId, "UTF-8")
+        val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 15000
+            readTimeout = 0
+            setRequestProperty("Authorization", "Bearer " + config.deviceToken)
+            setRequestProperty("Accept", "text/event-stream")
+            setRequestProperty("Cache-Control", "no-cache")
+        }
+        try {
+            if (conn.responseCode !in 200..299) return
+            BufferedReader(conn.inputStream.bufferedReader()).use { reader ->
+                var event = ""
+                while (running) {
+                    val line = reader.readLine() ?: break
+                    when {
+                        line.startsWith("event:") -> event = line.substringAfter("event:").trim()
+                        line.startsWith("data:") && event == "send" -> {
+                            OutboxDispatcher.dispatch(this)
+                        }
+                    }
+                }
+            }
+        } finally {
+            runCatching { conn.disconnect() }
         }
     }
 

@@ -26,7 +26,11 @@ class SmsReceiver : BroadcastReceiver() {
                 val store = PendingSmsStore.get(app)
                 for (msg in SmsParser.parseIntent(intent)) {
                     val id = store.insertIfNew(msg.sender, msg.body, msg.receivedAtMillis, msg.subscriptionId, null)
-                    if (id != null) enqueue(app, id)
+                    if (id != null) {
+                        // Try immediately so the message reaches the backend in the same second.
+                        val delivered = InboundDispatcher.deliver(app, id)
+                        if (!delivered) enqueue(app, id)
+                    }
                 }
                 store.cleanup()
                 RvetaSms.checkOutbox(app)
