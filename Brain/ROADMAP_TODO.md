@@ -4,7 +4,7 @@
 - [x] Separate public memory from upstream operational history.
 - [ ] Evaluate representative specialist tasks across supported agent hosts.
 - [ ] Package selected external-tool integrations with clean setup and acceptance evidence.
-- [ ] Consider a distributable Python package after repository-native interfaces stabilize.
+- [x] Consider a distributable Python package after repository-native interfaces stabilize.
 
 ### 2026-10-01 — Toolkit depth refresh ✅
 - Artifact: Detailed references, tool discovery, examples and README navigation.
@@ -12,11 +12,11 @@
 - Next: Provider-specific end-to-end evaluations remain future work.
 
 - [ ] Add role-level run history charts to the dashboard — priority: medium
-- [ ] Add optional auth before any non-localhost dashboard use — priority: high
+- [x] Add optional auth before any non-localhost dashboard use — priority: high
 
 - [ ] Publish before/after evidence for 2-3 real tasks with full outputs — priority: high
 - [ ] Set GitHub social preview image (manual in repo settings) and add good-first-issue tasks — priority: medium
-- [ ] Add dashboard token authentication — priority: high
+- [x] Add dashboard token authentication — priority: high
 
 - [x] Make grid-safety skip pixel floors behind a breakpoint prefix that already fits them (2 false positives, see documentation/EVIDENCE.md) — priority: medium
 
@@ -45,13 +45,13 @@
 - [x] English specialist execution procedures for all 42 roles.
 - [ ] Authenticate Claude locally and complete cross-host runs; current Claude results are failed/blocked.
 - [ ] Freeze harder private cases with an independent coordinator; current public slug task ties at full acceptance.
-- [ ] Authenticate reviewer identities for task acceptance; declared IDs remain unauthenticated.
+- [x] Authenticate reviewer identities for task acceptance; declared IDs remain unauthenticated by default.
 
 - [x] Adopt Self-Editing Mode / التعديل الذاتي for the existing maintenance workflow and document activation/scope.
 
 ### 2026-10-02 — Enforcement delivery
 - Done: declared file isolation, brokered output publication, API transport contracts and native CLI default denial.
-- Remaining: live authenticated provider trial, multi-file transaction support and public release verification.
+- Remaining: live authenticated provider trial and public release verification. Multi-file grouped publication was delivered later as recoverable grouped publication; see the 2026-10-03 Phase B1/B3 entry.
 
 ### 2026-10-02 — Context efficiency
 - Done: focused history budgets, compact prompts, context bytes/hash telemetry and safe completed-work reuse. Remaining: actual provider token/cost measurements and controlled answer-quality evaluation.
@@ -85,7 +85,7 @@
 
 - [x] Require explicit workflow project root and retain ownership across paused manual tasks.
 - [x] Verify separate-project parallel execution and same-project conflict rejection.
-- [ ] Automatic scheduling remains unimplemented; parallel worktrees require explicit setup and reviewed merges.
+- [ ] Automatic scheduling remains unimplemented; parallel worktrees are explicit setup and reviewed merges. A concurrent worktree coordinator now performs that setup and reviewed merge; it is still not a priority scheduler, and it runs command steps only.
 
 ### 2026-10-03 — Integration verification
 - Done: Main reconciliation preserves declared input/output enforcement and per-root reservations; actual commit gate, live Docker, Python 3.9 and clean archive checks passed. Public English/Arabic pilot contracts and measurements are published as source fixtures.
@@ -98,3 +98,33 @@
 ### 2026-10-03 — Core plan complete and merged
 - Done: Automatic-context implementation, two frozen public pilots, independent boundaries, clean installation/archive, actual commit gate, main reconciliation, publication and every hosted PR check. PR #2 is merged; earlier publication/CI-pending entries are historical checkpoints.
 - Remaining extensions: Private-client registry reconciliation and rollout, controlled provider billing/quality studies, richer JS/TS resolution and verified native lifecycle callbacks. None is claimed by the delivered managed lifecycle.
+
+### 2026-10-03 — Phase A: distribution, dashboard access, verified review
+- Done: `0.6.0.dev0` wheel and sdist with a single resource resolver, verified by an opt-in build/install/use suite outside the checkout; the sdist carries the approved public source and passes the public structure gate on the extracted archive; dashboard authentication on every API and event-stream route with owner-only secret delivery and real logout; optional credential-verified reviewers whose issuance authority is protected runtime state. See documentation/RELEASE.md and documentation/EXECUTION.md.
+- Remaining in this phase: browser and live-HTTP verification, the supervising agent's wheel-from-sdist acceptance rerun, hosted CI and publication. Phases B and C are still required: deeper JS/TS parsing with aliases, reexports and dependency navigation; a concurrent task coordinator with worktrees, reviewed integration and transactional artifact publication; native host lifecycle adapters; the controlled live usage/quality/latency evaluation on identical tasks; and rollout readiness.
+
+### 2026-10-03 — Phase B1/B3: parser depth and recoverable grouped publication
+- Done: real JS/TS syntax extraction with `tsconfig` alias, reexport and bounded project-local resolution behind one optional `crewloom[syntax]` extra, with the parser that produced each map recorded; `js_syntax` packaged as a flat runtime module; recoverable grouped artifact publication held under the project lock for the whole publication and its recovery, with validate-before-rollback, a bounded receipt for both committed and reverted groups, and reconciliation before project entry writes or a workflow run reads state; root-lock reclamation that never follows symlinked claim, owner or lock paths and never recursively deletes claim contents. See Brain/COMPLETED.md and documentation/ENFORCEMENT.md.
+- Remaining: the concurrent task coordinator with Git worktrees and reviewed integration, native host lifecycle adapters, the controlled live usage/quality/latency evaluation on identical tasks, rollout readiness, then final integration with an enabled commit gate, a clean wheel and source archive, Python 3.9 and 3.14 execution, dashboard checks, actual Docker, supported native-host pilots and hosted CI publication. Python 3.9 has only been verified by grammar feature version on this host because no 3.9 interpreter is installed.
+- Not claimed: grouped publication is recoverable, not an instant multi-file atomic change, and reclaiming a lock does not stop a command or container that outlived the process that recorded it.
+
+### 2026-10-04 — Phase B2: concurrent worktree coordinator and reviewed integration
+- Done: a project-local manifest DAG runs as a real batch with one Git worktree per task under the project's `.crewloom`, at most four concurrent managed executors with the ordinary isolation, broker, ledger and image policy, verified ancestor commits merged into a dependent worktree before it runs, only verified declared outputs committed, bounded owner-only state and event log, kernel-held batch ownership, root reservation shared with ordinary workflows, cancellation as a durable request with bounded draining, resume that re-proves verified tasks before skipping them, deterministic single integration into an isolated worktree, an actual combined acceptance that must declare every task output as an input, an explicit reviewed decision with credential or declared-label honesty and nonce replay refusal, and one recorded root fast-forward after full revalidation. English and Arabic CLI guides, code registry entries, and a `coordinator` CI job plus a focused macOS case-insensitive-path job. See Brain/COMPLETED.md, documentation/COORDINATOR.md and documentation/COORDINATOR_ACCEPTANCE.json.
+- Remaining: native host lifecycle adapters, the controlled live usage/quality/latency evaluation on identical tasks, the curated public coordinator example and rollout readiness, then final integration with an enabled commit gate, a clean wheel and source archive, Python 3.9 and 3.14 execution, dashboard checks, actual Docker, supported native-host pilots and hosted CI publication. Python 3.9 has only been verified by grammar feature version on this host because no 3.9 interpreter is installed.
+- Not claimed: no model produced any artifact in the coordinator evidence, so orchestration, isolation, dependency integration, combined acceptance and reviewed publication are proven rather than model-generated code quality; batch ownership needs POSIX advisory locking; reclaiming ownership does not stop an orphaned container; a declared-label review names a reviewer without authenticating one; publication is one Git fast-forward, not a reset, push or GitHub merge.
+
+### 2026-10-04 — Remaining production foundation acceptance
+- Complete native lifecycle adapter identity/configuration guards and actual Codex/OpenCode callback-to-executor pilots.
+- Complete model steps in isolated coordinator worktrees with downstream and combined Docker acceptance.
+- Close three independently reproduced study-grader integrity failures, package grader-only contracts, freeze protocol and run all 36 planned trials without replacement.
+- Ship and verify the full concurrent development example, final wheel-from-sdist, supported Python versions, dashboard and hosted checks before publication.
+- Read-only private registry audit records four projects needing reconciliation; no client rollout or reconciled status asserted.
+
+- [ ] 2026-10-04: Close native authority/inline/delivery boundaries, prove production callback + real executor on available hosts, run frozen 36-trial provider study, finish installed concurrent development example, rerun complete gates and publish verified integration.
+
+- [ ] Finish native allowed-edit/denied-edit/context-refresh pilots, frozen 36-trial study, actual provider application, isolated final wheel, supported-runtime gates and hosted publication — priority: high.
+- [ ] Reconcile any selected private client only after its registered identity and current evidence are available; four audited records remain unreconciled — priority: medium.
+
+- [x] 2026-10-05: Expose the editable Crewloom CLI on the user shell PATH and verify help/tool discovery outside its checkout. Remaining foundation acceptance and publication are unchanged.
+- [ ] Redesign selected-map so required helper bodies are kept, preregister as a new study protocol — أولوية: عالية
+- [ ] Re-run OpenCode study only after structured-response failures (14/18) are diagnosed — أولوية: متوسطة

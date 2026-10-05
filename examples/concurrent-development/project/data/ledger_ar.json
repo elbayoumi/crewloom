@@ -1,0 +1,41 @@
+{
+  "invoice": {
+    "invoice_id": "INV-2026-005",
+    "language": "ar",
+    "lines": [
+      {
+        "description_en": "Rounding probe A",
+        "description_ar": "حالة التقريب أ",
+        "currency": "SAR",
+        "category": "services",
+        "quantity": 1,
+        "unit_price": "1.00",
+        "tax_rate": "0.5"
+      },
+      {
+        "description_en": "Rounding probe B",
+        "description_ar": "حالة التقريب ب",
+        "currency": "SAR",
+        "category": "services",
+        "quantity": 1,
+        "unit_price": "1.00",
+        "tax_rate": "0.5"
+      },
+      {
+        "description_en": "Priority support retainer",
+        "description_ar": "عقد دعم ذو أولوية",
+        "currency": "SAR",
+        "category": "services",
+        "quantity": 3,
+        "unit_price": "100.00",
+        "tax_rate": "15"
+      }
+    ]
+  },
+  "capacity": 1,
+  "tasks": [
+    {"id": "a", "priority": 1},
+    {"id": "b", "priority": 1},
+    {"id": "c", "priority": -2, "depends_on": ["a", "b"]}
+  ]
+}

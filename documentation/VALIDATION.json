@@ -34,7 +34,7 @@
     "CLI hosts remain outside Docker command isolation",
     "Claude live generation is unverified because local CLI is logged out",
     "One public acceptance contract does not establish general superiority",
-    "Reviewer identifiers remain unauthenticated"
+    "Reviewer identities are declared by default; the opt-in verified mode proves credential possession for a registered principal, not independent human review"
   ],
   "release": "0.5.0",
   "published_examples": {

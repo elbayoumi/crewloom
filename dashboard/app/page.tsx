@@ -8,8 +8,8 @@ type Overview = { projectRoot: string; generatedAt: string; totals: Record<strin
 type Detail = { id: string; skill: string; brain: Record<string, string> };
 
 const T = {
-  en: { skills: 'Roles', tools: 'Tools', attention: 'Need attention', tasks: 'Open tasks', challenges: 'Open challenges', failed: 'Failed runs (last 50)', live: 'Live', offline: 'Reconnecting', search: 'Search roles', all: 'All', run: 'Run', runs: 'Recent runs', checks: 'Run repository checks', args: 'Arguments (space separated, project-relative)', none: 'No runs recorded yet. Run a tool here or with the CLI.', role: 'Role', status: 'Status', activity: 'Last memory update', done: 'Done', open: 'Open', ideas: 'Ideas', lang: 'العربية' },
-  ar: { skills: 'الأدوار', tools: 'الأدوات', attention: 'تحتاج متابعة', tasks: 'مهام مفتوحة', challenges: 'تحديات مفتوحة', failed: 'تشغيل فاشل (آخر 50)', live: 'مباشر', offline: 'إعادة اتصال', search: 'ابحث في الأدوار', all: 'الكل', run: 'تشغيل', runs: 'آخر التشغيلات', checks: 'شغّل فحوص الريبو', args: 'المعاملات (بمسافات، مسارات نسبية للمشروع)', none: 'لا توجد تشغيلات بعد. شغّل أداة من هنا أو من الـ CLI.', role: 'الدور', status: 'الحالة', activity: 'آخر تحديث للذاكرة', done: 'منجز', open: 'مفتوح', ideas: 'أفكار', lang: 'English' },
+  en: { skills: 'Roles', tools: 'Tools', attention: 'Need attention', tasks: 'Open tasks', challenges: 'Open challenges', failed: 'Failed runs (last 50)', live: 'Live', offline: 'Reconnecting', search: 'Search roles', all: 'All', run: 'Run', runs: 'Recent runs', checks: 'Run repository checks', args: 'Arguments (space separated, project-relative)', none: 'No runs recorded yet. Run a tool here or with the CLI.', role: 'Role', status: 'Status', activity: 'Last memory update', done: 'Done', open: 'Open', ideas: 'Ideas', lang: 'العربية', signIn: 'Sign in', signOut: 'Sign out', token: 'Dashboard access token', unauthorized: 'Sign in to view this project.' },
+  ar: { skills: 'الأدوار', tools: 'الأدوات', attention: 'تحتاج متابعة', tasks: 'مهام مفتوحة', challenges: 'تحديات مفتوحة', failed: 'تشغيل فاشل (آخر 50)', live: 'مباشر', offline: 'إعادة اتصال', search: 'ابحث في الأدوار', all: 'الكل', run: 'تشغيل', runs: 'آخر التشغيلات', checks: 'شغّل فحوص الريبو', args: 'المعاملات (بمسافات، مسارات نسبية للمشروع)', none: 'لا توجد تشغيلات بعد. شغّل أداة من هنا أو من الـ CLI.', role: 'الدور', status: 'الحالة', activity: 'آخر تحديث للذاكرة', done: 'منجز', open: 'مفتوح', ideas: 'أفكار', lang: 'English', signIn: 'تسجيل الدخول', signOut: 'تسجيل الخروج', token: 'رمز دخول لوحة المعلومات', unauthorized: 'سجّل الدخول لعرض هذا المشروع.' },
 } as const;
 
 const ago = (iso: string | null) => {
@@ -32,11 +32,32 @@ export default function Dashboard() {
   const [args, setArgs] = useState('');
   const [busy, setBusy] = useState(false);
   const [output, setOutput] = useState<{ ok: boolean; text: string } | null>(null);
+  const [token, setToken] = useState('');
+  const [auth, setAuth] = useState<'unknown' | 'in' | 'out' | 'error'>('unknown');
   const openId = useRef<string | null>(null);
+
+  const session = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/session', { cache: 'no-store' });
+      const body = await res.json();
+      setAuth(res.ok && body.authenticated ? 'in' : 'out');
+    } catch { setAuth('error'); }
+  }, []);
+
+  const signIn = async () => {
+    const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
+    if (res.ok) { setToken(''); setAuth('in'); } else setAuth('error');
+  };
+
+  const signOut = async () => {
+    await fetch('/api/auth/login', { method: 'DELETE' });
+    setData(null); setDetail(null); setLive(false); setAuth('out');
+  };
 
   const load = useCallback(async () => {
     try {
       const res = await fetch('/api/overview', { cache: 'no-store' });
+      if (res.status === 401 || res.status === 403) { setAuth('out'); return; }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setData(await res.json()); setError('');
     } catch (e) { setError(String(e)); }
@@ -48,14 +69,16 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => { document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; }, [lang]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void session(); }, [session]);
+  useEffect(() => { if (auth === 'in') void load(); }, [auth, load]);
   useEffect(() => {
+    if (auth !== 'in') return;
     const source = new EventSource('/api/events');
     source.addEventListener('ready', () => setLive(true));
     source.addEventListener('change', () => { void load(); if (openId.current) void loadDetail(openId.current); });
     source.onerror = () => setLive(false);
     return () => source.close();
-  }, [load, loadDetail]);
+  }, [auth, load, loadDetail]);
   useEffect(() => { const id = setInterval(() => setData((d) => d && { ...d }), 30000); return () => clearInterval(id); }, []);
   useEffect(() => { if (data && !toolId && data.tools[0]) { setToolId(data.tools[0].id); setArgs(data.tools[0].example_args.replace('{input}', '')); } }, [data, toolId]);
 
@@ -67,22 +90,47 @@ export default function Dashboard() {
     try {
       const res = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool: toolId, args: args.split(/\s+/).filter(Boolean) }) });
       const body = await res.json();
+      if (res.status === 401 || res.status === 403) { setAuth('out'); return; }
       setOutput({ ok: res.ok && body.exit_code === 0, text: body.error ?? body.output ?? '' });
     } catch (e) { setOutput({ ok: false, text: String(e) }); } finally { setBusy(false); }
   };
   const runChecks = async () => {
     setBusy(true); setOutput(null);
-    try { const body = await (await fetch('/api/check', { method: 'POST' })).json(); setOutput({ ok: body.exit_code === 0, text: body.output }); }
+    try { const res = await fetch('/api/check', { method: 'POST' });
+      if (res.status === 401 || res.status === 403) { setAuth('out'); return; }
+      const body = await res.json(); setOutput({ ok: body.exit_code === 0, text: body.output }); }
     catch (e) { setOutput({ ok: false, text: String(e) }); } finally { setBusy(false); }
   };
 
   const totals = data?.totals ?? {};
+  if (auth !== 'in') {
+    return (
+      <main className="wrap">
+        <header className="top">
+          <h1>Crewloom</h1>
+          <div className="toolbar">
+            <button className="ghost" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>{t.lang}</button>
+          </div>
+        </header>
+        <section className="card">
+          <h2>{t.signIn}</h2>
+          <p>{t.unauthorized}</p>
+          <div className="toolbar">
+            <input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder={t.token} aria-label={t.token} autoComplete="off" />
+            <button onClick={signIn} disabled={!token}>{t.signIn}</button>
+          </div>
+          {auth === 'error' && <div className="card" role="alert">401</div>}
+        </section>
+      </main>
+    );
+  }
   return (
     <main className="wrap">
       <header className="top">
         <h1>Crewloom</h1>
         <div className="toolbar">
           <span className="live" role="status"><i className={`dot ${live ? 'on' : ''}`} />{live ? t.live : t.offline}</span>
+          <button className="ghost" onClick={signOut}>{t.signOut}</button>
           <button className="ghost" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>{t.lang}</button>
         </div>
       </header>

@@ -1,0 +1,43 @@
+{
+  "invoice": {
+    "invoice_id": "INV-2026-004",
+    "language": "en",
+    "lines": [
+      {
+        "description_en": "Platform subscription",
+        "description_ar": "اشتراك المنصة",
+        "currency": "USD",
+        "category": "subscription",
+        "quantity": 12,
+        "unit_price": "49.00",
+        "tax_rate": "15"
+      },
+      {
+        "description_en": "On-site hardware kit",
+        "description_ar": "عدة أجهزة ميدانية",
+        "currency": "USD",
+        "category": "hardware",
+        "quantity": 2,
+        "unit_price": "1250.005",
+        "tax_rate": "15.005"
+      },
+      {
+        "description_en": "Goodwill refund",
+        "description_ar": "استرداد حسن النية",
+        "currency": "USD",
+        "category": "refund",
+        "quantity": 1,
+        "unit_price": "500.00",
+        "tax_rate": "15"
+      }
+    ]
+  },
+  "capacity": 2,
+  "tasks": [
+    {"id": "collect-invoices", "priority": 5},
+    {"id": "validate-tax", "priority": 7, "depends_on": ["collect-invoices"]},
+    {"id": "draft-report", "priority": 7, "depends_on": ["validate-tax"]},
+    {"id": "publish-arabic", "priority": 3, "depends_on": ["draft-report"]},
+    {"id": "archive-ledger", "priority": 1}
+  ]
+}

@@ -1,0 +1,475 @@
+{
+  "protocol": "crewloom-context-study-v1",
+  "task_count": 3,
+  "held_out_from_generation_prompts": true,
+  "all_input_mutability_checks": true,
+  "quality_limits": [
+    "Three small synthetic development tasks; not broad quality superiority.",
+    "Expected values and scorer stay outside generation prompts and full-source inventory.",
+    "This freezes task behavior, not provider performance or expected savings."
+  ],
+  "tasks": [
+    {
+      "id": "invoice-summary",
+      "output": "src/ledger.py",
+      "api": "summarize(records)",
+      "contract": "Implement invoice totals using the existing money helper. records must be a list; otherwise TypeError. Each record must be a dict with string amount/category/currency; all invalid records raise ValueError. Amounts are finite decimal strings (exponents allowed), never floats or booleans. Normalize category with Unicode NFKC, strip, casefold; category must stay nonempty. Strip and uppercase currency, require exactly three ASCII A-Z letters. Sum exact Decimal amounts per currency/category, quantize the final group sum to2 decimals with ROUND_HALF_EVEN (not each record), preserve negative refunds, format fixed2 decimals. Return list of {currency,category,total}, sorted by currency then category. Do not mutate records. The existing money.py/source contract must be provided completely in both prompt conditions.",
+      "cases": [
+        {
+          "id": "empty",
+          "input": [],
+          "expected": []
+        },
+        {
+          "id": "combined",
+          "input": [
+            {
+              "amount": "10.25",
+              "category": " Design ",
+              "currency": " usd "
+            },
+            {
+              "amount": "2.75",
+              "category": "DESIGN",
+              "currency": "USD"
+            }
+          ],
+          "expected": [
+            {
+              "currency": "USD",
+              "category": "design",
+              "total": "13.00"
+            }
+          ]
+        },
+        {
+          "id": "final-rounding",
+          "input": [
+            {
+              "amount": "0.005",
+              "category": "a",
+              "currency": "USD"
+            },
+            {
+              "amount": "0.005",
+              "category": "a",
+              "currency": "USD"
+            }
+          ],
+          "expected": [
+            {
+              "currency": "USD",
+              "category": "a",
+              "total": "0.01"
+            }
+          ]
+        },
+        {
+          "id": "half-even",
+          "input": [
+            {
+              "amount": "2.345",
+              "category": "a",
+              "currency": "USD"
+            }
+          ],
+          "expected": [
+            {
+              "currency": "USD",
+              "category": "a",
+              "total": "2.34"
+            }
+          ]
+        },
+        {
+          "id": "arabic-refund",
+          "input": [
+            {
+              "amount": "100.00",
+              "category": "تطوير",
+              "currency": "egp"
+            },
+            {
+              "amount": "-12.50",
+              "category": " تطوير ",
+              "currency": "EGP"
+            }
+          ],
+          "expected": [
+            {
+              "currency": "EGP",
+              "category": "تطوير",
+              "total": "87.50"
+            }
+          ]
+        },
+        {
+          "id": "sorted-groups",
+          "input": [
+            {
+              "amount": "1e2",
+              "category": "Ｂ",
+              "currency": "USD"
+            },
+            {
+              "amount": "2",
+              "category": "a",
+              "currency": "EUR"
+            },
+            {
+              "amount": "3",
+              "category": "Ａ",
+              "currency": "USD"
+            }
+          ],
+          "expected": [
+            {
+              "currency": "EUR",
+              "category": "a",
+              "total": "2.00"
+            },
+            {
+              "currency": "USD",
+              "category": "a",
+              "total": "3.00"
+            },
+            {
+              "currency": "USD",
+              "category": "b",
+              "total": "100.00"
+            }
+          ]
+        },
+        {
+          "id": "wrong-container",
+          "input": null,
+          "expected": {
+            "error": "TypeError"
+          }
+        },
+        {
+          "id": "non-finite",
+          "input": [
+            {
+              "amount": "NaN",
+              "category": "a",
+              "currency": "USD"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-currency",
+          "input": [
+            {
+              "amount": "1",
+              "category": "a",
+              "currency": "١٢٣"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "float-refused",
+          "input": [
+            {
+              "amount": 0.1,
+              "category": "a",
+              "currency": "USD"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "empty-category",
+          "input": [
+            {
+              "amount": "1",
+              "category": " ",
+              "currency": "USD"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dependency-order",
+      "output": "src/scheduler.py",
+      "api": "plan(tasks)",
+      "contract": "Use the existing identifier/schema helper and implement deterministic topological task order. tasks must be a list, otherwise TypeError. A task is a dict with id matching ASCII [a-z][a-z0-9-]{0,31}, depends_on an optional list of unique valid IDs (default []), and priority an optional integer from-9 to9 (default0); booleans are not integers for this contract. Invalid task data, duplicate IDs, missing dependencies, self dependency or any cycle raises ValueError and yields no partial result. Return list of IDs. At each step choose the currently ready task with highest priority, then lexical ID ascending; reconsider newly unblocked tasks before choosing the next. Input order cannot change ties; never mutate input.",
+      "cases": [
+        {
+          "id": "empty",
+          "input": [],
+          "expected": []
+        },
+        {
+          "id": "lexical",
+          "input": [
+            {
+              "id": "b"
+            },
+            {
+              "id": "a"
+            }
+          ],
+          "expected": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "id": "newly-unblocked-priority",
+          "input": [
+            {
+              "id": "b",
+              "priority": 2
+            },
+            {
+              "id": "c",
+              "depends_on": [
+                "a"
+              ],
+              "priority": 9
+            },
+            {
+              "id": "a",
+              "priority": 3
+            }
+          ],
+          "expected": [
+            "a",
+            "c",
+            "b"
+          ]
+        },
+        {
+          "id": "diamond",
+          "input": [
+            {
+              "id": "d",
+              "depends_on": [
+                "b",
+                "c"
+              ]
+            },
+            {
+              "id": "c",
+              "depends_on": [
+                "a"
+              ]
+            },
+            {
+              "id": "b",
+              "depends_on": [
+                "a"
+              ]
+            },
+            {
+              "id": "a"
+            }
+          ],
+          "expected": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ]
+        },
+        {
+          "id": "missing",
+          "input": [
+            {
+              "id": "a",
+              "depends_on": [
+                "missing"
+              ]
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "cycle",
+          "input": [
+            {
+              "id": "a",
+              "depends_on": [
+                "b"
+              ]
+            },
+            {
+              "id": "b",
+              "depends_on": [
+                "a"
+              ]
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "duplicate",
+          "input": [
+            {
+              "id": "a"
+            },
+            {
+              "id": "a"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "boolean-priority",
+          "input": [
+            {
+              "id": "a",
+              "priority": true
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "wrong-container",
+          "input": {},
+          "expected": {
+            "error": "TypeError"
+          }
+        },
+        {
+          "id": "invalid-id",
+          "input": [
+            {
+              "id": "../foreign"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "self",
+          "input": [
+            {
+              "id": "a",
+              "depends_on": [
+                "a"
+              ]
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        }
+      ]
+    },
+    {
+      "id": "project-path",
+      "output": "src/paths.py",
+      "api": "resolve_project_path(root, relative)",
+      "contract": "Fix the existing project path resolver using the existing path helper. root is a canonical absolute pathlib.Path for an existing directory. relative must be a nonempty string and otherwise TypeError for non-string or ValueError for invalid string. Refuse absolute paths, any .. component, NUL, backslash, empty/dot-only paths, and symlink components even when they point inside the project. Refuse a hardlinked existing regular-file destination. A missing destination under real project directories is valid; a regular-file intermediate component is invalid. Return an absolute pathlib.Path that remains in root. Do not create, delete, write or chmod anything; preserve project/foreign fixtures. The grader normalizes the returned Path relative to root, and creates symlink/hardlink fixtures only inside its disposable container stage.",
+      "cases": [
+        {
+          "id": "new-target",
+          "fixture": "ordinary",
+          "input": "src/new.txt",
+          "expected": "src/new.txt"
+        },
+        {
+          "id": "existing-file",
+          "fixture": "ordinary",
+          "input": "src/existing.txt",
+          "expected": "src/existing.txt"
+        },
+        {
+          "id": "parent-traversal",
+          "fixture": "ordinary",
+          "input": "src/../foreign.txt",
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "absolute",
+          "fixture": "ordinary",
+          "input": "/tmp/foreign.txt",
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "wrong-type",
+          "fixture": "ordinary",
+          "input": null,
+          "expected": {
+            "error": "TypeError"
+          }
+        },
+        {
+          "id": "symlink-inside",
+          "fixture": "symlink-inside",
+          "input": "linked/existing.txt",
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "symlink-outside",
+          "fixture": "symlink-outside",
+          "input": "linked/existing.txt",
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "hardlink",
+          "fixture": "hardlink",
+          "input": "src/hardlinked.txt",
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "file-parent",
+          "fixture": "ordinary",
+          "input": "src/existing.txt/new.txt",
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "backslash",
+          "fixture": "ordinary",
+          "input": "src\\foreign.txt",
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "empty",
+          "fixture": "ordinary",
+          "input": "",
+          "expected": {
+            "error": "ValueError"
+          }
+        }
+      ]
+    }
+  ]
+}
