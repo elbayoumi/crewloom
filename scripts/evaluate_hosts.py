@@ -108,6 +108,10 @@ def collect(destination, hosts, repeats=5, seed=20261001, image=w.DEFAULT_IMAGE,
 
 
 STUDY_PROTOCOL='crewloom-context-study-v1'
+# The v2 protocol identity, used for both the `benchmark` and the `protocol` record so a v2 run is
+# never readable as a v1 one: different arms, different seed, different order.
+STUDY_PROTOCOL_V2='crewloom-context-study-v2'
+STUDY_PROTOCOL_VERSIONS=('v1','v2')
 # The grader reads its held-out cases from packaged public data, never from the private
 # `.crewloom` state that no distribution ships. Both paths carry the same frozen bytes;
 # the supervisor original is named here only so a checkout can prove the two agree.
@@ -116,6 +120,10 @@ SUPERVISOR_CONTRACTS_RELATIVE='.crewloom/production-foundation/STUDY_TASK_CONTRA
 CONTRACTS_RELATIVE=GRADER_CONTRACTS_RELATIVE
 CONTRACTS_SHA256='ec385875a0354567f0e95e013f6a8daa03b66e055745600c5b89cf762b381c9a'
 FIXTURE_RELATIVE='examples/context-study/project'
+# The frozen reference solutions, packaged as public grader-only data outside the generation
+# fixture for the same reason as the contracts: the offline gate may read them, and no prompt,
+# inventory or candidate artifact can ever pick them up from the fixture.
+REFERENCES_RELATIVE='examples/context-study/grader/references'
 STUDY_HOSTS=('codex','opencode')
 # Frozen before any study call: the actual provider-supported Codex model and the
 # exact OpenCode model. Neither is ever substituted, and a requested model is not
@@ -157,6 +165,11 @@ STUDY_LIMITS=('Three small synthetic development tasks over one nine-module fixt
  'An installed CLI host is a native host exception, not an OS sandbox.',
  'Provider cost is reported only as the provider actually reported it; absent stays null.',
  'Claude is absent because its local login is unavailable; its absence is not a measured result.')
+# The one caveat that names an arm. `STUDY_LIMITS` is the frozen v1 list and is never edited, so a
+# record that measured a different arm gets this entry substituted rather than a frozen constant
+# changed; `study_limits` does exactly that and nothing else.
+COMPARISON_LIMIT_V1='Full-source versus selected-map is a paired comparison inside this repository only.'
+COMPARISON_LIMIT_V2='Full-source versus closure-map is a paired comparison inside this repository only.'
 TASK_SOURCES={
     'invoice-summary':{'helper':'src/money.py',
         'support':['src/__init__.py','src/money.py','src/invoicing.py'],
@@ -252,6 +265,27 @@ def study_contracts(path=None):
         if task['id'] not in TASK_SOURCES:raise ValueError('Unknown study task')
         if not task.get('cases'):raise ValueError('Frozen study task carries no acceptance cases')
     return value
+
+
+def study_references(path=None):
+    """The frozen reference solution for every task output, keyed exactly as a task output.
+
+    These are the solutions the gate checks the arms against and the bytes the v2 record digests.
+    They live outside the generation fixture, in the same packaged grader-only directory as the
+    contracts, so no prompt, source inventory or candidate artifact can ever carry them. A task
+    output with no reference raises `ValueError`: the gate has nothing to check that arm against,
+    and a silently unchecked arm is worse than a refused study.
+    """
+    root=Path(path) if path is not None else Path(w.LIBRARY)/REFERENCES_RELATIVE
+    root=Path(root).resolve()
+    if not root.is_dir():raise ValueError('Frozen study references are absent: '+str(root))
+    found={}
+    for item in sorted(root.glob('*.py')):
+        if item.is_symlink() or not item.is_file():continue
+        found['src/'+item.name]=item.read_text(encoding='utf-8')
+    missing=[task['output'] for task in study_contracts()['tasks'] if task['output'] not in found]
+    if missing:raise ValueError('Frozen study references are missing for: '+', '.join(sorted(missing)))
+    return found
 
 
 def study_fixture_root(path=None):
@@ -543,6 +577,21 @@ def study_sufficiency(task, condition, reference_text, project=None, fixture=Non
     return {'sufficient':not missing,'missing':missing}
 
 
+def study_limits(protocol_version):
+    """The study's own caveats, worded for the arms this run actually measures.
+
+    v1 returns the frozen list unchanged, so the v1 record keeps the exact limits the frozen run
+    wrote. v2 does not rerun `selected-map`, so a v2 record that kept that entry would describe an
+    arm its own results never contain; only that one entry is replaced and every other caveat is
+    kept verbatim, including the ones that hold equally for both protocols. `STUDY_LIMITS` itself
+    is not edited, so the frozen v1 wording stays readable as the v1 record.
+    """
+    if protocol_version not in STUDY_PROTOCOL_VERSIONS:
+        raise ValueError('Unknown study protocol version: '+str(protocol_version))
+    if protocol_version=='v1':return list(STUDY_LIMITS)
+    return [COMPARISON_LIMIT_V2 if limit==COMPARISON_LIMIT_V1 else limit for limit in STUDY_LIMITS]
+
+
 def _stage_filesystem(stage, outside, kind):
     """Build the declared case fixture, only inside the disposable stage."""
     (stage/'src').mkdir(parents=True,exist_ok=True)
@@ -787,8 +836,101 @@ def _trial_record(trial, order, seed):
     return record
 
 
-def collect_study(destination, hosts, models=None, repeats=STUDY_REPEATS, seed=STUDY_SEED,
-                  image=w.DEFAULT_IMAGE, timeout=300, contracts=None, fixture=None, case_runs=1):
+def _frozen_bytes_digest(path):
+    """The digest of a module file, or `None` when the bytes are gone.
+
+    A run that refuses itself must still finish looking: a checkout edited or deleted mid-run is
+    exactly the case this handles, so an unreadable input is reported as a difference rather than
+    raised out of the verification itself.
+    """
+    try:return w.digest(Path(path).read_bytes())
+    except OSError:return None
+
+
+def _frozen_text_digest(path):
+    """The digest of a text file exactly as `study_references` reads it, or `None` when it is gone."""
+    try:return w.digest(Path(path).read_text(encoding='utf-8').encode())
+    except (OSError,UnicodeDecodeError):return None
+
+
+def _verify_frozen_inputs(destination,frozen,fixture,contracts,protocol_version,
+                          references=None,supplied_references=False):
+    """Recompute every frozen input after the last trial and return `(names, mismatches)`.
+
+    `protocol.json` claims the digests this run was measured against, but a study re-reads its
+    fixture, its prompt files and its grader for every trial, so a checkout edited or updated while
+    it runs would leave that record describing bytes the graded trials never saw and the report
+    would present them as one measurement. Every input the record froze is therefore computed once
+    more here, after the last trial, and compared with what was frozen.
+
+    Every checked item is named in `names` whether or not it moved, so the record shows what was
+    covered and not only what failed, and every mismatch is collected rather than returned on the
+    first: one edited checkout usually moves several digests at once, and a run that reported only
+    the first would invite a second run against the same difference. Each item is named by its key
+    plus, where there is one, the path it describes, so a reader can find the bytes.
+    """
+    names=[]
+    mismatches=[]
+
+    def check(item,recorded,actual):
+        names.append(item)
+        if recorded!=actual:mismatches.append(item)
+
+    def module_sha256(name):
+        try:return study_module_body(fixture,name)[1]['sha256']
+        except (OSError,ValueError):return None
+
+    frozen_modules=frozen['fixture_modules']
+    modules=study_modules(fixture)
+    check('fixture_modules',frozen_modules,modules)
+    if frozen_modules!=modules:
+        # The inventory itself moved, so name every module that is no longer indexed and every
+        # module that appeared: an added or a removed file is a difference in what the run read.
+        for name in frozen_modules:
+            if name not in modules:mismatches.append('fixture_modules:'+name)
+        for name in modules:
+            if name not in frozen_modules:mismatches.append('fixture_modules:'+name)
+    for name in frozen_modules:
+        check('fixture_sha256:'+name,frozen['fixture_sha256'].get(name),module_sha256(name))
+    for task in contracts['tasks']:
+        helper=TASK_SOURCES[task['id']]['helper']
+        check('helper_sha256:'+helper,frozen['helper_sha256'].get(task['id']),module_sha256(helper))
+    # Read back from the destination, not from the built prompts: the files a reader can open are
+    # the ones the record has to describe, and they are the only copy that lives outside memory.
+    for task in contracts['tasks']:
+        for condition in frozen['conditions']:
+            written='prompt-%s-%s.txt' % (task['id'],condition)
+            check('prompt_sha256:'+written,
+                  (frozen['prompt_sha256'].get(task['id']) or {}).get(condition),
+                  _frozen_text_digest(Path(destination)/written))
+    check('contracts_sha256',frozen['contracts_sha256'],
+          _frozen_bytes_digest(Path(w.LIBRARY)/frozen['contracts_relative']))
+    check('grader_sha256',frozen['grader_sha256'],_frozen_bytes_digest(Path(__file__)))
+    check('transport_sha256',frozen['transport_sha256'],_frozen_bytes_digest(host.__file__))
+    check('executor_sha256',frozen['executor_sha256'],_frozen_bytes_digest(w.__file__))
+    check('image_module_sha256',frozen['image_module_sha256'],_frozen_bytes_digest(grader.__file__))
+    check('harness_sha256:probe',frozen['harness_sha256'].get('probe'),w.digest(PROBE.encode()))
+    check('harness_sha256:runner',frozen['harness_sha256'].get('runner'),w.digest(RUNNER.encode()))
+    if protocol_version=='v2':
+        # The two inputs only a v2 run freezes. The references are compared against the caller's
+        # own texts when it supplied them, since those are the bytes the gate actually read, and
+        # against the packaged files otherwise.
+        check('map_generator_sha256',frozen['map_generator_sha256'],
+              _frozen_bytes_digest(repo_map.__file__))
+        for task in contracts['tasks']:
+            if supplied_references:
+                reference=(references or {}).get(task['output'])
+                actual=w.digest(reference.encode()) if isinstance(reference,str) else None
+            else:
+                actual=_frozen_text_digest(
+                    Path(w.LIBRARY)/REFERENCES_RELATIVE/Path(task['output']).name)
+            check('references_sha256:'+task['id'],frozen['references_sha256'].get(task['id']),actual)
+    return names,mismatches
+
+
+def collect_study(destination, hosts, models=None, repeats=STUDY_REPEATS, seed=None,
+                  image=w.DEFAULT_IMAGE, timeout=300, contracts=None, fixture=None, case_runs=1,
+                  protocol_version='v1', references=None):
     """Run the controlled context study and return its measured report.
 
     Everything that decides the measurement is frozen before the first call: the
@@ -799,10 +941,28 @@ def collect_study(destination, hosts, models=None, repeats=STUDY_REPEATS, seed=S
     measured for every attempt that actually ran, a failed one included, from a
     monotonic clock that never absorbs grading time; usage and cost stay unknown
     without provider evidence, and a host that never ran keeps no latency at all.
+
+    `protocol_version` selects the whole run, because the two protocols differ in more than a
+    label. v1 keeps its own seed, its own arms and its own record byte-for-byte; v2 runs the
+    closure-map arm under its preregistered seed, refuses to start while any arm is short of what
+    its frozen reference imports, and freezes the references and the map generator with the run.
+    An unknown version is refused before anything at all is written or called.
+
+    After the last trial every frozen input is recomputed and compared with what the record claims,
+    and the verdict is always written as `verification.json`. A mismatch raises `ValueError` and no
+    `report.json` is written: the trials stay in `results.json`, but a report published over inputs
+    that moved mid-run is not a measurement.
     """
+    if protocol_version not in STUDY_PROTOCOL_VERSIONS:
+        raise ValueError('Unknown study protocol version: '+str(protocol_version)+
+                         '; refusing before anything is written or called')
     destination=Path(destination).resolve()
     if destination.exists():raise ValueError('Use a fresh output directory; existing evidence is never overwritten')
     if type(timeout) is not int or not 1<=timeout<=3600:raise ValueError('Timeout must be from 1 to 3600')
+    protocol=STUDY_PROTOCOL_V2 if protocol_version=='v2' else STUDY_PROTOCOL
+    conditions=CONDITIONS_V2 if protocol_version=='v2' else CONDITIONS
+    treatment='closure-map' if protocol_version=='v2' else 'selected-map'
+    if seed is None:seed=STUDY_V2_SEED if protocol_version=='v2' else STUDY_SEED
     contracts=study_contracts(contracts)
     fixture=Path(fixture or study_fixture_root()).resolve()
     requested=dict(FROZEN_MODELS)
@@ -810,17 +970,42 @@ def collect_study(destination, hosts, models=None, repeats=STUDY_REPEATS, seed=S
     for name in requested:
         if name not in STUDY_HOSTS:raise ValueError('Study models are frozen for codex and opencode only')
     image_id=w.inspect_image(image)
-    trials=study_plan(hosts,repeats,seed,contracts)
+    trials=(study_plan_v2 if protocol_version=='v2' else study_plan)(hosts,repeats,seed,contracts)
     tasks={task['id']:task for task in contracts['tasks']}
     built={}
+    sufficiency={}
+    supplied_references=references is not None
     with tempfile.TemporaryDirectory(prefix='crewloom-study-project-') as folder:
         project=materialize_project(Path(folder)/'project',fixture)
         for task in contracts['tasks']:
-            for condition in CONDITIONS:
+            for condition in conditions:
                 built[(task['id'],condition)]=study_prompt(task,condition,project,fixture)
+        if protocol_version=='v2':
+            # The gate runs on the real prompts of this run, against the frozen references, before
+            # the output directory exists and before any provider is called. One disposable project
+            # is built for the whole gate, because a fresh index per task would cost more than the
+            # check and would say exactly the same thing about the same bytes.
+            references=study_references() if references is None else dict(references)
+            for task in contracts['tasks']:
+                reference=references.get(task['output'])
+                if reference is None:
+                    raise ValueError('No frozen reference for study task: '+task['id']+
+                                     ' ('+task['output']+'); refusing before any call')
+                for condition in conditions:
+                    result=study_sufficiency(task,condition,reference,project,fixture)
+                    sufficiency.setdefault(task['id'],{})[condition]={
+                        'sufficient':bool(result['sufficient']),'missing':list(result['missing'])}
+            failed=[task['id']+'/'+condition+': '+'; '.join(entry['missing'])
+                    for task in contracts['tasks'] for condition in conditions
+                    for entry in [sufficiency[task['id']][condition]] if not entry['sufficient']]
+            if failed:
+                raise ValueError('Study v2 is not information-sufficient; no call was made and '
+                                 'nothing was written. '+' | '.join(failed))
+            references_sha256={task['id']:w.digest(references[task['output']].encode())
+                               for task in contracts['tasks']}
     modules=study_modules(fixture)
-    frozen={'benchmark':STUDY_PROTOCOL,'protocol':STUDY_PROTOCOL,'seed':seed,
-        'repeats_per_condition':repeats,'conditions':list(CONDITIONS),'hosts':list(hosts),
+    frozen={'benchmark':protocol,'protocol':protocol,'seed':seed,
+        'repeats_per_condition':repeats,'conditions':list(conditions),'hosts':list(hosts),
         'planned_calls':len(trials),'image_id':image_id,
         'contracts_relative':CONTRACTS_RELATIVE,'contracts_sha256':CONTRACTS_SHA256,
         'fixture_relative':fixture.relative_to(Path(w.LIBRARY)).as_posix()
@@ -836,13 +1021,20 @@ def collect_study(destination, hosts, models=None, repeats=STUDY_REPEATS, seed=S
         'harness_sha256':{'probe':w.digest(PROBE.encode()),'runner':w.digest(RUNNER.encode())},
         'models_requested':requested,
         'mandatory_sha256':{task['id']:{condition:built[(task['id'],condition)][1]['mandatory_sha256']
-                                       for condition in CONDITIONS} for task in contracts['tasks']},
+                                       for condition in conditions} for task in contracts['tasks']},
         'prompt_sha256':{task['id']:{condition:w.digest(built[(task['id'],condition)][0].encode())
-                                     for condition in CONDITIONS} for task in contracts['tasks']},
+                                     for condition in conditions} for task in contracts['tasks']},
         'context_bytes':{task['id']:{condition:built[(task['id'],condition)][1]['context_bytes']
-                                     for condition in CONDITIONS} for task in contracts['tasks']},
+                                     for condition in conditions} for task in contracts['tasks']},
         'trial_order':trials,'case_runs':case_runs,'quality_limits':contracts['quality_limits'],
-        'limits':list(STUDY_LIMITS)+list(contracts['quality_limits'])}
+        'limits':study_limits(protocol_version)+list(contracts['quality_limits'])}
+    if protocol_version=='v2':
+        # The v2 inputs the design asks to freeze before the first call: what the gate was
+        # measured against, and the generator that produced the closure arm. v1 keeps neither,
+        # so its record stays exactly what the frozen run wrote.
+        frozen['sufficiency']=sufficiency
+        frozen['references_sha256']=references_sha256
+        frozen['map_generator_sha256']=w.digest(Path(repo_map.__file__).read_bytes())
     destination.mkdir(parents=True)
     (destination/'protocol.json').write_text(json.dumps(frozen,ensure_ascii=False,indent=2),encoding='utf-8')
     (destination/'contracts.json').write_text(json.dumps(contracts,ensure_ascii=False,indent=2),encoding='utf-8')
@@ -908,8 +1100,22 @@ def collect_study(destination, hosts, models=None, repeats=STUDY_REPEATS, seed=S
                                  'prompt':'prompt-'+trial['task']+'-'+trial['condition']+'.txt',
                                  'grade':record['submission']+'/grade.json'}
         results.append(record);_write_results(destination,results)
-    report={'protocol':frozen,'results':results,'groups':_study_groups(results,hosts,tasks,repeats),
-            'pairs':_study_pairs(results,hosts,tasks)}
+    # The run has re-read every input it froze once per trial, so the record is verified against
+    # the bytes as they stand now before anything is published from them. The verdict is written
+    # either way, because a refused run still has to show what it checked and what it found.
+    names,mismatches=_verify_frozen_inputs(destination,frozen,fixture,contracts,protocol_version,
+                                           references,supplied_references)
+    (destination/'verification.json').write_text(json.dumps(
+        {'verified':not mismatches,'mismatches':mismatches,'names':names,'checked':len(names)},
+        ensure_ascii=False,indent=2),encoding='utf-8')
+    if mismatches:
+        # The trials stay on disk as `results.json`; only the summary they would be published in is
+        # withheld, because a report built on inputs that moved mid-run is not a measurement.
+        raise ValueError('Frozen inputs changed during the run; no report was written. '
+                         +' | '.join(mismatches))
+    report={'protocol':frozen,'results':results,
+            'groups':_study_groups(results,hosts,tasks,repeats,conditions),
+            'pairs':_study_pairs(results,hosts,tasks,'full-source',treatment)}
     report['study_complete']=bool(report['groups']) and all(
         group['scored']==repeats for group in report['groups'])
     report['limits']=frozen['limits']
@@ -921,11 +1127,11 @@ def _write_results(destination, results):
     (destination/'results.json').write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding='utf-8')
 
 
-def _study_groups(results, hosts, tasks, repeats):
+def _study_groups(results, hosts, tasks, repeats, conditions=CONDITIONS):
     groups=[]
     for name in hosts:
         for task in tasks:
-            for condition in CONDITIONS:
+            for condition in conditions:
                 rows=[item for item in results if item['host']==name and item['task']==task
                       and item['condition']==condition]
                 scored=[item for item in rows if item['status']=='scored']
@@ -946,8 +1152,14 @@ def _study_groups(results, hosts, tasks, repeats):
     return groups
 
 
-def _study_pairs(results, hosts, tasks):
-    """Paired full-source minus selected-map differences over matched repeats."""
+def _study_pairs(results, hosts, tasks, baseline='full-source', treatment='selected-map'):
+    """Paired baseline minus treatment differences over matched scored repeats.
+
+    A repeat contributes only where both arms of that same repeat actually ran and were scored,
+    so a failed trial stays in the group denominators and simply never forms a pair. The baseline
+    and the treatment are named rather than assumed, because v2 pairs full source against the
+    closure map and v1 against the selected map.
+    """
     pairs=[]
     for name in hosts:
         for task in tasks:
@@ -958,33 +1170,45 @@ def _study_pairs(results, hosts, tasks):
             repeats=sorted({item['repeat'] for item in lookup.values()})
             pass_rates=[];tokens=[]
             for repeat in repeats:
-                full=lookup.get(('full-source',repeat));selected=lookup.get(('selected-map',repeat))
-                if not full or not selected:continue
-                if full['status']=='scored' and selected['status']=='scored':
-                    if full['held_out_total'] and selected['held_out_total']:
-                        pass_rates.append(full['held_out_pass_count']/full['held_out_total']
-                                          -selected['held_out_pass_count']/selected['held_out_total'])
-                if full['input_tokens'] is not None and selected['input_tokens'] is not None:
-                    tokens.append(full['input_tokens']-selected['input_tokens'])
+                first=lookup.get((baseline,repeat));second=lookup.get((treatment,repeat))
+                if not first or not second:continue
+                if first['status']=='scored' and second['status']=='scored':
+                    if first['held_out_total'] and second['held_out_total']:
+                        pass_rates.append(first['held_out_pass_count']/first['held_out_total']
+                                          -second['held_out_pass_count']/second['held_out_total'])
+                if first['input_tokens'] is not None and second['input_tokens'] is not None:
+                    tokens.append(first['input_tokens']-second['input_tokens'])
             pairs.append({'host':name,'task':task,'paired_repeats':len(pass_rates),
                 'held_out_pass_rate':_means(pass_rates),'input_tokens':_means(tokens)})
     return pairs
 
 
-def study_main(argv=None):
-    """Module CLI for the controlled context study; the operator runs it, never CI."""
-    parser=argparse.ArgumentParser(description='Controlled context study (full source versus selected map)')
+def study_main(argv=None, version='v1'):
+    """Module CLI for the controlled context study; the operator runs it, never CI.
+
+    `version` names the protocol the command measures, because the two differ in more than a
+    label: v1 keeps its own seed, arms and description, v2 runs the closure-map arm under the
+    preregistered v2 seed and lets `collect_study` freeze its references, its map generator and
+    its sufficiency record with the run. The printed summary and the return codes are the same
+    for both: 0 only for a complete study, 2 for an incomplete one and for any error.
+    """
+    protocol_version='v2' if version=='v2' else 'v1'
+    parser=argparse.ArgumentParser(
+        description=('Controlled context study v2 (full source versus closure map)'
+                     if protocol_version=='v2'
+                     else 'Controlled context study (full source versus selected map)'))
     parser.add_argument('--output',required=True)
     parser.add_argument('--study-host',choices=STUDY_HOSTS,action='append',required=True)
     parser.add_argument('--repeats',type=int,default=STUDY_REPEATS)
-    parser.add_argument('--seed',type=int,default=STUDY_SEED)
+    parser.add_argument('--seed',type=int,default=STUDY_V2_SEED if protocol_version=='v2' else STUDY_SEED)
     parser.add_argument('--image',default=w.DEFAULT_IMAGE)
     parser.add_argument('--timeout',type=int,default=300)
     parser.add_argument('--case-runs',type=int,default=1)
     args=parser.parse_args(argv)
     try:
         report=collect_study(Path(args.output),args.study_host,None,args.repeats,args.seed,
-                             args.image,args.timeout,None,None,args.case_runs)
+                             args.image,args.timeout,None,None,args.case_runs,
+                             protocol_version=protocol_version)
         print(json.dumps({'planned_calls':report['protocol']['planned_calls'],
                           'groups':report['groups'],'pairs':report['pairs'],
                           'study_complete':report['study_complete']},indent=2))
@@ -994,17 +1218,26 @@ def study_main(argv=None):
 
 
 def main(argv=None):
-    if argv is not None and '--study' in argv:
-        argv=[item for item in argv if item!='--study']
-        return study_main(argv)
-    if '--study' in (sys.argv[1:] if argv is None else ()):
-        return study_main([item for item in sys.argv[1:] if item!='--study'])
+    # One argument list decides the run, so the `main(argv)` call and the `sys.argv` process
+    # entry point cannot drift apart. `--study` still means v1; `--study-v2` is the only way to
+    # ask for the closure-map protocol, and asking for both is refused here, before any study
+    # starts, so a contradictory command leaves no evidence behind.
+    arguments=list(argv) if argv is not None else list(sys.argv[1:])
+    selectors=[flag for flag in ('--study','--study-v2') if flag in arguments]
+    if len(selectors)>1:
+        print(json.dumps({'error':'--study measures protocol v1 and --study-v2 measures protocol v2;'
+                                    ' choose one and run it alone'}))
+        return 2
+    if selectors:
+        flag=selectors[0]
+        return study_main([item for item in arguments if item!=flag],
+                          'v2' if flag=='--study-v2' else 'v1')
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',required=True);parser.add_argument('--host',choices=('codex','claude'),action='append',required=True)
     parser.add_argument('--repeats',type=int,default=5);parser.add_argument('--seed',type=int,default=20261001)
     parser.add_argument('--image',default=w.DEFAULT_IMAGE);parser.add_argument('--timeout',type=int,default=180)
     parser.add_argument('--codex-model');parser.add_argument('--claude-model')
-    args=parser.parse_args(argv)
+    args=parser.parse_args(arguments)
     try:
         report=collect(Path(args.output),args.host,args.repeats,args.seed,args.image,
                        {key:value for key,value in (('codex',args.codex_model),('claude',args.claude_model)) if value},args.timeout)

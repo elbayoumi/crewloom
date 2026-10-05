@@ -205,3 +205,13 @@
 - الملف: `scripts/repo_map.py`, `scripts/evaluate_hosts.py`, `scripts/test_study_closure_map_boundaries.py`
 - الأثر: closure-map arm, v2 plan (seed 20261006, 18 Codex trials) and an offline gate that rejects the v1 selected-map prompt for all 3 tasks and accepts full-source and closure-map; prompts 11.2–11.5 KB vs 20.8–20.9 KB full source.
 - ملاحظة: 29 frozen cases pass (baseline 3/29), existing repo_map/study/Docker suites unchanged, Python 3.9 verified; no v2 provider call made, so no quality or saving claim.
+
+### 2026-10-06 — Study v2 runner implemented behind frozen tests
+- الملف: `scripts/evaluate_hosts.py`, `examples/context-study/grader/references/`, `scripts/test_study_v2_runner_boundaries.py`
+- الأثر: `--study-v2` runs the 18-call closure-map study with a pre-call sufficiency gate and frozen references; v1 record unchanged. A gate failure creates no directory and makes no call.
+- ملاحظة: 21 frozen cases pass (baseline 2/21); no v2 provider call made yet.
+
+### 2026-10-06 — Post-run verification of frozen study inputs
+- الملف: `scripts/evaluate_hosts.py`, `scripts/test_study_v2_verification_boundaries.py`
+- الأثر: closes review gap P1 — every frozen digest is recomputed after the last trial, a mismatch refuses the report and is named; v2 limits no longer describe the v1 arm (P2).
+- ملاحظة: 11 frozen cases pass (baseline 2/11); v1 limits and record unchanged; Docker suites unchanged.

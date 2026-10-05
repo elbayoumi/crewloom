@@ -291,3 +291,22 @@ prompts are 11.2 to 11.5 KB against 20.8 to 20.9 KB for full source and 8.2 to 8
 selected map, and the gate rejects the v1 selected-map prompt for all three tasks and accepts
 full-source and closure-map. These are prompt sizes and a static check, not token savings or a
 quality result: **no v2 study call has been made.**
+
+### Running study v2
+
+```bash
+python3 scripts/evaluate_hosts.py --study-v2 --output <fresh private path> --study-host codex
+```
+
+The command uses the preregistered seed `20261006`, the arms `full-source` and `closure-map`,
+three repeats per task and arm, and 18 calls for one host. Before the output directory exists
+and before any provider call, it runs the offline sufficiency gate on the real prompts against
+the frozen references and stops with an error when any arm is short of what its reference
+imports. `protocol.json` additionally records the gate result, the SHA256 of each reference and
+the SHA256 of `scripts/repo_map.py` (the map generator). Failures stay in the denominators; no
+trial is retried or replaced. `--study` still runs v1, and passing both flags is refused.
+
+After the last trial the runner recomputes every frozen input (fixture modules, helpers, the prompt
+files on disk, grader, transport, executor, map generator and references) and writes
+`verification.json`. If anything changed while the study ran, it raises an error naming every
+changed item and publishes no `report.json`; `results.json` keeps the trials already measured.
