@@ -271,7 +271,14 @@ only Codex produced scored trials.
 
 Reading this honestly: the selected-map input was about 22% smaller, but every scored
 selected-map trial failed all held-out checks, so no like-for-like saving exists and none
-is claimed. A likely cause, not separately verified, is that the map omits helper bodies
-the held-out cases depend on. OpenCode failures were 14 malformed structured responses
+is claimed. The cause is verified from the stored artifacts: required helper bodies were
+present in both arms, but all eight scored selected-map modules imported helpers in a relative
+form (`from .money import ...`) and raised `ImportError` on every held-out case, while every
+scored full-source module used the package form shown in the other modules (`from src.money
+import ...`). The selected-map prompt carried no example of that form, so the arm measured a
+missing convention rather than missing logic. OpenCode failures were 14 malformed structured responses
 and 4 timeouts. Neither host reported cost. Do not cite this run as evidence of token
 savings, speed or general quality.
+
+The next arm is designed in [CONTEXT_STUDY_V2_DESIGN.md](CONTEXT_STUDY_V2_DESIGN.md); it is a
+design only and changes no result above.

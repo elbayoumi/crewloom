@@ -126,5 +126,5 @@
 - [ ] Reconcile any selected private client only after its registered identity and current evidence are available; four audited records remain unreconciled — priority: medium.
 
 - [x] 2026-10-05: Expose the editable Crewloom CLI on the user shell PATH and verify help/tool discovery outside its checkout. Remaining foundation acceptance and publication are unchanged.
-- [ ] Redesign selected-map so required helper bodies are kept, preregister as a new study protocol — أولوية: عالية
+- [ ] Build the dependency-closure map (import forms + signature lines + closure bodies) behind an offline information-sufficiency gate, then preregister study v2 — أولوية: عالية (design: documentation/CONTEXT_STUDY_V2_DESIGN.md)
 - [ ] Re-run OpenCode study only after structured-response failures (14/18) are diagnosed — أولوية: متوسطة

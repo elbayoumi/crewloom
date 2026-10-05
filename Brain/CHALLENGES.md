@@ -220,7 +220,7 @@
 - الحالة: محلول (2026-10-05)
 
 ### 2026-10-05 — Selected-map context scored 0/11 in the frozen study
-- السبب الجذري: not verified; likely the map omits helper bodies the held-out cases need in a tool-free single turn.
+- السبب الجذري: verified 2026-10-05 from stored artifacts — helper bodies WERE present; all 8 selected-map modules used relative imports (`from .money import`) and hit ImportError on 11/11 cases, all full-source modules used `from src.money import`. The map prompt showed no package import form.
 - الحل المعتمد: none yet; do not claim savings. A follow-up needs a map that carries required bodies, preregistered as a new protocol.
 - الحالة: مفتوح
 

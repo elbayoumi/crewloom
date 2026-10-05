@@ -195,3 +195,8 @@
 - الملف: `REPOSITORY_SCOPE.json`, `scripts/check_repository.py`, `documentation/REPOSITORY_SCOPE.md`
 - الأثر: an unrelated Android application (1,911 paths) that reached `main` is removed from the tree and now lives in its own private repository with history preserved; the gate rejects unregistered top-level names (known violation refused, clean tree accepted, also from an sdist-installed copy).
 - ملاحظة: the old commits stay in public Git history; no rewrite was done. Gate verified on Python 3.9 and 3.14, Docker suites and a wheel built from the sdist (30/30).
+
+### 2026-10-05 — Context study v1 failure diagnosed; v2 map designed
+- الملف: `documentation/CONTEXT_STUDY_V2_DESIGN.md`
+- الأثر: replaced an unverified guess with the verified cause (relative `from .money import` in all 8 selected-map modules vs `from src.money import` in all full-source modules; helper bodies were present). Designed a closure map plus an offline sufficiency gate that would have rejected v1 before any call.
+- ملاحظة: design only, no runtime change or provider call; corrected the wrong cause in the public record, CHALLENGES and ROADMAP.
