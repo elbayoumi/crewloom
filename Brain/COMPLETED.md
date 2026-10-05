@@ -219,3 +219,19 @@
 - الأثر: an unrelated Android application (1,911 paths) that reached `main` is removed from the tree and now lives in its own private repository with history preserved; the gate rejects unregistered top-level names (known violation refused, clean tree accepted, also from an sdist-installed copy).
 - ملاحظة: the old commits stay in public Git history; no rewrite was done. Gate verified on Python 3.9 and 3.14, Docker suites and a wheel built from the sdist (30/30).
 >>>>>>> origin/main
+
+## 2026-10-05 — Rveta SMS: fixing the 10-minute background delay
+- Root cause: fast-send mode only started when the user opened the app, and Realme kills
+  WorkManager jobs when the process is killed from recents, so a dashboard-sent message
+  waited for the fallback path (~10 min).
+- Fixes: added TickerWorker (chained short one-shot jobs, since WorkManager periodic work
+  cannot run faster than 15 min) to keep the device reachable while the app is closed, and
+  made PushService persistent while the device is linked instead of self-terminating.
+  Added a user toggle "Instant background send" (default on) so the trade-off is explicit.
+- Measured on RMX3710: dashboard already open -> ~2s; dashboard opened after the app was
+  closed -> ~52s; offline queue -> flushed ~30s after the network returned.
+- Known limit: force-stop from Android Settings still blocks everything until the app is
+  opened again (platform behaviour, not a bug).
+- Also: origin/main had merged a commit that deleted the whole sms-forwarder project;
+  restored it and added .gitignore so build outputs stop being tracked. Work now lives on
+  branch rveta-sms-instant-send because main is protected.

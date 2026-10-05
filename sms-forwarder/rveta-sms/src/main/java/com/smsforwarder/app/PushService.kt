@@ -25,7 +25,18 @@ class PushService : Service() {
     companion object {
         private const val TAG = "RvetaPush"
         private const val CHANNEL = "rveta_push"
-        private const val POLL_MS = 3000L
+        private const val POLL_FAST_MS = 3000L    // dashboard open -> seconds
+        private const val POLL_SLOW_MS = 60_000L   // idle -> once a minute
+        private const val PREFS = "runtime"
+        const val KEY_FAST_SEND = "fast_send_enabled"
+
+        fun isEnabled(context: Context): Boolean =
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_FAST_SEND, true)
+
+        fun setEnabled(context: Context, enabled: Boolean) {
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_FAST_SEND, enabled).apply()
+            if (enabled) start(context) else stop(context)
+        }
 
         fun start(context: Context) {
             val intent = Intent(context, PushService::class.java)
@@ -102,32 +113,31 @@ class PushService : Service() {
     }
 
     private fun loop() {
-        var idleRounds = 0
         while (running) {
+            var wait = POLL_SLOW_MS
             try {
+                if (!isEnabled(this)) {
+                    stopSelf()
+                    return
+                }
                 val config = AppConfig(this)
                 if (config.deviceId.isBlank() || config.deviceToken.isBlank() || config.baseUrl.isBlank()) {
-                    sleep(5000)
+                    sleep(10_000)
                     continue
                 }
-                if (!dashboardOpen(config)) {
-                    idleRounds++
-                    // tolerate brief dashboard reloads before shutting down
-                    if (idleRounds >= 3) {
-                        Log.i(TAG, "no dashboard open, stopping fast-send")
-                        stopSelf()
-                        return
-                    }
-                    sleep(POLL_MS)
-                    continue
+                if (dashboardOpen(config)) {
+                    // Dashboard in use: deliver in seconds.
+                    OutboxDispatcher.dispatch(this)
+                    wait = POLL_FAST_MS
+                } else {
+                    // Idle: still deliver queued messages, just less often.
+                    OutboxDispatcher.dispatch(this)
+                    wait = POLL_SLOW_MS
                 }
-                idleRounds = 0
-                val sent = OutboxDispatcher.dispatch(this)
-                if (sent > 0) Log.i(TAG, "sent $sent message(s)")
             } catch (e: Exception) {
                 Log.w(TAG, "loop: " + e.javaClass.simpleName)
             }
-            sleep(POLL_MS)
+            sleep(wait)
         }
     }
 

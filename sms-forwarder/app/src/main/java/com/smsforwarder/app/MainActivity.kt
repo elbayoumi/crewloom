@@ -43,10 +43,16 @@ class MainActivity : AppCompatActivity() {
         binding.btnSave.setOnClickListener { saveAndRegister() }
         binding.btnRefresh.setOnClickListener { refreshStatus() }
         binding.btnTest.setOnClickListener { runTest() }
+        binding.switchFastSend.isChecked = PushService.isEnabled(this)
+        binding.switchFastSend.setOnCheckedChangeListener { _, checked ->
+            PushService.setEnabled(this, checked)
+            binding.textStatus.text = if (checked) "Instant send ON" else "Instant send OFF (battery saver)"
+        }
         binding.btnPermissions.setOnClickListener { ensureSmsPermission() }
         binding.btnBattery.setOnClickListener { openBatteryOptimization() }
 
         scheduleOutboxCheck()
+        TickerWorker.kick(this)
         refreshStatus()
         startPulse()
     }
