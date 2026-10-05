@@ -1540,7 +1540,8 @@ def require_owned_entry(root, host, record, native_event):
 
     An install that was edited after the fact is an unvetted hook source. Reporting a callback
     from it would record the project as observed by a guard this project no longer has, so the
-    refusal happens before any state is written.
+    refusal happens before any state is written. Only events this adapter installed are checked;
+    a foreign hook under another event is none of this adapter's business.
     """
     relative = record['control_relative']
     target = _no_links(root, relative)
@@ -1558,10 +1559,14 @@ def require_owned_entry(root, host, record, native_event):
         document = json.loads(target.read_text(encoding='utf-8'))
     except (OSError, ValueError) as exc:
         raise LifecycleError('The installed host control config became unreadable: ' + str(exc))
-    hooks = document.get('hooks') or {}
-    missing = sorted(event for event, groups in hooks.items()
+    # Every event this adapter installed must still carry its entry, because an emptied PreToolUse
+    # means the guard this project relies on is gone. Events the adapter never installed belong to
+    # other tools, so a foreign hook under one of them is never evidence against this install.
+    hooks = document.get('hooks')
+    hooks = hooks if isinstance(hooks, dict) else {}
+    missing = sorted(event for event in _spec(host)['stages']
                      if not any(_is_owned_group(group, record['bridge_command'])
-                                for group in groups or []))
+                                for group in hooks.get(event) or []))
     if missing:
         raise LifecycleError('The installed ' + relative + ' no longer carries this adapter\'s '
                              + key + ' hook; absent or altered events: ' + ', '.join(missing)

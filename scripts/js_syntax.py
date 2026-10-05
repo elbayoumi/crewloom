@@ -620,13 +620,18 @@ class Resolver:
             return exports if key == '.' else None
         if isinstance(exports, list):
             return None if key != '.' else self._condition(exports)
-        if (not isinstance(exports, dict)
-                or any(not isinstance(item, str) or not (item.startswith('./') or item in ('.', ''))
-                       for item in exports)):
-            # A root `exports` of bare condition names ("import", "require") declares no subpath
-            # map at all; refusing it here falls back to the package entry point instead of
-            # inventing a subpath. The bare `"."` key is the package root and is honoured.
+        if not isinstance(exports, dict) or any(not isinstance(item, str) for item in exports):
             return None
+        subpaths = [item for item in exports if item.startswith('.') or item == '']
+        if subpaths and len(subpaths) != len(exports):
+            # A map that mixes subpath keys with condition names declares neither shape, so
+            # refusing it falls back to the package entry point instead of inventing a subpath.
+            return None
+        if not subpaths:
+            # Bare condition names ("import", "require", "types") are the package root target, not
+            # a subpath map: they name what the root resolves to under each condition and declare
+            # no subpath, so they are resolved for the root and honoured for nothing else.
+            return self._condition(exports) if key == '.' else None
         if key in exports:
             return self._condition(exports[key])
         best = None

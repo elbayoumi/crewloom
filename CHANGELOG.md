@@ -19,6 +19,7 @@
 - Add a mandatory repository scope gate (`REPOSITORY_SCOPE.json`): an unregistered top-level directory or file, a foreign project ID, a missing or malformed contract and case or path collisions are refused, even when ignored. An independent application belongs in its own repository.
 - Fix OpenCode context delivery: the adapter replaced `output.system` instead of extending the host-owned array, so the hook ran but the model received nothing. Verified against a real OpenCode 1.18.32 host.
 - Record the first frozen context study honestly: Codex full-source passed all held-out checks, the selected map passed none, OpenCode produced no scored trial; no saving is claimed.
+- Address review findings: close open dashboard event streams when their session is revoked, ignore foreign hooks under events the adapter never installed, persist worker-crash outcomes with declared outputs, and resolve root conditional package exports.
 - Make the native lifecycle tests portable to hosted CI (no host binaries, case-sensitive filesystems) and verify the gate on Python 3.9 and 3.14.
 
 - `grid-safety` no longer flags fixed floors inside breakpoint-prefixed Tailwind grids that fit the breakpoint.

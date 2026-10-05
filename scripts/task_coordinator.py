@@ -1259,9 +1259,13 @@ def _execute(root, meta, state, folder, image, log, allow_host_cli=False):
                 try:
                     outcome = future.result()
                 except Exception as exc:  # a worker crash is recorded, never silently dropped
+                    # This synthesized record carries every field the update below reads, so the
+                    # crash is persisted instead of raising KeyError out of the batch loop.
+                    declared = list(state['tasks'][ident].get('declared_outputs') or [])
                     outcome = {'status': 'blocked', 'error': str(exc)[:400],
                                'started_at': None, 'ended_at': time.time(), 'duration_ms': 0,
-                               'commit': None, 'outputs': {}, 'changed': False,
+                               'commit': None, 'outputs': {}, 'declared_outputs': declared,
+                               'changed': False,
                                'checkout_id': None, 'ledger': [], 'dependencies': [],
                                'plan_sha256': None, 'criteria_sha256': None, 'state_file': None,
                                'native_host_cli': False,

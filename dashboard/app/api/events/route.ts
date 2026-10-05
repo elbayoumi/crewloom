@@ -6,6 +6,9 @@ import { RUN_LOG, PROJECT, SKILLS } from '../../../lib/repo.ts';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+/** How often an open session stream re-proves that its session is still live. */
+const SESSION_RECHECK_MS = 5000;
+
 /** Server-sent events: one `change` event per debounced filesystem change under skills/brain or the run log. */
 export async function GET(req: Request) {
   const decision = authorize(req);
@@ -19,9 +22,10 @@ export async function GET(req: Request) {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let beat: ReturnType<typeof setInterval> | undefined;
   let expiry: ReturnType<typeof setTimeout> | undefined;
+  let recheck: ReturnType<typeof setInterval> | undefined;
   const close = () => {
     watchers.forEach((w) => w.close());
-    clearTimeout(timer); clearInterval(beat); clearTimeout(expiry);
+    clearTimeout(timer); clearInterval(beat); clearTimeout(expiry); clearInterval(recheck);
   };
   const stream = new ReadableStream({
     start(controller) {
@@ -46,9 +50,13 @@ export async function GET(req: Request) {
       }
       if (open) controller.enqueue(encoder.encode(': ping\n\n'));
       // A session stream must not outlive its session: an expired or revoked cookie stops
-      // the flow instead of leaving an authenticated channel open.
+      // the flow instead of leaving an authenticated channel open. Cookie expiry alone is not
+      // enough, because a logout revokes a session long before its expiry; the decision is
+      // therefore re-proved against the server's live sessions every few seconds. Bearer
+      // automation carries no session to lose, so its stream runs until the request ends.
       if (decision.ok && decision.method === 'session' && decision.expiresAt) {
         expiry = setTimeout(end, Math.max(0, decision.expiresAt * 1000 - Date.now()));
+        recheck = setInterval(() => { if (!authorize(req).ok) end(); }, SESSION_RECHECK_MS);
       }
       send('ready', { watching: watchers.length, runLog: path.relative(PROJECT, RUN_LOG), expires_at: decision.ok ? decision.expiresAt : null });
       req.signal.addEventListener('abort', end);
