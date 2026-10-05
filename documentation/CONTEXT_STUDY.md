@@ -282,3 +282,12 @@ savings, speed or general quality.
 
 The next arm is designed in [CONTEXT_STUDY_V2_DESIGN.md](CONTEXT_STUDY_V2_DESIGN.md); it is a
 design only and changes no result above.
+
+## Study v2 status
+
+The closure map, its prompt arm, the v2 plan and the offline sufficiency gate are implemented
+and pinned by `scripts/test_study_closure_map_boundaries.py`. On the fixture the closure-map
+prompts are 11.2 to 11.5 KB against 20.8 to 20.9 KB for full source and 8.2 to 8.6 KB for the v1
+selected map, and the gate rejects the v1 selected-map prompt for all three tasks and accepts
+full-source and closure-map. These are prompt sizes and a static check, not token savings or a
+quality result: **no v2 study call has been made.**

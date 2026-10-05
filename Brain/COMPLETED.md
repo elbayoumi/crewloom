@@ -200,3 +200,8 @@
 - الملف: `documentation/CONTEXT_STUDY_V2_DESIGN.md`
 - الأثر: replaced an unverified guess with the verified cause (relative `from .money import` in all 8 selected-map modules vs `from src.money import` in all full-source modules; helper bodies were present). Designed a closure map plus an offline sufficiency gate that would have rejected v1 before any call.
 - ملاحظة: design only, no runtime change or provider call; corrected the wrong cause in the public record, CHALLENGES and ROADMAP.
+
+### 2026-10-05 — Study v2 closure map implemented behind frozen tests
+- الملف: `scripts/repo_map.py`, `scripts/evaluate_hosts.py`, `scripts/test_study_closure_map_boundaries.py`
+- الأثر: closure-map arm, v2 plan (seed 20261006, 18 Codex trials) and an offline gate that rejects the v1 selected-map prompt for all 3 tasks and accepts full-source and closure-map; prompts 11.2–11.5 KB vs 20.8–20.9 KB full source.
+- ملاحظة: 29 frozen cases pass (baseline 3/29), existing repo_map/study/Docker suites unchanged, Python 3.9 verified; no v2 provider call made, so no quality or saving claim.

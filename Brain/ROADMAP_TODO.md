@@ -126,5 +126,6 @@
 - [ ] Reconcile any selected private client only after its registered identity and current evidence are available; four audited records remain unreconciled — priority: medium.
 
 - [x] 2026-10-05: Expose the editable Crewloom CLI on the user shell PATH and verify help/tool discovery outside its checkout. Remaining foundation acceptance and publication are unchanged.
-- [ ] Build the dependency-closure map (import forms + signature lines + closure bodies) behind an offline information-sufficiency gate, then preregister study v2 — أولوية: عالية (design: documentation/CONTEXT_STUDY_V2_DESIGN.md)
+- [x] 2026-10-05: Dependency-closure map and offline sufficiency gate implemented behind frozen tests (documentation/CONTEXT_STUDY_V2_DESIGN.md)
+- [ ] Freeze study v2 inputs (prompts, models, order, digests), then run the 18-call Codex study once with no retries — أولوية: عالية
 - [ ] Re-run OpenCode study only after structured-response failures (14/18) are diagnosed — أولوية: متوسطة
