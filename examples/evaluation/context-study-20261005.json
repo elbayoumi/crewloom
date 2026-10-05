@@ -21,7 +21,7 @@
   "limits": [
     "No retries or replacements; failed provider calls are retained.",
     "Quality collapsed to zero under the selected-map condition on every scored Codex trial, so the token reduction is not a saving: no valid like-for-like comparison exists.",
-    "Likely cause (not separately verified): the selected map omits helper bodies the held-out cases depend on.",
+    "Verified cause: every scored selected-map artifact imported helpers with a relative form (from .money import) and failed with ImportError on all 11 cases, while every scored full-source artifact used the absolute form shown in other modules (from src.money import). The required helper bodies were present in both arms; the selected-map prompt carried no example of the package import form.",
     "OpenCode opencode/space-bunny-free produced no scored trial; no OpenCode conclusion.",
     "cost_usd was not reported by either host; no billing claim.",
     "Three synthetic tasks, one seed: no general claim."

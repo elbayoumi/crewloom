@@ -27,6 +27,8 @@ class JavaScriptProject(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
         git(self.root, 'init', '-q')
+        git(self.root, 'config', 'gc.auto', '0')
+        git(self.root, 'config', 'maintenance.auto', 'false')
         git(self.root, 'config', 'user.name', 'Crewloom Fixture')
         git(self.root, 'config', 'user.email', 'fixture@example.invalid')
         (self.root / 'tsconfig.json').write_text('// project alias configuration\n{\n'

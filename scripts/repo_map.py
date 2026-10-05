@@ -52,7 +52,7 @@ GENERATION_VERSION=2
 SCHEMA_VERSION=2
 # Cache keys name the exact extractor: a grammar upgrade changes the `ts-ast` revision, and
 # the approximate fallback keeps its own version so changing either one re-parses.
-PARSER_VERSIONS={'python-ast':2,'approximate-js-ts':4,'ts-ast':js_syntax.revision(),'syntax-error':2}
+PARSER_VERSIONS={'python-ast':3,'approximate-js-ts':4,'ts-ast':js_syntax.revision(),'syntax-error':2}
 JS_GRAMMAR=js_syntax.available()
 NOT_A_GIT_PROJECT='Repository map requires a Git project; initialize Git explicitly'
 NO_GIT_WORK_TREE='Repository map requires a Git project with a work tree at this root; bare repositories are unsupported'
@@ -200,6 +200,24 @@ def js_candidates(seed,spec):
     return [base+extension for extension in JS_EXTENSIONS]+[posixpath.join(base,'index'+extension) for extension in JS_EXTENSIONS]
 
 
+def source_line(lines, number):
+    """The definition's own line as written in the file, stripped; a line out of range is empty."""
+    return lines[number-1].strip() if 0 < number <= len(lines) else ''
+
+
+def docstring_line(node):
+    """The first line of a definition's docstring, stripped, or empty when it has none."""
+    doc=ast.get_docstring(node)
+    return doc.splitlines()[0].strip() if doc else ''
+
+
+def annotate_definition_lines(symbols, lines):
+    """Give a symbol without docstring syntax the same two fields, so every symbol carries them."""
+    for symbol in symbols:
+        symbol['signature']=source_line(lines,symbol['line']);symbol['doc']=''
+    return symbols
+
+
 def structure(name,text):
     """Extract bounded navigation facts; unsupported syntax stays visible as incomplete."""
     symbols=[];imports=[];notes=[];complete=True
@@ -209,9 +227,12 @@ def structure(name,text):
         except SyntaxError:
             return {'symbols':[],'imports':[],'parser':'syntax-error','symbols_truncated':0,'imports_truncated':0,
                     'notes':['python-syntax-error-not-indexed'],'complete':False}
+        lines=text.splitlines()
         for node in ast.walk(tree):
             if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef)):
-                symbols.append({'name':node.name,'line':node.lineno,'end':getattr(node,'end_lineno',None) or node.lineno,'kind':type(node).__name__})
+                symbols.append({'name':node.name,'line':node.lineno,'end':getattr(node,'end_lineno',None) or node.lineno,
+                                'kind':type(node).__name__,'signature':source_line(lines,node.lineno),
+                                'doc':docstring_line(node)})
             elif isinstance(node,ast.Import):
                 imports.append({'module':'','relative':0,'names':[alias.name for alias in node.names],'raw':'import '+', '.join(alias.name for alias in node.names)})
             elif isinstance(node,ast.ImportFrom):
@@ -223,7 +244,8 @@ def structure(name,text):
         # literals are not symbols and nested definitions are found where they are.
         parser='ts-ast'
         found=js_syntax.extract(name,text)
-        symbols=found['symbols'];imports=found['imports'];notes=found['notes']
+        symbols=annotate_definition_lines(found['symbols'],text.splitlines())
+        imports=found['imports'];notes=found['notes']
         # A syntax error, a parse-budget stop or an unfollowable module load means this file's
         # graph is a subset of the file. Carrying that through is what keeps a partial parse
         # out of the generation's `graph_complete` claim.
@@ -233,6 +255,7 @@ def structure(name,text):
         pattern=r'(?m)^\s*(?:export\s+)?(?:default\s+)?(?:async\s+)?(function|class|interface|type|const|let)\s+([\w$]+)'
         for match in re.finditer(pattern,text):
             symbols.append({'name':match[2],'line':text.count('\n',0,match.start())+1,'end':None,'kind':match[1]})
+        symbols=annotate_definition_lines(symbols,text.splitlines())
         imports=[{'module':spec,'relative':0,'names':[],'raw':spec}
                  for spec in re.findall(r'''(?:from\s*|import\s*|require\(\s*|import\(\s*)['"]([^'"\n]+)['"]''',text)]
         notes.append('js-ts-symbols-approximate-no-tree-sitter')
@@ -514,6 +537,232 @@ def render(value,query,budget=8192,seeds=()):
     return result,{'included_files':included,'omitted_files':len(files)-included,'map_bytes':len(result.encode()),
                    'seed_files':len(seeds),'missing_seed_files':missing_seeds,
                    'truncated_seed_files':sorted(truncated_seeds),'graph_complete':value.get('graph_complete',False)}
+
+
+# The five keys a closure map is measured by, in the order they are serialised and counted.
+_CLOSURE_KEYS=('import_contract','imports','closure','signatures','omitted')
+_CLOSURE_BUDGET_MIN=1024
+_CLOSURE_BUDGET_MAX=65536
+
+
+def _package_init(path):
+    """True for the `__init__` file that names a package instead of a module of its own."""
+    return path=='__init__.py' or path.endswith('/__init__.py')
+
+
+def _module_name(path):
+    """The absolute dotted module name an indexed Python path stands for; `__init__` names its package."""
+    parts=list(Path(path).with_suffix('').parts)
+    if parts and parts[-1]=='__init__':parts.pop()
+    return '.'.join(parts)
+
+
+def _dotted_modules(files):
+    """Every absolute dotted module name this index holds, resolved the way an interpreter resolves it.
+
+    A path without its `.py` suffix is the dotted name with `/` as `.`. When a plain module and a
+    package claim one name, the plain module wins, exactly as at import time, so one statement
+    never resolves to two answers.
+    """
+    names={}
+    for path in sorted(files):
+        if not path.endswith('.py'):continue
+        module=_module_name(path)
+        if not module:continue
+        if module in names and (_package_init(path) or not _package_init(names[module])):continue
+        names[module]=path
+    return names
+
+
+def _required_paths(required,files):
+    """The modules a closure map is built around: a non-empty list of indexed project-relative paths."""
+    if isinstance(required,str) or not isinstance(required,(list,tuple)):
+        raise ValueError('Required modules must be a list of project-relative paths')
+    paths=list(required)
+    if not paths:raise ValueError('A closure map needs at least one required module')
+    for path in paths:
+        if not isinstance(path,str) or path not in files:
+            raise ValueError('Required module is absent from this index: '+str(path))
+    return sorted(set(paths))
+
+
+def _module_texts(root,files):
+    """The full text of every indexed Python module, read once from the project root.
+
+    The index keeps no file text and truncates its own import list, so the closure builder reads
+    the files it needs itself. Only content is taken: no file time reaches the result.
+    """
+    import workflow as w
+    texts={}
+    for path in sorted(files):
+        if not path.endswith('.py'):continue
+        try:texts[path]=w.safe_path(root,path).read_text(encoding='utf-8')
+        except (ValueError,OSError):continue
+    return texts
+
+
+def _statement(lines,node):
+    """An import as its own source text, stripped; a statement spanning lines joins them by one space."""
+    last=getattr(node,'end_lineno',None) or node.lineno
+    return ' '.join(line.strip() for line in lines[node.lineno-1:last]).strip()
+
+
+def _intra_targets(node,path,dotted):
+    """The other indexed modules one import statement reaches, or none when it reaches outside.
+
+    A relative import is never this repository's import form, so it is not an intra-package edge
+    at all: the contract line states that convention and the statement list follows it.
+    """
+    if isinstance(node,ast.Import):modules=[alias.name for alias in node.names]
+    elif isinstance(node,ast.ImportFrom):
+        if node.level:return []
+        modules=[node.module or '']
+    else:return []
+    return sorted({dotted[name] for name in modules if name in dotted and dotted[name]!=path})
+
+
+def _intra_imports(texts,dotted):
+    """Every intra-package import in every indexed Python module, verbatim, ordered by path then line.
+
+    The whole tree is walked, so an import inside a function counts exactly like a module-level
+    one. A module Python cannot parse contributes no edge rather than a guessed one.
+    """
+    found=[]
+    for path in sorted(texts):
+        text=texts[path]
+        try:tree=ast.parse(text)
+        except SyntaxError:continue
+        lines=text.splitlines()
+        nodes=[node for node in ast.walk(tree) if isinstance(node,(ast.Import,ast.ImportFrom))]
+        for node in sorted(nodes,key=lambda item:(item.lineno,item.col_offset)):
+            targets=_intra_targets(node,path,dotted)
+            if targets:
+                found.append({'path':path,'line':node.lineno,'targets':targets,
+                              'statement':_statement(lines,node)})
+    found.sort(key=lambda item:(item['path'],item['line']))
+    return found
+
+
+def _reached(imports,required):
+    """How many intra-package import steps away each module is, breadth first from the required ones."""
+    edges={}
+    for item in imports:
+        edges.setdefault(item['path'],[]).extend(item['targets'])
+    depth={};frontier=sorted(required);step=0
+    while frontier:
+        step+=1;following=set()
+        for path in frontier:
+            for target in edges.get(path,()):
+                if target not in depth:
+                    depth[target]=step;following.add(target)
+        frontier=sorted(following)
+    return depth
+
+
+def _signature_items(path,entry):
+    """Every symbol of one indexed module as the definition line as written plus its first docstring line."""
+    symbols=sorted(entry.get('symbols',()),key=lambda item:(item['line'],item['name']))
+    return [{'path':path,'signature':symbol.get('signature',''),'doc':symbol.get('doc','')}
+            for symbol in symbols]
+
+
+def _closure_size(treatment):
+    """The byte size of the budgeted keys, measured exactly the way a caller measures the result."""
+    payload={key:treatment[key] for key in _CLOSURE_KEYS}
+    return len(json.dumps(payload,separators=(',',':'),ensure_ascii=False).encode('utf-8'))
+
+
+def _fit(treatment,key,items,budget):
+    """Add `items` to one bucket whole or not at all; False leaves the treatment exactly as it was."""
+    bucket=treatment[key];before=len(bucket)
+    bucket.extend(items)
+    if _closure_size(treatment)<=budget:return True
+    del bucket[before:]
+    return False
+
+
+def _import_contract(required):
+    """One line stating how modules in this repository import each other, derived from the required ones.
+
+    The package is read from the required modules' own dotted names, so a repository that calls its
+    package anything but `src` gets its own name here instead of a hard-coded one.
+    """
+    package=''
+    for path in required:
+        module=_module_name(path)
+        if '.' in module:package=module.split('.')[0];break
+    if not package:package=Path(required[0]).stem
+    return ('Modules in this project import each other by package path, for example `from '+package+
+            '.<module> import <name>`; relative, dot-prefixed imports are not used here.')
+
+
+def _name_cost(path):
+    """An upper bound on the bytes naming one module in a list costs: its quotes and a separator."""
+    return len(json.dumps(path,ensure_ascii=False))+1
+
+
+def _pack(budget,treatment,candidates):
+    """Fill the treatment with the richest form of each module that still fits, in the given order.
+
+    A body is tried first, its signature lines second, and a module that fits neither is named as
+    omitted. Content is spent only while every module not yet placed keeps enough room to be
+    named, so the budget can drop detail but never the fact that a module exists: the reservation
+    is the upper bound every remaining name together can cost.
+    """
+    pending=list(candidates);reserve=sum(_name_cost(path) for path,_,_ in pending)
+    while pending:
+        path,text,signatures=pending.pop(0);reserve-=_name_cost(path)
+        if text is not None and _fit(treatment,'closure',[{'path':path,'text':text}],budget-reserve):continue
+        if not signatures:continue
+        if _fit(treatment,'signatures',signatures,budget-reserve):continue
+        _fit(treatment,'omitted',[path],budget)
+    treatment['omitted'].sort()
+
+
+def _signature_order(files):
+    """Sort key presenting the signature lines by path, and in source order inside each module."""
+    lines={}
+    for path in sorted(files):
+        for symbol in sorted(files[path].get('symbols',()),key=lambda item:(item['line'],item['name'])):
+            lines.setdefault((path,symbol.get('signature','')),symbol['line'])
+    return lambda item:(item['path'],lines.get((item['path'],item['signature']),0))
+
+
+def closure_context(project,value,required,budget):
+    """A bounded context for writing a new module beside `required`, in this order of priority.
+
+    It carries the repository's own package import contract, every intra-package import statement
+    verbatim with the file it appears in, the full text of the modules the required ones import,
+    transitively, and finally the signature lines of everything else that has symbols. Only
+    Python modules take part in the import and closure walk; signature lines come from the index,
+    so a JavaScript or TypeScript module is represented by its definitions alone.
+
+    The contract and the imports are mandatory: a budget that cannot hold them is refused rather
+    than satisfied with a truncated statement list. Everything else is all-or-nothing per module,
+    and a module the budget cannot represent is named in `omitted`. The same index and the same
+    files always produce the same bytes; no file time or unsorted input order is consulted.
+    """
+    if type(budget) is not int or not _CLOSURE_BUDGET_MIN<=budget<=_CLOSURE_BUDGET_MAX:
+        raise ValueError('Closure budget must be 1024..65536 bytes')
+    root=Path(project).resolve();files=value['files']
+    required=_required_paths(required,files)
+    texts=_module_texts(root,files)
+    imports=_intra_imports(texts,_dotted_modules(files))
+    treatment={'import_contract':_import_contract(required),
+               'imports':[{'path':item['path'],'statement':item['statement']} for item in imports],
+               'closure':[],'signatures':[],'omitted':[]}
+    if _closure_size(treatment)>budget:
+        raise ValueError('Closure budget cannot hold the import contract and every intra-package import')
+    depth=_reached(imports,required)
+    # The modules the required ones import come first, nearest first, and a body that will not fit
+    # degrades to signature lines exactly as it would for any other module.
+    _pack(budget,treatment,[(path,texts.get(path),_signature_items(path,files[path]))
+                            for path in sorted(depth,key=lambda name:(depth[name],name))])
+    placed={item['path'] for item in treatment['closure']}|{item['path'] for item in treatment['signatures']}
+    _pack(budget,treatment,[(path,None,_signature_items(path,files[path])) for path in sorted(files)
+                            if path not in placed|set(required) and files[path].get('symbols')])
+    treatment['signatures'].sort(key=_signature_order(files))
+    return dict(treatment,bytes=_closure_size(treatment))
 
 
 def main(argv=None):

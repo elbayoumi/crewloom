@@ -164,6 +164,8 @@ class CoordinatorFixture(unittest.TestCase):
     @classmethod
     def _build(cls, root):
         cls._git(root, 'init', '-q')
+        cls._git(root, 'config', 'gc.auto', '0')
+        cls._git(root, 'config', 'maintenance.auto', 'false')
         cls._git(root, 'config', 'user.name', 'Coordinator fixture')
         cls._git(root, 'config', 'user.email', 'fixture@example.invalid')
         # The catalog role a plan names is resolved from the installed library, not from this
@@ -541,6 +543,8 @@ class ModelWorkflowFixture(CoordinatorFixture):
     @classmethod
     def _build(cls, root):
         cls._git(root, 'init', '-q')
+        cls._git(root, 'config', 'gc.auto', '0')
+        cls._git(root, 'config', 'maintenance.auto', 'false')
         cls._git(root, 'config', 'user.name', 'Coordinator fixture')
         cls._git(root, 'config', 'user.email', 'fixture@example.invalid')
         config = pb.default_config('coordinator-fixture', 'observe')

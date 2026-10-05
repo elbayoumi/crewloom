@@ -68,6 +68,8 @@ class Fixture(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
         self.git('init', '-q')
+        self.git('config', 'gc.auto', '0')
+        self.git('config', 'maintenance.auto', 'false')
         self.git('config', 'user.name', 'Native lifecycle fixture')
         self.git('config', 'user.email', 'fixture@example.invalid')
         installed, errors = crewloom.install_skills(self.root, 'agents', [ROLE], False)

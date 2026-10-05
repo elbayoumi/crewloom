@@ -8,8 +8,10 @@ never enter a prompt, and reports the actual measured numbers instead of a
 superiority claim.
 """
 import argparse
+import ast
 import json
 import os
+import re
 import shutil
 import statistics
 import subprocess
@@ -120,8 +122,17 @@ STUDY_HOSTS=('codex','opencode')
 # a reported one.
 FROZEN_MODELS={'codex':'gpt-6-sol','opencode':'opencode/space-bunny-free'}
 CONDITIONS=('full-source','selected-map')
+# The v2 arms. The first is v1's own full-source arm, kept byte-identical so the two runs can be
+# compared; v1 `selected-map` is not rerun, so it stays in `CONDITIONS` and out of this tuple.
+CONDITIONS_V2=('full-source','closure-map')
+# The closure treatment's budgeted keys, in the order the builder serialises and counts them.
+CLOSURE_KEYS=('import_contract','imports','closure','signatures','omitted')
 STUDY_REPEATS=3
 STUDY_SEED=20261004
+# The v2 preregistration's own seed, frozen before the first v2 call exactly as the v1 seed was.
+# The arms differ, so reusing the v1 seed would not reproduce the v1 order and would hide which
+# of the two changes moved a trial.
+STUDY_V2_SEED=20261006
 MAP_BUDGET_BYTES=6144
 GRADE_TIMEOUT=60
 # Identical in both conditions. The treatment is navigation versus source, never a
@@ -296,6 +307,18 @@ def study_navigation(project, query, seeds):
                  'duration_ms':stats['duration_ms'],'selection':selection}
 
 
+def study_closure(project, helper):
+    """The bounded dependency closure of the required helper over the same indexed project.
+
+    The index and the byte budget are the ones the v1 map used, so the closure arm and the v1
+    arm are bounded by the same number, and the required module is the single path the walk
+    starts from.
+    """
+    if project is None:raise ValueError('The closure-map condition needs an indexed project root')
+    value,_stats=repo_map.build(project)
+    return repo_map.closure_context(project,value,[helper],MAP_BUDGET_BYTES)
+
+
 def study_module_body(root, name):
     path=Path(root)/name
     if not path.is_file() or path.is_symlink():raise ValueError('Study fixture module is missing: '+name)
@@ -307,14 +330,15 @@ def study_module_body(root, name):
 def study_prompt(task, condition, project=None, fixture=None):
     """The exact prompt for one task and one treatment.
 
-    Both conditions carry byte-identical mandatory content: the contract, the
+    All conditions carry byte-identical mandatory content: the contract, the
     rules, the acceptance criteria, the declared output and the complete body of
-    the REQUIRED helper, plus the same inventory digest. The only difference is
-    the additional treatment - every remaining module's full source, or a bounded
-    navigation map over the same project. Nothing is padded and nothing is
-    trimmed to manufacture a difference.
+    the REQUIRED helper, plus the same inventory digest. Only the additional
+    treatment differs - every remaining module's full source, a bounded navigation
+    map, or the bounded dependency closure of the required helper. Nothing is
+    padded and nothing is trimmed to manufacture a difference.
     """
-    if condition not in CONDITIONS:raise ValueError('Unknown study condition: '+str(condition))
+    if condition not in CONDITIONS and condition not in CONDITIONS_V2:
+        raise ValueError('Unknown study condition: '+str(condition))
     declaration=TASK_SOURCES[task['id']]
     fixture=Path(fixture or study_fixture_root()).resolve()
     modules=study_modules(fixture)
@@ -339,6 +363,13 @@ def study_prompt(task, condition, project=None, fixture=None):
                             'bytes':entry['bytes'],'text':entry['text']})
         payload['treatment']={'mode':'full-source','note':'Complete source of every remaining fixture module.',
                               'source_bytes':sum(item['bytes'] for item in sources),'sources':sources}
+    elif condition=='closure-map':
+        closure=study_closure(project,declaration['helper'])
+        payload['treatment']={'mode':'closure-map',
+            'note':'Definitions, the package import form and the closure bodies of the required '
+                   'helper, not executed evidence.',
+            **{key:closure[key] for key in CLOSURE_KEYS},
+            'closure_bytes':closure['bytes']}
     else:
         text,navigation=study_navigation(project,declaration['query'],[declaration['helper']])
         payload['treatment']={'mode':'selected-map',
@@ -365,6 +396,151 @@ def study_plan(hosts, repeats=STUDY_REPEATS, seed=STUDY_SEED, contracts=None):
             for repeat in range(1,repeats+1)]
     random.Random(seed).shuffle(trials)
     return trials
+
+
+def study_plan_v2(hosts, repeats=STUDY_REPEATS, seed=STUDY_V2_SEED, contracts=None):
+    """The v2 balanced paired order, frozen by its own seed before the first provider call.
+
+    The same validation, the same balance and the same trial shape as `study_plan`, over the v2
+    arms. v1 `selected-map` is not rerun, so a v2 plan is never a v1 plan under a new seed: the
+    arms, the seed and therefore the order all differ, and the two runs stay comparable only
+    through the arms they share.
+    """
+    contracts=study_contracts() if contracts is None else contracts
+    if not hosts or len(set(hosts))!=len(hosts) or any(item not in STUDY_HOSTS for item in hosts):
+        raise ValueError('Choose unique codex/opencode hosts')
+    if type(repeats) is not int or not 1<=repeats<=20:raise ValueError('Repeats must be from 1 to 20')
+    trials=[{'host':name,'task':task['id'],'condition':condition,'repeat':repeat}
+            for name in hosts for task in contracts['tasks'] for condition in CONDITIONS_V2
+            for repeat in range(1,repeats+1)]
+    random.Random(seed).shuffle(trials)
+    return trials
+
+
+# One absolute import statement as a repository writes it: `from src.money import total_of` or
+# `import src.money`. A dot-prefixed statement cannot match, which is the whole point.
+ABSOLUTE_IMPORT=re.compile(r'^(?:from\s+([\w.]+)\s+import\b|import\s+([\w.]+)\b)')
+# The name one definition line introduces: `def`, `async def` or `class`, exactly as the index
+# records it, stripped and never indented.
+DEFINED_NAME=re.compile(r'^(?:async\s+def|def|class)\s+([A-Za-z_]\w*)')
+
+
+def _study_package(modules):
+    """The package the fixture's own modules live in, derived from their paths and never assumed."""
+    for name in sorted(modules):
+        parts=Path(name).parts
+        if len(parts)>1:return parts[0]
+    return ''
+
+
+def _defined_names(text):
+    """The module-level names one source text defines: functions, classes and assignments.
+
+    An import inside a text binds a name rather than defining one, so it is not counted here; the
+    gate asks whether a symbol is implemented, not merely named somewhere in the prompt.
+    """
+    try:tree=ast.parse(text)
+    except (SyntaxError,TypeError,ValueError):return set()
+    names=set()
+    for node in tree.body:
+        if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef)):names.add(node.name)
+        elif isinstance(node,(ast.Assign,ast.AnnAssign,ast.AugAssign)):
+            for target in (node.targets if isinstance(node,ast.Assign) else [node.target]):
+                if isinstance(target,ast.Name):names.add(target.id)
+    return names
+
+
+def _prompt_evidence(payload):
+    """What one prompt actually states: the full texts it carries, the imports it names, the names it defines.
+
+    A module supplied in full is evidence of the repository's import form as well as of its
+    definitions, because the statement that uses the form is written inside it. That is the one
+    thing the v1 selected-map prompt never showed: symbol names, with no import statement anywhere.
+    """
+    treatment=payload.get('treatment') or {}
+    bodies=[entry.get('text','') for entry in payload.get('required_bodies',())]
+    for key in ('sources','closure'):bodies+=[entry.get('text','') for entry in treatment.get(key,())]
+    lines=[entry.get('statement','') for entry in treatment.get('imports',())]
+    lines+=[line for text in bodies for line in text.splitlines()]
+    names=set()
+    for text in bodies:names|=_defined_names(text)
+    for entry in treatment.get('signatures',()):
+        found=DEFINED_NAME.match((entry.get('signature') or '').strip())
+        if found:names.add(found.group(1))
+    return lines,treatment.get('import_contract') or '',names
+
+
+def _shows_import_form(module,lines,contract,package):
+    """Whether this prompt states the absolute package import form `module` has to be written with.
+
+    A verbatim intra-package statement naming that same module states the form exactly, and the
+    closure-map contract states it once for every module of the package. Nothing else counts: a
+    navigation line names a symbol, never the way modules are imported.
+    """
+    for line in lines:
+        found=ABSOLUTE_IMPORT.match(line.strip())
+        if found and (found.group(1) or found.group(2))==module:return True
+    return bool(contract) and package+'.' in contract
+
+
+def _reference_imports(tree):
+    """Every import in the reference, in source order, as (statement, module, imported names).
+
+    A relative import carries `None` for its module: it names no absolute form at all. `import
+    src.money` binds a module rather than importing a name, so its name list is empty. A star
+    import names nothing specific, so it constrains nothing.
+    """
+    nodes=[node for node in ast.walk(tree) if isinstance(node,(ast.Import,ast.ImportFrom))]
+    for node in sorted(nodes,key=lambda item:(item.lineno,item.col_offset)):
+        if isinstance(node,ast.Import):
+            for alias in node.names:yield ast.unparse(node),alias.name,[]
+        else:yield ast.unparse(node),(None if node.level else node.module or ''),[alias.name for alias in node.names]
+
+
+def _gate_missing(tree,task,condition,project,fixture):
+    """What the prompt for this arm fails to state for the reference, read from the real prompt."""
+    prompt,_built=study_prompt(task,condition,project,fixture)
+    payload=json.loads(prompt[len(STUDY_PREAMBLE):])
+    package=_study_package(study_modules(fixture))
+    lines,contract,names=_prompt_evidence(payload)
+    missing=[]
+    for statement,module,imported in _reference_imports(tree):
+        if module is None:
+            missing.append('relative import is never the repository form: '+statement);continue
+        # A standard-library or any other outside package is an external dependency, not a fact
+        # this prompt has to carry: only the fixture's own package can be missing from it.
+        if not module or module.split('.')[0]!=package:continue
+        if not _shows_import_form(module,lines,contract,package):
+            missing.append('the absolute package import form is not shown for '+module+
+                           ': no verbatim intra-package statement and no import contract name it')
+        missing.extend('the imported name is defined nowhere in this prompt: '+module+'.'+name
+                       for name in imported if name!='*' and name not in names)
+    return missing
+
+
+def study_sufficiency(task, condition, reference_text, project=None, fixture=None):
+    """Offline check that one arm's prompt carries everything the frozen reference imports.
+
+    A necessary condition for a fair arm, not a claim that a model succeeds: a reference that
+    imports a form or a name this prompt never states could not have been written from this
+    prompt at all. The v1 selected-map arm scored 0/11 for exactly that reason and it cost 36
+    provider calls to find out; this runs on the real prompt and the real reference, in
+    milliseconds, before any call, and reads the project without ever writing to it.
+    """
+    if condition not in CONDITIONS+('closure-map',):
+        raise ValueError('Unknown study condition: '+str(condition))
+    try:tree=ast.parse(reference_text)
+    except (SyntaxError,TypeError,ValueError) as exc:
+        raise ValueError('Frozen reference is not parsable Python: '+str(exc)) from exc
+    fixture=Path(fixture or study_fixture_root()).resolve()
+    if project is None:
+        # A disposable project inside a temporary directory and nowhere else, so a caller with no
+        # indexed root of its own still reads the real prompt instead of an approximation of it.
+        with tempfile.TemporaryDirectory(prefix='crewloom-study-gate-') as folder:
+            missing=_gate_missing(tree,task,condition,
+                                  materialize_project(Path(folder)/'project',fixture),fixture)
+    else:missing=_gate_missing(tree,task,condition,project,fixture)
+    return {'sufficient':not missing,'missing':missing}
 
 
 def _stage_filesystem(stage, outside, kind):

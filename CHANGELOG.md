@@ -20,6 +20,7 @@
 - Fix OpenCode context delivery: the adapter replaced `output.system` instead of extending the host-owned array, so the hook ran but the model received nothing. Verified against a real OpenCode 1.18.32 host.
 - Record the first frozen context study honestly: Codex full-source passed all held-out checks, the selected map passed none, OpenCode produced no scored trial; no saving is claimed.
 - Address review findings: close open dashboard event streams when their session is revoked, ignore foreign hooks under events the adapter never installed, persist worker-crash outcomes with declared outputs, and resolve root conditional package exports.
+- Add the study v2 dependency-closure map (`repo_map.closure_context`, `closure-map` prompt arm, `study_plan_v2`) and an offline sufficiency gate that rejects the v1 selected-map prompts before any provider call. No v2 study has been run.
 - Make the native lifecycle tests portable to hosted CI (no host binaries, case-sensitive filesystems) and verify the gate on Python 3.9 and 3.14.
 
 - `grid-safety` no longer flags fixed floors inside breakpoint-prefixed Tailwind grids that fit the breakpoint.
