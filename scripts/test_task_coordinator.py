@@ -228,7 +228,10 @@ class CoordinatorFixture(unittest.TestCase):
     def snapshot(self):
         return {str(path.relative_to(self.root)): (
             hashlib.sha256(path.read_bytes()).hexdigest(), path.stat().st_mode, path.stat().st_mtime_ns)
-            for path in self.root.rglob('*') if path.is_file() and not path.is_symlink()}
+            for path in self.root.rglob('*') if path.is_file() and not path.is_symlink()
+            # Git's own background maintenance may add object-store files while a test runs; refs,
+            # the index, HEAD and every working file stay compared, so a coordinator write still shows.
+            and path.relative_to(self.root).parts[:2] != ('.git', 'objects')}
 
     def cli(self, action, project_id='coordinator-fixture', *extra):
         return subprocess.run([sys.executable, str(SOURCE / 'crewloom.py'), 'coordinator', action,
