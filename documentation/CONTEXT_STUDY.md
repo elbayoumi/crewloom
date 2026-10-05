@@ -305,3 +305,8 @@ the frozen references and stops with an error when any arm is short of what its 
 imports. `protocol.json` additionally records the gate result, the SHA256 of each reference and
 the SHA256 of `scripts/repo_map.py` (the map generator). Failures stay in the denominators; no
 trial is retried or replaced. `--study` still runs v1, and passing both flags is refused.
+
+After the last trial the runner recomputes every frozen input (fixture modules, helpers, the prompt
+files on disk, grader, transport, executor, map generator and references) and writes
+`verification.json`. If anything changed while the study ran, it raises an error naming every
+changed item and publishes no `report.json`; `results.json` keeps the trials already measured.

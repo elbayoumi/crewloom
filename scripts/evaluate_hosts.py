@@ -165,6 +165,11 @@ STUDY_LIMITS=('Three small synthetic development tasks over one nine-module fixt
  'An installed CLI host is a native host exception, not an OS sandbox.',
  'Provider cost is reported only as the provider actually reported it; absent stays null.',
  'Claude is absent because its local login is unavailable; its absence is not a measured result.')
+# The one caveat that names an arm. `STUDY_LIMITS` is the frozen v1 list and is never edited, so a
+# record that measured a different arm gets this entry substituted rather than a frozen constant
+# changed; `study_limits` does exactly that and nothing else.
+COMPARISON_LIMIT_V1='Full-source versus selected-map is a paired comparison inside this repository only.'
+COMPARISON_LIMIT_V2='Full-source versus closure-map is a paired comparison inside this repository only.'
 TASK_SOURCES={
     'invoice-summary':{'helper':'src/money.py',
         'support':['src/__init__.py','src/money.py','src/invoicing.py'],
@@ -572,6 +577,21 @@ def study_sufficiency(task, condition, reference_text, project=None, fixture=Non
     return {'sufficient':not missing,'missing':missing}
 
 
+def study_limits(protocol_version):
+    """The study's own caveats, worded for the arms this run actually measures.
+
+    v1 returns the frozen list unchanged, so the v1 record keeps the exact limits the frozen run
+    wrote. v2 does not rerun `selected-map`, so a v2 record that kept that entry would describe an
+    arm its own results never contain; only that one entry is replaced and every other caveat is
+    kept verbatim, including the ones that hold equally for both protocols. `STUDY_LIMITS` itself
+    is not edited, so the frozen v1 wording stays readable as the v1 record.
+    """
+    if protocol_version not in STUDY_PROTOCOL_VERSIONS:
+        raise ValueError('Unknown study protocol version: '+str(protocol_version))
+    if protocol_version=='v1':return list(STUDY_LIMITS)
+    return [COMPARISON_LIMIT_V2 if limit==COMPARISON_LIMIT_V1 else limit for limit in STUDY_LIMITS]
+
+
 def _stage_filesystem(stage, outside, kind):
     """Build the declared case fixture, only inside the disposable stage."""
     (stage/'src').mkdir(parents=True,exist_ok=True)
@@ -816,6 +836,98 @@ def _trial_record(trial, order, seed):
     return record
 
 
+def _frozen_bytes_digest(path):
+    """The digest of a module file, or `None` when the bytes are gone.
+
+    A run that refuses itself must still finish looking: a checkout edited or deleted mid-run is
+    exactly the case this handles, so an unreadable input is reported as a difference rather than
+    raised out of the verification itself.
+    """
+    try:return w.digest(Path(path).read_bytes())
+    except OSError:return None
+
+
+def _frozen_text_digest(path):
+    """The digest of a text file exactly as `study_references` reads it, or `None` when it is gone."""
+    try:return w.digest(Path(path).read_text(encoding='utf-8').encode())
+    except (OSError,UnicodeDecodeError):return None
+
+
+def _verify_frozen_inputs(destination,frozen,fixture,contracts,protocol_version,
+                          references=None,supplied_references=False):
+    """Recompute every frozen input after the last trial and return `(names, mismatches)`.
+
+    `protocol.json` claims the digests this run was measured against, but a study re-reads its
+    fixture, its prompt files and its grader for every trial, so a checkout edited or updated while
+    it runs would leave that record describing bytes the graded trials never saw and the report
+    would present them as one measurement. Every input the record froze is therefore computed once
+    more here, after the last trial, and compared with what was frozen.
+
+    Every checked item is named in `names` whether or not it moved, so the record shows what was
+    covered and not only what failed, and every mismatch is collected rather than returned on the
+    first: one edited checkout usually moves several digests at once, and a run that reported only
+    the first would invite a second run against the same difference. Each item is named by its key
+    plus, where there is one, the path it describes, so a reader can find the bytes.
+    """
+    names=[]
+    mismatches=[]
+
+    def check(item,recorded,actual):
+        names.append(item)
+        if recorded!=actual:mismatches.append(item)
+
+    def module_sha256(name):
+        try:return study_module_body(fixture,name)[1]['sha256']
+        except (OSError,ValueError):return None
+
+    frozen_modules=frozen['fixture_modules']
+    modules=study_modules(fixture)
+    check('fixture_modules',frozen_modules,modules)
+    if frozen_modules!=modules:
+        # The inventory itself moved, so name every module that is no longer indexed and every
+        # module that appeared: an added or a removed file is a difference in what the run read.
+        for name in frozen_modules:
+            if name not in modules:mismatches.append('fixture_modules:'+name)
+        for name in modules:
+            if name not in frozen_modules:mismatches.append('fixture_modules:'+name)
+    for name in frozen_modules:
+        check('fixture_sha256:'+name,frozen['fixture_sha256'].get(name),module_sha256(name))
+    for task in contracts['tasks']:
+        helper=TASK_SOURCES[task['id']]['helper']
+        check('helper_sha256:'+helper,frozen['helper_sha256'].get(task['id']),module_sha256(helper))
+    # Read back from the destination, not from the built prompts: the files a reader can open are
+    # the ones the record has to describe, and they are the only copy that lives outside memory.
+    for task in contracts['tasks']:
+        for condition in frozen['conditions']:
+            written='prompt-%s-%s.txt' % (task['id'],condition)
+            check('prompt_sha256:'+written,
+                  (frozen['prompt_sha256'].get(task['id']) or {}).get(condition),
+                  _frozen_text_digest(Path(destination)/written))
+    check('contracts_sha256',frozen['contracts_sha256'],
+          _frozen_bytes_digest(Path(w.LIBRARY)/frozen['contracts_relative']))
+    check('grader_sha256',frozen['grader_sha256'],_frozen_bytes_digest(Path(__file__)))
+    check('transport_sha256',frozen['transport_sha256'],_frozen_bytes_digest(host.__file__))
+    check('executor_sha256',frozen['executor_sha256'],_frozen_bytes_digest(w.__file__))
+    check('image_module_sha256',frozen['image_module_sha256'],_frozen_bytes_digest(grader.__file__))
+    check('harness_sha256:probe',frozen['harness_sha256'].get('probe'),w.digest(PROBE.encode()))
+    check('harness_sha256:runner',frozen['harness_sha256'].get('runner'),w.digest(RUNNER.encode()))
+    if protocol_version=='v2':
+        # The two inputs only a v2 run freezes. The references are compared against the caller's
+        # own texts when it supplied them, since those are the bytes the gate actually read, and
+        # against the packaged files otherwise.
+        check('map_generator_sha256',frozen['map_generator_sha256'],
+              _frozen_bytes_digest(repo_map.__file__))
+        for task in contracts['tasks']:
+            if supplied_references:
+                reference=(references or {}).get(task['output'])
+                actual=w.digest(reference.encode()) if isinstance(reference,str) else None
+            else:
+                actual=_frozen_text_digest(
+                    Path(w.LIBRARY)/REFERENCES_RELATIVE/Path(task['output']).name)
+            check('references_sha256:'+task['id'],frozen['references_sha256'].get(task['id']),actual)
+    return names,mismatches
+
+
 def collect_study(destination, hosts, models=None, repeats=STUDY_REPEATS, seed=None,
                   image=w.DEFAULT_IMAGE, timeout=300, contracts=None, fixture=None, case_runs=1,
                   protocol_version='v1', references=None):
@@ -835,6 +947,11 @@ def collect_study(destination, hosts, models=None, repeats=STUDY_REPEATS, seed=N
     closure-map arm under its preregistered seed, refuses to start while any arm is short of what
     its frozen reference imports, and freezes the references and the map generator with the run.
     An unknown version is refused before anything at all is written or called.
+
+    After the last trial every frozen input is recomputed and compared with what the record claims,
+    and the verdict is always written as `verification.json`. A mismatch raises `ValueError` and no
+    `report.json` is written: the trials stay in `results.json`, but a report published over inputs
+    that moved mid-run is not a measurement.
     """
     if protocol_version not in STUDY_PROTOCOL_VERSIONS:
         raise ValueError('Unknown study protocol version: '+str(protocol_version)+
@@ -857,6 +974,7 @@ def collect_study(destination, hosts, models=None, repeats=STUDY_REPEATS, seed=N
     tasks={task['id']:task for task in contracts['tasks']}
     built={}
     sufficiency={}
+    supplied_references=references is not None
     with tempfile.TemporaryDirectory(prefix='crewloom-study-project-') as folder:
         project=materialize_project(Path(folder)/'project',fixture)
         for task in contracts['tasks']:
@@ -909,7 +1027,7 @@ def collect_study(destination, hosts, models=None, repeats=STUDY_REPEATS, seed=N
         'context_bytes':{task['id']:{condition:built[(task['id'],condition)][1]['context_bytes']
                                      for condition in conditions} for task in contracts['tasks']},
         'trial_order':trials,'case_runs':case_runs,'quality_limits':contracts['quality_limits'],
-        'limits':list(STUDY_LIMITS)+list(contracts['quality_limits'])}
+        'limits':study_limits(protocol_version)+list(contracts['quality_limits'])}
     if protocol_version=='v2':
         # The v2 inputs the design asks to freeze before the first call: what the gate was
         # measured against, and the generator that produced the closure arm. v1 keeps neither,
@@ -982,6 +1100,19 @@ def collect_study(destination, hosts, models=None, repeats=STUDY_REPEATS, seed=N
                                  'prompt':'prompt-'+trial['task']+'-'+trial['condition']+'.txt',
                                  'grade':record['submission']+'/grade.json'}
         results.append(record);_write_results(destination,results)
+    # The run has re-read every input it froze once per trial, so the record is verified against
+    # the bytes as they stand now before anything is published from them. The verdict is written
+    # either way, because a refused run still has to show what it checked and what it found.
+    names,mismatches=_verify_frozen_inputs(destination,frozen,fixture,contracts,protocol_version,
+                                           references,supplied_references)
+    (destination/'verification.json').write_text(json.dumps(
+        {'verified':not mismatches,'mismatches':mismatches,'names':names,'checked':len(names)},
+        ensure_ascii=False,indent=2),encoding='utf-8')
+    if mismatches:
+        # The trials stay on disk as `results.json`; only the summary they would be published in is
+        # withheld, because a report built on inputs that moved mid-run is not a measurement.
+        raise ValueError('Frozen inputs changed during the run; no report was written. '
+                         +' | '.join(mismatches))
     report={'protocol':frozen,'results':results,
             'groups':_study_groups(results,hosts,tasks,repeats,conditions),
             'pairs':_study_pairs(results,hosts,tasks,'full-source',treatment)}

@@ -210,3 +210,8 @@
 - الملف: `scripts/evaluate_hosts.py`, `examples/context-study/grader/references/`, `scripts/test_study_v2_runner_boundaries.py`
 - الأثر: `--study-v2` runs the 18-call closure-map study with a pre-call sufficiency gate and frozen references; v1 record unchanged. A gate failure creates no directory and makes no call.
 - ملاحظة: 21 frozen cases pass (baseline 2/21); no v2 provider call made yet.
+
+### 2026-10-06 — Post-run verification of frozen study inputs
+- الملف: `scripts/evaluate_hosts.py`, `scripts/test_study_v2_verification_boundaries.py`
+- الأثر: closes review gap P1 — every frozen digest is recomputed after the last trial, a mismatch refuses the report and is named; v2 limits no longer describe the v1 arm (P2).
+- ملاحظة: 11 frozen cases pass (baseline 2/11); v1 limits and record unchanged; Docker suites unchanged.
