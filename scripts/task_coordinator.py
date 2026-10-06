@@ -42,6 +42,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+import admission
 import execution_policy
 import project_binding as pb
 import repo_map
@@ -60,7 +61,7 @@ COORDINATOR_RESERVATION = '.crewloom/active_coordinator.json'
 INTEGRATION_TASK = 'integration'
 
 PLAN_KEYS = frozenset({'schema_version', 'id', 'language', 'project_id', 'base', 'workers',
-                       'tasks', 'integration'})
+                       'tasks', 'integration', 'budget'})
 TASK_KEYS = frozenset({'id', 'workflow', 'depends_on', 'native_host_cli'})
 INTEGRATION_KEYS = frozenset({'workflow', 'native_host_cli'})
 CONTROL_FILES = frozenset(['.gitignore', 'crewloom.project.json', *pb.INSTRUCTION_FILES])
@@ -535,6 +536,10 @@ def _check_structure(plan, root, project_id):
         raise CoordinatorError('Unknown manifest fields: ' + ', '.join(sorted(unknown)))
     if not isinstance(plan.get('base'), str) or not plan['base']:
         raise CoordinatorError('Manifest needs an explicit base ref')
+    try:
+        admission.validate_limits(plan.get('budget'))
+    except admission.AdmissionError as exc:
+        raise CoordinatorError('Manifest budget: ' + str(exc))
     workers = plan.get('workers', DEFAULT_WORKERS)
     if type(workers) is not int or not 1 <= workers <= MAX_WORKERS:
         raise CoordinatorError('Manifest workers must be an integer from 1 to ' + str(MAX_WORKERS))
@@ -1134,7 +1139,8 @@ def _execute_task(root, meta, state, ident, image, log, allow_host_cli=False):
             outcome['plan_sha256'] = fingerprint
             outcome['criteria_sha256'] = criteria_sha
             log('task.started', task=ident, workflow=plan['id'], dependencies=dependencies)
-            w.run(path, plan, fingerprint, image, allow_host_cli=native)
+            with admission.context(_coordinator_folder(root, state['batch']), ident):
+                w.run(path, plan, fingerprint, image, allow_host_cli=native)
             verified = _verify_execution(meta, ident, path, plan, fingerprint, criteria_sha)
             head, changed = _commit_outputs(path, _branch(state['batch'], ident),
                                             verified['declared_outputs'])
@@ -1211,6 +1217,8 @@ def _cancel_requested(root, batch):
 
 def _apply_cancellation(root, state, folder, log, reason):
     """Stop future dispatch, keep verified work, and never integrate a cancelled batch again."""
+    admission.cancel_queued(folder)
+    log('admission.cancelled', stopped=admission.terminate_owned(folder))
     for record in state['tasks'].values():
         if record['status'] in ('pending', 'running', 'failed', 'blocked'):
             record['status'] = 'cancelled'
@@ -1253,12 +1261,23 @@ def _execute(root, meta, state, folder, image, log, allow_host_cli=False):
     state['error'] = None
     _save_state(folder, state)
     _reserve(root, meta, state)
+    admission.configure(folder, state['batch'], meta['plan'].get('budget'))
+    recovered = admission.recover(folder)
+    if recovered['orphaned_requests'] or recovered['stopped']:
+        log('admission.recovered', orphaned_requests=recovered['orphaned_requests'],
+            stopped=recovered['stopped'])
     workers = max(1, min(MAX_WORKERS, int(state.get('workers') or meta['workers'])))
     verified = {ident for ident, record in state['tasks'].items() if record['status'] == 'verified'}
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers,
                                                 thread_name_prefix='crewloom-coordinator') as pool:
         futures = {}
+        stopped_owned = False
         while True:
+            if _cancel_requested(root, state['batch']) and not stopped_owned:
+                stopped_owned = True
+                queued = admission.cancel_queued(folder)
+                stopped = admission.terminate_owned(folder)
+                log('admission.cancelled', queued=queued, stopped=stopped)
             if not _cancel_requested(root, state['batch']):
                 for ident in list(pending):
                     if len(futures) >= workers:
@@ -1505,7 +1524,10 @@ def cancel(root, manifest, project_id, reason='operator request'):
         _write_private(folder / 'cancel.request',
                        canonical({'at': now(), 'reason': str(reason)[:200], 'batch': batch}),
                        MAX_STATE_BYTES)
-        return {'status': 'cancellation_requested', 'batch': batch, 'drained': False,
+        queued = admission.cancel_queued(folder)
+        stopped = admission.terminate_owned(folder)
+        log('admission.cancelled', queued=queued, stopped=stopped)
+        return {'status': 'cancellation_requested', 'stopped_owned': stopped, 'batch': batch, 'drained': False,
                 'running': sorted(ident for ident, record in state['tasks'].items()
                                   if record['status'] == 'running'),
                 'instruction': 'A live controller owns this batch. It stops dispatching, lets '
@@ -1854,6 +1876,7 @@ def _report(meta, state, folder, resumed):
             'publication': state.get('publication'), 'cancellation': state.get('cancellation'),
             'controller': state.get('controller'),
             'controller_live': _controller_is_live(folder),
+            'admission': admission.summary(folder),
             'state_file': str(folder / 'state.json'), 'events': str(folder / 'events.jsonl'),
             'events_truncated': bool(state.get('events_truncated')),
             'worktrees_root': str(meta['root'] / state['worktrees_root']), 'resumed': bool(resumed),

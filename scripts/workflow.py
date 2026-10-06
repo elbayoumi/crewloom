@@ -597,6 +597,23 @@ def inspect_image(image):
     return result.stdout.strip()
 
 
+def _track(kind, ident, pid=None):
+    """Record a batch-owned process/container when running inside a coordinated batch; never fatal."""
+    try:
+        import admission
+        admission.track_current(kind, ident, pid)
+    except Exception:
+        pass
+
+
+def _untrack(kind, ident):
+    try:
+        import admission
+        admission.untrack_current(kind, ident)
+    except Exception:
+        pass
+
+
 def docker_execute(root, argv, image_id, timeout, writable=None):
     """Only project mounted; runtime state hidden; image immutable; network off."""
     if ',' in str(root):
@@ -621,6 +638,7 @@ def docker_execute(root, argv, image_id, timeout, writable=None):
     captured = bytearray()
     discarded = [False]
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    _track('container', name, process.pid)
     def collect():
         while True:
             chunk = process.stdout.read(4096)
@@ -639,6 +657,7 @@ def docker_execute(root, argv, image_id, timeout, writable=None):
             process.kill(); process.wait(); code = 124; timed_out = True
     finally:
         subprocess.run(['docker', 'rm', '--force', name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=20)
+        _untrack('container', name)
         if process.poll() is None:
             process.kill(); process.wait()
         reader.join(timeout=5)
@@ -1065,6 +1084,42 @@ def _boundary_checkpoint(root, plan, state, ledger, boundary, step_id):
     return continuation.best_effort_checkpoint(root, plan, state, ledger, boundary, step_id)
 
 
+def _admit_model_request(request_id, input_bytes, profile, timeout):
+    """Reserve the batch budget before dispatch; outside a batch there is nothing to reserve.
+
+    A queued request waits (bounded by its own timeout) and is refused if the batch is cancelled;
+    an existing reservation from an earlier run is never charged again and never replayed."""
+    import admission
+    active = admission.current()
+    if not active:
+        return None
+    folder = Path(active['folder'])
+    estimate = {'input_bytes': input_bytes, 'output_tokens': (profile['limits'].get('output_tokens') or {}).get('value'),
+                'timeout_seconds': timeout}
+    deadline = time.monotonic() + max(1, timeout)
+    while True:
+        decision = admission.admit(folder, request_id, estimate, {'task': active.get('task')})
+        if decision['decision'] == 'admitted':
+            return active
+        if decision['decision'] == 'refused':
+            raise ValueError('Batch admission refused: ' + decision['reason'])
+        if decision['decision'] == 'existing':
+            raise ValueError('Request already reserved in state ' + decision['state'] +
+                             '; its outcome is not replayed automatically')
+        if (folder / 'cancel.request').exists():
+            admission.cancel_queued(folder)
+            raise ValueError('Batch cancelled while the request was queued')
+        if time.monotonic() > deadline:
+            raise ValueError('Request stayed queued past its time budget: ' + decision['reason'])
+        time.sleep(0.05)
+
+
+def _finish_model_request(active, request_id, status, usage):
+    if active:
+        import admission
+        admission.finish(Path(active['folder']), request_id, status, usage)
+
+
 def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allow_host_cli):
     import model_host as host_module
     from model_host import build_prompt, generate
@@ -1105,13 +1160,20 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
                                     'broker_sha256':digest(resources.module_file('execution_policy.py').read_bytes())},sort_keys=True).encode())
         if sum(a['signature']==signature and a['status']!='succeeded' for a in ledger['attempts'])>=2:
             raise ValueError('Two attempts exhausted for unchanged model task and inputs')
+        request_id=digest((plan['id']+'/'+step['id']+'/'+signature+'/'+str(sum(a['signature']==signature for a in ledger['attempts']))).encode())
+        admitted_context=_admit_model_request(request_id,len(prompt.encode()),profile,step.get('timeout_seconds',180))
         attempt={'signature':signature,'status':'running','started_at':time.time()}
         record['attempts'].append(attempt)
         entry={'signature':signature,'status':'running','workflow':plan['id'],'step':step['id'],'kind':'model'}
         ledger['attempts'].append(entry);save_ledger(root,ledger)
         record['status']='running';state['status']='running';save(folder,state)
         _boundary_checkpoint(root,plan,state,ledger,'dispatched',step['id'])
-        artifacts,evidence=generate(step['host'],prompt,step['outputs'],step.get('timeout_seconds',180),step.get('model'))
+        try:
+            artifacts,evidence=generate(step['host'],prompt,step['outputs'],step.get('timeout_seconds',180),step.get('model'))
+        except BaseException:
+            _finish_model_request(admitted_context,request_id,'failed',None)
+            raise
+        _finish_model_request(admitted_context,request_id,'succeeded',evidence.get('usage') if isinstance(evidence,dict) else None)
         if hashes(root,step['inputs']) != inputs:
             raise ValueError('Inputs changed during model generation; outputs rejected')
         project_context_publish_gate(root, plan, step)

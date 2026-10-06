@@ -45,6 +45,8 @@ All work packages below are **open** until their exact source, independent accep
 
 **Register progress (W10, 2026-10-06):** evidence-tier status, unknown challenge visibility, bounded frontmatter and exact quoted argv implemented in the candidate worktree; browser/RTL interaction tests and acceptance-record producers remain.
 
+**Register progress (W09, 2026-10-06):** batch admission ledger, queued state, orphan recovery and owned-process cancellation implemented on the PR branch; priority/fairness scheduling and native-CLI caps are not.
+
 W03–W05 and W10 can progress independently once their dependencies hold; this allows bounded engineering concurrency without simultaneous uncontrolled writers to the same checkout. Automatic host continuation additionally waits for W09 accounting/cancellation, an explicit host/model allowlist and budget policy. No estimates, completion percentages or savings beyond measured evidence are invented.
 
 Each package delivers the diagnosed gap or feature contract, a bounded in-place change, known-negative controls, passing positive acceptance, updated private/source evidence as appropriate and documentation of remaining limits. The sole current status/order is this register; memory entries reference it. Runtime work is not marked complete merely because the plan or a synthetic reference was written.

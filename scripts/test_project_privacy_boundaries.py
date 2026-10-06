@@ -286,20 +286,22 @@ class ProjectPrivacyBoundaries(unittest.TestCase):
 
     def test_unmerged_ignore_policy_is_never_ready(self):
         self.file('seed.txt')
-        self.stage_ignore('base\n')
+        self.stage_ignore('shared-line\n')
         self.git('add', '--', 'seed.txt')
         self.commit('base')
         base = self.git('rev-parse', '--abbrev-ref', 'HEAD').decode().strip()
         self.git('checkout', '-q', '-b', 'other')
-        self.stage_ignore(self.privacy_rules() + 'from-other\n')
+        self.stage_ignore('edited-on-other\n')   # the same line changed on both sides always conflicts
         self.commit('other')
         self.git('checkout', '-q', base)
-        self.stage_ignore(self.privacy_rules() + 'from-base\n')
+        self.stage_ignore('edited-on-mine\n')
         self.commit('mine')
-        merge = subprocess.run(['git', '-C', str(self.root), 'merge', 'other'], env=repo_map.git_environment(),
-                               capture_output=True, timeout=20)
+        merge = subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture',
+                                '-c', 'user.email=fixture@example.invalid', 'merge', '--no-edit', 'other'],
+                               env=repo_map.git_environment(), capture_output=True, text=True, timeout=20)
         self.assertNotEqual(merge.returncode, 0, 'fixture must produce a real conflict')
-        self.assertIn(b'U', self.git('status', '--porcelain', '--', '.gitignore')[:2])
+        self.assertIn('CONFLICT', merge.stdout + merge.stderr)
+        self.assertIn('.gitignore', self.git('diff', '--name-only', '--diff-filter=U').decode())
         result = binding.privacy_report(self.root)
         self.assertEqual(result['unmerged_ignore_files'], ['.gitignore'])
         self.assertEqual(result['status'], 'not_ready')

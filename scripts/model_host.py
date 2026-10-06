@@ -433,6 +433,20 @@ def _retain(evidence, name, path):
     target.write_bytes(data)
 
 
+def _track_owned(kind,ident,pid):
+    try:
+        import admission
+        admission.track_current(kind,ident,pid)
+    except Exception:pass
+
+
+def _untrack_owned(kind,ident):
+    try:
+        import admission
+        admission.untrack_current(kind,ident)
+    except Exception:pass
+
+
 def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
     """One adapter entry point for every generation host.
 
@@ -468,6 +482,7 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
         with stdout_path.open('w') as out,stderr_path.open('w') as err:
             process=subprocess.Popen(argv,cwd=scratch,stdin=subprocess.PIPE,stdout=out,stderr=err,
                                      text=True,env=env,start_new_session=True)
+            _track_owned('process',process.pid,process.pid)
             try:
                 pending=prompt if host in ('codex','claude') else None
                 while True:
@@ -483,6 +498,7 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
                 os.killpg(process.pid,signal.SIGKILL);process.communicate()
                 _retain(evidence,'stdout',stdout_path);_retain(evidence,'stderr',stderr_path)
                 raise
+        _untrack_owned('process',process.pid)
         _retain(evidence,'stdout',stdout_path);_retain(evidence,'stderr',stderr_path)
         # Do not copy host error output into project/public records: may contain credentials.
         if process.returncode:raise ValueError('Host generation failed (exit '+str(process.returncode)+'); check local authentication and provider limits')

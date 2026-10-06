@@ -1,5 +1,10 @@
 # Completed work
 
+### 2026-10-06 — W09 candidate: aggregate admission and owned-process cancellation
+- Artifact: `scripts/admission.py`, coordinator `budget` manifest field, model-step reservation, `scripts/test_admission.py`, `scripts/test_admission_coordinator.py` (PR 8 branch)
+- Impact: batch-wide request/concurrency/time/byte limits are atomic across worktrees and processes; resumes never double-charge; dead-owner dispatches are orphaned, charged and not replayed; cancel stops only recorded owned processes/containers and queued requests.
+- Evidence: 23 tests plus 10/10 mutation checks; gate exit 0. Open: priority/fairness, native CLI activity cannot be capped, real container cancel not exercised.
+
 ### 2026-10-06 — W10 candidate: honest dashboard status and exact arguments
 - Artifact: `dashboard/lib/repo.ts`, `dashboard/lib/argv.ts`, `dashboard/app/page.tsx`, `dashboard/test/evidence.test.ts` (worktree `unified-candidate`, uncommitted)
 - Impact: no role is "healthy" from documentation alone; unknown challenge status is visible; folded YAML descriptions parse; quoted/Arabic/spaced paths are one argument and the exact argv is shown before launch.

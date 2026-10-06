@@ -246,3 +246,14 @@ is a separate, credentialed operator action and is never part of CI.
 python3 -m unittest discover -s scripts -p test_task_coordinator.py
 CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p test_task_coordinator.py
 ```
+
+## Aggregate budget, queueing and cancellation
+
+A manifest may declare an optional `budget`: `max_model_requests`, `max_concurrent_requests`, `max_elapsed_seconds`, `max_input_bytes`, `max_output_tokens`. Each is a positive integer or `null`; a field left out is reported as unbounded. The limits apply to the whole batch across every task worktree, not to one checkout ledger.
+
+Every managed model request is reserved in `admission.json` in the batch's coordinator folder before any attempt, ledger entry or provider call. Reservations are atomic across processes and idempotent by request id, so a resume neither charges again nor receives a replacement slot. A request over a limit is refused; one that only exceeds the concurrency limit is `queued` (it holds no budget) and waits within its own timeout. A resume may keep or tighten the limits, never loosen or reset them.
+
+A request whose owner process ended before its outcome was recorded becomes `orphaned`: it stays charged, its side effects are treated as unknown, and it is never replayed automatically. Token and cost figures appear only when a provider reported them; estimates are reported separately and everything else stays `null`.
+
+The batch records the process and container identities it starts. `crewloom coordinator cancel` and a restart reconcile stop exactly those recorded, after checking the process start time so a reused pid is never signalled, and leave every other process alone. Activity outside the managed controller (a native CLI used by hand) cannot be counted or capped by this ledger. Priority and fairness scheduling are not implemented.
+

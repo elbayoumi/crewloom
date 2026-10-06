@@ -65,11 +65,17 @@ def request(provider,model,prompt,timeout):
     process=context.Process(target=_worker,args=(provider,model,prompt,timeout,send))
     process.start();send.close()
     try:
+        from model_host import _track_owned
+        _track_owned('process',process.pid,process.pid)
         if not receive.poll(timeout):raise ValueError('Provider wall-time budget exhausted')
         value=json.loads(receive.recv_bytes(MAX_RESPONSE_BYTES+65536))
         if 'error' in value:raise ValueError(value['error'])
         return value['response']
     finally:
+        try:
+            from model_host import _untrack_owned
+            _untrack_owned('process',process.pid)
+        except Exception:pass
         if process.is_alive():process.terminate()
         process.join(timeout=2)
         if process.is_alive():process.kill();process.join(timeout=2)
