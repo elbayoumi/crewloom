@@ -7,6 +7,7 @@ externally attested claims stay candidates until independently verified. Failed
 attempts remain labelled negative evidence, deduplication preserves provenance,
 changed policy invalidates a lesson, and stored commands are never executed here.
 """
+import fnmatch
 import json
 import re
 import subprocess
@@ -81,7 +82,32 @@ def all_lessons(root):
     return found[:MAX_LESSONS]
 
 
+MAX_PATTERN = 200
+CLAUSE = re.compile(r'(==|>=|<=|>|<)\s*([0-9]+(?:\.[0-9]+)*)')
+DEPENDENCY_NAME = re.compile(r'[A-Za-z0-9@][A-Za-z0-9@/_.\-]*')
+EXACT_VERSION = re.compile(r'[0-9]+(?:\.[0-9]+)*')
+MANIFEST_BYTES = 4 * 1024 * 1024
+
+
+def parse_dependency(item):
+    """A typed dependency condition: `name` or `name<op>version[,<op>version...]` (==, >=, <=, >, <)."""
+    text = item.strip()
+    match = DEPENDENCY_NAME.match(text)
+    if not match:
+        raise ValueError('Dependency condition needs a package name: ' + item[:80])
+    clauses = []
+    rest = text[match.end():].strip()
+    for part in [piece.strip() for piece in rest.split(',')] if rest else []:
+        clause = CLAUSE.fullmatch(part)
+        if not clause:
+            raise ValueError('Unsupported dependency version constraint: ' + item[:80])
+        clauses.append((clause.group(1), tuple(int(number) for number in clause.group(2).split('.'))))
+    return match.group(0).lower(), clauses
+
+
 def validate_conditions(conditions):
+    """Conditions are typed. paths/languages/symbols are literal text or `*`/`?` globs, never regular
+    expressions, so no stored pattern can fail to compile; dependencies are `name[constraints]`."""
     if conditions is None:
         return {}
     if not isinstance(conditions, dict) or set(conditions) - set(CONDITIONS):
@@ -92,13 +118,149 @@ def validate_conditions(conditions):
                 raise ValueError('policy_sha256 condition must be a SHA-256 fingerprint')
         elif not isinstance(value, list) or len(value) > 64 or any(not isinstance(item, str) or not item for item in value):
             raise ValueError('Lesson condition lists must hold at most 64 nonempty strings')
+        elif any(len(item) > MAX_PATTERN or any(ord(char) < 32 for char in item) for item in value):
+            raise ValueError('Lesson condition text must be at most %d printable characters' % MAX_PATTERN)
+        elif key == 'dependencies':
+            for item in value:
+                parse_dependency(item)
     return conditions
+
+
+def _read_manifest(root, relative):
+    path = w.safe_path(root, relative)
+    if not path.is_file() or path.is_symlink() or path.stat().st_size > MANIFEST_BYTES:
+        return None
+    return path.read_bytes()
+
+
+def _python_name(name):
+    return re.sub(r'[-_.]+', '-', name.lower())
+
+
+def _python_requirement(text):
+    match = re.match(r'\s*([A-Za-z0-9][A-Za-z0-9._-]*)\s*(?:\[[^\]]*\])?\s*([^;#]*)', text)
+    if not match:
+        return None
+    specs = [piece.strip() for piece in match.group(2).split(',') if piece.strip()]
+    exact = next((CLAUSE.fullmatch(piece).group(2) for piece in specs
+                  if piece.startswith('==') and CLAUSE.fullmatch(piece) and '*' not in piece), None)
+    return _python_name(match.group(1)), exact
+
+
+def resolve_dependencies(root):
+    """Declared and locked dependencies of the selected project, from files it owns.
+
+    Supported: package-lock.json (exact npm versions), package.json (declared ranges), top-level
+    requirements*.txt (`==` pins) and pyproject.toml [project] dependencies. Other lockfiles are
+    listed under `unsupported`: a version condition against them stays unresolved, never guessed."""
+    found = {'python': {}, 'npm': {}, 'files': {}, 'unsupported': []}
+
+    def note(table, name, exact=None):
+        entry = table.setdefault(name, {'locked': None})
+        if exact and EXACT_VERSION.fullmatch(exact):
+            entry['locked'] = exact
+    sources = [('package-lock.json', 'lock'), ('package.json', 'manifest'), ('pyproject.toml', 'manifest')]
+    for path in sorted(Path(root).glob('requirements*.txt')):
+        sources.append((path.name, 'requirements'))
+    for relative, kind in sources:
+        body = _read_manifest(root, relative)
+        if body is None:
+            continue
+        found['files'][relative] = w.digest(body)
+        text = body.decode('utf-8', 'replace')
+        try:
+            if relative == 'package-lock.json':
+                document = json.loads(text)
+                for key, entry in (document.get('packages') or {}).items():
+                    if key.startswith('node_modules/') and key.count('node_modules/') == 1 and isinstance(entry, dict):
+                        note(found['npm'], key[len('node_modules/'):].lower(), str(entry.get('version', '')))
+                for key, entry in (document.get('dependencies') or {}).items():
+                    if isinstance(entry, dict):
+                        note(found['npm'], key.lower(), str(entry.get('version', '')))
+            elif relative == 'package.json':
+                document = json.loads(text)
+                for section in ('dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'):
+                    for key in (document.get(section) or {}):
+                        note(found['npm'], key.lower())
+            elif relative == 'pyproject.toml':
+                for requirement in _pyproject_requirements(text):
+                    parsed = _python_requirement(requirement)
+                    if parsed:
+                        note(found['python'], parsed[0], parsed[1])
+            else:
+                for line in text.splitlines():
+                    line = line.split('#', 1)[0].strip()
+                    if line and not line.startswith('-'):
+                        parsed = _python_requirement(line)
+                        if parsed:
+                            note(found['python'], parsed[0], parsed[1])
+        except (ValueError, AttributeError, TypeError):
+            found['unsupported'].append(relative)
+    for relative in ('poetry.lock', 'uv.lock', 'Pipfile.lock', 'yarn.lock', 'pnpm-lock.yaml'):
+        if (Path(root) / relative).is_file():
+            found['unsupported'].append(relative)
+    return found
+
+
+def _pyproject_requirements(text):
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # Python 3.9/3.10: read only the [project] dependency arrays
+        tomllib = None
+    if tomllib is not None:
+        project = tomllib.loads(text).get('project', {})
+        found = list(project.get('dependencies') or [])
+        for group in (project.get('optional-dependencies') or {}).values():
+            found.extend(group)
+        return [item for item in found if isinstance(item, str)]
+    found = []
+    for block in re.finditer(r'^\s*(?:dependencies|[A-Za-z0-9_-]+)\s*=\s*\[(.*?)\]', text, re.S | re.M):
+        found.extend(re.findall(r'"([^"]+)"', block.group(1)))
+    return found
+
+
+def _compare(left, right):
+    width = max(len(left), len(right))
+    left, right = left + (0,) * (width - len(left)), right + (0,) * (width - len(right))
+    return (left > right) - (left < right)
+
+
+def dependency_eligibility(root, requirements, recorded=None):
+    """(eligible, reason). Every requirement must resolve and hold; unknown is ineligible."""
+    resolved = resolve_dependencies(root)
+    for relative, digest in sorted((recorded or {}).items()):
+        if resolved['files'].get(relative) != digest:
+            return False, 'dependency manifest changed since recording: ' + relative
+    for item in requirements:
+        name, clauses = parse_dependency(item)
+        entry = resolved['python'].get(_python_name(name)) or resolved['npm'].get(name)
+        if entry is None:
+            return False, 'dependency not declared by this project: ' + name
+        if not clauses:
+            continue
+        locked = entry['locked']
+        if locked is None:
+            return False, 'no exact resolved version for ' + name + ' (needs a lockfile or == pin)'
+        version = tuple(int(number) for number in locked.split('.'))
+        for operator, wanted in clauses:
+            order = _compare(version, wanted)
+            if not {'==': order == 0, '>=': order >= 0, '<=': order <= 0, '>': order > 0, '<': order < 0}[operator]:
+                return False, 'resolved %s %s does not satisfy %s' % (name, locked, operator + '.'.join(map(str, wanted)))
+    return True, None
 
 
 def policy_fingerprint(root, binding):
     config = Path(root) / 'crewloom.project.json'
     return {'policy_sha256': w.digest(config.read_bytes()) if config.is_file() else None,
             'project_id': binding['project_id'], 'checkout_id': binding['checkout_id']}
+
+
+def lesson_fingerprints(root, binding, conditions):
+    """Policy fingerprint plus, for dependency-bound lessons, the manifests the condition was read from."""
+    value = policy_fingerprint(root, binding)
+    if (conditions or {}).get('dependencies'):
+        value['dependency_manifests'] = resolve_dependencies(root)['files']
+    return value
 
 
 def source_fingerprints(root, paths):
@@ -143,7 +305,7 @@ def record(root, binding, issue, remedy, conditions=None, source_task=None, role
              'command_execution': 'never-automatic; lesson commands are references for a human operator',
              'scope': {'project_id': binding['project_id'], 'checkout_id': binding['checkout_id'],
                        'project_root': str(Path(root).resolve()), 'task_id': source_task},
-             'fingerprints': policy_fingerprint(root, binding),
+             'fingerprints': lesson_fingerprints(root, binding, conditions),
              'source_fingerprints': source_fingerprints(root, declared),
              'provenance': {'created_at': now(), 'updated_at': now(),
                             'observations': [{'at': now(), 'task': source_task, 'role': role, 'negative': bool(negative)}]},
@@ -362,6 +524,12 @@ def revalidate(root, policy_sha256=None):
         reason = None
         if policy_sha256 and value['fingerprints'].get('policy_sha256') != policy_sha256:
             reason = 'policy configuration changed'
+        if reason is None and (value['fingerprints'].get('dependency_manifests')):
+            now_files = resolve_dependencies(root)['files']
+            for relative, recorded in sorted(value['fingerprints']['dependency_manifests'].items()):
+                if now_files.get(relative) != recorded:
+                    reason = 'dependency manifest changed: ' + relative
+                    break
         if reason is None:
             for relative, recorded in sorted((value.get('source_fingerprints') or {}).items()):
                 path = w.safe_path(root, relative)
@@ -398,19 +566,60 @@ def revalidate(root, policy_sha256=None):
     return changed
 
 
-def matches(value, seeds, tokens):
+def _wanted(pattern, haystack):
+    """Case-insensitive literal containment, or a whole-element `*`/`?` glob. Never a regular expression."""
+    text = str(pattern).casefold()
+    if any(mark in text for mark in '*?'):
+        return any(fnmatch.fnmatchcase(element, text) for element in haystack)
+    return any(text in element for element in haystack)
+
+
+def matches(value, seeds, tokens, root=None, diagnostics=None):
+    """True when every supplied condition is evaluated and holds. An unevaluable condition (malformed
+    stored value, unresolved dependency) makes the lesson ineligible and is reported, never ignored."""
+    def refuse(reason):
+        if diagnostics is not None:
+            diagnostics.append({'id': value.get('id'), 'reason': reason})
+        return False
     conditions = value.get('conditions') or {}
+    if not isinstance(conditions, dict):
+        return refuse('lesson conditions are malformed')
     if conditions.get('policy_sha256') and conditions['policy_sha256'] != value['fingerprints'].get('policy_sha256'):
         return False
-    haystack = set(seed.casefold() for seed in seeds) | tokens
+    haystack = {seed.casefold() for seed in seeds} | {str(token).casefold() for token in tokens}
     for key in ('paths', 'languages', 'symbols'):
         wanted = conditions.get(key) or []
         if not wanted:
             continue
-        joined = ' '.join(sorted(haystack))
-        if not any(re.search(str(item).casefold(), joined) for item in wanted):
+        if not isinstance(wanted, list) or any(not isinstance(item, str) for item in wanted):
+            return refuse('lesson ' + key + ' condition is malformed')
+        if not any(_wanted(item, haystack) for item in wanted):
             return False
+    requirements = conditions.get('dependencies') or []
+    if requirements:
+        if root is None:
+            return refuse('dependency conditions need a selected project root')
+        try:
+            eligible, reason = dependency_eligibility(root, requirements,
+                                                      value['fingerprints'].get('dependency_manifests'))
+        except (ValueError, OSError, TypeError) as exc:
+            return refuse('dependency condition could not be evaluated: ' + str(exc)[:120])
+        if not eligible:
+            return refuse(reason)
     return True
+
+
+def tolerant_lessons(root):
+    """Every readable lesson plus a diagnostic for each record that cannot be read; none is deleted."""
+    found, problems = [], []
+    for path in sorted(folder(root).glob('*.json'))[:MAX_LESSONS]:
+        if not IDENTIFIER.fullmatch(path.stem):
+            continue
+        try:
+            found.append(read(root, path.stem))
+        except (ValueError, OSError, KeyError, TypeError) as exc:
+            problems.append({'id': path.stem, 'reason': 'unreadable lesson record: ' + str(exc)[:120]})
+    return found, problems
 
 
 def select(root, seeds, tokens, limit):
@@ -420,8 +629,9 @@ def select(root, seeds, tokens, limit):
     chosen = []
     negatives = 0
     omitted = 0
-    for value in all_lessons(root):
-        if not matches(value, seeds, tokens):
+    lessons, diagnostics = tolerant_lessons(root)
+    for value in lessons:
+        if not matches(value, seeds, tokens, root, diagnostics):
             continue
         if value['state'] == 'verified':
             if len(chosen) >= limit:
@@ -435,6 +645,7 @@ def select(root, seeds, tokens, limit):
         elif value.get('negative') and value['state'] in ('candidate', 'invalidated'):
             negatives += 1
     return {'lessons': chosen, 'negative_evidence_count': negatives, 'omitted': omitted,
+            'ineligible': diagnostics,
             'policy': 'verified lessons only; failed attempts stay as labelled negative evidence'}
 
 
@@ -513,7 +724,7 @@ def import_reviewed(root, destination, binding):
                  'command_execution': 'never-automatic; lesson commands are references for a human operator',
                  'scope': {'project_id': binding['project_id'], 'checkout_id': binding['checkout_id'],
                            'project_root': str(Path(root).resolve()), 'task_id': None},
-                 'fingerprints': policy_fingerprint(Path(root).resolve(), binding),
+                 'fingerprints': lesson_fingerprints(Path(root).resolve(), binding, item.get('conditions')),
                  'source_fingerprints': {},
                  'provenance': {'created_at': now(), 'updated_at': now(),
                                 'observations': [{'at': now(), 'task': None, 'role': None, 'negative': False}],

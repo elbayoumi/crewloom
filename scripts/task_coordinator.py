@@ -1010,6 +1010,37 @@ def _verify_execution(meta, ident, worktree, plan, fingerprint, criteria_sha):
             'evidence': evidence, 'completed_steps': sorted(state['steps'])}
 
 
+def _seed_worktree_memory(meta, path, log):
+    """Snapshot this project's private role memory without tracking or sharing writable files."""
+    record = meta.get('workflows', {}).get(path.name, {})
+    roles = sorted({step['role'] for step in record.get('plan', {}).get('steps', [])
+                    if step.get('kind') == 'model'})
+    created = []
+    for role in roles:
+        setup = w.project_role(meta['root'], role)
+        if not setup['ready']:
+            raise CoordinatorError('Cannot seed selected project role memory: ' + setup.get('error', ''))
+        source = Path(setup['memory'])
+        guide = Path(setup['guide']).relative_to(meta['root'])
+        target_guide = pb.no_links(path, str(guide))
+        if not target_guide.is_file():
+            raise CoordinatorError('Commit the selected role instructions before coordinating: ' + str(guide))
+        for name in w.MEMORY:
+            relative = str((source / (name + '.md')).relative_to(meta['root']))
+            original = pb.writable(meta['root'], relative)
+            target = pb.writable(path, relative)
+            if target.exists():
+                continue  # Resume preserves that task's existing private memory.
+            if original.stat().st_size > 512 * 1024:
+                raise CoordinatorError('Role memory snapshot exceeds its byte budget')
+            body = original.read_text(encoding='utf-8')
+            _write_private(target, body, 512 * 1024)
+            created.append(relative)
+    if created:
+        log('worktree.memory_seeded', worktree=path.name, files=created,
+            project_id=meta['binding']['project_id'])
+
+
 def _bind_worktree(meta, path, log):
     """Give one worktree the same portable project identity and its own local checkout binding.
 
@@ -1025,6 +1056,7 @@ def _bind_worktree(meta, path, log):
                                'identity')
     if binding['checkout_id'] == meta['binding']['checkout_id']:
         raise CoordinatorError('Worktree ' + str(path) + ' reused the root checkout binding')
+    _seed_worktree_memory(meta, path, log)
     log('worktree.bound', worktree=str(path.name), project_id=binding['project_id'],
         checkout_id=binding['checkout_id'])
     return binding

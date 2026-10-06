@@ -38,6 +38,10 @@ A new gate requires a demonstrated rejection of a known bad commit and acceptanc
 
 ## Project isolation
 
+Keep private project payloads, run history, context snapshots, caches, exports and backup copies inside that project's ignored `.crewloom/` namespace. Installed consumer-role `brain/` folders and machine-local host controls remain private; portable declarative policy, reusable instructions and approved public fixtures/assets remain source. Do not collect another project's operational records in shared library memory.
+
+Run `crewloom project privacy --project <canonical-root>` before publishing the selected project's work. Its local CI/hook must invoke the check to block direct commits there; the toolkit's own mandatory gate already checks its selected index. Ignore rules do not remove tracked data or historical commits. Preserve local records and review exact untracking paths instead of broad deletion or index resets.
+
 Bind one canonical project root before work and preserve it through handoffs. Library code is reusable; project memory, inputs, outputs, and run history belong to the selected project. Run tools with `run --project <root>` and generate project context with `context --project <root>` after installing the role. Never use another project's memory or infer a project from a previous task. Resolve symlinks before validating paths. Reject missing or ambiguous project identity before writes. CLI checks are input guards, not a sandbox for arbitrary agent-host actions.
 
 ## Self-Editing Mode

@@ -85,6 +85,17 @@ def install_skills(target, host, names, force):
             candidate = destination / name / relative
             if not candidate.resolve().is_relative_to(target.resolve()):
                 return [], [f'Install file escapes project through a symlink: {candidate}']
+    # Consumer memory/configuration is local state, while the library keeps public templates.
+    import project_binding
+    try:
+        local_memory = not project_binding.library_source(target)
+        private = project_binding.tracked_private_paths(target, role_memory=local_memory)
+        if private:
+            return [], ['Private project data is already tracked; remove it from this project '
+                        'index while preserving local files: ' + ', '.join(private[:20])]
+        project_binding.ignore_local_state(target, role_memory=local_memory)
+    except (ValueError, OSError, subprocess.SubprocessError) as exc:
+        return [], [str(exc)]
     destination.mkdir(parents=True, exist_ok=True)
     for name in wanted:
         role = destination / name
@@ -214,7 +225,7 @@ POSITIONAL_PATH_TOOLS = {'workflow-contract', 'delivery-evidence'}
 # Commands whose parser, defaults and exit codes live in another module. They declare no arguments
 # here on purpose: the caller's argv is forwarded untouched, so a new flag on the child needs no
 # change here and cannot be silently dropped by an intermediate list of arguments to keep in step.
-DELEGATED = {'host': 'host_lifecycle', 'readiness': 'agency_readiness'}
+DELEGATED = {'host': 'host_lifecycle', 'readiness': 'agency_readiness', 'continuation': 'continuation'}
 STUDY_ARGUMENTS = ('context', 'study')
 
 
@@ -304,6 +315,13 @@ def main():
     lesson.add_argument('lesson_arguments', nargs=argparse.REMAINDER)
     workflow = commands.add_parser('workflow', help='Run an isolated, resumable project workflow')
     workflow.add_argument('workflow_arguments', nargs=argparse.REMAINDER)
+    capabilities = commands.add_parser('capabilities', help='Show a host/model capability profile with the evidence basis of each fact')
+    capabilities.add_argument('--host', required=True)
+    capabilities.add_argument('--model')
+    capabilities.add_argument('--launch-mode', choices=('managed-generation', 'native-interactive'))
+    capabilities.add_argument('--project', help='Also store the profile in this project\'s private .crewloom/capabilities')
+    source = commands.add_parser('source', help='Show which Crewloom is running: version, roots, revision, dirty state')
+    source.add_argument('--json', action='store_true', help='Machine-readable output')
     commands.add_parser('tools', help='List included executable tools')
     run = commands.add_parser('run', help='Run a registered local tool')
     run.add_argument('--project', default='.', help='Project root for relative inputs and run history')
@@ -322,6 +340,7 @@ def main():
     # They take no arguments here: `delegated_command` hands their whole argv to the owning module
     # before this parser runs, which is the only way a flag can survive the hand-over.
     commands.add_parser('host', help='Install, observe, guard and verify native host callbacks')
+    commands.add_parser('continuation', help='Durable checkpoints for continuing a task with another agent (create, validate, accept, interrupt, reconcile)')
     commands.add_parser('readiness', help='Read-only rollout readiness for one registered project')
     install = commands.add_parser('install', help='Copy roles into a project for your agent host')
     install.add_argument('--host', choices=sorted(HOST_DIRS), required=True,
@@ -370,6 +389,38 @@ def main():
     if args.command == 'coordinator':
         from task_coordinator import main as coordinator_main
         return coordinator_main(args.coordinator_arguments)
+    if args.command == 'capabilities':
+        import model_host
+        info, note = None, None
+        if args.host in model_host.CLI_HOSTS:
+            try:
+                info = model_host.probe(args.host)
+            except (model_host.HostUnavailable, OSError, subprocess.SubprocessError) as exc:
+                note = 'host not probed: ' + str(exc)
+        try:
+            profile = model_host.capability_profile(args.host, args.model, args.launch_mode, info)
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        if note:
+            profile['note'] = note
+        if args.project:
+            import workflow as w
+            root = Path(args.project).resolve()
+            target = w.safe_path(root, '.crewloom/capabilities/' + args.host + '.json', internal=True)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(json.dumps(profile, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+            profile['stored'] = str(target)
+        print(json.dumps(profile, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == 'source':
+        identity = resources.source_identity()
+        if args.json:
+            print(json.dumps(identity, indent=2, ensure_ascii=False))
+        else:
+            for key, value in identity.items():
+                print(f"{key:21} {'unknown' if value is None else value}")
+        return 0
     project = Path(getattr(args, 'project', None) or '.').resolve()
     if not project.is_dir():
         parser.error('Project root must be an existing directory')

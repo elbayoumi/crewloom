@@ -3,6 +3,8 @@ __pycache__/
 .venv/
 .env
 .env.*
+!.env.example
+!.env.template
 .DS_Store
 *.log
 .tmp/
@@ -15,3 +17,8 @@ scripts/*.egg-info/
 /build/
 *.egg-info/
 *.tsbuildinfo
+
+# Private project copies, evidence, exports and backups belong under .crewloom/.
+# Public source/templates and deliberate release assets remain versioned.
+*.pyo
+.claude/settings.local.json

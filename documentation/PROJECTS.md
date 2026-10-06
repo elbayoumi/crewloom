@@ -39,6 +39,8 @@ Context generations and navigation caches are rebuildable; lessons and task reco
 
 ## Installing and updating roles
 
+Installation now excludes consumer memory/configuration automatically and refuses private data already present in the selected Git index. See [project-local data and publication privacy](PROJECT_PRIVACY.md), including the read-only `crewloom project privacy --project /absolute/path` command and safe untracking procedure.
+
 Fresh installations copy reusable architecture guidance and initialize empty project records. `install --force` refreshes role procedures/tools while preserving all existing brain files and project-local custom files. It does not import completed work, incidents, ideas, or task history from the library. Resolved destination files are checked before copying to prevent nested symlink redirects.
 
 ## Multiple projects and tasks
@@ -57,3 +59,5 @@ Cancellation needs the matching unchanged plan and cannot bypass an occupied pro
 For parallel tasks in one Git project, use [the concurrent task coordinator](COORDINATOR.md). It binds one worktree per task under the project's `.crewloom`, runs each task's own workflow there, integrates verified task commits once, and fast-forwards the root only after an explicit reviewed decision. Manual worktrees are still valid: create separate roots and branches yourself, install project-local roles and memory in each, do not copy `.crewloom` runtime state between roots, and review conflicting changes before merging. Direct host tools remain outside both runner guards.
 
 Before client rollout, use the [readiness guide](READINESS.md) to check one explicit registered project against current recorded evidence without modifying its registry, configuration or memory.
+
+See [continuing a task with another agent](CONTINUATION.md) for durable checkpoints, receiver validation and the single-owner rule.

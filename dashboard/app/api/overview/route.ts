@@ -16,6 +16,8 @@ export async function GET(req: Request) {
       attention: skills.filter((s) => s.status === 'attention').length,
       openTasks: skills.reduce((n, s) => n + s.openTasks, 0),
       openChallenges: skills.reduce((n, s) => n + s.openChallenges, 0),
+      unknownChallenges: skills.reduce((n, s) => n + s.unknownChallenges, 0),
+      verified: skills.filter((s) => s.status === 'verified').length,
     },
     skills, tools, runs,
   }, { headers: { ...privateHeaders } });

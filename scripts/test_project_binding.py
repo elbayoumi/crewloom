@@ -92,13 +92,13 @@ class ProjectBindingTests(unittest.TestCase):
 
     def test_first_entry_creates_a_complete_and_idempotent_footprint(self):
         first = self.enter()
-        self.assertEqual(sorted(first['created']), sorted([pb.CONFIG_NAME, pb.BINDING_RELATIVE, '.gitignore']))
+        self.assertEqual(sorted(first['created']), sorted([pb.CONFIG_NAME, pb.BINDING_RELATIVE]))  # role installation already owns .gitignore
         binding = json.loads((self.root / pb.BINDING_RELATIVE).read_text())
         self.assertEqual(binding['project_root'], str(self.root))
         self.assertEqual(len(binding['checkout_id']), 32)
         self.assertEqual(binding['project_id'], 'sample-project')
         self.assertEqual(binding['config_path'], pb.CONFIG_NAME)
-        self.assertEqual((self.root / '.gitignore').read_text(), '.crewloom/\n')
+        self.assertTrue((self.root / '.gitignore').read_text().startswith('# Crewloom project-local privacy\n.crewloom/\n'))
         for name in ('index', 'context', 'tasks', 'lessons'):
             self.assertTrue((self.root / '.crewloom' / name).is_dir())
         second = self.enter()
@@ -512,9 +512,11 @@ class ProjectBindingTests(unittest.TestCase):
         (self.root / '.gitignore').write_text('build/\n*.log\n', encoding='utf-8')
         first = self.enter()
         self.assertIn('.gitignore', first['created'])
-        self.assertEqual((self.root / '.gitignore').read_text(), 'build/\n*.log\n.crewloom/\n')
+        text = (self.root / '.gitignore').read_text()
+        self.assertTrue(text.startswith('build/\n*.log\n'), 'existing user rules are preserved first')
+        self.assertTrue(text.endswith('\n') and '# Crewloom project-local privacy\n.crewloom/\n' in text)
         self.assertEqual(self.enter()['created'], [])
-        self.assertEqual((self.root / '.gitignore').read_text(), 'build/\n*.log\n.crewloom/\n')
+        self.assertEqual((self.root / '.gitignore').read_text(), text)
         with tempfile.TemporaryDirectory() as folder:
             relocated = Path(folder).resolve() / 'relocated'
             shutil.copytree(self.root, relocated, symlinks=True,
@@ -523,7 +525,7 @@ class ProjectBindingTests(unittest.TestCase):
             again = pb.enter(relocated, 'sample-project', 'login-fix', ROLE, seeds=['auth.py'])
             self.assertNotIn('.gitignore', again['created'])
             self.assertEqual(again['created'], [pb.BINDING_RELATIVE])
-            self.assertEqual((relocated / '.gitignore').read_text(), 'build/\n*.log\n.crewloom/\n')
+            self.assertEqual((relocated / '.gitignore').read_text(), text)
 
     def test_claimed_failure_fails_closed_and_cannot_be_relabelled(self):
         self.enter()

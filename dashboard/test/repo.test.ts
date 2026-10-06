@@ -8,7 +8,7 @@ test('countBrain counts backlog items, entries, and only open challenges', () =>
     COMPLETED: '### 2026-01-01 — x\n### 2026-01-02 — y',
     CHALLENGES: '### 2026-01-01 — a\n- الحالة: مفتوح\n### 2026-01-02 — b\n- Status: resolved (2026-01-03)',
   });
-  assert.deepEqual(c, { openTasks: 2, doneEntries: 2, openChallenges: 1, ideas: 0 });
+  assert.deepEqual(c, { openTasks: 2, doneEntries: 2, openChallenges: 1, resolvedChallenges: 1, unknownChallenges: 0, ideas: 0 });
 });
 
 test('placeholder brain files count as zero', () => {

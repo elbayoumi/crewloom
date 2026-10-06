@@ -185,3 +185,11 @@ Measured in this working tree only. No hosted run, live provider request, GitHub
 - Filesystem alias suite `scripts/test_filesystem_alias_boundaries.py`: 5/5 on this actual case-insensitive host, including the reproduced case-variant overwrite of a real `.crewloom/protected.json`.
 
 Unmeasured and unclaimed: no model wrote any artifact here — the fixture scripts supply them, so this proves orchestration, isolation, dependency integration, combined acceptance and reviewed publication, not model-generated code quality. Batch ownership depends on POSIX advisory locking and is refused elsewhere. Reclaiming batch ownership does not stop a container that outlived its controller. A declared-label review names a reviewer without authenticating one, and a credential proves key possession only. Publication is one `--ff-only` fast-forward subject to Git's own atomicity, not a reset, history rewrite, push or GitHub merge. Native host adapters, the live usage/quality/latency study, the curated public example and rollout readiness are not started.
+
+## 2026-10-05 — README and vector asset review
+
+The English/Arabic entrypoints now install before executing examples, select an existing application root and expose the recorded [context-study outcome](CONTEXT_STUDY.md#observed-outcome-of-the-first-frozen-run-2026-10-05). All 8 scored selected-map trials passed 0/11; this is not evidence of useful savings. Historical measurements elsewhere in this document keep their original dates and scopes.
+
+GitHub-rendered Markdown with local preview CSS was captured at 1440,768 and390px in two languages and two themes:12 current-source cases, zero outer horizontal overflow and all local assets loaded. The [brand assets](BRANDING.md) retain the original palette; foreground contrast against ink exceeds4.5:1 and the mobile tagline renders at 17.9px for a 358px image. A local preview does not establish the exact live GitHub UI.
+
+The workflow-contract and SEO fixtures pass. The reference six-stage Docker workflow and handoff succeed; copying the frontend auditor to an existing synthetic application root produces its role and five memory files. A missing root is refused, as now documented. These checks made no model calls and do not validate generated application quality. See [validation](VALIDATION.json) for the bounded entrypoint record.

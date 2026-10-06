@@ -26,3 +26,30 @@ Managed runs use tool-free provider RPC and declared-file container snapshots. N
 
 ### 2026-10-02 — Automatic project context
 - Project identity is split into a portable `crewloom.project.json` project ID and a local `.crewloom/binding.json` checkout ID; navigation and context caches are rebuildable, lessons and task records are durable. Every generation is scoped to project ID, checkout ID, canonical root and task ID, and a stable semantic fingerprint excludes telemetry so unchanged entry reuses its generation. Lifecycle shares the workflow root lock and its reservation discipline in both directions; managed runner entry, checkpoint, publication gate and finalization reuse the existing broker, ledger and provider restrictions. Lesson promotion requires recorded executor evidence, never prose.
+
+### 2026-10-05 — Public documentation and brand assets
+The entrypoint uses a wide and mobile SVG banner plus a separate square loom mark under assets/. The existing ink/mint/blue palette stays authoritative in documentation/BRANDING.md. Inventory counts belong in verified README text; native lifecycle and map quality claims link to recorded evidence.
+
+### 2026-10-06 — Local data and index privacy
+Project runtime/snapshots/backups stay in ignored .crewloom; installed consumer role memory and local host controls are ignored at setup. Portable declarative policy remains trackable source. Bootstrap/install refuse reserved or ignored tracked index entries using cleared Git environments and exact roots; the toolkit gate repeats that check. Consumer CI/hooks can invoke the read-only project privacy command. Model task worktrees seed separate private memory copies from the same selected project and preserve resume state; source guides are frozen Git inputs. Public templates are distinguished by the actual toolkit root or its genuine linked Git repository, never a caller-supplied project ID.
+
+### 2026-10-06 — Archive and staged-policy audit boundaries
+Source archives need private-namespace exclusions at every depth; root-only prunes do not constrain nested inputs under approved public directories. Local working-tree ignore coverage is distinct from the staged policy that would be committed. Keep these separate from index classification, content-secret scanning and OS isolation, and verify actual extracted artifacts with synthetic private canaries.
+
+### 2026-10-06 — Intelligence design proposal
+INTELLIGENCE_ROADMAP.md proposes in-place upgrades to map/context, conditional lessons, existing workflow/coordinator and dashboard. Trust and sufficiency correctness precede ranking/automation; tool-free managed providers retain controller-owned retrieval and bounded declared scope. This is a design, not a runtime architecture change.
+
+### 2026-10-06 — Continuation and capability requirements (planned)
+The intelligence roadmap now requires independent application/toolkit roots, controller-owned project checkpoints for cross-agent quota continuation, and effective host/model capability profiles. Handoffs preserve identity, dirty edits, acceptance/failure evidence, budgets and single-writer ownership; receivers revalidate source and capabilities. Manual continuation precedes explicit opt-in automation. These are design contracts, not shipped runtime behavior.
+
+### 2026-10-06 — One active implementation plan
+documentation/INTELLIGENCE_ROADMAP.md is the unified plan and sole W01–W12 execution register, covering R01–R39 and N01–N03. Reviews, older context plans and backlog snapshots preserve evidence/history; their prior delivery orders are superseded. This reorganizes planning, not runtime architecture.
+
+### 2026-10-06 — Next-stage acceptance boundaries
+W01/W02 must validate reviewed build inputs, all-depth reserved namespaces, symlink targets and final wheel/sdist metadata/content; a late sdist filter is insufficient. Staged privacy evaluates portable rules separately from local exclusions and must refuse unmerged policy while checking the relevant nested scope. W03 separates CLI launch support from observed effective capabilities; W04 reconciles interrupted operations at owned durable boundaries. Detailed decisions and benefit criteria remain in the unified plan; this review implements no runtime change.
+
+### 2026-10-06 — Implementation-report acceptance
+A controller checkpoint must distinguish implemented changes, tested cases and closed requirements. Passing a narrow suite with the pinned backend does not invalidate wider source-matched counterexamples. Reconcile contradictory completed/pending records and unknown/failure lists before dispatch; retain prior evidence instead of silently turning an implementation report into acceptance.
+
+### 2026-10-06 — Tool architecture discussion
+Candidate direction: extend the existing machine catalog with versioned contracts, reusable toolkit cores and thin interfaces using current project-bound executor controls. Owner confirmed Crewloom tools only; consumer code/scripts are outside scope and toolkit helper modules need not become public tools. The proposal is recorded in IDEAS_VAULT; no SDK, schema enforcement, migration or execution boundary is implemented by this discussion.

@@ -1,5 +1,7 @@
 # Project context
 
+Consumer runtime state, local host configuration and installed role memory are ignored local data. Portable declarative policy and public toolkit templates remain source. See [publication privacy](PROJECT_PRIVACY.md) for organization, index checks and worktree memory snapshots.
+
 Project context gives a registered task the minimum evidence it needs inside one project: a stable project identity, a local checkout binding, a bounded navigation index, a frozen task context, and lessons that only an objective check can promote. It is opt-in per project. Nothing here changes workflow isolation, provider defaults or host permissions.
 
 ## Identity and files

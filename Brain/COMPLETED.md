@@ -1,5 +1,35 @@
 # Completed work
 
+### 2026-10-06 — W10 candidate: honest dashboard status and exact arguments
+- Artifact: `dashboard/lib/repo.ts`, `dashboard/lib/argv.ts`, `dashboard/app/page.tsx`, `dashboard/test/evidence.test.ts` (worktree `unified-candidate`, uncommitted)
+- Impact: no role is "healthy" from documentation alone; unknown challenge status is visible; folded YAML descriptions parse; quoted/Arabic/spaced paths are one argument and the exact argv is shown before launch.
+- Evidence: 43 dashboard tests, typecheck and production build pass; gate exit 0. Open: browser/RTL interaction test, producers of acceptance records; not closed until published.
+
+### 2026-10-06 — W04 candidate: durable manual continuation
+- Artifact: `scripts/continuation.py`, workflow boundary hooks, `crewloom continuation`, `documentation/CONTINUATION.md`, `scripts/test_continuation.py` (worktree `unified-candidate`, uncommitted)
+- Impact: a controller-written checkpoint exists before and after every dispatch; a receiver validates identity, drift, ownership and its own capabilities before taking the single writable slot; in-flight work is reconciled as uncertain, never replayed; counters and budgets are untouched.
+- Evidence: 17 tests, mutation checks on each safety rule, gate exit 0. Open: automatic continuation (W09), real host pilot, coordinator worktree integration; not closed until published.
+
+### 2026-10-06 — W03 candidate: capability profile and dispatch preflight
+- Artifact: `scripts/model_host.py` (capability_profile, effective_execution, classify_failure, verify_claims), `scripts/workflow.py` preflight, `crewloom capabilities`, `scripts/test_capability_profile.py` (worktree `unified-candidate`, uncommitted)
+- Impact: every capability fact is labelled with its basis; unknown tools are unavailable; execution = host ∩ policy ∩ task ∩ authorization; oversized prompts refused before any ledger entry; quota/rate-limit/auth/timeout are distinct classes.
+- Evidence: 15 tests incl. a discriminating preflight test; gate exit 0; frozen 45 unchanged. Open: native coverage versioning, reviewer evidence modes (R11), wiring of classification into handoff; not closed until published.
+
+### 2026-10-06 — W05 candidate: lesson conditions and map budgets (R36–R39)
+- Artifact: `scripts/project_lessons.py`, `scripts/repo_map.py`, `scripts/test_lesson_conditions.py`, `scripts/test_map_budget_boundaries.py` in worktree `unified-candidate` (uncommitted)
+- Impact: dependency conditions are evaluated (typed, manifest-fingerprinted), regex patterns replaced by literal/glob so selection cannot crash, absent-seed notice counted in final bytes, every reached closure module is present, partial or named omitted.
+- Evidence: old code fails 15 + 10 new tests, new code passes; context/study/lesson suites unchanged; gate exit 0; frozen 45 unchanged. Not closed until published.
+
+### 2026-10-06 — Correction: W01 attempt 2 closes the independently reproduced R33/R34 boundaries
+- Artifact: `setup.py` (manifest, wheel package-data and sdist hooks), `documentation/ARCHIVE_POLICY.json`, `scripts/project_binding.py` (`staged_ignore_policy`), `crewloom source`, tests `test_packaging`, `test_project_privacy_boundaries`, `test_source_identity`
+- Impact: attempt 1 left nested node_modules/build/dist/.next/.venv/caches, external symlinks, metadata path hits and unmerged/nested-negation ignore indexes undetected; all are now rejected with clean public files accepted.
+- Evidence: `.crewloom/implementation/receipts.json` (setuptools 80.10.2 builder; negative control 42 failures; gate exit 0). R01 merge with origin/main and W02 clean install remain open.
+
+### 2026-10-06 — W01 partial (attempt 1, superseded): archive privacy, staged ignore policy, root separation
+- Artifact: `setup.py` (sdist hook), `MANIFEST.in`, `scripts/project_binding.py` (`staged_ignore_gaps`), `scripts/test_packaging.py`, `scripts/test_project_privacy_boundaries.py`, `scripts/test_toolkit_root_separation.py`
+- Impact: partial R33 repair for the tested nested `.crewloom`, `.env*` and run/event payloads; R34 now ignores host-only/unstaged exclusions in its tested probes. Wider archive and readiness acceptance remains open in the unified plan. N01 has additional existing-guard acceptance coverage; R13/R14 layout is selected as 3 wheel SVGs + sdist-only motion media.
+- Evidence: implementation report records pre/post canaries, a guard mutation and gate exit0 with the real archive test skipped. Independent follow-up passes20 packaging cases on the existing pinned-range80.10.2 builder and5 root-separation cases; R33/R34 wider counterexamples still apply to unchanged source. R01/R08 remain open.
+
 ### 2026-10-01 — Initial public toolkit
 - Artifact: 42 English public role guides, clean memory, core CLI and checks.
 - Impact: Independently usable repository edition without client history or external account configuration.
@@ -225,3 +255,57 @@
 - الملف: `scripts/model_host.py`, `scripts/test_opencode_schema_prompt_boundaries.py`, `scripts/test_host_prompt_budget.py`
 - الأثر: cause verified from stored outputs (13 flat maps + 1 `{"files":…}`, shape never stated to OpenCode); schema now stated in the agent's system prompt, study prompt untouched, invented shapes still refused.
 - ملاحظة: 16 frozen cases pass; first design (append to the prompt) was rejected by the existing frozen isolation test and replaced; real-model check pending, the 4 ~300 s timeouts are a separate open cause.
+### 2026-10-05 — Editable CLI setup in both READMEs
+- Artifact: README.md and README.ar.md installation sections.
+- Impact: documents user-wide pipx command exposure, editable clone lifetime, virtual-environment alternative and separate application selection.
+- Evidence: existing external-directory CLI checks; ensurepath help verified; public structure/link check and README whitespace check pass.
+
+### 2026-10-05 — README and logo review
+- Artifact: English/Arabic READMEs, three SVG brand assets and BRANDING.md.
+- Impact: installation first, explicit application roots, visible failed study results, accessible reusable logo and readable mobile banner.
+- Evidence: 12 GitHub-rendered local previews at 1440/768/390 in two languages and themes, zero outer overflow; original palette contrast passes; two tool examples, reference Docker workflow/handoff and existing-target role install pass; 45 frozen test files unchanged.
+
+### 2026-10-05 — Logo motion deliverables
+- Artifact: landscape/portrait logo MP4s and silent GIF in assets/; motion usage in BRANDING.md.
+- Impact: existing loom geometry animates into the English wordmark with original quiet synthesized audio; project runtime unchanged.
+- Evidence: both eight-second H.264/Rec.709 exports decode cleanly, 480 frames at60fps; 16/12 encoded timeline samples reviewed, portrait primary pixels remain inside the supplied safe zone across all480 frames at half resolution. Private rendering/source/hash evidence stays project-local.
+
+### 2026-10-06 — Version-scoped project review
+- Artifact: documentation/PROJECT_REVIEW.md, 32 prioritized findings with status, proposed change and acceptance.
+- Impact: distinguishes published main, open study-v2 runner and older editable CLI; identifies reproduced dashboard status/parser defects without changing runtime.
+- Evidence: main e4c06c83 has eight successful hosted jobs; 23 fresh offline boundary cases pass; 36/42 local roles classified healthy with no runs; published dashboard data code matches. Raw source snapshots and reproduction receipts remain project-local. No provider calls or complete runtime rerun.
+
+### 2026-10-06 — Project data privacy and isolated worktree memory
+- Artifact: project_binding privacy/ignore preflight, install guard, mandatory index check, coordinator private-memory seeding, 28 independent privacy cases and PROJECT_PRIVACY.md.
+- Impact: private runtime/role memory/local host controls ignored automatically; forced or stale ignored Git entries refused without deleting records; task memory is copied from the same project and stays independently writable. Declarative policy remains source.
+- Evidence: 77/77 privacy/coordinator cases pass with real Docker enabled and no skips; actual gate rejects a forced private addition and accepts safe untracking while preserving the local file. Current toolkit privacy report ready, no detected tracked private data, 45 frozen acceptance files unchanged. No client writes or remote publication.
+
+### 2026-10-06 — Repeated audit with archive/index counterexamples
+- Artifact: documentation/PROJECT_REVIEW.md; project-private review-20261006-repeat verification and synthetic fixtures.
+- Impact: two new publication/privacy blockers reproduced; v2 public rows recompute 18.3867% lower input tokens with equal 99/99 task checks, limited to three tasks.
+- Evidence: published offline gate 951/1044 pass with 93 explicit skips; real Docker study 50/50 in213.292s, mandatory60s invocation times out. Local privacy28, dashboard32/build, distribution11 pass; packaging15/17. Forty-five frozen files unchanged; no provider calls, client writes, runtime repairs or publication.
+
+### 2026-10-06 — Intelligence review and implementation contracts
+- Artifact: documentation/INTELLIGENCE_ROADMAP.md and R36–R39 in PROJECT_REVIEW.md.
+- Impact: dependency/pattern lesson defects, missing-seed budget overflow and silent closure omission reproduced; proposed features have source owners, boundaries and acceptance.
+- Evidence: fresh lessons23/map30 pass; direct counterexamples reproduce in published/local scope as labelled. Existing source-scoped evidence reused; no provider calls, runtime repairs, client changes or publication.
+
+### 2026-10-06 — Add owner continuation/isolation/capability requirements
+- Artifact: documentation/INTELLIGENCE_ROADMAP.md required operating contracts and revised delivery order.
+- Impact: separate project roots, quota-resilient handoffs and evidence-backed capability preflight now have owners, failure handling and acceptance cases.
+- Evidence: documentation-only update; structure/link and whitespace checks, immutable-contract verification. No runtime implementation, provider calls or publication.
+
+### 2026-10-06 — Consolidate all work into one plan
+- Artifact: unified INTELLIGENCE_ROADMAP.md, README entrypoint, historical notices and roadmap pointer.
+- Impact: all39 findings and three owner contracts map to12 packages with dependencies and acceptance; earlier backlog preserved as history.
+- Evidence: exact review-ID coverage, link/structure and whitespace checks,45 frozen files unchanged. No runtime implementation or publication.
+
+### 2026-10-06 — Deeper next-stage review
+- Artifact: unified plan next-stage assessment and PROJECT_REVIEW follow-up; private synthetic build/index receipts.
+- Impact: partial packaging/staged-policy improvements distinguished from remaining cache/symlink/metadata and nested-negation/unmerged-readiness gaps; tool comparisons and useful-task promotion criteria added.
+- Evidence: 80 existing cases passed, one skipped; three actual archive builds and five independent policy scenarios;45 frozen contracts unchanged. No runtime repair, consumer mutation, provider generation or publication by this review.
+
+### 2026-10-06 — Reusable-tool standard discussion
+- Artifact: IDEAS_VAULT proposal grounded in the current18-entry catalog, dispatcher and reuse protocol.
+- Impact: defines candidate contracts, reusable cores, lazy discovery, scoped promotion and proportional quality gates; owner confirmed Crewloom tools only.
+- Evidence: inspected existing metadata/dispatch source; conceptual proposal only, no implementation, migration or saving measurement.

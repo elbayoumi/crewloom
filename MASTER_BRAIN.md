@@ -1,8 +1,12 @@
 # Crewloom shared memory
 
+2026-10-06 review priority: close measured provider/context-quality failures, correct dashboard evidence semantics and reconcile the exact runtime/release identity before expanding role count or claiming savings. See [the version-scoped 32-item project review](documentation/PROJECT_REVIEW.md); this assessment changes no runtime or remote state.
+
+2026-10-06 privacy implementation: project-local data stays ignored and is checked against the exact Git index; parallel model tasks receive independently writable same-project memory. Declarative source policy remains versioned. [Privacy contract](documentation/PROJECT_PRIVACY.md); 77 cases pass with real Docker, local integration pending.
+
 [Architecture](Brain/ARCHITECTURE.md) · [Completed](Brain/COMPLETED.md) · [Challenges](Brain/CHALLENGES.md) · [Ideas](Brain/IDEAS_VAULT.md) · [Backlog](Brain/ROADMAP_TODO.md)
 
-The public edition contains clean role memory and shared repository memory. It has no imported customer or agency execution history. See [the constitution](AGENTS.md) for the memory lifecycle and [the release notes](documentation/RELEASE.md) for validation scope.
+The current toolkit tree keeps project-specific operational state outside shared role memory. Earlier commits include a project-scope incident; see [the scope guide](documentation/REPOSITORY_SCOPE.md). See [the constitution](AGENTS.md) for the memory lifecycle and [the release notes](documentation/RELEASE.md) for validation scope.
 
 Public edition 0.2.0 restores detailed references and ships twelve catalogued local tools, with six runnable examples.
 
@@ -49,3 +53,26 @@ A foreign application reached `main` once. The toolkit now carries a mandatory s
 
 ### 2026-10-06 — Closure map keeps quality on the first v2 run
 After fixing the cause of the v1 failure (missing import form), the closure-map arm matched full-source on every held-out check with about 18% fewer input tokens on three synthetic tasks (one host). It is a measured input-token reduction with no quality loss observed, not a cost or speed result; the tasks are at the ceiling, so do not claim a quality or billing advantage.
+### 2026-10-05 — Public entrypoint reviewed
+English/Arabic setup, project-root selection and actual study limitations are aligned. Brand assets share the existing palette and a dedicated mobile layout; supplied commands and 12 current-source previews pass. The first map study still does not establish useful token savings.
+
+### 2026-10-06 — Repeated source-scoped audit
+Published 40d4168a now contains the completed first v2 study: 18 scored Codex trials, 99/99 held-out checks in each arm and 18.3867% fewer mean input tokens for closure-map on three synthetic tasks. Cost and speed savings remain unestablished. Local privacy/brand work is still separate from published main. Release acceptance additionally needs all-depth source-archive private exclusions and staged-ignore readiness, both newly reproduced with synthetic fixtures; the passing build/install and hosted suites do not cover those cases.
+
+### 2026-10-06 — Intelligence product direction
+The detailed design prioritizes trustworthy publication and sufficient fresh context, then evidence-driven lesson reuse and verified delivery. Four further retrieval/lesson counterexamples are recorded; adding roles or critic calls cannot substitute for fixing them. Proposed multi-project UX and provider-aware optimizations remain measured, scoped acceptance work; no automatic pooling of client memory or unreviewed runtime upgrades.
+
+### 2026-10-06 — Owner operating requirements added to plan
+Crewloom remains separate from supplied application roots. Planned durable project checkpoints let work continue from Claude to another authorized host after quota interruption, with preserved attempts/budgets and source/ownership verification. Effective model/host capability profiles restrict execution to observed capability and selected policy; completion claims still require actual evidence. Automatic handoff is opt-in, and these requirements are not runtime implementation claims.
+
+### 2026-10-06 — Unified Crewloom implementation plan
+INTELLIGENCE_ROADMAP.md now holds the sole active plan:12 work packages covering39 review items and separate-root, quota-continuation and capability contracts. README and project backlog point to it; earlier reviews/designs remain evidence/history. Consolidation does not mark implementation or release acceptance complete.
+
+### 2026-10-06 — Next-stage product decision
+Prioritize trusted publication and correct context before automatic routing or broader orchestration. New local fixes improve private-state/staged-ignore handling, but independent archive and index fixtures still expose incomplete boundaries despite passing existing suites. The unified plan now compares reusable external mechanisms and defines practical acceptance/benefit measures. Manual cross-host continuity follows verified effective capabilities; no universal token-saving or hallucination-free claim, runtime repair or public release is established by this review.
+
+### 2026-10-06 — Implementation report reconciled with evidence
+Independent follow-up confirms20 packaging cases on compatible setuptools80.10.2 and5 existing root-guard cases. The report's broader R33/R34 completion claims conflict with unchanged-source negative controls, so the unified register/memory now describe partial repair. Preserve the original attempt report/checkpoint and reconcile its status before continuation. No source repair, full-gate revalidation or publication is claimed by this assessment.
+
+### 2026-10-06 — Reusable-tool product discussion
+Owner proposes Crewloom tools following a shared contract/clean-code/reuse standard and confirmed toolkit-only scope. Candidate architecture builds on the existing catalog: reusable logic, thin interfaces, explicit project-bound contracts and verified promotion. Discover only needed metadata to reduce repeated context work, then measure the benefit. Consumer code/scripts are outside scope; no implementation or token-saving guarantee is established by this discussion.

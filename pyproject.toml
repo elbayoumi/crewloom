@@ -33,7 +33,7 @@ packages = ["crewloom_data", "crewloom_data.assets", "crewloom_data.documentatio
             "crewloom_data.examples.seo", "crewloom_data.examples.ui", "crewloom_data.examples.video",
             "crewloom_data.examples.workflows", "crewloom_data.adapters", "crewloom_data.adapters.codex",
             "crewloom_data.adapters.claude", "crewloom_data.adapters.opencode"]
-py-modules = ["crewloom", "crewloom_resources", "workflow", "evaluate_feature", "model_host", "evaluate_hosts", "execution_policy", "provider_gateway", "repo_map", "js_syntax", "project_binding", "project_context", "project_lessons", "context_pilot", "reviewer_credentials", "task_coordinator", "agency_readiness", "host_lifecycle"]
+py-modules = ["crewloom", "crewloom_resources", "workflow", "evaluate_feature", "model_host", "evaluate_hosts", "execution_policy", "provider_gateway", "repo_map", "js_syntax", "project_binding", "project_context", "project_lessons", "context_pilot", "reviewer_credentials", "task_coordinator", "agency_readiness", "host_lifecycle", "continuation"]
 
 # Role trees and documentation stay in the repository exactly once. The wheel maps the
 # repository root into one data package, so installed roles keep the same relative

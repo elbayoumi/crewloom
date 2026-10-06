@@ -982,6 +982,7 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
                                          + '; start a new workflow ID rather than reusing this state')
                 continue
             if lifecycle_mode(root): project_context_checkpoint(root, plan, state, step)
+            _boundary_checkpoint(root, plan, state, ledger, 'before_dispatch', step['id'])
             try:
                 inputs = hashes(root, step['inputs'])
             except ValueError as exc:
@@ -1003,6 +1004,7 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
                 raise ValueError('Accept only the next task step; commands must run to produce evidence')
             if step.get('kind') == 'model':
                 run_model_step(root, plan, step, inputs, record, state, folder, ledger, allow_host_cli)
+                _boundary_checkpoint(root, plan, state, ledger, 'after_step', step['id'])
                 if record['status'] != 'complete':
                     return handoff(root, plan, state)
                 continue
@@ -1022,6 +1024,7 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
             ledger['attempts'].append(project_attempt)
             save_ledger(root, ledger)
             record['status'] = 'running'; state['status'] = 'running'; save(folder, state)
+            _boundary_checkpoint(root, plan, state, ledger, 'dispatched', step['id'])
             from execution_policy import execute as isolated_execute
             try:
                 result = isolated_execute(root, step, image_id, step.get('timeout_seconds', 60))
@@ -1044,11 +1047,22 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
                 # `failed` status with no recorded cause next to it.
                 record['status'] = 'failed'; state['status'] = 'failed'
                 record['error'] = str(exc); state['error'] = str(exc)
-                save(folder, state); return handoff(root, plan, state)
+                save(folder, state); _boundary_checkpoint(root, plan, state, ledger, 'after_step', step['id']); return handoff(root, plan, state)
             project_attempt['status'] = 'succeeded'; save_ledger(root, ledger)
             record['status'] = 'complete'; record.pop('error', None); save(folder, state)
+            _boundary_checkpoint(root, plan, state, ledger, 'after_step', step['id'])
         state['status'] = 'complete'; save(folder, state)
+        _boundary_checkpoint(root, plan, state, ledger, 'complete', None)
         return handoff(root, plan, state)
+
+
+def _boundary_checkpoint(root, plan, state, ledger, boundary, step_id):
+    """Controller-owned continuation checkpoint at an accepted boundary; never breaks the run."""
+    try:
+        import continuation
+    except ImportError:
+        return None
+    return continuation.best_effort_checkpoint(root, plan, state, ledger, boundary, step_id)
 
 
 def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allow_host_cli):
@@ -1068,6 +1082,13 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
         prompt=build_prompt(root,step,plan.get('language','en'),plan['id'],consumed)
         record['context_sha256']=digest(prompt.encode())
         record['context_bytes']=len(prompt.encode())
+        # Capability preflight before any attempt, ledger entry or side effect: managed generation
+        # is tool-free text, and the prompt must fit the adapter's documented bound.
+        profile=host_module.capability_profile(step['host'],step.get('model'))
+        host_module.check_prompt_fits(profile,record['context_bytes'])
+        record['capability_profile']={'fingerprint':profile['fingerprint'],'launch_mode':profile['launch_mode'],
+                                      'host':step['host'],'model_requested':step.get('model'),
+                                      'tools':'none (managed text generation)','schema_version':profile['schema_version']}
         if consumed:
             # Bind this step to the generation it actually read; a later reuse resolves the
             # same immutable evidence instead of inferring it from matching declared sources.
@@ -1089,6 +1110,7 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
         entry={'signature':signature,'status':'running','workflow':plan['id'],'step':step['id'],'kind':'model'}
         ledger['attempts'].append(entry);save_ledger(root,ledger)
         record['status']='running';state['status']='running';save(folder,state)
+        _boundary_checkpoint(root,plan,state,ledger,'dispatched',step['id'])
         artifacts,evidence=generate(step['host'],prompt,step['outputs'],step.get('timeout_seconds',180),step.get('model'))
         if hashes(root,step['inputs']) != inputs:
             raise ValueError('Inputs changed during model generation; outputs rejected')

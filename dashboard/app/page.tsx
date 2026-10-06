@@ -1,7 +1,8 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { parseArgv } from '../lib/argv.ts';
 
-type Skill = { id: string; description: string; lastActivity: string | null; openTasks: number; doneEntries: number; openChallenges: number; ideas: number; tools: string[]; runs: number; failedRuns: number; status: 'healthy' | 'attention' | 'idle' };
+type Skill = { id: string; description: string; lastActivity: string | null; openTasks: number; doneEntries: number; openChallenges: number; resolvedChallenges: number; unknownChallenges: number; ideas: number; tools: string[]; runs: number; failedRuns: number; currentFailures: string[]; evidence: { documented: boolean; configured: boolean; exercised: boolean; verified: boolean; acceptance: string }; status: 'attention' | 'verified' | 'exercised' | 'configured' | 'documented' };
 type Tool = { id: string; skill: string; description: string; example_args: string; effect: string };
 type Run = { ts: string; tool: string; skill: string; exit_code: number; duration_ms: number; source: string; output?: string };
 type Overview = { projectRoot: string; generatedAt: string; totals: Record<string, number>; skills: Skill[]; tools: Tool[]; runs: Run[] };
@@ -85,10 +86,12 @@ export default function Dashboard() {
   const skills = useMemo(() => (data?.skills ?? []).filter((s) => (filter === 'all' || s.status === filter) && (`${s.id} ${s.description}`.toLowerCase().includes(query.toLowerCase()))), [data, filter, query]);
 
   const pickSkill = (id: string) => { openId.current = id; setTab('skill'); void loadDetail(id); };
+  const parsedArgs = useMemo(() => parseArgv(args), [args]);
   const runTool = async () => {
+    if (parsedArgs.error) { setOutput({ ok: false, text: parsedArgs.error }); return; }
     setBusy(true); setOutput(null);
     try {
-      const res = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool: toolId, args: args.split(/\s+/).filter(Boolean) }) });
+      const res = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool: toolId, args: parsedArgs.argv }) });
       const body = await res.json();
       if (res.status === 401 || res.status === 403) { setAuth('out'); return; }
       setOutput({ ok: res.ok && body.exit_code === 0, text: body.error ?? body.output ?? '' });
@@ -151,7 +154,7 @@ export default function Dashboard() {
             <div className="toolbar">
               <input type="search" placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)} aria-label={t.search} />
               <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)} aria-label={t.status}>
-                <option value="all">{t.all}</option><option value="healthy">healthy</option><option value="attention">attention</option><option value="idle">idle</option>
+                <option value="all">{t.all}</option><option value="attention">attention</option><option value="verified">verified</option><option value="exercised">exercised</option><option value="configured">configured</option><option value="documented">documented</option>
               </select>
             </div>
             <div className="scroll">
@@ -161,8 +164,8 @@ export default function Dashboard() {
                   {skills.map((s) => (
                     <tr key={s.id} className="row" tabIndex={0} onClick={() => pickSkill(s.id)} onKeyDown={(e) => e.key === 'Enter' && pickSkill(s.id)}>
                       <td><b>{s.id}</b></td>
-                      <td><span className={`badge ${s.status}`}>{s.status}</span></td>
-                      <td>{s.openTasks}</td><td>{s.doneEntries}</td><td>{s.openChallenges}</td>
+                      <td><span className={`badge ${s.status}`} title={`documented ${s.evidence.documented ? 'yes' : 'no'} · installed in project ${s.evidence.configured ? 'yes' : 'no'} · exercised ${s.evidence.exercised ? 'yes' : 'no'} · acceptance ${s.evidence.acceptance}`}>{s.status}</span></td>
+                      <td>{s.openTasks}</td><td>{s.doneEntries}</td><td>{s.openChallenges}{s.unknownChallenges ? <span className="badge unknown" title="Challenge entries without a recognised status line"> {s.unknownChallenges}?</span> : null}</td>
                       <td>{s.runs}{s.failedRuns ? <span className="badge fail"> {s.failedRuns}✕</span> : null}</td>
                       <td>{ago(s.lastActivity)}</td>
                     </tr>
@@ -190,9 +193,10 @@ export default function Dashboard() {
               <select value={toolId} onChange={(e) => { const tool = data?.tools.find((x) => x.id === e.target.value); setToolId(e.target.value); setArgs(tool?.example_args.replace('{input}', '') ?? ''); }} aria-label={t.tools}>
                 {data?.tools.map((x) => <option key={x.id} value={x.id}>{x.id}</option>)}
               </select>
-              <button onClick={runTool} disabled={busy || !toolId}>{t.run}</button>
+              <button onClick={runTool} disabled={busy || !toolId || !!parsedArgs.error}>{t.run}</button>
             </div>
             <input style={{ width: '100%' }} value={args} onChange={(e) => setArgs(e.target.value)} placeholder={t.args} aria-label={t.args} />
+            <p className="empty" dir="ltr" aria-live="polite">{parsedArgs.error ? parsedArgs.error : `argv: ${JSON.stringify(parsedArgs.argv)}`}</p>
             <p className="empty">{data?.tools.find((x) => x.id === toolId)?.description}</p>
             <button className="ghost" onClick={runChecks} disabled={busy}>{t.checks}</button>
             {output && <pre style={{ borderColor: output.ok ? 'var(--ok)' : 'var(--bad)' }}>{output.text || (output.ok ? 'PASS' : 'FAIL')}</pre>}

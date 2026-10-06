@@ -51,3 +51,20 @@ Server-side session revocation is per process: restarting the dashboard invalida
 The API runs only tools registered in `TOOLS.json`, rejects absolute or `..` path arguments, caps output at 20 KB and run time at 60 s. Binding to a non-loopback interface still requires an explicitly configured credential. Authentication is an integrity boundary, not a sandbox: any process running as the operator can read the dashboard's environment.
 
 Project selection and isolation: [project guide](../documentation/PROJECTS.md).
+
+## Role status and what it means
+
+A role's status states what is known, in this order of evidence:
+
+| Status | Meaning |
+| --- | --- |
+| `documented` | A role guide exists. Nothing is installed in the selected project and no tool has run. |
+| `configured` | The role is installed in the selected project (`.agents/skills` or `.claude/skills`). |
+| `exercised` | A registered tool for the role has run at least once. A tool exit code is not application acceptance. |
+| `verified` | `.crewloom/acceptance/<role>.json` exists with `{"schema_version": 1, "passed": true, "exit_code": 0, "command": "..."}`. Only an explicit acceptance record verifies. |
+| `attention` | The latest run of a tool failed, or a challenge is open or has an unknown status. This takes precedence. |
+
+A challenge entry counts as `open` or `resolved` only when it has a recognised status line (`Status:`/`State:`/`الحالة:` with an open or resolved value). An entry without one is shown as unknown (`n?`) instead of being treated as closed.
+
+Tool arguments are parsed with shell-style quoting, so `--input "docs/My folder/ملف.md"` is one argument. The exact argument array is shown before launch; unterminated quotes are refused, and traversal, absolute paths and NUL bytes are still rejected by the server. Role descriptions support plain, quoted, folded (`>`) and literal (`|`) YAML scalars; other constructs are reported as warnings rather than shown as garbage.
+

@@ -35,3 +35,7 @@ recursive-exclude dashboard/node_modules *
 recursive-exclude dashboard/.next *
 
 global-exclude __pycache__ *.pyc *.pyo .DS_Store *.log
+
+# Private state at any depth (nested `.crewloom`, `.env*` other than the .example/.template files,
+# run/event logs, generated trees, symlinks) is excluded by setup.py, because distutils globs cannot
+# match a directory name at every depth. Reviewed public exceptions: documentation/ARCHIVE_POLICY.json.

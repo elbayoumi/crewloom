@@ -12,7 +12,11 @@ reading the working directory or depending on an editable path staying put. Role
 documentation live in exactly one place in the source tree; nothing is copied twice.
 """
 import importlib.util
+import json
 import os
+import re
+import subprocess
+import sys
 from pathlib import Path, PurePosixPath
 
 DATA_PACKAGE = 'crewloom_data'
@@ -150,3 +154,57 @@ def dashboard_dir():
     if not (folder / 'package.json').is_file():
         raise ResourceError('Dashboard sources are incomplete: ' + str(folder))
     return folder
+
+def _git(root, *argv):
+    """One read-only Git observation of a checkout; None when Git or the repository is unavailable."""
+    environment = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+    try:
+        result = subprocess.run(['git', '-C', str(root), *argv], capture_output=True, timeout=20, env=environment)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return result.stdout.decode('utf-8', 'replace') if result.returncode == 0 else None
+
+
+def source_identity():
+    """Which Crewloom is running: version, resolved roots, revision and dirty/source versus installed.
+
+    Every value is observed here or reported as None (unknown); nothing is inferred from a name.
+    `distribution_version` is the installed package metadata, `declared_version` is the checkout's
+    pyproject.toml, so a stale editable install or a wheel that differs from its source is visible."""
+    root, roles, documentation, checkout = layout()
+    try:
+        from importlib import metadata
+        distribution = metadata.distribution('crewloom')
+        distribution_version = distribution.version
+        located = getattr(distribution, '_path', None)
+        metadata_path = str(located) if located is not None else None
+        direct = distribution.read_text('direct_url.json')
+        editable = bool(json.loads(direct).get('dir_info', {}).get('editable')) if direct else False
+    except Exception:  # missing metadata is an unknown, not a failure
+        distribution_version, editable, metadata_path = None, None, None
+    declared = None
+    pyproject = MODULE_DIR.parent / 'pyproject.toml'
+    if checkout and pyproject.is_file():
+        match = re.search(r'^version\s*=\s*"([^"]+)"', pyproject.read_text(encoding='utf-8'), re.M)
+        declared = match.group(1) if match else None
+    revision = dirty = None
+    if checkout and (root / '.git').exists():
+        head = _git(root, 'rev-parse', 'HEAD')
+        revision = head.strip() if head else None
+        status = _git(root, 'status', '--porcelain')
+        dirty = len([line for line in status.splitlines() if line]) if status is not None else None
+    comparable = distribution_version is not None and declared is not None
+    return {'layout': 'source-checkout' if checkout else 'installed-data',
+            'code_root': str(MODULE_DIR), 'resource_root': str(root), 'roles_root': str(roles),
+            'documentation_root': str(documentation),
+            'distribution_version': distribution_version, 'distribution_metadata': metadata_path,
+            'metadata_beside_checkout_code': (checkout and Path(metadata_path).resolve().is_relative_to(MODULE_DIR))
+                                             if metadata_path else None,
+            'declared_version': declared,
+            'versions_agree': (distribution_version == declared) if comparable else None,
+            'editable_install': editable, 'revision': revision, 'dirty_paths': dirty,
+            'python': sys.version.split()[0],
+            'unknown': sorted(name for name, value in (('distribution_version', distribution_version),
+                                                       ('declared_version', declared), ('revision', revision),
+                                                       ('dirty_paths', dirty), ('editable_install', editable))
+                              if value is None)}

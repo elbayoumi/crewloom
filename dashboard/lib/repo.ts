@@ -11,37 +11,95 @@ const SKILL_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export type Tool = { id: string; skill: string; path: string; description: string; example_args: string; effect: string };
 export type Run = { ts: string; tool: string; skill: string; exit_code: number; duration_ms: number; source: 'cli' | 'dashboard'; project_root?: string; output?: string };
+/** What is actually known about a role. `verified` needs an explicit acceptance record, never a tool exit code alone. */
+export type Evidence = { documented: boolean; configured: boolean; exercised: boolean; verified: boolean; acceptance: 'recorded' | 'none-recorded' };
+export type RoleStatus = 'attention' | 'verified' | 'exercised' | 'configured' | 'documented';
 export type SkillSummary = {
   id: string; description: string; lastActivity: string | null;
-  openTasks: number; doneEntries: number; openChallenges: number; ideas: number; tools: string[];
-  runs: number; failedRuns: number; status: 'healthy' | 'attention' | 'idle';
+  openTasks: number; doneEntries: number; openChallenges: number; resolvedChallenges: number; unknownChallenges: number; ideas: number; tools: string[];
+  runs: number; failedRuns: number; currentFailures: string[]; evidence: Evidence; status: RoleStatus;
 };
 
 export const isSkillId = (value: string) => SKILL_ID.test(value);
 
-/** Count `- [ ]` backlog items, dated `###` entries, and unresolved challenges. */
+export type ChallengeStatus = 'open' | 'resolved' | 'unknown';
+const STATUS_LINE = /^\s*(?:[-*]\s*)?(?:\*\*)?(الحالة|status|state)\s*(?:\*\*)?\s*[:：]\s*(?:\*\*)?\s*(.+)$/iu;
+const OPEN_VALUE = /^(?:مفتوح|مفتوحة|open|ongoing|in progress)(?![\p{L}\p{N}_])/iu;
+const RESOLVED_VALUE = /^(?:محلول|محلولة|مغلق|مغلقة|resolved|closed|fixed|done|solved)(?![\p{L}\p{N}_])/iu;
+
+/** One challenge entry's status. A missing or unrecognised status is `unknown`, never closed. */
+export function challengeStatus(entry: string): ChallengeStatus {
+  for (const line of entry.split('\n')) {
+    const match = line.match(STATUS_LINE);
+    if (!match) continue;
+    const value = match[2].trim().replace(/^[*_`]+/, '');
+    if (OPEN_VALUE.test(value)) return 'open';
+    if (RESOLVED_VALUE.test(value)) return 'resolved';
+    return 'unknown';
+  }
+  return 'unknown';
+}
+
+/** Count `- [ ]` backlog items, dated `###` entries, and challenges by status (open, resolved, unknown). */
 export function countBrain(files: Partial<Record<(typeof BRAIN_FILES)[number], string>>) {
   const count = (text: string | undefined, re: RegExp) => (text?.match(re) ?? []).length;
-  const challenges = files.CHALLENGES ?? '';
-  const entries = challenges.split(/^### /m).slice(1);
-  const statusLine = (e: string) => e.split('\n').find((l) => /(الحالة|status)/i.test(l)) ?? '';
-  const openChallenges = entries.filter((e) => /(مفتوح|\bopen\b)/i.test(statusLine(e))).length;
+  const entries = (files.CHALLENGES ?? '').split(/^### /m).slice(1);
+  const statuses = entries.map(challengeStatus);
   return {
     openTasks: count(files.ROADMAP_TODO, /^\s*- \[ \]/gm),
     doneEntries: count(files.COMPLETED, /^### /gm),
-    openChallenges,
+    openChallenges: statuses.filter((s) => s === 'open').length,
+    resolvedChallenges: statuses.filter((s) => s === 'resolved').length,
+    unknownChallenges: statuses.filter((s) => s === 'unknown').length,
     ideas: count(files.IDEAS_VAULT, /^### /gm),
   };
 }
 
-export function parseFrontmatter(text: string): { name?: string; description?: string } {
-  const match = text.match(/^---\n([\s\S]*?)\n---/);
+const FRONTMATTER_BYTES = 16 * 1024;
+const FRONTMATTER_LINES = 200;
+const unquote = (value: string) => {
+  const v = value.trim();
+  if (v.length >= 2 && v.startsWith("'") && v.endsWith("'")) return v.slice(1, -1).replace(/''/g, "'");
+  if (v.length >= 2 && v.startsWith('"') && v.endsWith('"')) return v.slice(1, -1).replace(/\\(["\\])/g, '$1');
+  return v;
+};
+
+/**
+ * A bounded subset of YAML frontmatter: plain and quoted scalars, indented plain continuation,
+ * and folded (`>`) / literal (`|`) block scalars with `-`/`+` chomping. Anything else (flow
+ * collections, nested maps, anchors) is reported in `warnings` instead of being shown as garbage.
+ */
+export function parseFrontmatter(text: string): { name?: string; description?: string; warnings?: string[] } {
+  const match = text.slice(0, FRONTMATTER_BYTES).match(/^---\r?\n([\s\S]*?)\r?\n---/);
   const out: Record<string, string> = {};
-  for (const line of match?.[1].split('\n') ?? []) {
-    const i = line.indexOf(':');
-    if (i > 0) out[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+  const warnings: string[] = [];
+  if (!match && text.startsWith('---') && text.length > FRONTMATTER_BYTES) warnings.push(`Frontmatter is not closed within ${FRONTMATTER_BYTES} bytes`);
+  const lines = (match?.[1] ?? '').split(/\r?\n/).slice(0, FRONTMATTER_LINES);
+  for (let i = 0; i < lines.length; i += 1) {
+    const head = lines[i].match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
+    if (!head) continue;
+    const [, key, raw] = head;
+    const indented: string[] = [];
+    while (i + 1 < lines.length && (/^\s+\S/.test(lines[i + 1]) || (lines[i + 1].trim() === '' && i + 2 < lines.length && /^\s+\S/.test(lines[i + 2])))) {
+      indented.push(lines[i + 1]); i += 1;
+    }
+    const block = raw.match(/^([>|])([+-]?)\s*$/);
+    if (block) {
+      const indent = Math.min(...indented.filter((l) => l.trim()).map((l) => l.match(/^\s*/)![0].length), Infinity);
+      const body = indented.map((l) => (l.trim() ? l.slice(Number.isFinite(indent) ? indent : 0) : ''));
+      if (block[1] === '|') out[key] = body.join('\n').replace(/\n+$/, block[2] === '+' ? '\n' : '');
+      else {
+        const paragraphs = body.join('\n').split(/\n{2,}/).map((p) => p.split('\n').map((s) => s.trim()).filter(Boolean).join(' '));
+        out[key] = paragraphs.join('\n').trim();
+      }
+      continue;
+    }
+    if (/^[\[{&*!]/.test(raw)) { warnings.push(`Unsupported YAML value for ${key}`); continue; }
+    if (raw === '' && indented.some((l) => /^\s+[\w-]+:\s/.test(l))) { warnings.push(`Unsupported nested value for ${key}`); continue; }
+    const parts = [raw, ...indented.map((l) => l.trim())].filter((s) => s !== '');
+    out[key] = parts.length > 1 && !/^["']/.test(raw) ? parts.join(' ') : unquote(parts.join(' '));
   }
-  return out;
+  return warnings.length ? { ...out, warnings } : out;
 }
 
 export function parseRuns(text: string): Run[] {
@@ -99,6 +157,45 @@ async function readBrain(id: string) {
   return { files, latest };
 }
 
+const ACCEPTANCE_BYTES = 8 * 1024;
+
+/** An explicit acceptance record `.crewloom/acceptance/<role>.json`: {schema_version:1, passed:true, command, exit_code:0}. */
+export async function readAcceptance(id: string): Promise<boolean> {
+  if (!isSkillId(id)) return false;
+  try {
+    const file = path.join(PROJECT, '.crewloom', 'acceptance', `${id}.json`);
+    if (!existsSync(file)) return false;
+    const relative = path.relative(realpathSync(PROJECT), realpathSync(file));
+    if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) return false;
+    const raw = await fs.readFile(file, 'utf8');
+    if (raw.length > ACCEPTANCE_BYTES) return false;
+    const value = JSON.parse(raw) as Record<string, unknown>;
+    return value.schema_version === 1 && value.passed === true && value.exit_code === 0
+      && typeof value.command === 'string' && value.command.length > 0;
+  } catch { return false; }
+}
+
+/** The tools whose most recent run failed; `runs` is newest first. */
+export function currentFailures(runs: Run[]): string[] {
+  const seen = new Set<string>();
+  const failing: string[] = [];
+  for (const run of runs) {
+    if (seen.has(run.tool)) continue;
+    seen.add(run.tool);
+    if (run.exit_code !== 0) failing.push(run.tool);
+  }
+  return failing;
+}
+
+/** Documented -> configured -> exercised -> verified; a failing current run or an open/unknown challenge needs attention. */
+export function roleStatus(input: { evidence: Evidence; currentFailures: string[]; openChallenges: number; unknownChallenges: number }): RoleStatus {
+  if (input.currentFailures.length || input.openChallenges || input.unknownChallenges) return 'attention';
+  if (input.evidence.verified) return 'verified';
+  if (input.evidence.exercised) return 'exercised';
+  if (input.evidence.configured) return 'configured';
+  return 'documented';
+}
+
 export async function listSkills(): Promise<SkillSummary[]> {
   const [ids, tools, runs] = await Promise.all([fs.readdir(SKILLS), readTools(), readRuns(1000)]);
   const out: SkillSummary[] = [];
@@ -110,10 +207,14 @@ export async function listSkills(): Promise<SkillSummary[]> {
     const mine = runs.filter((r) => r.skill === id);
     const failedRuns = mine.filter((r) => r.exit_code !== 0).length;
     const counts = countBrain(files);
-    const status = failedRuns > 0 || counts.openChallenges > 0 ? 'attention' : mine.length || counts.doneEntries ? 'healthy' : 'idle';
+    const failing = currentFailures(mine);
+    const configured = ['.agents', '.claude'].some((host) => existsSync(path.join(PROJECT, host, 'skills', id, 'SKILL.md')));
+    const verified = await readAcceptance(id);
+    const evidence: Evidence = { documented: true, configured, exercised: mine.length > 0, verified, acceptance: verified ? 'recorded' : 'none-recorded' };
     out.push({
       id, description: meta.description ?? '', lastActivity: latest ? new Date(latest).toISOString() : null,
-      ...counts, tools: tools.filter((t) => t.skill === id).map((t) => t.id), runs: mine.length, failedRuns, status,
+      ...counts, tools: tools.filter((t) => t.skill === id).map((t) => t.id), runs: mine.length, failedRuns,
+      currentFailures: failing, evidence, status: roleStatus({ evidence, currentFailures: failing, openChallenges: counts.openChallenges, unknownChallenges: counts.unknownChallenges }),
     });
   }
   return out;
@@ -141,15 +242,20 @@ function exec(args: string[], timeoutMs: number, cwd = PROJECT): Promise<ExecRes
   });
 }
 
+/** Refuse NUL, traversal and absolute paths; spaces, Arabic and quotes inside a single argument are fine. */
+export function validateArgs(args: string[]): string | null {
+  for (const arg of args) {
+    if (typeof arg !== 'string' || arg.includes('\0') || (!arg.startsWith('-') && /(^|[\\/])\.\.([\\/]|$)/.test(arg)) || path.isAbsolute(arg)) return `Rejected argument: ${String(arg).replace(/\0/g, '\\0')}`;
+  }
+  return null;
+}
+
 /** Run a registered tool only; arguments must be plain strings and use project-relative paths. */
 export async function runTool(toolId: string, args: string[]): Promise<ExecResult & { error?: string }> {
   const tool = (await readTools()).find((t) => t.id === toolId);
   if (!tool) return { exit_code: 2, output: '', duration_ms: 0, error: 'Unknown tool' };
-  for (const arg of args) {
-    if (arg.includes('\0') || (!arg.startsWith('-') && /(^|\/)\.\.(\/|$)/.test(arg)) || path.isAbsolute(arg)) {
-      return { exit_code: 2, output: '', duration_ms: 0, error: `Rejected argument: ${arg}` };
-    }
-  }
+  const rejected = validateArgs(args);
+  if (rejected) return { exit_code: 2, output: '', duration_ms: 0, error: rejected };
   const result = await exec([path.join(ROOT, 'scripts/crewloom.py'), 'run', '--project', PROJECT, tool.id, '--', ...args], 60000);
   return result;
 }

@@ -307,5 +307,51 @@
     "paused_task_reservation": "passed",
     "cancel_retains_files_and_history": "passed",
     "runtime_redirects": "rejected"
+  },
+  "readme_brand_review": {
+    "date": "2026-10-05",
+    "scope": "README and vector brand assets only; no full runtime or live GitHub-page acceptance claimed",
+    "renderer": "GitHub Markdown API output with local preview CSS",
+    "current_source_viewport_cases": 12,
+    "languages": [
+      "en",
+      "ar"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "widths": [
+      1440,
+      768,
+      390
+    ],
+    "outer_overflows": 0,
+    "local_assets_loaded": true,
+    "minimum_svg_foreground_contrast": 7.81,
+    "mobile_tagline_effective_px": 17.9,
+    "logo_checked_sizes": [
+      128,
+      64,
+      32,
+      24
+    ],
+    "source_sha256": {
+      "README.md": "c99a97d57b334bee39e876daea8e82df3a0fccdc907aac6f497b8318b987d3df",
+      "README.ar.md": "b94831ac96497496e7ae9172eb28a6efae3dd57fd401d39c682afbfb990ff1cb",
+      "assets/crewloom-banner.svg": "d702fb8ce774a3e76eeb41d91a1055e1b8f13ca7d44705486b8638773c1bde75",
+      "assets/crewloom-banner-mobile.svg": "2642de6319af9b7ee7716b74958fb31841a0a98ba73ea0b18036a50f483f84d7",
+      "assets/crewloom-logo.svg": "8802fe0d803d2ce730cda2eb1851f2824198a22c17264f8bb179146ca8ed5e01",
+      "documentation/BRANDING.md": "07815a118d0f8da4dfe6420ff4defa4a1480b2d4b48718674c44d06bddb44561",
+      "documentation/GETTING_STARTED.md": "b7be1456fc4714dafcfea9a0ba0d02f70fa37dee79ea970e45d72259ce63e725"
+    },
+    "reference_workflow_and_role_install": "pass; no provider calls",
+    "context_study_result": "36 recorded rows;17 Codex scored; selected-map0/11 in all8 scored trials; useful savings not established",
+    "release_manifest": "existing0.5.1 snapshot preserved; regenerate for final integrated source",
+    "references": {
+      "pipx_install": "https://pipx.pypa.io/latest/how-to/install-pipx.html",
+      "pipx_cli": "https://pipx.pypa.io/stable/reference/cli.html",
+      "github_picture": "https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"
+    }
   }
 }

@@ -1,5 +1,15 @@
 # Challenges
 
+### 2026-10-06 — Depth-limited sdist globs leak nested private state
+- Root cause: distutils globs cannot match a directory name at every depth; egg_info builds the final sdist list after `prune_file_list`.
+- Fix: filter in `sdist.make_release_tree` (`setup.py`) plus real-archive canary test (canary built at runtime so the test file is not itself a canary).
+- State: narrow payload cases repaired, R33 remains open for wider archive content/metadata/symlink acceptance. The original implementation used82.0.1 outside the build range; independent follow-up passes its20 cases with the already-installed80.10.2 builder, so no download/approval was needed to verify that range.
+
+### 2026-10-06 — Stale fixtures hid gate failures
+- Root cause: `test_project_binding`, `test_repository_scope` and `test_packaging` encoded older contracts (ignore-file shape, gate module list, banner-only assets); the suite stops at its first failing module.
+- Fix: updated fixtures to the current reviewed contracts without weakening assertions; gate run exit 0.
+- State: resolved 2026-10-06.
+
 ### 2026-10-01 — Separate public tooling from private operations
 - Cause: The upstream workspace mixes reusable roles with client data and agency-specific contracts.
 - Solution: Publish English public adaptations, clean memory, and selected inspected tools in a new repository without upstream Git history.

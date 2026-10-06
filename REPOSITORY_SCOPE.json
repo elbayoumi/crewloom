@@ -30,7 +30,8 @@
     "README.md",
     "REPOSITORY_SCOPE.json",
     "SECURITY.md",
-    "setup.cfg"
+    "setup.cfg",
+    "setup.py"
   ],
   "purpose": "This checkout contains the Crewloom toolkit. Independent applications require their own canonical root and repository; registering a new toolkit directory requires reviewed scope changes."
 }

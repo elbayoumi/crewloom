@@ -3,7 +3,7 @@
 Two identities are always required: a portable project ID in `crewloom.project.json`
 and a machine-local checkout ID in `.crewloom/binding.json`. A remote URL, folder
 name or last chat message is never accepted as identity. Bootstrap preflights
-every writable path before the first write, never runs Git, dependency, network or
+every writable path before the first write, checks only the selected Git index, and never runs dependency, network or
 deployment steps, and never overwrites customer instructions or installed memory.
 
 The agency adapter validates the existing project-control ledger exactly as that
@@ -502,18 +502,216 @@ def ensure_layout(root):
     return folder
 
 
-def ignore_local_state(root):
-    """Machine-local runtime state stays out of version control; existing ignore rules are preserved."""
+def library_source(root):
+    """Only the actual distributed toolkit may carry public role-memory templates."""
+    import crewloom_resources
+    root = Path(root).resolve()
+    source = crewloom_resources.distribution_root().resolve()
+    if root == source:
+        return True
+    # A genuine linked checkout of the same toolkit repository also holds public templates.
+    if not all((folder / '.git').exists() and not (folder / '.git').is_symlink()
+               for folder in (root, source)):
+        return False
+    import repo_map
+    def common(folder):
+        result = subprocess.run(['git', '-C', str(folder), 'rev-parse', '--git-common-dir'],
+                                env=repo_map.git_environment(), stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, timeout=10)
+        if result.returncode:
+            return None
+        return (folder / os.fsdecode(result.stdout).strip()).resolve()
+    reference = common(source)
+    return reference is not None and common(root) == reference
+
+
+def private_project_path(relative, role_memory=False):
+    """Classify reserved local state by path, never by reading customer file bodies."""
+    parts = Path(relative).parts
+    if any(part.casefold() in ('.crewloom', '.venv', '__pycache__', 'node_modules', '.next', 'build', 'dist')
+           or part.casefold().endswith('.egg-info') for part in parts):
+        return True
+    name = parts[-1].casefold() if parts else ''
+    if name.endswith(('.pyc', '.pyo', '.log', '.tsbuildinfo')):
+        return True
+    if name == '.env' or (name.startswith('.env.') and name not in ('.env.example', '.env.template')):
+        return True
+    if role_memory:
+        if len(parts) >= 5 and parts[0] in ('.agents', '.claude') and parts[1] == 'skills' and parts[3] == 'brain':
+            return True
+        if tuple(parts) in (('.codex', 'hooks.json'), ('.claude', 'settings.json'),
+                            ('.claude', 'settings.local.json'), ('.opencode', 'plugins', 'crewloom-lifecycle.js')):
+            return True
+    return False
+
+
+def tracked_private_paths(root, role_memory=False, private_files=()):
+    """Inspect this exact Git index, including forced additions; never use a parent index."""
+    root = Path(root).resolve()
+    marker = root / '.git'
+    if marker.is_symlink():
+        raise ValueError('Project Git marker may not be a symlink')
+    if not marker.exists():
+        return []  # A plain application directory/archive has no index to publish.
+    import repo_map
+    environment = repo_map.git_environment()
+    def git(arguments):
+        result = subprocess.run(['git', '-C', str(root), *arguments], env=environment,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
+        if result.returncode:
+            raise ValueError('Cannot verify the selected project Git index')
+        if len(result.stdout) > 8 * 1024 * 1024:
+            raise ValueError('Project Git index exceeds privacy scan budget')
+        return result.stdout
+    top = Path(os.fsdecode(git(['rev-parse', '--show-toplevel'])).strip()).resolve()
+    if top != root:
+        raise ValueError('Git index does not belong to the canonical project root')
+    names = git(['ls-files', '--cached', '-z']).split(b'\0')
+    if len(names) > 50001:
+        raise ValueError('Project Git index exceeds privacy path budget')
+    exact = set(private_files)
+    private = {os.fsdecode(name) for name in names if name and
+               (os.fsdecode(name) in exact or private_project_path(os.fsdecode(name), role_memory))}
+    # Honor arbitrary project-owned private paths too: forced/stale ignored index entries fail.
+    ignored = git(['ls-files', '--cached', '--ignored', '--exclude-standard', '-z']).split(b'\0')
+    private.update(os.fsdecode(name) for name in ignored if name)
+    return sorted(private)
+
+
+def ignore_local_state(root, role_memory=False):
+    """Append a final owned ignore block; preserve user rules and private local files."""
     path = writable(root, '.gitignore')
     original = path.read_text(encoding='utf-8') if path.exists() else ''
-    if any(line.strip().rstrip('/') == '.crewloom' for line in original.splitlines()):
+    if len(original.encode('utf-8')) > 1024 * 1024:
+        raise ValueError('Project ignore file exceeds privacy policy budget')
+    patterns = [LOCAL_IGNORE, '.env', '.env.*', '!.env.example', '!.env.template',
+                '__pycache__/', '*.pyc', '*.pyo', '*.log',
+                '.venv/', 'node_modules/', '.next/', 'build/', 'dist/', '*.egg-info/', '*.tsbuildinfo']
+    if role_memory:
+        patterns += ['/.agents/skills/*/brain/', '/.claude/skills/*/brain/',
+                     '/.codex/hooks.json', '/.claude/settings.json', '/.claude/settings.local.json',
+                     '/.opencode/plugins/crewloom-lifecycle.js']
+    block = '# Crewloom project-local privacy\n' + '\n'.join(patterns) + '\n'
+    # Existing negations cannot re-include our reserved state because the owned block is last.
+    if original.endswith(block):
         return None
-    candidate = (original.rstrip('\n') + '\n' if original.strip() else '') + LOCAL_IGNORE + '\n'
-    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=root, delete=False) as stream:
-        temporary = Path(stream.name)
-        stream.write(candidate)
-    os.replace(temporary, path)
+    candidate = original + ('' if not original or original.endswith('\n') else '\n') + block
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=root, delete=False) as stream:
+            temporary = Path(stream.name)
+            stream.write(candidate)
+        writable(root, '.gitignore')
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
     return '.gitignore'
+
+
+def privacy_report(root):
+    """Read-only publication preflight for a selected project, suitable for its CI/hook."""
+    root = project_root(root)
+    local_memory = not library_source(root)
+    private = tracked_private_paths(root, role_memory=local_memory)
+    checked = (root / '.git').exists()
+    probes = ['.crewloom/privacy-check.json', '.env.local', '__pycache__/privacy-check.pyc',
+              'node_modules/privacy-check/index.js', 'dist/privacy-check.json']
+    if local_memory:
+        probes += ['.agents/skills/privacy-check/brain/COMPLETED.md',
+                   '.claude/skills/privacy-check/brain/COMPLETED.md', '.codex/hooks.json',
+                   '.claude/settings.json', '.opencode/plugins/crewloom-lifecycle.js']
+    missing, portable_missing, local_only, unmerged, nested = [], [], [], [], []
+    if checked:
+        import repo_map
+        for name in probes:
+            result = subprocess.run(['git', '-C', str(root), 'check-ignore', '--no-index', '-q', '--', name],
+                                    env=repo_map.git_environment(), stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, timeout=10)
+            if result.returncode == 1:
+                missing.append(name)
+            elif result.returncode != 0:
+                raise ValueError('Cannot verify selected project ignore policy')
+        policy = staged_ignore_policy(root, probes)
+        portable_missing = policy['missing']
+        unmerged, nested = policy['unmerged'], policy['nested_negations']
+        local_only = [name for name in probes if name in portable_missing and name not in missing]
+    ready = checked and not private and not missing and not portable_missing and not unmerged and not nested
+    return {'project_root': str(root), 'status': 'ready' if ready else 'not_ready',
+            'git_index_checked': checked, 'tracked_private_paths': private, 'missing_ignore_probes': missing,
+            'missing_portable_ignore_probes': portable_missing, 'local_only_ignore_probes': local_only,
+            'unmerged_ignore_files': unmerged, 'nested_negation_gaps': nested,
+            'role_memory_private': local_memory,
+            'scope': 'Reserved project-local paths and representative ignore rules evaluated from the staged '
+                     'ignore files only; .git/info/exclude, global excludes and unstaged edits do not count. '
+                     'Not a content-secret scanner or an OS sandbox'}
+
+
+def staged_ignore_policy(root, probes):
+    """Evaluate the ignore files in the selected project's index, and only those.
+
+    Returns `missing` (root probes not ignored), `unmerged` (ignore files with conflict stages,
+    whose effective content is undefined) and `nested_negations` (private names that a staged
+    nested ignore file re-includes under its own directory). Staged blobs are rebuilt at their
+    own paths inside a scratch repository with system/global Git configuration disabled, so
+    nested rules and negations are honoured while `.git/info/exclude`, `core.excludesFile` and
+    unstaged working-tree edits cannot contribute. Index and working tree are never touched."""
+    import repo_map
+    entries = repo_map.git(root, ['ls-files', '--stage', '-z']).split(b'\0')
+    staged, unmerged = {}, set()
+    for entry in entries:
+        if not entry:
+            continue
+        meta, _, name = entry.decode('utf-8', 'surrogateescape').partition('\t')
+        mode, blob, stage = meta.split()
+        if mode == '120000' or (name != '.gitignore' and not name.endswith('/.gitignore')):
+            continue
+        if stage != '0':
+            unmerged.add(name)
+        else:
+            staged[name] = blob
+    with tempfile.TemporaryDirectory(prefix='crewloom-staged-ignore-') as scratch:
+        scratch = Path(scratch)
+        env = repo_map.git_environment()
+        env.update({'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': os.devnull,
+                    'HOME': str(scratch), 'XDG_CONFIG_HOME': str(scratch)})
+        subprocess.run(['git', '-C', str(scratch), 'init', '-q'], env=env, check=True,
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
+        for name, blob in staged.items():
+            if name in unmerged:
+                continue
+            target = scratch / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(repo_map.git(root, ['cat-file', 'blob', blob]))
+
+        def evaluate(base):
+            def ignored(name):
+                result = subprocess.run(['git', '-C', str(base), 'check-ignore', '--no-index', '-q', '--', name],
+                                        env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
+                if result.returncode not in (0, 1):
+                    raise ValueError('Cannot verify staged project ignore policy')
+                return result.returncode == 0
+            return ignored
+        ignored = evaluate(scratch)
+        missing = [name for name in probes if not ignored(name)]
+        nested = []
+        if any(name != '.gitignore' and name not in unmerged for name in staged):
+            # Baseline: the same root policy without any nested file. A nested gap is a private name
+            # the root policy ignores there but a staged nested ignore file re-includes.
+            baseline_root = scratch / '.baseline'
+            baseline_root.mkdir()
+            subprocess.run(['git', '-C', str(baseline_root), 'init', '-q'], env=env, check=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
+            if '.gitignore' in staged and '.gitignore' not in unmerged:
+                (baseline_root / '.gitignore').write_bytes((scratch / '.gitignore').read_bytes())
+            baseline = evaluate(baseline_root)
+            for name in sorted(staged):
+                folder = name[:-len('.gitignore')]
+                if not folder or name in unmerged:
+                    continue
+                nested += [folder + probe for probe in probes
+                           if baseline(folder + probe) and not ignored(folder + probe)]
+        return {'missing': missing, 'unmerged': sorted(unmerged), 'nested_negations': nested}
 
 
 def bootstrap(root, project_id=None, config_path=None, registry_path=None, mode=None,
@@ -527,11 +725,17 @@ def bootstrap(root, project_id=None, config_path=None, registry_path=None, mode=
         config = validate_config(default_config(project_id, mode or default_mode()), root)
     elif project_id != config['project_id']:
         raise ValueError('Requested project identity does not match the portable configuration')
+    local_memory = not library_source(root)
+    private = tracked_private_paths(root, role_memory=local_memory)
+    if private:
+        raise ValueError('Private project data is already tracked; preserve local files and remove '
+                         'them from this project index before entry: ' + ', '.join(private[:20]))
+    writable(root, '.gitignore')
     preflight(root, [relative, BINDING_RELATIVE] + [item for item in METADATA_PATHS if item != relative])
     if binding is not None and binding['project_id'] != project_id:
         raise ValueError('Local binding identity does not match the requested project')
     created = []
-    ignored = ignore_local_state(root)
+    ignored = ignore_local_state(root, role_memory=local_memory)
     if ignored:
         created.append(ignored)
     if not (root / relative).is_file():
@@ -1095,7 +1299,7 @@ def lesson_counts(root):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('enter', 'status', 'finish', 'cancel', 'rebind'))
+    parser.add_argument('action', choices=('enter', 'status', 'finish', 'cancel', 'rebind', 'privacy'))
     parser.add_argument('--project', required=True)
     parser.add_argument('--project-id')
     parser.add_argument('--task-id')
@@ -1116,6 +1320,10 @@ def main(argv=None):
     parser.add_argument('--reason')
     args = parser.parse_args(argv)
     try:
+        if args.action == 'privacy':
+            result = privacy_report(args.project)
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result['status'] == 'ready' else 2
         if args.action == 'enter':
             result = enter(args.project, args.project_id, args.task_id, args.role, args.config,
                            args.agency_registry, args.criteria, args.seed, args.language, args.source,

@@ -2,6 +2,7 @@
 import glob
 import json
 import os
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -19,6 +20,11 @@ PYPROJECT = ROOT / 'pyproject.toml'
 MANIFEST = ROOT / 'MANIFEST.in'
 FORBIDDEN_TREES = ('.crewloom', 'node_modules', '.next', '__pycache__', 'build', 'dist')
 LICENSES = ('LICENSE', 'NOTICE')
+# Reviewed layout (R13/R14): the wheel carries the static SVG brand set; motion media is
+# repository/sdist-only, like the historical dashboard demo, to keep the installed package small.
+WHEEL_ASSETS = ['assets/crewloom-banner-mobile.svg', 'assets/crewloom-banner.svg', 'assets/crewloom-logo.svg']
+MOTION_ASSETS = ('dashboard-demo.mp4', 'dashboard-demo.gif', 'crewloom-logo-animation.gif',
+                 'crewloom-logo-animation-landscape.mp4', 'crewloom-logo-animation-vertical.mp4')
 
 
 def pyproject():
@@ -111,7 +117,7 @@ class PackagedDataRegressions(unittest.TestCase):
     def test_every_documentation_file_and_public_asset_is_covered(self):
         patterns = pyproject()['tool']['setuptools']['package-data']['crewloom_data']
         selected = matched_files(patterns)
-        missing = (declared_files('documentation') | declared_files('assets', skip=('dashboard-demo.mp4', 'dashboard-demo.gif'))) - selected
+        missing = (declared_files('documentation') | declared_files('assets', skip=MOTION_ASSETS)) - selected
         self.assertEqual(missing, set(), 'Documentation or public assets missing: ' + ', '.join(sorted(missing)))
 
     def test_runtime_registry_and_optional_node_assets_are_declared_separately(self):
@@ -120,7 +126,16 @@ class PackagedDataRegressions(unittest.TestCase):
         self.assertIn('documentation/TOOLS.json', selected)
         # Node assets are deliberately absent from the wheel; `crewloom dashboard` diagnoses that.
         self.assertFalse([name for name in selected if name.startswith('dashboard/')])
-        self.assertEqual([name for name in selected if name.startswith('assets/')], ['assets/crewloom-banner.svg'])
+        self.assertEqual(sorted(name for name in selected if name.startswith('assets/')), WHEEL_ASSETS)
+
+    def test_readme_asset_references_exist_and_static_ones_ship_in_the_wheel(self):
+        import re
+        selected = matched_files(pyproject()['tool']['setuptools']['package-data']['crewloom_data'])
+        for readme in ('README.md', 'README.ar.md'):
+            for ref in re.findall(r'(?:src|srcset)="(assets/[^"]+)"', (ROOT / readme).read_text(encoding='utf-8')):
+                with self.subTest(readme=readme, ref=ref):
+                    self.assertTrue((ROOT / ref).is_file(), ref)
+                    self.assertIn(ref, selected)
 
 
 class ResourceResolverRegressions(unittest.TestCase):
@@ -185,8 +200,9 @@ class ArchiveExclusionRegressions(unittest.TestCase):
             self.assertNotRegex(line.strip(), r'^recursive-include\s+\.crewloom')
 
     def test_client_records_and_logs_are_not_declared_in_the_sdist(self):
-        self.assertNotIn('runs.jsonl', self.manifest())
-        self.assertNotIn('events.jsonl', self.manifest())
+        for line in self.manifest().splitlines():
+            if line.strip().startswith(('include', 'recursive-include')):
+                self.assertNotRegex(line, r'runs\.jsonl|events\.jsonl')
         self.assertRegex(self.manifest(), r'global-exclude.*\.log')
 
     def test_sdist_keeps_the_source_layout_so_a_checkout_runs_from_the_archive(self):
@@ -194,6 +210,155 @@ class ArchiveExclusionRegressions(unittest.TestCase):
         for line in ('recursive-include .agents *.md *.py', 'recursive-include scripts *.py',
                      'recursive-include documentation *.md *.json *.txt'):
             self.assertIn(line, text)
+
+
+class RealArchiveCanaries(unittest.TestCase):
+    """Real wheel, sdist and sdist-rebuilt wheel from a copy whose input still holds the canaries (R33).
+
+    The synthetic markers are assembled at runtime so no archived file, including this one, is
+    itself a canary. Nothing is pre-removed: the build input contains every private tree.
+    """
+    BASE = 'examples/archive-canary/nested/'
+    CASES = {
+        'private_state': BASE + '.crewloom/a/b/c/d/e/f/g/backup.json',
+        'environment': BASE + '.env.local',
+        'environment_suffix': BASE + 'service.env',
+        'run_log': BASE + 'runs.jsonl',
+        'event_log': BASE + 'events.jsonl',
+        'node_modules': BASE + 'node_modules/state.json',
+        'next_cache': BASE + '.next/state.json',
+        'build': BASE + 'build/state.json',
+        'dist': BASE + 'dist/state.json',
+        'venv': BASE + '.venv/state.json',
+        'pytest_cache': BASE + '.pytest_cache/state.json',
+        'git_state': BASE + '.git/state.json',
+        'skill_private_state': '.agents/skills/archive-canary/.crewloom/memory.json',
+        'asset_private_state': 'assets/archive-canary/.crewloom/s.json',
+        'external_symlink': 'examples/archive-canary/public-looking.json',
+        'unapproved_sibling': 'examples/archive-canary/approved/.env.other',
+    }
+    PUBLIC = {'public_policy': 'examples/archive-canary/crewloom.project.json',
+              'public_template': 'examples/archive-canary/.env.example',
+              'approved_fixture': 'examples/archive-canary/approved/.env.fixture'}
+    SDIST_ONLY = ('public_template', 'approved_fixture')  # no wheel package-data pattern selects them
+
+    @classmethod
+    def marker(cls, key):
+        return ('CREWLOOM_SYNTHETIC_' + 'ARCHIVE_' + key.upper()).encode()
+
+    @classmethod
+    def builder(cls):
+        candidates = [os.environ.get('CREWLOOM_BUILD_PYTHON'), sys.executable]
+        candidates += [str(p) for p in sorted((ROOT / '.crewloom').glob('*/build-env/bin/python'))]
+        probe = 'import setuptools;print(setuptools.__version__)'
+        for python in filter(None, candidates):
+            try:
+                result = subprocess.run([python, '-c', probe], capture_output=True, text=True, timeout=30)
+            except OSError:
+                continue
+            version = result.stdout.strip()
+            parts = version.split('.')
+            if result.returncode == 0 and parts[0].isdigit() and 77 <= int(parts[0]) < 81:
+                return python, version
+        return None, None
+
+    @classmethod
+    def build(cls, kind, source, destination):
+        destination.mkdir()
+        result = subprocess.run([cls.python, '-c', 'import setuptools.build_meta as b,sys;'
+                                 'print(getattr(b,sys.argv[1])(sys.argv[2]))', 'build_' + kind, str(destination)],
+                                cwd=str(source), capture_output=True, text=True, timeout=300,
+                                env={k: v for k, v in os.environ.items() if not k.startswith('GIT_')})
+        if result.returncode:
+            raise AssertionError(kind + ' build failed: ' + result.stderr[-800:])
+        return destination / result.stdout.strip().splitlines()[-1]
+
+    @staticmethod
+    def read(path):
+        import tarfile
+        import zipfile
+        if path.suffix == '.whl':
+            with zipfile.ZipFile(path) as archive:
+                return {n: archive.read(n) for n in archive.namelist() if not n.endswith('/')}, archive.namelist()
+        with tarfile.open(path) as archive:
+            return ({m.name: archive.extractfile(m).read() for m in archive.getmembers() if m.isfile()},
+                    [m.name for m in archive.getmembers()])
+
+    @classmethod
+    def setUpClass(cls):
+        cls.python, cls.version = cls.builder()
+        if cls.python is None:
+            raise unittest.SkipTest('no setuptools builder inside the declared >=77,<81 range '
+                                    '(set CREWLOOM_BUILD_PYTHON); cannot build real archives')
+        import shutil
+        import tarfile
+        import tempfile
+        cls.tmp = Path(tempfile.mkdtemp(prefix='crewloom-archive-'))
+        src = cls.tmp / 'src'
+        skip = shutil.ignore_patterns('.git', 'node_modules', '.next', '__pycache__', 'dist', 'build', '.crewloom',
+                                      '*.egg-info')
+        shutil.copytree(ROOT, src, ignore=skip, symlinks=True)
+        outside = cls.tmp / 'outside-source.json'
+        for key, rel in cls.CASES.items():
+            target = src / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if key == 'external_symlink':
+                outside.write_bytes(cls.marker(key))
+                target.symlink_to(outside)
+            else:
+                target.write_bytes(cls.marker(key))
+        for key, rel in cls.PUBLIC.items():
+            (src / rel).parent.mkdir(parents=True, exist_ok=True)
+            (src / rel).write_bytes(cls.marker(key))
+        policy = json.loads((src / 'documentation/ARCHIVE_POLICY.json').read_text(encoding='utf-8'))
+        policy['approved_public_paths'] = [cls.PUBLIC['approved_fixture']]
+        (src / 'documentation/ARCHIVE_POLICY.json').write_text(json.dumps(policy), encoding='utf-8')
+        cls.wheel = cls.build('wheel', src, cls.tmp / 'wheel')
+        cls.sdist = cls.build('sdist', src, cls.tmp / 'sdist')
+        unpacked = cls.tmp / 'unpacked'
+        unpacked.mkdir()
+        with tarfile.open(cls.sdist) as archive:
+            archive.extractall(unpacked, filter='data') if sys.version_info >= (3, 12) else archive.extractall(unpacked)
+        cls.rebuilt = cls.build('wheel', next(unpacked.iterdir()), cls.tmp / 'rebuilt')
+        cls.archives = {'wheel': cls.read(cls.wheel), 'sdist': cls.read(cls.sdist), 'rebuilt-wheel': cls.read(cls.rebuilt)}
+
+    @classmethod
+    def tearDownClass(cls):
+        import shutil
+        shutil.rmtree(getattr(cls, 'tmp', '.'), ignore_errors=True) if hasattr(cls, 'tmp') else None
+
+    def test_builder_is_inside_the_declared_range(self):
+        self.assertRegex(self.version, r'^(7[7-9]|80)\.')
+
+    def test_known_bad_private_generated_and_linked_content_is_absent_everywhere(self):
+        for label, (members, names) in self.archives.items():
+            for key, rel in self.CASES.items():
+                with self.subTest(archive=label, case=key):
+                    self.assertEqual([n for n in names if n.rstrip('/').endswith('/' + rel)
+                                      or n.rstrip('/').endswith('/' + rel.rsplit('/', 1)[0])
+                                      and key not in ('unapproved_sibling', 'external_symlink')], [])
+                    self.assertEqual([n for n, data in members.items() if self.marker(key) in data], [])
+
+    def test_archive_metadata_does_not_name_private_paths(self):
+        for label, (members, _) in self.archives.items():
+            listings = {n: d for n, d in members.items() if n.endswith(('SOURCES.txt', 'RECORD', 'PKG-INFO'))}
+            for key, rel in self.CASES.items():
+                with self.subTest(archive=label, case=key):
+                    self.assertEqual([n for n, d in listings.items() if rel.encode() in d], [])
+
+    def test_clean_public_source_templates_and_approved_fixtures_are_accepted(self):
+        sdist = self.archives['sdist'][1]
+        for key in self.PUBLIC:
+            with self.subTest(case=key):
+                self.assertTrue(any(n.endswith('/' + self.PUBLIC[key]) for n in sdist), self.PUBLIC[key])
+        for label in ('wheel', 'rebuilt-wheel'):
+            names = self.archives[label][1]
+            self.assertTrue(any(n.endswith('/' + self.PUBLIC['public_policy']) for n in names), label)
+            for expected in ('crewloom.py', 'repo_map.py', 'project_binding.py', 'continuation.py'):
+                self.assertIn(expected, names, label)
+        for expected in ('scripts/crewloom.py', 'REPOSITORY_SCOPE.json', 'setup.py',
+                         'documentation/ARCHIVE_POLICY.json'):
+            self.assertTrue(any(n.endswith('/' + expected) for n in sdist), expected)
 
 
 if __name__ == '__main__':

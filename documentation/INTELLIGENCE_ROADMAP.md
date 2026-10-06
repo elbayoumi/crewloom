@@ -1,0 +1,287 @@
+# Crewloom unified implementation plan
+
+This is the **single active implementation plan** for Crewloom, consolidated on 2026-10-06. It contains the repairs, features, intelligence improvements, token/usage controls, project isolation, agent continuation, capability checks and release work. The [source-scoped review](PROJECT_REVIEW.md), older context design and earlier memory backlogs retain evidence/history; their delivery orders do not define competing plans. Existing implementation modules and their contracts remain authoritative for shipped behavior.
+
+The baseline is published revision `40d4168a` and a separate local editable checkout. This plan is not a claim that its remaining work is implemented. Existing foundations are reused and revalidated, not rebuilt as a replacement runtime. No duplicate project registry or automatic customer enrollment is proposed.
+
+The intended product outcome is an agent that receives current, sufficient project context, makes a bounded change, verifies the actual result and retains a reusable lesson only when its conditions still hold. Token reduction is evaluated alongside successful delivery and total attempts.
+
+## Complete scope and current baseline
+
+- Preserve the Apache-2.0 open-source foundation, English primary README/developer documents and usable Arabic/English workflows; validate actual language behavior separately.
+- Keep each supplied project in its original or explicitly selected independent root. Reuse role installation, project/checkout/task binding, ignored private state and independent task worktrees.
+- Close every review item R01–R39, including publication/privacy defects, metadata and branding, provider/application acceptance, dashboard correctness, retrieval/lesson defects, resource budgets, recovery, role evaluation and maintainability.
+- Add owner requirements N01: separate toolkit/application roots; N02: durable Claude-to-another-agent continuation at quota exhaustion; N03: evidence-backed current model/host capability checks and completion claims.
+- Improve the existing automatic context lifecycle, dependency graph, conditional lessons and verified repair, then add project/task UX, bounded concurrent operation and measured provider optimizations.
+
+Recorded baseline evidence is scoped: the first v2 Codex study reduced mean input tokens by 18.3867% on three synthetic tasks with 99/99 checks in both arms. It did not establish billed-cost or speed savings. The inspected published offline gate passed 951 cases with 93 optional skips; the real Docker study passed 50 cases in 213.292 seconds outside the mandatory 60-second module gate. Local privacy/brand work and published map/host work still need reconciliation. These observations do not close the newly reproduced counterexamples or establish general application delivery.
+
+## One execution register
+
+All work packages below are **open** until their exact source, independent acceptance and publication/integration evidence are recorded. Existing working portions are retained; only the required delta is implemented. Review IDs provide complete traceability, not another backlog.
+
+| Work package | Scope and review/owner requirements | Dependencies | Responsible source and completion criterion |
+| --- | --- | --- | --- |
+| W01 — Bound roots and private publication | R01, R08, R33, R34; N01 | First | CLI/binding/scope/privacy/build contracts: independent application roots, correct selected Git index, all-depth archive exclusions and staged policy; reject known bad cases while retaining local files. |
+| W02 — Coherent candidate and package | R02, R12, R13, R14, R35 | W01 | Packaging/checker/docs/assets: integrate the selected source variants, exact current manifest, README/logo/motion resources, clean wheel/sdist installation and the unchanged mandatory gate. |
+| W03 — Capabilities and enforcement evidence | R06, R07, R11; N03 | W01 | Host/model/provider/broker/reviewer contracts: effective capability preflight, explicit unknowns, versioned native coverage, supported-action refusals and evidence-backed completion/review modes. |
+| W04 — Durable manual continuation | N02 | W01, W03 | Workflow/context/coordinator: controller-owned checkpoints, preserved dirty work and attempts, one writable owner, validated receiver and scoped re-verification after interruption. |
+| W05 — Context and lesson correctness | R22, R23, R36, R37, R38, R39 | W01 | Map/context/lessons: actual dependency eligibility, valid conditions, exact final byte bounds and complete omission reporting; preserve every frozen acceptance contract. |
+| W06 — Explainable project understanding | R22, R23; N01, N03 | W03, W05 | Existing map/context/resolver: progressive task neighborhoods, sufficient required bodies, controlled additional context, incremental refresh/impact testing and equivalent Arabic/English retrieval. |
+| W07 — Verified learning and self-editing | R24 | W05, W06 | Lessons/workflow/coordinator: ranked eligible lessons, stale/conflict/negative evidence, bounded repair and reviewed Self-Editing Mode; no automatic pooling of private facts or trusted-runtime overwrite. |
+| W08 — Actual delivery and host quality | R03, R04, R05, R28, R29 | W02, W03, W04, W06 | Evaluation/example/readiness/role contracts: observed supported-host pilots, schema/timeout diagnosis, an actual generated application passing combined acceptance, representative role/language trials and explicitly selected rollout. |
+| W09 — Aggregate admission and recovery | R16, R20, R21, R25, R26; N02 | W01, W03, W04 | Controller/coordinator/process contracts: persisted cross-worktree budgets, bounded dispatch, queued state, owned-process/container cancellation, orphan reconciliation and restart-safe reservations before fairness scheduling. |
+| W10 — Honest dashboard and arguments | R09, R10, R18, R19 | W01, W03 | Dashboard/parser/API: documented/configured/exercised/verified status, visible unknown challenges, validated frontmatter and exact argv with Arabic/spaced-path acceptance. |
+| W11 — Project/task workspace and observability | R15, R17, R27, R32; N01, N02, N03 | W04, W09, W10 | Dashboard/status/readiness: explicitly registered project selection, isolated task/review/event views, bounded history, shared watchers, revocation and source/capability/budget diagnostics. |
+| W12 — Measured optimization and public release | R30, R31; release acceptance from W02/W08 | W02–W11 | Stable internal boundaries, useful adoption examples/backlog, optional provider caching/model selection and opt-in quota continuation. Record workload outcomes and all attempts; publish a verified version with honest documentation and migration/compatibility guidance. |
+
+**Register progress (2026-10-06, W01 partial, none of W01–W12 complete).** W01: R33 and R34 have partial local repairs; their narrow regression cases pass, but archive cache/symlink/metadata exposure and nested-negation/unmerged-index readiness remain independently reproduced acceptance failures. N01 has five passing root-separation cases for the existing guard, not universal host-tool confinement. R01/R08 diagnostics and source reconciliation remain. W02: asset layout selected (three SVGs in the wheel, motion media in repository/sdist); manifest, clean install and docs remain. The implementation report's gate pass does not close a skipped archive case or the wider negative controls. Follow-up independently passes all20 packaging cases with the declared-range setuptools80.10.2 and all5 root-separation cases. Evidence: `Brain/COMPLETED.md` and the next-stage assessment below.
+
+**Register progress (W05, 2026-10-06):** R36–R39 implemented with known-bad/clean acceptance in the integrated candidate worktree (uncommitted, unpublished); W05 stays open until integration. Evidence: `Brain/COMPLETED.md`.
+
+**Register progress (W03, 2026-10-06):** capability profile, effective-execution intersection, failure classification, claim evidence and dispatch preflight implemented in the candidate worktree (uncommitted); native coverage versioning and reviewer evidence modes (R11) remain.
+
+**Register progress (W04, 2026-10-06):** manual continuation implemented in the candidate worktree (checkpoints, validation, single owner, reconcile); automatic continuation, a real host pilot and coordinator integration remain.
+
+**Register progress (W10, 2026-10-06):** evidence-tier status, unknown challenge visibility, bounded frontmatter and exact quoted argv implemented in the candidate worktree; browser/RTL interaction tests and acceptance-record producers remain.
+
+W03–W05 and W10 can progress independently once their dependencies hold; this allows bounded engineering concurrency without simultaneous uncontrolled writers to the same checkout. Automatic host continuation additionally waits for W09 accounting/cancellation, an explicit host/model allowlist and budget policy. No estimates, completion percentages or savings beyond measured evidence are invented.
+
+Each package delivers the diagnosed gap or feature contract, a bounded in-place change, known-negative controls, passing positive acceptance, updated private/source evidence as appropriate and documentation of remaining limits. The sole current status/order is this register; memory entries reference it. Runtime work is not marked complete merely because the plan or a synthetic reference was written.
+
+### Earlier backlog coverage
+
+Earlier pending records are absorbed into this register: representative cross-host role evaluation, harder blind-held-out cases and recorded before/after task outputs belong to W08; safe setup and acceptance for selected external-tool integrations belong to W03/W12; role history charts belong to W11; social-preview artwork/settings, useful first issues and public installation examples belong to W12. Account/settings publication remains an explicitly authorized action with actual result verification.
+
+Older statements about command-only coordination, absent syntax adapters or a still-unrun v2 study are historical checkpoints, not current requirements to rebuild or repeat finished work. The failed v1 study stays preserved; any new evaluation freezes its own protocol before calls. Private-client reconciliation in W08 applies only to an explicitly selected registered project with current evidence. No old unchecked box authorizes enrolling another project or bypassing a gate.
+
+## Next-stage audit and benefit assessment — 2026-10-06
+
+This refines W01–W05 in the existing register; it is not a second plan or a runtime completion claim. Published main is still `40d4168a`. The dirty local candidate now contains further packaging/staged-ignore changes, inspected without overwriting them. Evidence is scoped to source hashes retained in project-private review receipts; earlier findings below remain historical where a newer result supersedes them.
+
+### What changed, and what remains unproved
+
+| Boundary | Current evidence | Next-stage consequence |
+| --- | --- | --- |
+| W01 / R33 archives | With setuptools 80.10.2, the new `setup.py` hook removes nested `.crewloom` payloads and `.env.local` from the sdist. A 13-canary fixture nevertheless puts nested `node_modules`, `build` and `dist` payloads into the direct wheel, sdist and wheel rebuilt from that sdist. The sdist additionally carries `.next`, `.venv` and `.pytest_cache` payloads. A public-looking symlink imports synthetic bytes from outside the build root into all three artifacts. The sdist's `SOURCES.txt` still names the removed `.crewloom` file. | The filter is partial. Audit uncompressed member names, metadata and bytes; do not infer exclusion from a root prune, a compressed-file search or a passing normal build. These fixtures establish exposure paths, not prior publication of real secrets. |
+| W01 / R34 staged ignores | New local `staged_ignore_gaps` reconstructs staged ignore blobs in a scratch Git repository. Independent cases correctly refuse unstaged-only rules and `.git/info/exclude`-only rules and accept a complete staged policy. A later nested negation exposes `nested/.crewloom/private.json` while `privacy_report` still says `ready`; an unmerged `.gitignore` index also says `ready`. | The original unstaged-policy case improves, but portable readiness still needs scope-aware probes and explicit refusal of unmerged index entries. Git itself refuses an unresolved merge commit; the observed issue is the readiness verdict, not a demonstrated successful conflicting commit. |
+| W02 package inventory | Fresh packaging suite: 18 cases, 17 passed, one skipped; the asset contract now declares three static SVGs and keeps motion in the repository/sdist. All 45 frozen acceptance files remain unchanged. | Supersedes the earlier local two-failure packaging result for this source. It does not close the adversarial archive failures, installation acceptance, source reconciliation, current manifest or Docker gate budget. |
+| W03 capability identity | `model_host.probe` checks help flags and a CLI version and explicitly leaves authentication unverified. Fresh model-host suite: 29 passed. | This supports a launch-contract observation, not the current model's actual tool access, quota, context limit or task quality. Extend existing probes and receipts; do not reinterpret `generation_supported` as verified execution capability. |
+| W04 continuation | `workflow.handoff` exposes completed-step evidence, next-step state, attempts and project-context references. Workflow/ledger writes use temporary files and replacement. | Reuse this foundation. A complete versioned transfer packet, receiver validation and interrupted-operation reconciliation still need acceptance. Atomic replacement alone is not proof of machine/power-loss durability; define the supported crash class before making that claim. |
+| W05 context correctness | Source-scoped R36–R39 reproductions remain relevant: ignored lesson dependencies, malformed patterns, final byte overflow and silent omission of constant-only modules. The general local mapper and the published study closure resolver are different implementations. | Fix eligibility and completeness before interpreting smaller context as smarter work. Do not apply a study-only absolute-import convention to ordinary application projects. |
+
+The fresh privacy suite has 34 passing cases. These existing suites do not cover every independently reproduced boundary. Raw synthetic fixtures, unsuccessful fixture setup attempts and the corrected canonical-root/consumer-policy setup are retained privately. No provider generation, customer mutation or publication was performed by this review.
+
+### Comparison and reuse decision
+
+These are comparisons of documented mechanisms and inspected Crewloom source, not head-to-head quality or performance benchmarks. Recommendations are engineering judgments.
+
+| Reference | Useful mechanism | Decision for Crewloom and practical cost |
+| --- | --- | --- |
+| [Paperclip](https://github.com/paperclipai/paperclip) | Its documented control plane covers tasks, workspaces, scoped budgets and adapter-specific session records; it also warns that recorded spend/in-flight work can delay budget stops. | Consider an optional management adapter in W12 after isolation and stable task contracts. Importing the whole server/UI now adds an operational system and does not fix Crewloom's archive or context defects. Preserve original application roots at any future adapter boundary. |
+| [Aider repository map](https://aider.chat/docs/repomap.html) | Dependency-graph ranking selects relevant identifiers within a context budget and guides requests for more files. | Apply ranking ideas to the existing mapper in W06, with required-body/completeness gates. Avoid a second competing index; a useful signature map still cannot replace implementation bodies needed by a task. |
+| [Repomix](https://repomix.com/guide/) | Repository packing, token counting, configured file selection and sensitive-information checks support explicit exports. | Optional reviewed export in W12; keep generated packs in the selected project's ignored state. Packaging a repository is a different operation from selecting sufficient fresh context each turn. No default whole-project resend or new core dependency. |
+| [LangGraph Functional API](https://github.com/langchain-ai/docs/blob/main/src/oss/langgraph/functional-api.mdx) | Persisted task results support continuation, while unfinished tasks can rerun and side effects need idempotency/reconciliation. | Adopt the operation-boundary discipline in existing workflow/journal code for W04. Defer a framework migration: it introduces dependency/state integration without proving safe cross-host transfers. |
+| [MCP lifecycle](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle) | Version and capability negotiation govern which optional protocol operations a session can use. | Use negotiated facts when that host actually exposes them in W03. Protocol negotiation does not by itself establish model accuracy, filesystem confinement or permission for a task. Keep policy/executor checks authoritative. |
+
+### Choose one publication policy, then verify its artifacts
+
+Using `.gitignore` alone misses forced/tracked files and the separate packaging file-selection rules. A late sdist-only filter does not constrain a direct wheel and can retain excluded names in generated metadata. An all-depth denylist is useful for reserved state, but cannot identify arbitrary private data stored under an ordinary public filename.
+
+For W01/W02, prefer a reviewed source/resource inventory, one reserved-path classifier applied before file lists/metadata are finalized, resolved-path validation for selected symlinks, and an independent final archive inspection. Preserve intentionally public examples and portable policy through explicit positive controls. Reuse existing scope/privacy/resource contracts rather than creating a parallel source of truth. [Setuptools documents](https://setuptools.pypa.io/en/latest/userguide/miscellaneous.html) distinct source/wheel selection and cache behavior; actual acceptance must use the pinned backend. A direct FileList probe on 80.10.2 showed `prune **/.crewloom` missed root/deeper paths in the tested list, while a `global-exclude` variant matched them; neither observation substitutes for complete artifact builds. Do not close R33 by adding an unverified glob.
+
+### Benefit, effort and promotion criteria
+
+Qualitative effort describes integration complexity, not a delivery estimate. Benefit must be measured against the same accepted baseline; no projected saving percentage or hallucination-free guarantee is assigned.
+
+| Existing package/increment | User benefit | Effort/risk | Evidence needed to retain it |
+| --- | --- | --- | --- |
+| W01 root/publication boundaries | Reduces accidental project mixing and private-state distribution; required before trusting a public installation. | Moderate; consistent source, staged policy and artifact rules matter more than another blacklist. | Known bad roots/indexes/archives refused, clean fixtures retained, original private files preserved. |
+| W05 four correctness repairs | Prevents applying irrelevant lessons and treating missing implementation as sufficient context. | Bounded to existing eligibility/serialization/resolver paths; preserve frozen contracts. | Every counterexample rejected or represented correctly, alongside existing valid behavior. |
+| W03 minimal effective profile | Prevents dispatch to unavailable tools and unsupported completion claims; makes model/host switches explainable. | Moderate; metadata can conflict or be stale and many quotas are unavailable. | Refusal before side effects, explicit unknowns, profile refresh after each host/model/version/policy change. |
+| W04 manual continuation | Preserves accepted work, dirty edits and failed attempts when quota ends. | Higher; partial side effects and live ownership are the main correctness risks. | Interrupted same-task completion through a selected receiver, no duplicate accepted publication or lost files, counters preserved. |
+| W06 ranking/incremental navigation | May reduce repeated reads and model input on real tasks. | Higher; incomplete import resolution and stale cache can lower quality. | Equivalent acceptance, all-attempt token accounting, cold/warm parse/read measurements and visible omissions. |
+| W09/W11 automatic concurrency/workspace | Makes several projects/tasks manageable once accounting and ownership are reliable. | Higher; aggregate budgets, cancellation and per-project visibility must hold across restarts. | Multi-project interference, orphan and budget tests pass before automatic fallback/fair scheduling. |
+
+The next dispatch is W01, with W02's coherent source/artifact checks. Once W01 holds, W05's counterexamples may be repaired alongside W03 according to the existing dependencies and isolated writer ownership. W04 follows W03. Release acceptance still requires W02's unchanged mandatory gate. Defer embeddings, default critic calls, automatic model routing, automatic quota fallback and a broader dashboard until their dependencies and useful-task measurements hold.
+
+### Acceptance precision for the next dispatches
+
+1. **Root boundary — W01:** use two independent applications outside the toolkit, including an Arabic/spaced path, plus a legitimate explicitly selected toolkit self-edit. Assert unchanged bytes/indexes in the other application and toolkit for a consumer task. Include wrong project/checkout IDs, copied bindings, parent Git roots, inherited Git variables and symlink/hardlink escapes; linked task worktrees retain project ID but distinct checkout/root ownership.
+2. **Build boundary — W01/W02:** inject private canaries into the actual unsanitized input of a disposable build, including nested reserved caches, logs, environment files and a symlink outside the root. Inspect direct wheel, sdist and rebuilt wheel contents and metadata. Test stale egg-info/cache separately. Private bytes and private path metadata must be absent; explicitly reviewed portable policy and public templates must remain. Run from outside the checkout after install. Never sanitize the test input in a way that removes the failing canary before the build under test.
+3. **Portable ignores — W01:** distinguish local and staged coverage, refuse unmerged stages/symlinked ignore files, honor nested rules/negations and disable host-only exclusions in the scratch evaluation. Check relevant paths within the selected scope rather than only root-level examples. Bound index/blob/probe work; if complete coverage cannot be established, report the actual limited scope or refuse the broader publication verdict. A filename policy does not detect every secret hidden in otherwise legitimate source.
+4. **Effective capability — W03:** record requested/reported identity separately; bind observations to the current host version, launch mode, task policy and evidence time. Unknown limits/quota are not zero or unlimited. Do not send paid probes by default. Token limits and UTF-8 byte limits are different contracts; record the tokenizer/counting method when a token estimate is used. A smaller model receives bounded subtasks and additional source when needed, with independent acceptance controlling completion.
+5. **Manual handoff — W04:** persist an operation intent and reservation before dispatch and current evidence at accepted boundaries. Crash before dispatch, after a side effect but before its receipt, during grouped publication and after checkpoint replacement. Use operation IDs, existing journals and inspected artifacts to reconcile uncertainty; a timeout alone must not cause blind replay. The receiver validates packet/schema/hash/source/policy and live owners before becoming the sole writer. Record unsupported power-loss guarantees explicitly; strict durability requires a tested write/flush/recovery protocol, not a stronger label.
+6. **Context/lesson correctness — W05:** apply dependency conditions or mark them unsupported/ineligible; invalid patterns stay diagnosable without crashing selection. Include warnings/metadata in final encoded-byte accounting. Every reached module gets a body, explicit partial form or omission; required missing bodies prevent dispatch as complete context. Preserve Python relative imports, constants, JS/TS resolver limits and bilingual path cases in independent controls.
+7. **Useful-task measurement — W06/W08/W12:** freeze tasks and acceptance before provider calls, change one mechanism at a time, retain failures and compare total attempted input/output/cache tokens per accepted task. Report indexing, validation and handoff overhead as well as model latency. A feature is retained only when its defined benefit holds without weakening acceptance. The earlier 18.3867% input reduction on three synthetic Codex tasks does not predict the saving from this next stage.
+
+## Required operating contracts
+
+These owner requirements apply to every phase: projects remain separate from the toolkit, work survives an agent/provider change, and execution follows the current host/model's verified capabilities. They are planned acceptance requirements, not newly implemented behavior.
+
+### Separate toolkit and application roots
+
+Crewloom's installation contains reusable tools, skill procedures and approved public fixtures. A supplied application stays in its original canonical root, or an explicitly selected independent root. Do not clone, move, nest or import its code or private state into the toolkit merely to use its skills. Normal application entry must refuse a root inside the toolkit installation; development of Crewloom itself is a separately selected Self-Editing task.
+
+Every operation binds `project_id`, canonical `project_root`, `checkout_id` and `task_id`, validates the exact Git root when present, and carries that identity into child processes, worktrees, context retrieval, logs and handoffs. Missing or conflicting identity blocks writes; neither a previous session nor the current shell directory supplies a fallback project. Linked task worktrees use explicitly validated roots while retaining the same portable project identity.
+
+Project-owned state, snapshots, backups, context indexes, capability observations and handoff packets stay inside the selected project's ignored `.crewloom/`. Installed local host controls and role memory remain private according to the existing consumer layout. General skill templates and portable policy remain source; private project facts never enter shared toolkit memory. Example intended layout:
+
+```text
+/tools/crewloom/                 reusable library and public templates
+/projects/shop/                 existing application root
+  .crewloom/                    private runtime, memory and handoff records
+/projects/mobile-app/           another independent application root
+  .crewloom/                    that application's separate state
+```
+
+Owners: `project_binding.py`, `crewloom.py`, `project_context.py`, `workflow.py`, `task_coordinator.py` and the existing scope/privacy gates. Acceptance runs tools from an unrelated working directory against two similarly named applications, refuses toolkit-nested/foreign/copied bindings and escaping links, preserves original application paths, and inspects Git indexes and archives for leaked state. Same-user arbitrary host tools still need a separately established sandbox boundary.
+
+### Durable continuation when Claude or another host reaches a limit
+
+Extend the existing workflow handoff, scoped context generations, attempt ledger and coordinator reservations. The durable checkpoint is controller-owned project state; it cannot depend on asking an exhausted model to write its final summary. Persist bounded checkpoints at accepted boundaries and before dispatch, with a compact human-readable summary derived from the records.
+
+A versioned handoff records the project/checkout/task identity, task brief and acceptance, effective policy and permitted paths, workflow/batch identifiers, base revision and current dirty/output fingerprints, current context generation, completed and unverified work, evidence references and their freshness, failed attempts and changed hypotheses, pending review, consumed/reserved budgets and the next safe action. Private full records remain on disk; the next agent receives a bounded packet and validated references. Uncommitted edits are retained, not silently stashed, reset, committed or discarded.
+
+Distinguish confirmed quota exhaustion, a rate limit with a reported retry time, authentication failure, timeout and unknown provider failure. Missing quota telemetry remains unknown. Stop new dispatch to the unavailable host, reconcile in-flight work and persist the handoff. A timeout does not establish that a side effect never occurred; do not automatically replay an uncertain operation.
+
+Manual continuation lets the user select an available agent and load the checkpoint. Automatic continuation is an explicit opt-in policy naming permitted hosts/models and budgets; it never invents account access, changes billing choices or silently enables paid retries. When no eligible receiver is available, keep the state resumable and report the specific blocker. Do not send credentials or depend on transferring a vendor's private conversation/session format.
+
+Before accepting the handoff, the receiving controller checks identity, schema, hashes, policy/source drift, current source root, outstanding reservations and live worker ownership. Transfer control only at a safe boundary with one writable owner; never steal a live task lock. Changed inputs invalidate affected context/evidence and trigger scoped re-verification. Preserve still-valid completed acceptance and all failure counters; transfer does not reset budgets or create a new attempt allowance. A move to another machine/root requires an explicit rebind, rather than copying a checkout ID blindly.
+
+Owners: `workflow.handoff`, `project_context.py`, `model_host.py`, `host_lifecycle.py` and `task_coordinator.py`. Acceptance covers quota exhaustion before generation and mid-task, a controller crash before a model summary, no receiving host, dirty edits, changed source/policy, stale/copied packets, active-owner conflicts and a second handoff. Claude-to-another-host continuation must finish the same independently verified task without duplicate publication, lost work or weakened scope. Managed and native continuation are tested and labelled separately.
+
+### Verified model and host capability profile
+
+Extend current host probes, reported identity/usage fields, lifecycle receipts and diagnostics instead of creating a competing host registry. Model identity, host identity and tool access are separate facts: the same model in an API generator and a native coding agent may have different tools and permissions.
+
+Each effective profile includes requested and reported provider/model identity, host/adapter versions and launch mode, tool availability, structured-output support, documented or observed context/output limits, relevant text/image capabilities, available quota/reset telemetry, and verification evidence/time. Each fact is labelled documented, observed, unavailable or unknown. A model's own claim about its identity or powers is not capability evidence. Knowledge cutoff and factual freshness must not be guessed from a model name.
+
+Use trusted adapter metadata and supported host APIs, supplemented by bounded harmless probes in a selected disposable fixture when necessary. Retain the evidence source for each fact. Advertised ability is not permission to use it: effective execution is the intersection of the current host's observed capabilities, project policy, task declaration and authorization. Recheck on host/model/version/launch-mode changes and handoff. Unknown tools are unavailable for dispatch; unknown limits require a conservative configured bound or an explicit inability to run the requested task.
+
+Build the task plan against this profile. A text-only provider produces proposals/artifacts through the existing broker; the trusted controller performs authorized writes and execution. Missing browser, image, network or test capabilities yield a visible limitation, an eligible controller operation or a user-selected handoff. Tool-free managed providers remain tool-free. Stronger host capabilities cannot broaden the inherited project's write scope or reviewer policy.
+
+Prevent unsupported completion claims through evidence-linked results: file edits need current artifact receipts, execution claims need actual command results, and acceptance claims need the configured independent acceptance. Missing source or external facts cause a context/information request; inference is explicitly labelled. Capability awareness reduces avoidable mistakes but does not guarantee hallucination-free output or make a model its own acceptance authority.
+
+Owners: `model_host.py`, `provider_gateway.py`, `host_lifecycle.py`, existing workflow/broker checks and dashboard diagnostics. Acceptance simulates unknown or conflicting model identity, unavailable tools, invalid capability metadata, exceeded context limits, missing quota telemetry, stale profiles and a host change. Refuse unsupported actions before side effects; verify that every displayed completion/acceptance claim has current evidence. The Claude-to-another-agent test recomputes the receiver's profile instead of copying Claude's capabilities.
+
+## Additional correctness findings
+
+| ID | Verified behavior | Repair contract |
+| --- | --- | --- |
+| R36 | `project_lessons.validate_conditions` accepts `dependencies`, but `matches` does not evaluate them. A dependency-only condition matches an empty query/seed set. Both inspected source variants reproduce it. | Specify dependency names, version constraints and lock/source fingerprints as typed conditions. Resolve against the selected project's declared manifests/lockfiles. Unknown or unsupported resolution is ineligible; never silently ignore a supplied condition. Preserve existing evidence invalidation. |
+| R37 | A malformed pattern such as `[` is accepted by condition validation and raises a pattern error during matching. Both variants reproduce it. | Prefer literal paths/languages/symbols or a bounded supported pattern format. Version the schema; validate patterns at ingestion and import. Existing invalid records produce visible diagnostics and become ineligible without silently deleting history or crashing context selection. |
+| R38 | `repo_map.render` returns 1,800 bytes under a 1,024-byte budget when 16 missing seed names are appended after packing. Both variants reproduce it. | Include headings, warnings and missing-path metadata in final serialized-size accounting. Use a bounded visible summary with a complete private omission receipt, or refuse when required metadata cannot fit. Check the final bytes before return. This is a renderer contract defect; it does not prove downstream model context limits were bypassed. |
+| R39 | Published closure packing drops a reached module that cannot fit and has no definition signatures, without naming it in `omitted`. A real temporary Git fixture with `from src.data import VALUE` reproduces it at a 1,024-byte budget. | Every reached module must have a body, an explicit partial representation or a recorded omission. Missing required bodies make context incomplete. Cover constants, module-level initialization, empty definitions and modules with syntax problems. |
+
+The existing 23 lesson tests and 30 map tests pass in a fresh focused run; they do not establish these four counterexamples are handled. The private audit retains direct reproductions. The closure reproduction first used a relative import, which the study-specific resolver intentionally ignores; that attempt was retained, then an absolute-import fixture isolated R39.
+
+## Phase 1: publication and evidence correctness
+
+Close these before expanding autonomous behavior:
+
+1. **Archive privacy (R33):** all-depth exclusions for reserved private namespaces and environment files; preserve reviewed public source/templates. Inspect real wheel and sdist member names and extracted synthetic canary contents. Test a nested private folder in the unsanitized build input, not only a copy that already removed it. Do not classify all project JSON as secret: portable policy and approved fixtures are deliberate source.
+2. **Publication policy (R34):** keep local ignore coverage separate from staged/published coverage. Validate the staged tree's effective ignore policy, including nested rules and negations; distinguish portable rules from `.git/info/exclude` and global host ignores. A local exclusion alone must not authorize portable publication readiness. Preserve the local files and index.
+3. **Source identity (R01/R08):** reconcile the local privacy/branding work with published map/host fixes through the normal protected-branch process. Diagnostics show distribution version, resolved code/resource roots, revision and dirty/source versus wheel status. Hooks and acceptance stay enabled.
+4. **Brand package (R13/R14):** select one coherent public brand-resource layout and verify documented paths after wheel/sdist installation. Current frozen banner-only inventory and expanded local assets conflict; resolve the layout or an explicitly reviewed contract transition without editing immutable tests to hide failures.
+5. **Evidence UI (R09/R10/R18/R19):** distinguish available documentation, installation, exercised behavior and verified acceptance. Show unknown memory statuses; use exact argv or typed forms and a bounded supported frontmatter schema. A successful tool exit is not automatically application acceptance.
+6. **Candidate integrity and gate budget (R02/R12/R35):** preserve historical manifests, generate a current candidate manifest and verify extracted contents. The real Docker study passes 50 cases in 213.292 seconds outside the gate, but the mandatory module budget is 60 seconds. Profile container startup and per-case execution before optimizing; keep case independence, checker immutability, every assertion and the existing gate contract.
+
+Acceptance includes known-bad rejection, a clean accepted case, no cross-project mutations and independent frozen-contract verification. Green CI alone does not close a newly reproduced boundary.
+
+## Phase 2: sufficient, explainable context
+
+### Context navigator
+
+Extend `repo_map.py`, `project_context.py` and the existing broker/model contracts. Reuse current SHA-keyed parsing, scoped generations, source-range validation and mandatory complete declared inputs.
+
+Inputs are one bound project/checkout/task, an explicit task query, allowed source paths, acceptance criteria, parser/import configuration and a context/request budget. Outputs are a frozen generation and ranked source records with path, range, SHA256, selection reason, resolution state and explicit omissions.
+
+Use a progressive view:
+
+- Project overview: entry points, manifests, modules and verified architecture references.
+- Task neighborhood: selected files, direct dependencies, relevant callers and tests.
+- Required evidence: actual source bodies for contracts the task depends on.
+- Additional detail: bounded reads through validated ranges when the selected context is insufficient.
+
+Rank using exact symbols/paths, dependency distance, query relevance and acceptance-related test paths. Required content precedes optional hints; a centrality score must not displace it. Graph ranking in [Aider's repository map](https://aider.chat/docs/repomap.html) is a useful design reference, not evidence that adopting that algorithm improves Crewloom.
+
+Report structural coverage as `complete`, `partial` or `unknown` with reasons, rather than inventing a model-confidence percentage. An unresolved import, omitted required body, unsupported language or dynamic dependency remains visible. Runtime task sufficiency cannot be proved by the current study gate, which checks known frozen reference imports on three tasks.
+
+The published closure builder has a study-specific absolute-import convention; it is not yet a general resolver for relative imports, namespace packages or JS/TS. Reuse and extend the existing resolver configuration, with fixtures for Python package forms and JS/TS aliases, barrel exports, exports conditions and type-only/runtime edges.
+
+For tool-free managed generation, additional context is computed by the trusted controller. A future explicit `needs_context` result must be a versioned protocol variant, not accepted as an artifact. Validate requested paths against the frozen read allowlist, charge each generation against the budget and retain every attempt. New source scope requires a revised plan and invalidates old evidence. Never grant the provider filesystem/shell tools to implement retrieval, silently broaden declared inputs or truncate required bodies.
+
+Acceptance: a relevant source beats an unrelated similarly named module; required dependency bodies are present or the run stops; changed/deleted/renamed sources invalidate ranges; Arabic and English queries reach the same intended sources; cross-project requests and invalid ranges are refused. Compare accepted-task outcomes against full-source context.
+
+### Incremental update and impact analysis
+
+Current warm indexing already avoids reparsing unchanged files but re-reads and hashes every candidate. Improve this only with measurements. Reuse scoped cache identity, preserve a full-verification fallback and revalidate hashes when source is actually selected or published. File timestamps alone are not correctness evidence.
+
+An optional syntax backend can retain incremental parser trees for changed files; [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) provides incremental syntax parsing. Parsing support does not supply semantic import/call resolution by itself.
+
+Use changed symbols and dependency edges to propose affected tests and missing obligations. Partial graphs cannot justify skipping the full required suite. Acceptance covers renames, deletes, config/lock changes, missed watcher events and restart; record scanned bytes, parsed files, memory and p50/p95 latency on increasing repository sizes.
+
+### Arabic and English retrieval
+
+Current context labels support both languages; identifier-overlap search is not proof of bilingual retrieval quality. Add project-owned bilingual aliases and Unicode-aware query normalization while retaining exact identifiers. Optional semantic retrieval comes later, behind offline/privacy and cost controls.
+
+Acceptance pairs the same billing/authentication tasks in Arabic and English and checks selected source/test identities. Preserve quoted Arabic paths and spaces throughout exact argv transport. Evaluate full RTL interactions separately from Markdown labels or language toggles.
+
+## Phase 3: learning from verified outcomes
+
+### Conditional lesson retrieval
+
+Extend `project_lessons.py`; current executor-gated promotion, invalidation and project scopes are useful foundations. Repair R36/R37 first. Current selection walks UUID-named files and caps results; it does not rank lessons by observed utility.
+
+Separate procedural lessons, negative attempts and task-specific facts. Store source/acceptance fingerprints, applicable dependency versions, observation time, supersession and outcome provenance. Select eligible lessons by explicit issue/path/symbol relevance, evidence freshness and recorded reuse outcome. Recency alone must not outrank applicability.
+
+A failure adds labelled negative evidence; only verified acceptance can promote a remedy. Negative evidence needs an actionable, bounded reason rather than only a counter. Retry decisions name the changed hypothesis/input and stop repeated equivalent attempts. Preserve failed attempts.
+
+Acceptance: a lesson from another project is refused; a changed lockfile/API makes a version-bound lesson ineligible; a successful old lesson that later fails is invalidated; conflicting lessons remain visible; relevant lessons outrank unrelated verified records. Adding records must not silently fill the prompt with arbitrary UUID order.
+
+Cross-project reuse remains an explicit reviewed export, with actual redaction/content review and re-verification at the destination. A `sanitized: true` label or absence of obvious key patterns does not prove private facts were removed. No automatic project-memory pooling.
+
+### Verification-driven repair
+
+Extend the existing workflow/coordinator attempt ledger. A repair request contains the reproducible failure, permitted output paths, current input hashes and unchanged acceptance. Test coverage follows the API/task contract, not the generated patch's own assertions.
+
+Input changes produce a new bound attempt; integration runs combined acceptance. Prefer smallest adequate patches, inspect unexpected public API/dependency changes, and require reviewer policy before root publication. Candidate code and repository text are evidence inputs, not authority to rewrite the constitution or permit tools.
+
+Self-Editing Mode / التعديل الذاتي uses this same bounded process. A runtime/skill policy update requires a selected development checkout, preserved tests and reviewed release/migration evidence. It never lets a managed artifact overwrite the trusted runtime or automatically install an unverified upgrade in client projects.
+
+## Phase 4: useful concurrent operation
+
+### Project/task workspace and diagnostics
+
+Extend the dashboard, coordinator status and existing project/readiness APIs. A workspace lists explicitly registered project references; each action still binds exactly one canonical root and project/task/checkout ID. Use the existing agency ledger adapter where selected, not another client registry. Runtime records and artifacts stay in each project's ignored `.crewloom`; a workspace view stores only necessary private references and summaries outside the public toolkit.
+
+Show project/root/source version, supported host/launch coverage, queued/running/blocked/verified/reviewed/published tasks, acceptance freshness, exact proposed changes, budgets and failure causes. Project selection is request-bound, not a mutable global “last project.” Cap histories and share project watchers with stream limits and revocation checks.
+
+Acceptance concurrently operates two similarly named projects and several task worktrees, switches views during active work, and proves each event/log/action/output/review stays correctly scoped. Test browser auth, native host boundaries, restart and selected-project configuration—not only server helpers.
+
+### Admission, budgets and cancellation
+
+The current request ceiling belongs to a checkout ledger, not a batch/account budget. Add persisted atomic reservations for queued/dispatched requests across worktrees, reconciled on crash and resume. Include concurrency, call counts, elapsed time, declared source/output size and reported usage. Explicit unknown token/cost fields remain unknown.
+
+Estimate limits before dispatch and reconcile actual usage afterward; label estimates and recorded usage separately. Prompt byte budgets remain deterministic even where the host tokenizer is unavailable. A resumed request must not be double charged or silently given a replacement slot. CLI/native activity outside the managed controller cannot be represented as a guaranteed account cap.
+
+Cancellation stops owned work, not merely future scheduling: retain task/container/process ownership metadata, reconcile orphan resources explicitly and prove child termination without touching unrelated services. Keep resumable verified artifacts. Priority/fairness scheduling follows correct budgets and cancellation.
+
+### Provider-aware prompt reuse and model selection
+
+Arrange invariant instructions before task-specific content, with project/policy/source fingerprints and provider-specific cache configuration. [Claude's prompt-caching documentation](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) supports prefix caching; Crewloom's current direct API gateway does not set `cache_control`. Native CLI behavior is host-controlled and must be measured separately.
+
+Cache invalidation follows policy and selected source changes. Avoid cross-project cache records and never assert a cache hit from local reuse. Report provider cache-read/write tokens where available; otherwise retain unknown. [Repomix](https://repomix.com/guide/) is a possible explicit, scoped offline export reference, not a reason to send a complete project on every turn or automatically replace this controller.
+
+A future model-selection policy should route by measured task profile and the effective capability profile above, not advertised model size or self-reported confidence. Begin with operator-selected hosts/models; compare their accepted-task rate, all attempted tokens, duration and reported cost on the same frozen workload. Escalation and opt-in quota continuation use the durable handoff contract and are explicit, budgeted and logged. No silent host fallback, automatic paid retries or extra critic agents by default.
+
+## Evaluation and release decision
+
+Freeze a new workload before provider calls. Include Python and JS/TS, Arabic and English requests, unfamiliar APIs, constants/initialization dependencies, failed attempts, stale lessons, missing context, multi-file integration, separate application/toolkit roots, two-project isolation, quota-interrupted agent continuation and unsupported-capability refusals.
+
+Compare the current accepted baseline with one enhancement at a time. Report planned, attempted, accepted and failed tasks; quality among scored attempts alone can hide transport failures. Measure tokens and reported cost per accepted task, total attempts, cache fields, wall time and retrieval/parse work. Preserve all failures and null measurements. Any tolerable quality regression must be defined before the experiment; lower input tokens alone is not a promotion criterion.
+
+The published first v2 result is 18.3867% fewer mean input tokens with 99/99 checks in both arms on three synthetic Codex tasks. It supports that narrow observation, not universal savings, cheaper billing or greater intelligence.
+
+Deliver in this order: publication/evidence fixes and separate-root enforcement → capability preflight and durable manual handoff → context and lesson correctness → explainable retrieval and impact tests → verified learning/repair → concurrent workspace/budgets/cancellation → opt-in quota continuation and optional caching/model policy. Each phase needs independent negative controls, clean artifact installation and recorded version-scoped evidence before its public claims are expanded.

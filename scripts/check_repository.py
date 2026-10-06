@@ -178,6 +178,13 @@ def scope_errors(root):
 
 def inspect(root):
     errors = scope_errors(root)
+    # .gitignore cannot protect previously tracked files or a forced git add.
+    import project_binding
+    try:
+        errors.extend('Private/generated data may not be tracked: ' + path
+                      for path in project_binding.tracked_private_paths(root))
+    except (ValueError, OSError, subprocess.SubprocessError) as exc:
+        errors.append('Cannot verify project publication privacy: ' + str(exc))
     files = [p for p in root.rglob('*') if not SKIPPED & set(p.relative_to(root).parts) and p.is_file()]
     for path in files:
         if path.is_symlink():
