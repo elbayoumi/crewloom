@@ -46,3 +46,6 @@ Crewloom now has independently verified concurrent app execution and same-batch 
 
 ### 2026-10-05 — Project isolation is enforced, not promised
 A foreign application reached `main` once. The toolkit now carries a mandatory scope contract checked at commit time, in CI and from installed copies, and `main` requires pull requests with strict checks. The first frozen context study did not show a token saving: the selected map scored 0/11 on every scored Codex trial. Do not claim savings until a redesigned arm passes.
+
+### 2026-10-06 — Closure map keeps quality on the first v2 run
+After fixing the cause of the v1 failure (missing import form), the closure-map arm matched full-source on every held-out check with about 18% fewer input tokens on three synthetic tasks (one host). It is a measured input-token reduction with no quality loss observed, not a cost or speed result; the tasks are at the ceiling, so do not claim a quality or billing advantage.

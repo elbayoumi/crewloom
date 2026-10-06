@@ -228,3 +228,8 @@
 - السبب الجذري: commits ran from a nested wrong Git parent, `main` had no protection and the validator accepted unknown top-level projects.
 - الحل المعتمد: separate private repository, main protection (PRs, strict required checks, conversation resolution, admins enforced) and the mandatory scope gate in `scripts/check_repository.py`.
 - الحالة: محلول (2026-10-05); historical commits remain in public history
+
+### 2026-10-06 — Selected-map quality collapse resolved by the v2 arm
+- السبب الجذري: the v1 map never showed the package import form; verified 2026-10-05.
+- الحل المعتمد: dependency-closure map plus offline sufficiency gate; v2 run scored 99/99 on all 18 trials, same as full-source.
+- الحالة: محلول (2026-10-06); the ceiling means harder tasks are needed to separate the arms

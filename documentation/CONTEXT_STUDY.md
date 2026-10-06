@@ -310,3 +310,23 @@ After the last trial the runner recomputes every frozen input (fixture modules, 
 files on disk, grader, transport, executor, map generator and references) and writes
 `verification.json`. If anything changed while the study ran, it raises an error naming every
 changed item and publishes no `report.json`; `results.json` keeps the trials already measured.
+
+## Observed outcome of study v2 (2026-10-06)
+
+The preregistered 18-call run (seed 20261006, Codex `gpt-6-sol`, no retries) completed with all
+18 trials scored and every frozen input verified unchanged afterwards. The offline gate passed
+for every task and arm before the first call. The sanitized record is
+`examples/evaluation/context-study-v2-20261006.json`.
+
+| Arm | Held-out checks passed | Mean input tokens | Mean output tokens | Mean generation time |
+|---|---|---|---|---|
+| full-source | 99 / 99 | 14,941 | 868 | 31.0 s |
+| closure-map | 99 / 99 | 12,194 | 876 | 31.7 s |
+
+What this supports: on these three synthetic tasks the closure map lost no held-out quality and
+used 2,731 to 2,767 fewer input tokens (about 18%) in every one of the nine pairs, which follows
+its smaller prompt (11.2 to 11.5 KB against 20.8 to 20.9 KB). What it does not support: a quality
+gain (both arms are at the ceiling), a cost saving (the host reported no cost), an uncached-token
+saving (those vary with prompt-cache hits, paired differences from -6,067 to +11,599) or a speed
+gain (no difference). One host, three tasks and three repeats limit any wider claim; harder tasks
+are needed to separate the arms on quality.
