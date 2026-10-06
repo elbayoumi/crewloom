@@ -105,3 +105,9 @@ A controller validates selected contracts and current permissions before managed
 The agent should search reusable toolkit assets before creation, reuse a compatible tool, extend bounded existing behavior when appropriate and compose tools through validated outputs. Avoid a generic multi-purpose script or mandatory framework/classes for small functions. A newly generated toolkit tool starts as draft work, not an automatically trusted installed tool. Proposed quality gates cover contract validity, unregistered operational entrypoints, dependencies, imports without side effects, known path escapes and meaningful negative/positive acceptance; lint and formatting do not establish domain correctness.
 
 Generate human catalog/docs views from one machine contract source while preserving CODE_REGISTRY discoverability, ownership and existing contracts. Lazy discovery exposes short tool descriptions first and loads only a selected schema/implementation when needed. Measure retrieval/provider overhead and accepted-task quality before asserting token savings. Start with a few existing read-only tools and one controlled writer, preserve legacy wrappers/frozen acceptance and compare cold/warm overhead. If implementation is authorized, fit it into existing W03/W08/W12; it does not create a second active plan or displace open W01 privacy boundaries. The owner confirmed toolkit-only scope; implementation and pilot selection remain proposed.
+
+### 2026-10-07 — Owner token as a general fence
+The one-time `owner_token` plus epoch could fence any single-writer resource (coordinator batches, reviewer sessions), not only continuation. Needs a demonstrated second use before generalizing.
+
+### 2026-10-07 — Pre-registered launch intent
+Record a launch intent (task, controller, unique run label in the environment) before `Popen`, so recovery can find a process orphaned between launch and tracking. Needs a portable way to read another process's environment.

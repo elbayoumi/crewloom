@@ -177,3 +177,9 @@ All earlier entries below retain their original snapshot status. Pending work is
 > - [ ] Add controller-owned durable checkpoints and validated manual continuation preserving dirty edits, evidence, attempts, budgets and live-owner reservations — priority: high.
 > - [ ] Add evidence-backed capability preflight, unknown-value handling and receiving-host replanning; refuse unsupported actions before writes — priority: high.
 > - [ ] Test quota/rate-limit interruption and optional allowlisted automatic continuation after manual handoff and aggregate budget/cancellation acceptance — priority: medium.
+
+- [x] 2026-10-07: PR8 repairs for source identity, atomic continuation ownership, durable required checkpoints, aggregate output reservation, process-tree cancellation, immutable container identity and the N04 carry-forward — priority: high.
+- [ ] Verify Python 3.9/3.14 CI on the exact pushed head; reconcile the PR description and receipts — priority: high.
+- [ ] Run a real Claude-to-other-host continuation pilot with a pre-approved host/budget (needs owner authorization) — priority: high.
+- [ ] Close the launch-to-tracking crash window (pre-registered launch intent) and descendants that leave their group after the leader exits — priority: medium.
+- [ ] Migrate more tools to contract v1 and record owner activations; inventory the unregistered supporting modules; W08 usefulness/composition evidence — priority: medium.

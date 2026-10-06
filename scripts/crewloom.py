@@ -451,6 +451,12 @@ def main():
         except (ResourceError, ValueError) as exc:
             parser.error(str(exc))
         arguments = args.arguments[1:] if args.arguments and args.arguments[0] == '--' else args.arguments
+        import tool_catalog
+        allowed, notice = tool_catalog.execution_decision(item, resources.distribution_root(), path)
+        if not allowed:
+            parser.error(notice)
+        if notice:
+            print('warning: ' + notice, file=sys.stderr)
         try:
             if any(not candidate.resolve().is_relative_to(project) for candidate in (project / '.crewloom', project / '.crewloom/runs.jsonl')):
                 raise ValueError('Run history directory escapes selected project')

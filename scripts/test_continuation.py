@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 
@@ -259,11 +260,90 @@ class ContinuationBoundaries(unittest.TestCase):
         self.assertTrue(any('another context task holds the project' in r for r in reasons), reasons)
 
     # a checkpoint failure must never break the run
-    def test_a_failing_checkpoint_does_not_fail_the_workflow(self):
-        with patch.object(cont, 'write_checkpoint', side_effect=OSError('disk full')):
+    # Semantic change (W04): the pre-dispatch checkpoint is mandatory recovery state, not telemetry. The
+    # earlier test required the run to complete while every checkpoint failed; that is exactly the
+    # fail-open behavior PR8 review reproduced, so it is replaced by the contracts below.
+    def test_a_failed_required_checkpoint_prevents_dispatch_and_output_mutation(self):
+        dispatched = []
+
+        def execute(root, step, image, timeout):
+            dispatched.append(step['id'])
+            return {'exit_code': 0, 'output': '', 'image_id': image, 'duration_ms': 1}
+        with patch.object(w, 'inspect_image', return_value='sha256:t'), \
+                patch.object(execution_policy, 'execute', side_effect=execute), \
+                patch.object(cont, 'write_checkpoint', side_effect=OSError('disk full')):
+            result = w.run(self.root, self.parsed, self.fingerprint, 'image')
+        self.assertEqual((result['status'], dispatched), ('failed', []))
+        self.assertIn('disk full', result['blocker'])
+        self.assertFalse((self.root / 'output.txt').exists())
+        self.assertFalse((cont.folder(self.root, PLAN_ID) / 'latest.json').exists())
+        attempts = json.loads(self.attempts_bytes())['attempts']
+        self.assertEqual([(a['status'], a.get('dispatched')) for a in attempts], [('failed', False)])
+        self.assertIn('disk full', (cont.folder(self.root, PLAN_ID) / 'checkpoint-error.txt').read_text())
+
+    def test_optional_boundary_failures_are_visible_but_do_not_abort_safe_work(self):
+        real = cont.write_checkpoint
+
+        def selective(root, plan, state, ledger, boundary, *args, **kwargs):
+            if boundary != 'dispatched':
+                raise OSError('telemetry disk full')
+            return real(root, plan, state, ledger, boundary, *args, **kwargs)
+        with patch.object(cont, 'write_checkpoint', side_effect=selective):
             result = self.run_flow()
         self.assertEqual(result['status'], 'complete')
-        self.assertIn('disk full', (cont.folder(self.root, PLAN_ID) / 'checkpoint-error.txt').read_text())
+        self.assertIn('telemetry disk full', (cont.folder(self.root, PLAN_ID) / 'checkpoint-error.txt').read_text())
+
+    def test_failure_after_effects_never_replays_and_resume_keeps_verified_work(self):
+        real = cont.write_checkpoint
+
+        def after_first(root, plan, state, ledger, boundary, step_id=None, *args, **kwargs):
+            if boundary == 'dispatched' and step_id == 'verify':
+                raise OSError('disk full before second dispatch')
+            return real(root, plan, state, ledger, boundary, step_id, *args, **kwargs)
+        calls = []
+
+        def execute(root, step, image, timeout):
+            calls.append(step['id'])
+            for name in step['outputs']:
+                (root / name).write_text('produced by ' + step['id'], encoding='utf-8')
+            return {'exit_code': 0, 'output': '', 'image_id': image, 'duration_ms': 1}
+        with patch.object(w, 'inspect_image', return_value='sha256:t'), \
+                patch.object(execution_policy, 'execute', side_effect=execute):
+            with patch.object(cont, 'write_checkpoint', side_effect=after_first):
+                first = w.run(self.root, self.parsed, self.fingerprint, 'image')
+            self.assertEqual((first['status'], calls), ('failed', ['build']))
+            built = (self.root / 'output.txt').read_bytes()
+            second = w.run(self.root, self.parsed, self.fingerprint, 'image')
+        self.assertEqual((second['status'], calls), ('complete', ['build', 'verify']))  # build was not replayed
+        self.assertEqual((self.root / 'output.txt').read_bytes(), built)
+
+    def test_a_partial_checkpoint_is_never_mistaken_for_a_committed_recovery_point(self):
+        self.interrupted_mid_task()
+        folder = cont.folder(self.root, PLAN_ID)
+        committed = cont.committed_latest(self.root, PLAN_ID)
+        self.assertIsNotNone(committed)
+        # Control: a crash after the sequence record but before the commit rename keeps the old latest intact.
+        real = cont._private_write
+
+        def crash_on_latest(path, text):
+            if Path(path).name == 'latest.json':
+                raise OSError('killed before the commit rename')
+            return real(path, text)
+        plan, fingerprint = w.read_plan(self.root, 'workflow.json')
+        state = w.state_for(self.root, plan, fingerprint)[1]
+        with patch.object(cont, '_private_write', side_effect=crash_on_latest):
+            with self.assertRaises(OSError):
+                cont.write_checkpoint(self.root, plan, state, cont._ledger(self.root), 'manual')
+        self.assertEqual(cont.committed_latest(self.root, PLAN_ID)['packet_sha256'], committed['packet_sha256'])
+        # Negative: a latest.json whose sequence record is missing or different is not committed.
+        record = folder / cont.sequence_name(committed['sequence'], committed['boundary'])
+        original = record.read_text()
+        record.write_text(original.replace('"step"', '"stepx"', 1))
+        self.assertIsNone(cont.committed_latest(self.root, PLAN_ID))
+        refused = cont.validate(self.root, self.latest_path(), RECEIVER)
+        self.assertTrue(any('not backed by its sequence record' in r for r in refused['reasons']))
+        record.write_text(original)
+        self.assertTrue(cont.validate(self.root, self.latest_path(), RECEIVER)['accepted'])
 
     def test_completed_workflows_checkpoint_history_is_chained_and_ordered(self):
         self.run_flow()
@@ -301,6 +381,131 @@ class ContinuationCommand(unittest.TestCase):
             self.assertEqual(checked.returncode, 0, checked.stdout)
             self.assertTrue(json.loads(checked.stdout)['accepted'])
             self.assertEqual(os.listdir(elsewhere), [])
+
+
+
+class ContinuationOwnership(ContinuationBoundaries):
+    """Atomic owner claim and runtime fencing with real validation and controlled scheduling."""
+
+    def prepare(self):
+        self.interrupted_mid_task()
+        cont.reconcile(self.root, PLAN_ID)
+
+    def race(self, receivers):
+        """Run `accept` for every receiver while the first stays inside validation until the rest tried."""
+        real_validate = cont._validate
+        entered, others_done, first = threading.Event(), threading.Event(), []
+        outcomes = {}
+
+        def paused(*args, **kwargs):
+            result = real_validate(*args, **kwargs)  # the real decision, made before anyone claims
+            if not first:
+                first.append(True)
+                entered.set()
+                others_done.wait(10)
+            return result
+
+        def attempt(receiver):
+            try:
+                outcomes[receiver['id']] = cont.accept(self.root, self.latest_path(), receiver)
+            except (ValueError, OSError) as exc:
+                outcomes[receiver['id']] = exc
+
+        with patch.object(cont, '_validate', side_effect=paused):
+            lead = threading.Thread(target=attempt, args=(receivers[0],))
+            lead.start()
+            self.assertTrue(entered.wait(10))
+            for receiver in receivers[1:]:
+                attempt(receiver)
+            others_done.set()
+            lead.join(15)
+        return outcomes
+
+    def test_two_simultaneous_receivers_exactly_one_wins(self):
+        self.prepare()
+        outcomes = self.race([RECEIVER, dict(RECEIVER, id='agent-c', host='opencode')])
+        winners = [name for name, value in outcomes.items() if isinstance(value, dict)]
+        self.assertEqual(winners, ['agent-b'])
+        self.assertIsInstance(outcomes['agent-c'], ValueError)
+        self.assertRegex(str(outcomes['agent-c']), 'locked')
+        owner = cont.read_owner(self.root, PLAN_ID)
+        self.assertEqual((owner['owner'], owner['epoch']), ('agent-b', 1))
+
+    def test_negative_control_without_the_critical_section_both_receivers_are_accepted(self):
+        self.prepare()
+        import contextlib
+        with patch.object(cont, '_project_lock', side_effect=lambda *a, **k: contextlib.nullcontext()):
+            outcomes = self.race([RECEIVER, dict(RECEIVER, id='agent-c', host='opencode')])
+        self.assertTrue(all(isinstance(value, dict) and value['accepted'] for value in outcomes.values()), outcomes)
+
+    def resume(self, claim):
+        calls = []
+
+        def execute(root, step, image, timeout):
+            calls.append(step['id'])
+            for name in step['outputs']:
+                (root / name).write_text('resumed ' + step['id'], encoding='utf-8')
+            return {'exit_code': 0, 'output': '', 'image_id': image, 'duration_ms': 1}
+        with patch.object(w, 'inspect_image', return_value='sha256:t'), \
+                patch.object(execution_policy, 'execute', side_effect=execute):
+            try:
+                result = w.run(self.root, self.parsed, self.fingerprint, 'image', owner=claim)
+            except RuntimeError as exc:
+                result = exc
+        return result, calls
+
+    def test_only_the_live_owner_with_its_token_may_dispatch_and_publish(self):
+        self.prepare()
+        accepted = cont.accept(self.root, self.latest_path(), RECEIVER)
+        token, epoch = accepted['owner_token'], accepted['owner']['epoch']
+        self.assertNotIn(token, (cont.folder(self.root, PLAN_ID) / 'owner.json').read_text())
+        verify_output = self.root / 'verified.txt'
+        for label, claim in (('no claim', None),
+                             ('copied identity without the token', {'owner': 'agent-b', 'epoch': epoch, 'token': 'x' * 64}),
+                             ('another receiver', {'owner': 'agent-c', 'epoch': epoch, 'token': token}),
+                             ('stale epoch', {'owner': 'agent-b', 'epoch': epoch - 1, 'token': token})):
+            result, calls = self.resume(claim)
+            self.assertIsInstance(result, cont.OwnershipError, label)
+            self.assertEqual(calls, [], label)
+            self.assertFalse(verify_output.exists(), label)
+        result, calls = self.resume({'owner': 'agent-b', 'epoch': epoch, 'token': token})
+        self.assertEqual((result['status'], calls), ('complete', ['verify']))  # build output was preserved
+        self.assertTrue(verify_output.exists())
+
+    def test_changed_policy_wrong_root_and_interruption_withdraw_the_slot(self):
+        self.prepare()
+        accepted = cont.accept(self.root, self.latest_path(), RECEIVER)
+        claim = {'owner': 'agent-b', 'epoch': accepted['owner']['epoch'], 'token': accepted['owner_token']}
+        policy = self.root / 'crewloom.project.json'
+        original = policy.read_text()
+        policy.write_text(original.replace('\n', ' \n', 1) if '\n' in original else original + ' ')
+        self.assertRegex(str(self.resume(claim)[0]), 'policy changed')
+        policy.write_text(original)
+        owner_file = cont.folder(self.root, PLAN_ID) / 'owner.json'
+        record = json.loads(owner_file.read_text())
+        owner_file.write_text(json.dumps(dict(record, project_root='/elsewhere')))
+        self.assertRegex(str(self.resume(claim)[0]), 'root or policy changed')
+        owner_file.write_text(json.dumps(record))
+        cont.interrupt(self.root, PLAN_ID, None, 'quota stop')
+        result, calls = self.resume(claim)
+        self.assertRegex(str(result), 'interrupted')
+        self.assertEqual(calls, [])
+        cont.release(self.root, PLAN_ID)
+        self.assertEqual(self.resume(None)[0]['status'], 'complete')  # a released slot is ordinary again
+
+    def test_owner_changes_serialise_with_a_live_run_and_reconcile_needs_the_claim(self):
+        self.prepare()
+        accepted = cont.accept(self.root, self.latest_path(), RECEIVER)
+        with w.project_lock(w.safe_path(self.root, '.crewloom', internal=True), reentrant=False):
+            for action in (lambda: cont.interrupt(self.root, PLAN_ID), lambda: cont.release(self.root, PLAN_ID),
+                           lambda: cont.reconcile(self.root, PLAN_ID),
+                           lambda: cont.accept(self.root, self.latest_path(), dict(RECEIVER, id='agent-c'))):
+                with self.assertRaisesRegex(ValueError, 'locked'):
+                    action()
+            self.assertIn('accepted', cont.validate(self.root, self.latest_path(), RECEIVER))  # advisory read: no lock
+        with self.assertRaises(cont.OwnershipError):
+            cont.reconcile(self.root, PLAN_ID)
+        self.assertEqual(cont.reconcile(self.root, PLAN_ID, {'owner': 'agent-b', 'epoch': 1, 'token': accepted['owner_token']}), [])
 
 
 if __name__ == '__main__':

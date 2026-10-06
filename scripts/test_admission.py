@@ -62,7 +62,8 @@ class AdmissionBoundaries(unittest.TestCase):
                 adm.validate_limits(bad)
         self.configure(max_model_requests=2)
         self.assertEqual(adm.summary(self.folder)['unbounded'],
-                         ['max_concurrent_requests', 'max_elapsed_seconds', 'max_input_bytes', 'max_output_tokens'])
+                         ['max_concurrent_requests', 'max_elapsed_seconds', 'max_input_bytes', 'max_output_tokens',
+                          'max_output_tokens_per_request'])  # W09: the per-request ceiling is its own limit
 
     def test_a_resume_may_tighten_but_never_loosen_or_reset_limits(self):
         self.configure(max_model_requests=5)
@@ -187,19 +188,10 @@ class AdmissionBoundaries(unittest.TestCase):
         self.assertEqual(adm.terminate_owned(self.folder)[0]['result'], 'gone')
         self.assertIsNone(bystander.poll(), 'identity mismatch protects the process')
 
-    def test_owned_containers_are_removed_by_name_and_only_those(self):
-        self.configure()
-        removed = []
-        adm.track_process(self.folder, 'container', 'crewloom-owned-1', 111, 'task-a')
-        adm.track_process(self.folder, 'container', 'crewloom-owned-2', 112, 'task-b')
-        with patch.object(adm, '_stop_container', side_effect=lambda name: removed.append(name) or True):
-            results = adm.terminate_owned(self.folder)
-        self.assertEqual(sorted(removed), ['crewloom-owned-1', 'crewloom-owned-2'])
-        self.assertEqual({r['result'] for r in results}, {'removed'})
-        with patch.object(adm, '_stop_container', return_value=False):
-            adm.track_process(self.folder, 'container', 'stubborn', None, 't')
-            self.assertEqual(adm.terminate_owned(self.folder)[0]['result'], 'remove failed')
-        self.assertEqual(adm.summary(self.folder)['tracked_processes'], ['container:stubborn'], 'a failure stays visible')
+    # Semantic change (W09): removal by saved name was replaced by removal by verified immutable id. The
+    # old stub of `docker rm <name>` could not tell our container from a reused name; the identity cases
+    # (owned removed, reused name preserved, mismatch, unverifiable, legacy, recovery) live in
+    # test_owned_resources.py.
 
     def test_restart_reconciliation_stops_only_entries_whose_controller_died(self):
         self.configure()
@@ -225,6 +217,157 @@ class AdmissionBoundaries(unittest.TestCase):
         self.assertIsNone(adm.current())
 
 
+class AggregateOutputAndHonestAccounting(unittest.TestCase):
+    """W09: per-request ceilings, aggregate reservations, reported usage and unknown limits stay distinct."""
+
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory(prefix='crewloom-aggregate-')
+        self.addCleanup(temporary.cleanup)
+        self.folder = Path(temporary.name) / 'batch'
+
+    def configure(self, **limits):
+        return adm.configure(self.folder, 'batch-one', limits)
+
+    def admit(self, name, ceiling, **extra):
+        return adm.admit(self.folder, name, dict({'output_tokens': ceiling}, **extra))['decision']
+
+    def test_two_individually_legal_requests_cannot_over_reserve_the_batch_ceiling(self):
+        self.configure(max_output_tokens=100)
+        self.assertEqual(self.admit('a', 100), 'admitted')
+        refused = adm.admit(self.folder, 'b', {'output_tokens': 100})
+        self.assertEqual(refused['decision'], 'refused')
+        self.assertIn('aggregate output reservation', refused['reason'])
+        self.assertEqual(adm.summary(self.folder)['reserved_output_tokens'], 100)
+
+    def test_concurrent_reservations_never_exceed_the_ceiling(self):
+        self.configure(max_output_tokens=100)
+        results = []
+        threads = [__import__('threading').Thread(target=lambda n=n: results.append(self.admit('r%d' % n, 40)))
+                   for n in range(8)]
+        [t.start() for t in threads]
+        [t.join(30) for t in threads]
+        self.assertEqual(sorted(results), ['admitted'] * 2 + ['refused'] * 6)
+        self.assertEqual(adm.summary(self.folder)['reserved_output_tokens'], 80)
+
+    def test_a_negative_control_without_the_aggregate_accounting_admits_both(self):
+        self.configure(max_output_tokens=100)
+        with patch.object(adm, '_used', side_effect=lambda value, key: 0 if key == 'output' else
+                          sum(1 for e in value['requests'].values() if e['state'] in adm.CHARGED)):
+            decisions = (self.admit('a', 100), self.admit('b', 100))
+        self.assertEqual(decisions, ('admitted', 'admitted'))  # the scenario does expose over-reservation
+        self.configure()  # a resume cannot loosen the limit
+        self.assertEqual(adm.summary(self.folder)['limits']['max_output_tokens'], 100)
+
+    def test_unknown_or_unenforceable_output_bounds_do_not_pass_a_guaranteed_ceiling(self):
+        self.configure(max_output_tokens=100)
+        refused = adm.admit(self.folder, 'unbounded', {'output_tokens': None})
+        self.assertEqual(refused['decision'], 'refused')
+        self.assertIn('no enforceable output ceiling', refused['reason'])
+        other = self.folder.parent / 'no-output-limit'
+        adm.configure(other, 'x', {})
+        self.assertEqual(adm.admit(other, 'unbounded', {'output_tokens': None})['decision'], 'admitted')
+
+    def test_the_per_request_limit_is_its_own_contract(self):
+        self.configure(max_output_tokens_per_request=50)
+        self.assertEqual(self.admit('ok', 50), 'admitted')
+        self.assertEqual(self.admit('over', 51), 'refused')
+        self.assertEqual(adm.admit(self.folder, 'unknown', {'output_tokens': None})['decision'], 'refused')
+        self.assertEqual(adm.output_ceiling(self.folder, 4096), 50)
+        self.assertEqual(adm.output_ceiling(self.folder, 20), 20)
+        self.assertIsNone(adm.output_ceiling(self.folder, None))
+
+    def test_settlement_failure_and_orphans_are_reconciled_conservatively(self):
+        self.configure(max_output_tokens=300)
+        for name in ('ok', 'overran', 'failed'):
+            self.assertEqual(self.admit(name, 100), 'admitted', name)
+        adm.finish(self.folder, 'ok', 'succeeded', {'output_tokens': 10})          # actual replaces the reservation
+        self.assertEqual(adm.summary(self.folder)['reserved_output_tokens'], 10 + 100 + 100)
+        adm.finish(self.folder, 'overran', 'succeeded', {'output_tokens': 140})    # an overrun is never hidden
+        adm.finish(self.folder, 'failed', 'failed', None)                          # unknown usage keeps the reserve
+        self.assertEqual(adm.summary(self.folder)['reserved_output_tokens'], 10 + 140 + 100)
+        self.assertEqual(self.admit('late', 51), 'refused')   # 250 held, 50 left
+        self.assertEqual(self.admit('late-small', 50), 'admitted')
+        orphan = adm.admit(self.folder, 'x', {})  # no enforceable ceiling while the aggregate limit is set
+        self.assertEqual(orphan['decision'], 'refused')
+
+    def test_resume_neither_double_charges_nor_obtains_a_replacement_slot(self):
+        self.configure(max_output_tokens=100)
+        self.assertEqual(self.admit('a', 100), 'admitted')
+        adm.finish(self.folder, 'a', 'failed', None)
+        again = adm.admit(self.folder, 'a', {'output_tokens': 100})
+        self.assertEqual(again['decision'], 'existing')
+        self.assertEqual(self.admit('replacement', 100), 'refused')
+        self.assertEqual(adm.summary(self.folder)['reserved_output_tokens'], 100)
+
+    def test_malformed_negative_nonfinite_or_invalid_usage_is_rejected_visibly(self):
+        self.configure()
+        bad = {'input_tokens': True, 'output_tokens': -5, 'total_tokens': float('nan'), 'cost_usd': float('inf')}
+        self.assertEqual(adm.clean_usage(bad), ({}, ['input_tokens', 'output_tokens', 'total_tokens', 'cost_usd']))
+        self.assertEqual(adm.clean_usage({'input_tokens': 1.5, 'output_tokens': '7', 'cost_usd': -0.1})[1],
+                         ['input_tokens', 'output_tokens', 'cost_usd'])
+        self.assertEqual(adm.clean_usage({'input_tokens': 12.0, 'cost_usd': 0})[0], {'input_tokens': 12, 'cost_usd': 0})
+        self.assertEqual(adm.clean_usage('junk'), ({}, []))
+        adm.admit(self.folder, 'r', {})
+        adm.finish(self.folder, 'r', 'succeeded', dict(bad, total_tokens=9))
+        entry = json.loads((self.folder / 'admission.json').read_text())['requests']['r']
+        self.assertEqual((entry['usage'], entry['usage_rejected']),
+                         ({'total_tokens': 9}, ['input_tokens', 'output_tokens', 'cost_usd']))
+
+    def test_partial_usage_totals_identify_incomplete_coverage(self):
+        self.configure()
+        for name, usage in (('a', {'output_tokens': 5, 'cost_usd': 0.5}), ('b', None), ('c', {'output_tokens': 7})):
+            adm.admit(self.folder, name, {})
+            adm.finish(self.folder, name, 'succeeded', usage)
+        usage = adm.summary(self.folder)['recorded_usage']
+        self.assertEqual(usage['output_tokens'], 12)
+        self.assertEqual(usage['coverage']['output_tokens'],
+                         {'reporting_requests': 2, 'settled_requests': 3, 'complete': False})
+        self.assertEqual(usage['coverage']['cost_usd']['reporting_requests'], 1)
+
+    def test_unsupported_guarantees_are_stated_not_implied(self):
+        with self.assertRaisesRegex(adm.AdmissionError, 'subset of'):
+            adm.validate_limits({'max_cost_usd': 5})
+        self.configure()
+        enforcement = adm.summary(self.folder)['enforcement']
+        self.assertIn('not supported', enforcement['cost_cap'])
+        self.assertIn('does not stop work in flight', enforcement['elapsed'])
+        self.assertIn('not counted or capped', enforcement['unmanaged_activity'])
+
+    def test_elapsed_budget_is_an_admission_deadline_not_a_stop_for_work_in_flight(self):
+        self.configure(max_elapsed_seconds=1)
+        self.assertEqual(self.admit('inflight', 1), 'admitted')
+        record = json.loads((self.folder / 'admission.json').read_text())
+        record['started_at'] -= 60
+        (self.folder / 'admission.json').write_text(json.dumps(record))
+        self.assertEqual(adm.admit(self.folder, 'new', {})['decision'], 'refused')
+        self.assertEqual(adm.finish(self.folder, 'inflight', 'succeeded', {})['state'], 'succeeded')
+
+
+class OutputCeilingReachesTheAdapter(unittest.TestCase):
+    def test_the_provider_payload_honors_a_tighter_bound_and_never_a_looser_one(self):
+        import provider_gateway as gateway
+        payloads = []
+
+        class Opener:
+            def open(self, request, timeout=None):
+                payloads.append(json.loads(request.data))
+                raise ValueError('stop after capture')
+        with patch.dict(os.environ, {'OPENAI_API_KEY': 'k', 'ANTHROPIC_API_KEY': 'k'}), \
+                patch('urllib.request.build_opener', return_value=Opener()):
+            for provider, key in (('openai', 'max_output_tokens'), ('anthropic', 'max_tokens')):
+                for requested in (None, 100):
+                    with self.assertRaises(ValueError):
+                        gateway._request(provider, 'm', 'prompt', 5, requested)
+                    self.assertEqual(payloads[-1][key], requested or gateway.MAX_OUTPUT_TOKENS)
+            for invalid in (0, -1, gateway.MAX_OUTPUT_TOKENS + 1, True, 1.5, '5'):
+                with self.assertRaisesRegex(ValueError, 'Output token ceiling'):
+                    gateway._request('openai', 'm', 'prompt', 5, invalid)
+
+    def test_an_installed_cli_host_refuses_a_guaranteed_ceiling_it_cannot_enforce(self):
+        with self.assertRaisesRegex(ValueError, 'cannot enforce an output-token ceiling'):
+            model_host.generate('codex', 'prompt', ['out.py'], 5, None, None, 100)
+
+
 class BatchBudgetAtTheModelStep(unittest.TestCase):
     """The workflow reserves the batch budget before any ledger entry or provider call."""
     def setUp(self):
@@ -242,10 +385,12 @@ class BatchBudgetAtTheModelStep(unittest.TestCase):
         self.parsed, self.fingerprint = w.read_plan(self.root, 'workflow.json')
         self.folder = Path(temporary.name) / 'batch'
         self.calls = []
+        self.kwargs = []
 
     def run_plan(self):
         def generate(host, prompt, outputs, *args, **kwargs):
             self.calls.append(outputs[0])
+            self.kwargs.append(kwargs)
             return {outputs[0]: 'x = 1\n'}, {'host': host, 'usage': {'input_tokens': 42, 'output_tokens': 7}}
         with patch.object(w, 'inspect_image', return_value='sha256:t'), \
                 patch.object(model_host, 'generate', side_effect=generate), \
@@ -271,6 +416,28 @@ class BatchBudgetAtTheModelStep(unittest.TestCase):
         self.assertEqual(self.run_plan()['status'], 'complete')
         self.assertEqual(self.calls, ['first.py', 'second.py'])
         self.assertEqual(adm.summary(self.folder)['charged_requests'], before['charged_requests'])
+
+    def test_the_aggregate_output_ceiling_reaches_the_adapter_and_stops_the_second_request(self):
+        adm.configure(self.folder, 'b', {'max_output_tokens': 100, 'max_output_tokens_per_request': 100})
+        result = self.run_plan()
+        self.assertEqual(self.calls, ['first.py'])
+        self.assertEqual(self.kwargs, [{'max_output_tokens': 100}], 'the adapter is told the bound it must honor')
+        self.assertIn('aggregate output reservation', json.dumps(result))
+        self.assertEqual(adm.summary(self.folder)['reserved_output_tokens'], 7)  # reported actual replaced 100
+
+    def test_a_host_without_an_enforceable_ceiling_is_refused_under_an_aggregate_limit(self):
+        steps = [{'id': 'cli', 'role': 'context-guardian', 'kind': 'model', 'host': 'codex', 'model': 'gpt-test',
+                  'summary': 'Generate', 'inputs': ['a.py'], 'outputs': ['cli.py']}]
+        (self.root / 'cli.json').write_text(json.dumps({'schema_version': 1, 'id': 'cli-flow', 'steps': steps}))
+        parsed, fingerprint = w.read_plan(self.root, 'cli.json')
+        adm.configure(self.folder, 'b', {'max_output_tokens': 1000})
+        with patch.object(w, 'inspect_image', return_value='sha256:t'), \
+                patch.object(model_host, 'generate', side_effect=AssertionError('must not dispatch')), \
+                adm.context(self.folder, 't'):
+            result = w.run(self.root, parsed, fingerprint, 'image', allow_host_cli=True)
+        self.assertEqual(result['status'], 'failed')
+        self.assertIn('no enforceable output ceiling', json.dumps(result))
+        self.assertEqual(adm.summary(self.folder)['charged_requests'], 0)
 
     def test_a_provider_failure_is_reconciled_and_the_charge_is_kept(self):
         adm.configure(self.folder, 'b', {'max_model_requests': 5})

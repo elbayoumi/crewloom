@@ -248,3 +248,28 @@
 - السبب الجذري: verified from stored outputs — `opencode run` has no schema flag and nothing stated the shape; 13 flat path→source maps and 1 `{"files":…}`.
 - الحل المعتمد: `opencode_schema_instruction` in the agent system prompt (`scripts/model_host.py`); an earlier append-to-prompt design broke the frozen "prompt exactly once" test and was dropped.
 - الحالة: محلول في الكود (2026-10-06); real-model confirmation and the 4 ~300 s timeouts remain open
+
+### 2026-10-07 — A required checkpoint broke ordinary unbound workflows
+- السبب الجذري: making `dispatched` mandatory failed every project without a binding, because no packet can be built there
+- الحل المعتمد: `required_checkpoint` returns None only when no binding exists; a present but invalid binding fails closed (found by existing admission fixtures)
+- الحالة: محلول (2026-10-07)
+
+### 2026-10-07 — Frozen host fixture exposed an unconditional process-table call
+- السبب الجذري: reaping a finished host's group ran `ps` through the fixture's fake `Popen` (fake pid 123456)
+- الحل المعتمد: `reap_group` probes `killpg(pgid, 0)` first, only touches members started after the caller's launch time; frozen test untouched
+- الحالة: محلول (2026-10-07)
+
+### 2026-10-07 — Acceptance that depends on its own evidence cannot record it
+- السبب الجذري: the shipped-catalog test needed current evidence while being the acceptance that produces it
+- الحل المعتمد: split into `test_shipped_catalog.py`; the declared acceptance is only `test_tool_catalog.py`
+- الحالة: محلول (2026-10-07)
+
+### 2026-10-07 — Local Python 3.9 image has no `ps`
+- السبب الجذري: `crewloom-python39-test` lacks procps, so identity-by-start-time tests cannot run there (pre-existing admission tests fail too)
+- الحل المعتمد: process-tree tests skip without `ps`; Python 3.9 CI on ubuntu is the authority for them
+- الحالة: مفتوح — verify on the exact pushed head
+
+### 2026-10-07 — The new tool gate read the wrong repository inside the commit hook
+- السبب الجذري: the hook exports GIT_DIR/GIT_INDEX_FILE; the gate's `git -C <fixture>` calls inherited them, so fixture catalogs were compared with the real repository's (found only by committing; direct test runs passed)
+- الحل المعتمد: `tool_catalog._git` drops GIT_* variables; regression test sets GIT_DIR to another repository
+- الحالة: محلول (2026-10-07)

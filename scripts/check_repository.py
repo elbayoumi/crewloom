@@ -3,6 +3,7 @@
 import argparse
 import ast
 import json
+import os
 import re
 import subprocess
 import sys
@@ -296,11 +297,31 @@ def run_suites(root=ROOT, python=None, timeout=SUITE_TIMEOUT, runner=subprocess.
     return 0
 
 
+def tool_gate(root):
+    """N04 gate: catalog validity, the generated human view and the incremental new/changed-tool rules.
+
+    The base revision comes from CREWLOOM_TOOL_GATE_BASE (CI) and defaults to HEAD, so the commit hook
+    judges exactly what this commit changes. A base that cannot be resolved (a shallow clone) is reported
+    as a note, never as a silent pass of the incremental rules."""
+    if not (root / 'documentation' / 'TOOLS.json').is_file():
+        return []  # a checkout with no catalog has nothing to gate; a catalog without its gate module fails closed below
+    sys.path.insert(0, str(root / 'scripts'))
+    try:
+        import tool_catalog
+    finally:
+        sys.path.pop(0)
+    errors, notes = tool_catalog.gate(root, os.environ.get('CREWLOOM_TOOL_GATE_BASE') or 'HEAD')
+    for note in notes:
+        print('note: ' + note, file=sys.stderr)
+    return errors + tool_catalog.check_rendered(root)
+
+
 def main(argv=None, root=ROOT):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--skip-tests', action='store_true')
     args = parser.parse_args(argv)
     errors = inspect(root)
+    errors.extend(tool_gate(root))
     for error in errors:
         print(error, file=sys.stderr)
     if errors:

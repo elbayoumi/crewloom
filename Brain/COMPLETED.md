@@ -1,5 +1,25 @@
 # Completed work
 
+### 2026-10-07 — PR8 repair: source identity, atomic ownership, durable checkpoints (W01/W02/W04)
+- Artifact: `scripts/test_source_identity.py`, `scripts/continuation.py`, `scripts/workflow.py`, `scripts/test_continuation.py`, `documentation/CONTINUATION.md`
+- Impact: fixtures are hermetic about bytecode/metadata (`-S`, no bytecode; ambient and stale metadata tested explicitly); `accept` validates and claims the owner slot under the project lock; resume needs the owner id, epoch and one-time token and is fenced before reserve, dispatch and publish; the `dispatched` checkpoint is committed (fsync, rename commit point) before any side effect
+- Evidence: 44 continuation cases incl. a controlled two-receiver race (exactly one wins) with an unlocked negative control that accepts both; the audit counterexamples re-run in `.crewloom/pr8-repair-20261007/probe_repair.py`. Open: a real Claude-to-other-host pilot.
+
+### 2026-10-07 — PR8 repair: aggregate output reservation and honest usage (W09)
+- Artifact: `scripts/admission.py`, `scripts/workflow.py`, `scripts/model_host.py`, `scripts/provider_gateway.py`, `documentation/COORDINATOR.md`, `scripts/test_admission.py`
+- Impact: `max_output_tokens` is an atomic aggregate reservation, `max_output_tokens_per_request` a separate ceiling the API adapters really send; unknown/unenforceable bounds are refused; invalid usage is rejected and named; totals carry coverage; no cost cap exists and the docs say so
+- Evidence: 35 admission cases incl. 8 concurrent reservations admitting exactly 2, payload capture for both providers, an aggregate-accounting negative control. Open: native CLI activity is not counted.
+
+### 2026-10-07 — PR8 repair: owned process trees and immutable container identity (W09)
+- Artifact: `scripts/admission.py`, `scripts/workflow.py` (`docker_execute`), `scripts/model_host.py`, `scripts/test_owned_resources.py`
+- Impact: cancel/timeout/crash recovery stop group members plus descendants with per-process identity checks; tracking inside a batch fails closed; containers are labelled, tracked by the ID from `--cidfile` and removed by ID only after inspect matches
+- Evidence: real parent/child/grandchild trees, parent-exits-first, SIGTERM-ignoring escalation, group-id reuse refusal; 23 cases incl. a real-Docker run (OrbStack 29.4.0, python:3.14-slim) that removed its owned container and preserved a same-name stranger. Open: crash between launch and tracking.
+
+### 2026-10-07 — N04: living tool catalog and incremental gate
+- Artifact: `scripts/tool_catalog.py`, `documentation/TOOLS.json`/`TOOLS.md`, `scripts/check_repository.py`, `scripts/crewloom.py`, `scripts/test_tool_catalog.py`, `scripts/test_shipped_catalog.py`
+- Impact: one catalog (contract v1, lifecycle, evidence bound to source+contract hashes, generated human view); the gate rejects unregistered entrypoints, spoofed tests, duplicates/parallel names, undeclared dependencies, stale evidence, new tools without contract/acceptance, removed tools or changed commands; `crewloom run` refuses draft/retired/stale tools
+- Evidence: 21+2 cases, each rule rejected and accepted in real temp Git repos; reader `delivery-evidence`, writer `context`, plus `continuation` and `tool-catalog` migrated to verified; 16 tools remain `legacy-unverified`. Open: more migrations, activation records, W08 usefulness.
+
 ### 2026-10-06 — W09 candidate: aggregate admission and owned-process cancellation
 - Artifact: `scripts/admission.py`, coordinator `budget` manifest field, model-step reservation, `scripts/test_admission.py`, `scripts/test_admission_coordinator.py` (PR 8 branch)
 - Impact: batch-wide request/concurrency/time/byte limits are atomic across worktrees and processes; resumes never double-charge; dead-owner dispatches are orphaned, charged and not replayed; cancel stops only recorded owned processes/containers and queued requests.

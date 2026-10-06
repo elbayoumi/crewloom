@@ -1,4 +1,6 @@
 {
+  "catalog_version": 2,
+  "gate_baseline": "31ac8d3a4176c43323ec808a7de4ccac8bfe5563",
   "tools": [
     {
       "id": "workflow-contract",
@@ -108,7 +110,61 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "qa-test-automation-engineer",
+      "status": "verified",
+      "inputs": {
+        "packet": {
+          "type": "path",
+          "required": true,
+          "description": "Delivery packet JSON file; its directory is the evidence base"
+        },
+        "--expected-revision": {
+          "type": "string",
+          "required": true,
+          "description": "Current commit or snapshot ID obtained independently of the packet"
+        }
+      },
+      "outputs": {
+        "report": {
+          "type": "json",
+          "required": true,
+          "description": "state, open_defects, escalation_required, problems and the limits statement on stdout"
+        }
+      },
+      "errors": {
+        "problems-found": {
+          "exit_code": 1,
+          "meaning": "The packet is structurally blocked; see problems"
+        },
+        "unverified": {
+          "exit_code": 2,
+          "meaning": "The packet could not be read or parsed; nothing is approved"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 60,
+        "output_bytes": 65536
+      },
+      "idempotent": true,
+      "acceptance": [
+        ".agents/skills/qa-test-automation-engineer/scripts/test_delivery_packet.py"
+      ],
+      "evidence": [
+        {
+          "test": ".agents/skills/qa-test-automation-engineer/scripts/test_delivery_packet.py",
+          "command": "-m unittest discover -s .agents/skills/qa-test-automation-engineer/scripts -p test_delivery_packet.py",
+          "exit_code": 0,
+          "source_sha256": "ffc1ce1fb92b04444ed4a7c072c0272c3ce34fcddf733fb86af6f1d0b7db6c8c",
+          "contract_sha256": "ea6ecc70805d55966fccaf8476966e0eace14a582dc63ac6e9a5cd792fdb351c",
+          "recorded_at": "2026-10-06T23:11:55Z"
+        }
+      ]
     },
     {
       "id": "context",
@@ -119,7 +175,73 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "writes-context-file"
+      "effect": "writes-context-file",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "context-guardian",
+      "status": "verified",
+      "inputs": {
+        "--skill": {
+          "type": "string",
+          "required": true,
+          "description": "Role ID whose bounded context pack is built"
+        },
+        "--out": {
+          "type": "path",
+          "required": true,
+          "description": "Output file; must stay outside skill sources (inside the project when --project is given)"
+        },
+        "--language": {
+          "type": "string",
+          "required": false,
+          "description": "en or ar"
+        },
+        "--project": {
+          "type": "path",
+          "required": false,
+          "description": "Project whose installed role and memory are read exclusively"
+        }
+      },
+      "outputs": {
+        "pack": {
+          "type": "text",
+          "required": true,
+          "description": "Context pack written atomically to --out"
+        },
+        "summary": {
+          "type": "text",
+          "required": true,
+          "description": "One stdout line naming the pack size and path"
+        }
+      },
+      "errors": {
+        "refused": {
+          "exit_code": 1,
+          "meaning": "The pack was not written; a previous output must not be used as a success"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 60,
+        "output_bytes": 1048576
+      },
+      "idempotent": true,
+      "acceptance": [
+        ".agents/skills/context-guardian/scripts/test_context_pack.py"
+      ],
+      "evidence": [
+        {
+          "test": ".agents/skills/context-guardian/scripts/test_context_pack.py",
+          "command": "-m unittest discover -s .agents/skills/context-guardian/scripts -p test_context_pack.py",
+          "exit_code": 0,
+          "source_sha256": "05003cfa644c1fb48e876818f4be1d84de7916af9f39e7ddb2565bbfb698dd06",
+          "contract_sha256": "d7d8a0d83430da5a3e1881412bcd80dbfb6721e75a7a7ed695885d489c54a52b",
+          "recorded_at": "2026-10-06T23:11:55Z"
+        }
+      ]
     },
     {
       "id": "validate-skill",
@@ -201,6 +323,173 @@
         "Python standard library"
       ],
       "effect": "reads-project-and-agency-registry"
+    },
+    {
+      "id": "continuation",
+      "skill": "context-guardian",
+      "path": "scripts/continuation.py",
+      "description": "Durable controller-owned checkpoints and the atomic single-owner handoff between agents",
+      "example_args": "validate --project /path/to/project --workflow task-id --packet latest.json --receiver-id agent-b --receiver-host codex",
+      "dependencies": [
+        "Python standard library",
+        "Git project bound with crewloom project enter"
+      ],
+      "effect": "writes-project-runtime-state",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "context-guardian",
+      "status": "verified",
+      "inputs": {
+        "action": {
+          "type": "string",
+          "required": true,
+          "description": "create, show, validate, accept, interrupt, reconcile or release"
+        },
+        "--project": {
+          "type": "path",
+          "required": true,
+          "description": "Explicit canonical project root"
+        },
+        "--workflow": {
+          "type": "string",
+          "required": false,
+          "description": "Workflow ID"
+        },
+        "--packet": {
+          "type": "path",
+          "required": false,
+          "description": "Checkpoint packet (defaults to the latest committed one)"
+        },
+        "--receiver-id": {
+          "type": "string",
+          "required": false,
+          "description": "Receiving agent identity for validate/accept"
+        }
+      },
+      "outputs": {
+        "result": {
+          "type": "json",
+          "required": true,
+          "description": "Packet, validation decision or owner record; accept also returns a one-time owner_token"
+        }
+      },
+      "errors": {
+        "refused": {
+          "exit_code": 2,
+          "meaning": "Validation failed, the project lock is held or the owner slot is taken; nothing was claimed"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-runtime-state",
+        "git-read"
+      ],
+      "limits": {
+        "timeout_seconds": 120,
+        "output_bytes": 262144
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_continuation.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_continuation.py",
+          "command": "-m unittest discover -s scripts -p test_continuation.py",
+          "exit_code": 0,
+          "source_sha256": "02669420659064447a25f9739454c6d88ace48d609baad00608b588b9b15a386",
+          "contract_sha256": "ba459fe1791b462ea3e24995017302e4a2fd30d7d0ec74c0b15f55f6c5a748d4",
+          "recorded_at": "2026-10-06T23:36:25Z"
+        }
+      ]
+    },
+    {
+      "id": "tool-catalog",
+      "skill": "skill-forge-recruiter",
+      "path": "scripts/tool_catalog.py",
+      "description": "Discover, describe, validate and gate the tool catalog; record acceptance evidence for a contract",
+      "example_args": "discover",
+      "dependencies": [
+        "Python standard library",
+        "Git for the incremental gate"
+      ],
+      "effect": "reads-toolkit-and-writes-catalog-evidence",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "skill-forge-recruiter",
+      "status": "verified",
+      "inputs": {
+        "command": {
+          "type": "string",
+          "required": true,
+          "description": "discover, describe, validate, gate, render, render-check or record-evidence"
+        },
+        "tool": {
+          "type": "string",
+          "required": false,
+          "description": "Tool ID for describe and record-evidence"
+        },
+        "--base": {
+          "type": "string",
+          "required": false,
+          "description": "Base revision for the incremental gate"
+        }
+      },
+      "outputs": {
+        "result": {
+          "type": "json",
+          "required": false,
+          "description": "Compact metadata, one contract, or evidence written for a passing acceptance"
+        }
+      },
+      "errors": {
+        "violations": {
+          "exit_code": 1,
+          "meaning": "validate, gate or render-check found violations"
+        },
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "The command could not run or acceptance failed; nothing was recorded"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-project-files",
+        "git-read",
+        "process-spawn"
+      ],
+      "limits": {
+        "timeout_seconds": 600,
+        "output_bytes": 262144
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_tool_catalog.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_tool_catalog.py",
+          "command": "-m unittest discover -s scripts -p test_tool_catalog.py",
+          "exit_code": 0,
+          "source_sha256": "d6fa42269cd07f4f0d9b552f90517a57a1422b2b7278cb49d652be32da0dd9f9",
+          "contract_sha256": "641b2f14a54b0cac1c3515241cafc85a892728196e5bb44b3c10ba903853a1c0",
+          "recorded_at": "2026-10-06T23:48:19Z"
+        }
+      ]
     }
-  ]
+  ],
+  "assets": {
+    "build": [
+      {
+        "path": "scripts/check_repository.py",
+        "reason": "Repository gate run by the commit hook and CI; not a user-facing tool"
+      }
+    ],
+    "internal": [
+      {
+        "path": "scripts/crewloom.py",
+        "reason": "Primary CLI dispatcher: its subcommands are the public interface and `run` dispatches the registered tools"
+      }
+    ]
+  }
 }

@@ -76,3 +76,6 @@ Independent follow-up confirms20 packaging cases on compatible setuptools80.10.2
 
 ### 2026-10-06 — Reusable-tool product discussion
 Owner proposes Crewloom tools following a shared contract/clean-code/reuse standard and confirmed toolkit-only scope. Candidate architecture builds on the existing catalog: reusable logic, thin interfaces, explicit project-bound contracts and verified promotion. Discover only needed metadata to reduce repeated context work, then measure the benefit. Consumer code/scripts are outside scope; no implementation or token-saving guarantee is established by this discussion.
+
+### 2026-10-07 — PR8 repair guarantees
+Verified with real validation, real processes and a real Docker daemon: one owner wins a simultaneous handoff and a loser cannot dispatch or publish; no side effect precedes its required checkpoint; an aggregate output reservation cannot be over-allocated; cancellation stops a whole process tree and removes only containers whose ID and label match. Not claimed: cost caps, caps on native CLI use, a real cross-host handoff, universal isolation, or W01–W12 completion. New tools follow N04: one catalog, lifecycle, evidence bound to source, an incremental gate.

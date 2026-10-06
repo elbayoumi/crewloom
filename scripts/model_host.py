@@ -434,10 +434,9 @@ def _retain(evidence, name, path):
 
 
 def _track_owned(kind,ident,pid):
-    try:
-        import admission
-        admission.track_current(kind,ident,pid)
-    except Exception:pass
+    """Record a batch-owned process; inside a batch a failure raises (an untracked process cannot be cancelled)."""
+    import admission
+    return admission.track_current(kind,ident,pid)
 
 
 def _untrack_owned(kind,ident):
@@ -447,7 +446,12 @@ def _untrack_owned(kind,ident):
     except Exception:pass
 
 
-def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
+def _reap_descendants(pgid,launched):
+    import admission
+    return admission.reap_group(pgid,launched)
+
+
+def generate(host, prompt, outputs, timeout=180, model=None, evidence=None, max_output_tokens=None):
     """One adapter entry point for every generation host.
 
     API providers keep their own tool-free RPC boundary and their own explicit model and
@@ -458,7 +462,11 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
     from provider_gateway import PROVIDERS
     if host in PROVIDERS:
         from provider_gateway import generate as provider_generate
-        return provider_generate(host, prompt, outputs, timeout, model)
+        return provider_generate(host, prompt, outputs, timeout, model, max_output_tokens)
+    if max_output_tokens is not None:
+        # An installed CLI exposes no output-token bound this adapter can set, so a guaranteed ceiling
+        # is refused instead of being advertised and silently ignored.
+        raise ValueError('Host %s cannot enforce an output-token ceiling' % host)
     info=probe(host)
     if len(prompt.encode())>MAX_TEXT:raise ValueError('Host prompt exceeds 256 KiB')
     started=time.monotonic()
@@ -480,10 +488,11 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
             env.update(opencode_environment(scratch,scratch/'opencode.json'))
         stdout_path=scratch/'stdout';stderr_path=scratch/'stderr'
         with stdout_path.open('w') as out,stderr_path.open('w') as err:
+            launched=time.time()
             process=subprocess.Popen(argv,cwd=scratch,stdin=subprocess.PIPE,stdout=out,stderr=err,
                                      text=True,env=env,start_new_session=True)
-            _track_owned('process',process.pid,process.pid)
             try:
+                _track_owned('process',process.pid,process.pid)
                 pending=prompt if host in ('codex','claude') else None
                 while True:
                     if time.monotonic()-started>timeout:
@@ -497,7 +506,12 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
             except (ValueError,KeyboardInterrupt):
                 os.killpg(process.pid,signal.SIGKILL);process.communicate()
                 _retain(evidence,'stdout',stdout_path);_retain(evidence,'stderr',stderr_path)
+                if not _reap_descendants(process.pid,launched):_untrack_owned('process',process.pid)
                 raise
+        # The parent may exit before its children. Whatever it left in its own group is stopped now, and
+        # the tracking entry is kept (visible to cancellation and recovery) if anything survives.
+        survivors=_reap_descendants(process.pid,launched)
+        if survivors:raise ValueError('Host generation left descendant processes that could not be stopped: '+', '.join(map(str,survivors)))
         _untrack_owned('process',process.pid)
         _retain(evidence,'stdout',stdout_path);_retain(evidence,'stderr',stderr_path)
         # Do not copy host error output into project/public records: may contain credentials.

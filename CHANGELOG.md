@@ -10,6 +10,8 @@
 
 ## Unreleased
 
+- Make continuation ownership atomic and fenced, commit the pre-dispatch checkpoint before any side effect, reserve aggregate model output, cancel whole process trees and remove containers only by verified immutable ID.
+- Add a single tool catalog with contract version 1, lifecycle, evidence bound to source hashes and a commit/CI gate for new and changed tools.
 - Package the Python runtime, all 42 roles, native adapters and runnable examples in a wheel and source archive; add an optional pinned JavaScript/TypeScript syntax backend.
 - Add isolated concurrent model-task worktrees, dependency integration, combined Docker acceptance, credential-scoped review and recoverable artifact publication.
 - Add version-scoped native lifecycle setup, explicit context delivery and tool guards, terminal-session refresh and bounded private event logs.
