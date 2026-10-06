@@ -215,3 +215,8 @@
 - الملف: `scripts/evaluate_hosts.py`, `scripts/test_study_v2_verification_boundaries.py`
 - الأثر: closes review gap P1 — every frozen digest is recomputed after the last trial, a mismatch refuses the report and is named; v2 limits no longer describe the v1 arm (P2).
 - ملاحظة: 11 frozen cases pass (baseline 2/11); v1 limits and record unchanged; Docker suites unchanged.
+
+### 2026-10-06 — Study v2 run completed (Codex, 18 calls)
+- الملف: `examples/evaluation/context-study-v2-20261006.json`
+- الأثر: closure-map 99/99 held-out checks = full-source 99/99, input tokens 12,194 vs 14,941 mean (2,731–2,767 lower in all 9 pairs, ~18%); gate passed before the run; the verifier recorded 31 named inputs, all unchanged after the last trial (`inputs_verification` in the record).
+- ملاحظة: ceiling effect, no cost reported, uncached tokens and latency show no reliable difference, one host and three tasks; no wider claim.

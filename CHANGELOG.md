@@ -20,9 +20,10 @@
 - Fix OpenCode context delivery: the adapter replaced `output.system` instead of extending the host-owned array, so the hook ran but the model received nothing. Verified against a real OpenCode 1.18.32 host.
 - Record the first frozen context study honestly: Codex full-source passed all held-out checks, the selected map passed none, OpenCode produced no scored trial; no saving is claimed.
 - Address review findings: close open dashboard event streams when their session is revoked, ignore foreign hooks under events the adapter never installed, persist worker-crash outcomes with declared outputs, and resolve root conditional package exports.
-- Add the study v2 dependency-closure map (`repo_map.closure_context`, `closure-map` prompt arm, `study_plan_v2`) and an offline sufficiency gate that rejects the v1 selected-map prompts before any provider call. No v2 study has been run.
+- Add the study v2 dependency-closure map (`repo_map.closure_context`, `closure-map` prompt arm, `study_plan_v2`) and an offline sufficiency gate that rejects the v1 selected-map prompts before any provider call. The v2 study was run once afterwards; its outcome is recorded below.
 - Add the study v2 runner: `collect_study(protocol_version='v2')` and `evaluate_hosts.py --study-v2` freeze the references and the map generator, refuse to start (before any call or write) when the sufficiency gate fails, and report full-source against closure-map. The frozen references are public grader data in `examples/context-study/grader/references/`.
 - Re-verify every frozen study input after the last trial (fixture, helpers, prompt files, grader, transport, map generator, references): `verification.json` is always written and a mismatch refuses the run without publishing `report.json`. A v2 record now describes the closure-map comparison instead of the v1 one.
+- Record the first completed study v2 run: closure-map matched full-source on all held-out checks (99/99 each) with about 18% fewer input tokens on three synthetic tasks, one host; no cost, speed or wider quality claim.
 - Make the native lifecycle tests portable to hosted CI (no host binaries, case-sensitive filesystems) and verify the gate on Python 3.9 and 3.14.
 
 - `grid-safety` no longer flags fixed floors inside breakpoint-prefixed Tailwind grids that fit the breakpoint.

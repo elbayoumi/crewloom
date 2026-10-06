@@ -127,5 +127,7 @@
 
 - [x] 2026-10-05: Expose the editable Crewloom CLI on the user shell PATH and verify help/tool discovery outside its checkout. Remaining foundation acceptance and publication are unchanged.
 - [x] 2026-10-05: Dependency-closure map and offline sufficiency gate implemented behind frozen tests (documentation/CONTEXT_STUDY_V2_DESIGN.md)
-- [ ] Freeze study v2 inputs (prompts, models, order, digests), then run the 18-call Codex study once with no retries — أولوية: عالية
+- [x] 2026-10-06: Study v2 frozen and run once (18 Codex calls, 18 scored, no retries)
+- [ ] Design harder held-out tasks so the arms can differ on quality (v2 hit the ceiling) — أولوية: متوسطة
+- [ ] Diagnose OpenCode structured-response failures before any OpenCode study — أولوية: متوسطة
 - [ ] Re-run OpenCode study only after structured-response failures (14/18) are diagnosed — أولوية: متوسطة

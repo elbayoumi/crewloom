@@ -13,6 +13,9 @@ jobs:
         python: ['3.9', '3.14']
     steps:
       - uses: actions/checkout@v4
+      # Git's background maintenance can add object-store files while a fixture runs and race the
+      # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
+      - run: git config --global gc.auto 0 && git config --global maintenance.auto false
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -40,6 +43,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Git's background maintenance can add object-store files while a fixture runs and race the
+      # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
+      - run: git config --global gc.auto 0 && git config --global maintenance.auto false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'
@@ -56,6 +62,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Git's background maintenance can add object-store files while a fixture runs and race the
+      # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
+      - run: git config --global gc.auto 0 && git config --global maintenance.auto false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'
@@ -81,6 +90,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      # Git's background maintenance can add object-store files while a fixture runs and race the
+      # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
+      - run: git config --global gc.auto 0 && git config --global maintenance.auto false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'
@@ -90,6 +102,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Git's background maintenance can add object-store files while a fixture runs and race the
+      # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
+      - run: git config --global gc.auto 0 && git config --global maintenance.auto false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'
@@ -107,6 +122,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Git's background maintenance can add object-store files while a fixture runs and race the
+      # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
+      - run: git config --global gc.auto 0 && git config --global maintenance.auto false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'

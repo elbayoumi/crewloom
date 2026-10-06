@@ -1,7 +1,8 @@
 # Context study v2: dependency-closure map (design)
 
-Status: design only. No runtime change, no provider call and no result is claimed here. It
-follows the first frozen run recorded in [CONTEXT_STUDY.md](CONTEXT_STUDY.md).
+Status: implemented and run once. This page is the design that preceded the implementation and
+the 18-call run; it claims no result itself. The measured outcome is recorded in
+[CONTEXT_STUDY.md](CONTEXT_STUDY.md), which also follows the first frozen run.
 
 ## 1. What the first run actually showed
 
