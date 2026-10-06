@@ -235,3 +235,15 @@
 - Also: origin/main had merged a commit that deleted the whole sms-forwarder project;
   restored it and added .gitignore so build outputs stop being tracked. Work now lives on
   branch rveta-sms-instant-send because main is protected.
+
+## 2026-10-05 — Honest delivery status (no more false "sent")
+- Problem: the dashboard showed "sent" as soon as SmsManager returned, which only means the
+  message was handed to the radio. It could still be rejected or never delivered.
+- Fix: registered SENT and DELIVERED PendingIntents (explicit, FLAG_IMMUTABLE) and an
+  OutboundStatusReceiver that records the carrier's real answer, tracked in a new `outbound`
+  table (db version 4). States now flow: pending -> queued -> accepted -> delivered /
+  not_delivered / rejected. Operators that never send a delivery report are marked
+  "unconfirmed" instead of falsely "delivered".
+- Verified on device: item 38 went pending -> queued -> delivered, driven by the carrier report.
+- Force-stop: no technical bypass exists (platform behaviour). The honest mitigation is the
+  persistent foreground service plus a visible toggle so the user controls the trade-off.

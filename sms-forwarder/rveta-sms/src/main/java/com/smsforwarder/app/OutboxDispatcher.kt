@@ -18,6 +18,7 @@ object OutboxDispatcher {
     private const val TAG = "RvetaOutbox"
 
     fun dispatch(context: Context): Int {
+        OutboundReporter.sweepUnconfirmed(context)
         val config = AppConfig(context)
         if (config.baseUrl.isBlank() || config.deviceToken.isBlank() || config.deviceId.isBlank()) return 0
         return try {
@@ -28,14 +29,22 @@ object OutboxDispatcher {
                 val id = o.getLong("id")
                 val to = o.getString("to")
                 val body = o.getString("body")
+                // Ask the carrier for the real outcome instead of assuming success.
                 val ok = try {
-                    SmsManager.getDefault().sendTextMessage(to, null, body, null, null)
+                    PendingSmsStore.get(context).trackOutbound(id, "queued")
+                    OutboundReporter.report(context, id, "queued")
+                    SmsManager.getDefault().sendTextMessage(
+                        to, null, body,
+                        OutboundStatusReceiver.sentIntent(context, id),
+                        OutboundStatusReceiver.deliveredIntent(context, id)
+                    )
                     true
                 } catch (e: Exception) {
                     Log.w(TAG, "send failed: ${e.javaClass.simpleName}")
+                    PendingSmsStore.get(context).trackOutbound(id, "send_failed")
+                    report(config.baseUrl, config.deviceToken, id, "send_failed")
                     false
                 }
-                report(config.baseUrl, config.deviceToken, id, if (ok) "sent" else "send_failed")
                 if (ok) sent++
             }
             sent

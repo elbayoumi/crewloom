@@ -21,7 +21,7 @@ data class PendingSms(
     val updatedAt: Long
 )
 
-class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(context, "pending_sms.db", null, 3) {
+class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(context, "pending_sms.db", null, 4) {
 
     companion object {
         @Volatile private var INSTANCE: PendingSmsStore? = null
@@ -50,6 +50,13 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
             )"""
         )
         db.execSQL("CREATE INDEX idx_state ON pending_sms(state)")
+        db.execSQL(
+            """CREATE TABLE IF NOT EXISTS outbound (
+                id INTEGER PRIMARY KEY,
+                status TEXT NOT NULL,
+                updated_at INTEGER NOT NULL
+            )"""
+        )
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -59,6 +66,15 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
         }
         if (oldVersion < 3) {
             db.execSQL("ALTER TABLE pending_sms ADD COLUMN sender_name TEXT")
+        }
+        if (oldVersion < 4) {
+            db.execSQL(
+                """CREATE TABLE IF NOT EXISTS outbound (
+                    id INTEGER PRIMARY KEY,
+                    status TEXT NOT NULL,
+                    updated_at INTEGER NOT NULL
+                )"""
+            )
         }
     }
 
@@ -132,6 +148,34 @@ class PendingSmsStore private constructor(context: Context) : SQLiteOpenHelper(c
             arrayOf(DeliveryState.FAILED.name, error)
         )
         try { while (cursor.moveToNext()) out.add(cursor.getString(0)) } finally { cursor.close() }
+        return out
+    }
+
+    fun trackOutbound(id: Long, status: String) {
+        val values = ContentValues().apply {
+            put("id", id)
+            put("status", status)
+            put("updated_at", System.currentTimeMillis())
+        }
+        writableDatabase.insertWithOnConflict("outbound", null, values, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    fun outboundStatus(id: Long): String? {
+        val cursor = readableDatabase.rawQuery("SELECT status FROM outbound WHERE id=?", arrayOf(id.toString()))
+        return try { if (cursor.moveToFirst()) cursor.getString(0) else null } finally { cursor.close() }
+    }
+
+    fun clearOutbound(id: Long) {
+        writableDatabase.delete("outbound", "id=?", arrayOf(id.toString()))
+    }
+
+    /** Outbound items still waiting for a delivery report. */
+    fun pendingOutboundIds(): List<Long> {
+        val out = mutableListOf<Long>()
+        val cursor = readableDatabase.rawQuery(
+            "SELECT id FROM outbound WHERE status IN ('queued','accepted')", null
+        )
+        try { while (cursor.moveToNext()) out.add(cursor.getLong(0)) } finally { cursor.close() }
         return out
     }
 
