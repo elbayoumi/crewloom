@@ -280,17 +280,21 @@ missing convention rather than missing logic. OpenCode failures were 14 malforme
 and 4 timeouts. Neither host reported cost. Do not cite this run as evidence of token
 savings, speed or general quality.
 
-The next arm is designed in [CONTEXT_STUDY_V2_DESIGN.md](CONTEXT_STUDY_V2_DESIGN.md); it is a
-design only and changes no result above.
+The next arm was designed in [CONTEXT_STUDY_V2_DESIGN.md](CONTEXT_STUDY_V2_DESIGN.md); the
+design changes no v1 result above, and the v2 run that followed is recorded at the end of this page.
 
 ## Study v2 status
+
+The v2 study has been run once (2026-10-06); its outcome is recorded at the end of this page.
+It is a preregistered one-time run: do not repeat it to improve its numbers, and treat a new
+protocol, not a rerun, as the way to ask a different question. Before that run:
 
 The closure map, its prompt arm, the v2 plan and the offline sufficiency gate are implemented
 and pinned by `scripts/test_study_closure_map_boundaries.py`. On the fixture the closure-map
 prompts are 11.2 to 11.5 KB against 20.8 to 20.9 KB for full source and 8.2 to 8.6 KB for the v1
 selected map, and the gate rejects the v1 selected-map prompt for all three tasks and accepts
 full-source and closure-map. These are prompt sizes and a static check, not token savings or a
-quality result: **no v2 study call has been made.**
+quality result. The run that supplied the quality and token measurements is described below.
 
 ### Running study v2
 

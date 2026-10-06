@@ -6,7 +6,6 @@
   "recorded_rows": 18,
   "study_complete": true,
   "source_revision": "6e092eca343c48ceb117093bf0b5e3e00237f5d5",
-  "inputs_verified_after_run": true,
   "summary": {
     "host": "codex",
     "model_requested": "gpt-6-sol",
@@ -461,5 +460,11 @@
       "held_out_total": 11,
       "error": null
     }
-  ]
+  ],
+  "inputs_verification": {
+    "verified": true,
+    "checked_inputs": 31,
+    "mismatches": 0,
+    "note": "Recomputed after the last trial by the runner and written to verification.json."
+  }
 }

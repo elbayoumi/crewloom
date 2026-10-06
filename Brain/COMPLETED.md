@@ -218,5 +218,5 @@
 
 ### 2026-10-06 — Study v2 run completed (Codex, 18 calls)
 - الملف: `examples/evaluation/context-study-v2-20261006.json`
-- الأثر: closure-map 99/99 held-out checks = full-source 99/99, input tokens 12,194 vs 14,941 mean (2,731–2,767 lower in all 9 pairs, ~18%); gate passed before the run, 122 frozen files and 31 recorded inputs verified unchanged after.
+- الأثر: closure-map 99/99 held-out checks = full-source 99/99, input tokens 12,194 vs 14,941 mean (2,731–2,767 lower in all 9 pairs, ~18%); gate passed before the run; the verifier recorded 31 named inputs, all unchanged after the last trial (`inputs_verification` in the record).
 - ملاحظة: ceiling effect, no cost reported, uncached tokens and latency show no reliable difference, one host and three tasks; no wider claim.
