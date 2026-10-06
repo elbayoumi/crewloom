@@ -273,3 +273,8 @@
 - السبب الجذري: the hook exports GIT_DIR/GIT_INDEX_FILE; the gate's `git -C <fixture>` calls inherited them, so fixture catalogs were compared with the real repository's (found only by committing; direct test runs passed)
 - الحل المعتمد: `tool_catalog._git` drops GIT_* variables; regression test sets GIT_DIR to another repository
 - الحالة: محلول (2026-10-07)
+
+### 2026-10-07 — Docker-gated coordinator suites broke on the new adapter keyword
+- السبب الجذري: the batch now passes `max_output_tokens` to `generate`; two stand-in providers in Docker-gated suites did not accept it, and my local gate runs skip those suites (CI `coordinator` job caught it)
+- الحل المعتمد: stand-ins accept and record the ceiling; run `CREWLOOM_DOCKER_TESTS=1` for test_task_coordinator and test_development_example before pushing changes to adapter signatures
+- الحالة: محلول (2026-10-07)
