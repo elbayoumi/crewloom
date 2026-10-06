@@ -20,10 +20,16 @@ def git(root, *argv):
                            *argv], env=env, check=True, capture_output=True, text=True, timeout=30).stdout
 
 
-def identity(code_dir, cwd):
-    env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
-    env['PYTHONPATH'] = str(code_dir)
-    result = subprocess.run([sys.executable, '-c', REPORT], cwd=str(cwd), env=env, capture_output=True,
+def identity(code_dir, cwd, ambient=None):
+    """Run the diagnostic hermetically: no bytecode written beside the fixture and no ambient site-packages.
+
+    `-S` drops the interpreter's own site-packages, so a Crewloom installed on the host (as in CI) cannot
+    leak distribution metadata into a fixture; `ambient` adds one explicit metadata directory when a test
+    wants to model an installed or stale distribution deliberately."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_') and not k.startswith('PYTHON')}
+    env['PYTHONDONTWRITEBYTECODE'] = '1'
+    env['PYTHONPATH'] = os.pathsep.join([str(code_dir)] + ([str(ambient)] if ambient else []))
+    result = subprocess.run([sys.executable, '-S', '-c', REPORT], cwd=str(cwd), env=env, capture_output=True,
                             text=True, timeout=60)
     assert result.returncode == 0, result.stderr
     return json.loads(result.stdout)
@@ -71,6 +77,27 @@ class SourceIdentity(unittest.TestCase):
         self.assertEqual((report['distribution_version'], report['declared_version']), ('0.0.1', '1.2.3'))
         self.assertIs(report['versions_agree'], False)
         self.assertTrue(report['metadata_beside_checkout_code'])
+
+    def test_ambient_installed_metadata_elsewhere_is_reported_not_hidden(self):
+        root = self.checkout('1.2.3')
+        site = self.base / 'ambient-site'
+        stale = site / 'crewloom-0.0.9.dist-info'
+        stale.mkdir(parents=True)
+        (stale / 'METADATA').write_text('Metadata-Version: 2.1\nName: crewloom\nVersion: 0.0.9\n', encoding='utf-8')
+        report = identity(root / 'scripts', self.elsewhere, ambient=site)
+        self.assertEqual((report['distribution_version'], report['declared_version']), ('0.0.9', '1.2.3'))
+        self.assertIs(report['versions_agree'], False)
+        self.assertFalse(report['metadata_beside_checkout_code'])
+        self.assertEqual(report['distribution_metadata'], str(stale))
+        self.assertEqual(identity(root / 'scripts', self.elsewhere)['distribution_version'], None)
+
+    def test_a_negative_control_proves_bytecode_would_have_made_the_fixture_dirty(self):
+        root = self.checkout()
+        env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_') and not k.startswith('PYTHON')}
+        env['PYTHONPATH'] = str(root / 'scripts')
+        subprocess.run([sys.executable, '-S', '-c', 'import crewloom_resources'], cwd=str(self.elsewhere), env=env,
+                       check=True, capture_output=True, timeout=60)
+        self.assertEqual(identity(root / 'scripts', self.elsewhere)['dirty_paths'], 1)
 
     def test_missing_facts_are_unknown_not_guessed(self):
         root = self.checkout()
