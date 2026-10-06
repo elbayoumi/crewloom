@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity() {
 
         scheduleOutboxCheck()
         TickerWorker.kick(this)
+        KeepAliveReceiver.arm(this)
         refreshStatus()
         startPulse()
     }

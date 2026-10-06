@@ -18,6 +18,14 @@
             android:name="com.smsforwarder.app.OutboundStatusReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name="com.smsforwarder.app.KeepAliveReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.smsforwarder.app.KEEP_ALIVE" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name="com.smsforwarder.app.PushService"
             android:exported="false"

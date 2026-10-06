@@ -25,6 +25,7 @@ class BootReceiver : BroadcastReceiver() {
                 }
                 RvetaSms.checkOutbox(app)
                 TickerWorker.kick(app)
+                KeepAliveReceiver.arm(app)
             } catch (e: Exception) {
                 Log.w("RvetaSms", "boot recovery failed: ${e.javaClass.simpleName}")
             } finally {

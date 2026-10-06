@@ -72,6 +72,7 @@ class PushService : Service() {
             return START_NOT_STICKY
         }
         running = true
+        KeepAliveReceiver.arm(this)
         Thread({ loop() }, "rveta-push").apply { isDaemon = true }.start()
         return START_STICKY
     }
@@ -151,6 +152,7 @@ class PushService : Service() {
 
     override fun onDestroy() {
         running = false
+        if (isEnabled(this)) KeepAliveReceiver.arm(this)
         super.onDestroy()
     }
 

@@ -247,3 +247,14 @@
 - Verified on device: item 38 went pending -> queued -> delivered, driven by the carrier report.
 - Force-stop: no technical bypass exists (platform behaviour). The honest mitigation is the
   persistent foreground service plus a visible toggle so the user controls the trade-off.
+
+## 2026-10-05 — Keeping the app alive in the background (watchdog)
+- Added KeepAliveReceiver: a self-rearming alarm (setAndAllowWhileIdle, chosen over
+  setExactAndAllowWhileIdle because Android 15 restricts exact alarms without a special
+  permission) that restarts the send service if the OEM kills it and sends a heartbeat.
+- Server now tracks heartbeats; the dashboard shows a live badge (متصل / غير متصل) per device
+  and refreshes it over the existing SSE stream.
+- Bug found while testing: /api/v1/heartbeat had been added to the GET branch while the
+  device POSTs, so every heartbeat returned 404. Moved to do_POST and verified alive=true.
+- Verified on RMX3710: app closed from recents -> message accepted by the network in 12s.
+  Force-stop from Settings still blocks everything, which is platform behaviour.

@@ -35,6 +35,7 @@ class SmsReceiver : BroadcastReceiver() {
                 store.cleanup()
                 RvetaSms.checkOutbox(app)
                 TickerWorker.kick(app)
+                KeepAliveReceiver.arm(app)
             } catch (e: Exception) {
                 // Never let a background failure kill the process mid-broadcast.
                 Log.w(TAG, "sms receive failed: ${e.javaClass.simpleName}")
