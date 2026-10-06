@@ -334,3 +334,16 @@ gain (both arms are at the ceiling), a cost saving (the host reported no cost), 
 saving (those vary with prompt-cache hits, paired differences from -6,067 to +11,599) or a speed
 gain (no difference). One host, three tasks and three repeats limit any wider claim; harder tasks
 are needed to separate the arms on quality.
+
+### Why the OpenCode trials failed, and what changed
+
+The 14 refused OpenCode generations of the v1 study all finished normally and each invented its own
+response shape (13 flat `{"src/x.py": "..."}` maps and one `{"files": ...}`). Codex and Claude receive
+the artifact schema through a CLI flag; `opencode run` has none, and the prompt only said "matching
+the schema" without stating it. The 4 timeouts (about 300 s each) are a separate cause and are not
+addressed by this change. The OpenCode transport now states the exact shape and the declared paths in
+the agent's system prompt, in the task-scoped profile file; the user message stays the study prompt
+byte for byte and appears once in argv, so a frozen study prompt is unaffected. Other hosts are
+unchanged and every invented shape is still refused. The change is verified against a stand-in
+executable that answers by what it was shown; whether a real model now follows the stated shape is
+checked separately.

@@ -24,6 +24,7 @@
 - Add the study v2 runner: `collect_study(protocol_version='v2')` and `evaluate_hosts.py --study-v2` freeze the references and the map generator, refuse to start (before any call or write) when the sufficiency gate fails, and report full-source against closure-map. The frozen references are public grader data in `examples/context-study/grader/references/`.
 - Re-verify every frozen study input after the last trial (fixture, helpers, prompt files, grader, transport, map generator, references): `verification.json` is always written and a mismatch refuses the run without publishing `report.json`. A v2 record now describes the closure-map comparison instead of the v1 one.
 - Record the first completed study v2 run: closure-map matched full-source on all held-out checks (99/99 each) with about 18% fewer input tokens on three synthetic tasks, one host; no cost, speed or wider quality claim.
+- State the artifact schema to OpenCode in its agent system prompt (`model_host.opencode_schema_instruction`, `opencode_agent_config(model, outputs)`): `opencode run` has no schema option and 14 finished generations of the first study were refused for inventing a response shape. The study prompt is still delivered byte for byte and exactly once, other hosts are unchanged and every invented shape is still refused.
 - Make the native lifecycle tests portable to hosted CI (no host binaries, case-sensitive filesystems) and verify the gate on Python 3.9 and 3.14.
 
 - `grid-safety` no longer flags fixed floors inside breakpoint-prefixed Tailwind grids that fit the breakpoint.

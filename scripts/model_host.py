@@ -89,12 +89,42 @@ def probe(host):
     return info
 
 
-def opencode_agent_config(model=None):
+def opencode_schema_instruction(outputs):
+    """The artifact shape stated for OpenCode, which has no schema option.
+
+    `opencode run` cannot receive a schema the way Codex and Claude receive one,
+    and the 14 generations refused by the 2026-10-05 study had all invented a
+    response shape because nothing ever stated it. The reply must be exactly one
+    JSON object with the single key "artifacts" holding one object per declared
+    path, in the declared order, rendered with json.dumps so a path cannot break
+    out of the instruction. The study prompt itself is delivered byte for byte,
+    so this text travels in the agent's system prompt instead.
+    """
+    if isinstance(outputs,(str,bytes,bytearray)) or not isinstance(outputs,(list,tuple)):
+        raise ValueError('Declared outputs must be a list of output paths')
+    paths=list(outputs)
+    if not paths:raise ValueError('Declared outputs must not be empty')
+    seen=set()
+    for path in paths:
+        if not isinstance(path,str) or not path.strip():raise ValueError('Declared output path must be nonempty text')
+        if path in seen:raise ValueError('Declared output paths must be unique')
+        seen.add(path)
+    return ('Reply with exactly one JSON object and nothing else. It must have the single key "artifacts" '
+            'whose value is a list holding one object per declared output path, in the given order, and each '
+            'object must have exactly the two keys "path" and "content", where "path" is that declared path '
+            'and "content" is the full text of that file. Declare these paths: '
+            + ', '.join(json.dumps(path) for path in paths)
+            + '. Output only that JSON: no Markdown fence, no other keys, no commentary, no explanation.')
+
+
+def opencode_agent_config(model=None, outputs=None):
     """The deny-all profile OpenCode runs under, and nothing wider.
 
     A permission denial hides one skill; the skill tool exposes the whole list,
     so the profile disables it as well as every runtime tool. Managed
     administrative settings still win over this file and are never overridden.
+    Declared outputs add the schema statement to the agent prompt only; every
+    other part of the profile is the same deny-all profile.
     """
     profile={'permission':{'*':'deny'},'tools':{'*':False,'skill':False},'share':'disabled',
              'agent':{OPENCODE_AGENT:{'mode':'primary','permission':{'*':'deny'},
@@ -102,6 +132,8 @@ def opencode_agent_config(model=None):
                                       'prompt':'Answer with text only. Use no tools and return only the '
                                                'requested JSON artifact.'}}}
     if model:profile['agent'][OPENCODE_AGENT]['model']=model;profile['model']=model
+    if outputs is not None:
+        profile['agent'][OPENCODE_AGENT]['prompt']+=' '+opencode_schema_instruction(outputs)
     return profile
 
 
@@ -119,11 +151,11 @@ def opencode_environment(scratch, profile):
     return env
 
 
-def command(host, executable, scratch, model=None, prompt=None):
+def command(host, executable, scratch, model=None, prompt=None, outputs=None):
     schema=scratch/'schema.json';schema.write_text(json.dumps(SCHEMA))
     if host=='opencode':
         profile=scratch/'opencode.json'
-        profile.write_text(json.dumps(opencode_agent_config(model)))
+        profile.write_text(json.dumps(opencode_agent_config(model,outputs)))
         argv=[executable,'run','--pure','--agent',OPENCODE_AGENT,'--format','json',
               '--dir',str(scratch)]
         if model:argv.extend(['--model',model])
@@ -419,7 +451,7 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
         (folder/'prompt.txt').write_text(prompt,encoding='utf-8')
     with tempfile.TemporaryDirectory(prefix='crewloom-host-') as folder:
         scratch=Path(folder).resolve()
-        argv=command(host,info['executable'],scratch,model,prompt)
+        argv=command(host,info['executable'],scratch,model,prompt,outputs)
         # Preserve CLI auth location; never forward arbitrary project variables.
         env={key:value for key,value in os.environ.items() if key in
              ('PATH','HOME','USER','LANG','LC_ALL','TMPDIR','SYSTEMROOT','CODEX_HOME',
