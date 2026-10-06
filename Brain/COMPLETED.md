@@ -220,3 +220,8 @@
 - الملف: `examples/evaluation/context-study-v2-20261006.json`
 - الأثر: closure-map 99/99 held-out checks = full-source 99/99, input tokens 12,194 vs 14,941 mean (2,731–2,767 lower in all 9 pairs, ~18%); gate passed before the run; the verifier recorded 31 named inputs, all unchanged after the last trial (`inputs_verification` in the record).
 - ملاحظة: ceiling effect, no cost reported, uncached tokens and latency show no reliable difference, one host and three tasks; no wider claim.
+
+### 2026-10-06 — OpenCode schema statement (14 refused generations diagnosed)
+- الملف: `scripts/model_host.py`, `scripts/test_opencode_schema_prompt_boundaries.py`, `scripts/test_host_prompt_budget.py`
+- الأثر: cause verified from stored outputs (13 flat maps + 1 `{"files":…}`, shape never stated to OpenCode); schema now stated in the agent's system prompt, study prompt untouched, invented shapes still refused.
+- ملاحظة: 16 frozen cases pass; first design (append to the prompt) was rejected by the existing frozen isolation test and replaced; real-model check pending, the 4 ~300 s timeouts are a separate open cause.

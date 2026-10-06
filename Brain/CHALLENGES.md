@@ -233,3 +233,8 @@
 - السبب الجذري: the v1 map never showed the package import form; verified 2026-10-05.
 - الحل المعتمد: dependency-closure map plus offline sufficiency gate; v2 run scored 99/99 on all 18 trials, same as full-source.
 - الحالة: محلول (2026-10-06); the ceiling means harder tasks are needed to separate the arms
+
+### 2026-10-06 — OpenCode generations refused for an invented response shape
+- السبب الجذري: verified from stored outputs — `opencode run` has no schema flag and nothing stated the shape; 13 flat path→source maps and 1 `{"files":…}`.
+- الحل المعتمد: `opencode_schema_instruction` in the agent system prompt (`scripts/model_host.py`); an earlier append-to-prompt design broke the frozen "prompt exactly once" test and was dropped.
+- الحالة: محلول في الكود (2026-10-06); real-model confirmation and the 4 ~300 s timeouts remain open
