@@ -229,7 +229,12 @@ def hashes(root, paths):
 
 def read_plan(root, filename):
     source = safe_path(root, filename)
-    plan = json.loads(source.read_text(encoding='utf-8'))
+    return validate_plan(root, json.loads(source.read_text(encoding='utf-8')), filename)
+
+
+def validate_plan(root, plan, filename=None):
+    """The one plan validation. `filename` is the plan's project-relative file when it has one (an artifact may not
+    overwrite it); a programmatic plan with no persisted path passes None and gets every other check."""
     if not isinstance(plan, dict) or plan.get('schema_version') != 1 or not ID.fullmatch(str(plan.get('id', ''))):
         raise ValueError('Workflow requires schema_version 1 and a stable kebab-case id')
     if plan.get('language', 'en') not in ('en', 'ar'):
@@ -246,7 +251,8 @@ def read_plan(root, filename):
         raise ValueError('Workflow needs at least one step')
     seen = set()
     outputs = set(); output_targets = set(); output_keys = set()
-    plan_path = safe_path(root, filename); plan_key = path_key(filename)
+    plan_path = safe_path(root, filename) if filename else None
+    plan_key = path_key(filename) if filename else None
     for step in steps:
         if not isinstance(step, dict) or not ID.fullmatch(str(step.get('id', ''))) or step['id'] in seen:
             raise ValueError('Step IDs must be unique kebab-case')
@@ -276,7 +282,7 @@ def read_plan(root, filename):
                 raise ValueError('Each step needs inputs and nonempty outputs lists')
             for value in values:
                 resolved = safe_path(root, value)
-                if field == 'outputs' and (resolved == plan_path or path_key(value) == plan_key
+                if field == 'outputs' and (resolved == plan_path or (plan_key is not None and path_key(value) == plan_key)
                                            or any(resolved == safe_path(root, old) for old in outputs)):
                     raise ValueError('Each artifact needs one owner and cannot overwrite the plan')
                 if value in outputs and field == 'outputs':
@@ -865,11 +871,13 @@ def cancel(root, plan, fingerprint, reason='operator request'):
                 'instruction':'Cancellation preserves files and failure history; use a new workflow ID for new work.'}
 
 
-def run(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None, owner=None):
+def run(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None, owner=None,
+        plan_file=None):
     """Reserve the root, execute under the shared project lock, then finalize recorded evidence."""
     with project_lock(safe_path(root, '.crewloom', internal=True), reentrant=True):
         try:
-            result = _execute(root, plan, fingerprint, image, accept, reviewer, allow_host_cli, review_token, owner)
+            result = _execute(root, plan, fingerprint, image, accept, reviewer, allow_host_cli, review_token, owner,
+                              plan_file)
         except BaseException:
             _settle(root, plan, fingerprint, enforce=False)
             raise
@@ -1010,7 +1018,8 @@ def project_context_cancel(root, task_id, reason):
     return None
 
 
-def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None, owner=None):
+def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None, owner=None,
+             plan_file=None):
     with project_lock(safe_path(root, '.crewloom', internal=True), reentrant=True):
         # An interrupted grouped publication is reconciled before this run reads any workflow
         # state, builds a frozen context, evaluates a publish gate or records acceptance, so a
@@ -1037,6 +1046,9 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
         image_id = None
         lifecycle = project_context_enter(root, plan, state) if lifecycle_mode(root) else None
         if lifecycle: state = state_for(root, plan, fingerprint)[1]
+        if plan_file is not None and state.get('plan_file') != plan_file:
+            safe_path(root, plan_file)  # the recorded path is a validated project-relative one, never free text
+            state['plan_file'] = plan_file; save(folder, state)
         for step in plan['steps']:
             record = state['steps'].setdefault(step['id'], {'status': 'pending', 'role': step['role'], 'summary': step['summary'], 'kind': step.get('kind', 'command'), 'argv': list(step.get('argv') or []), 'attempts': []})
             if record['status'] == 'complete':
@@ -1357,7 +1369,7 @@ def main(argv=None):
                 token = reviewer_credentials.credential_from_environment(sys.stdin if args.reviewer_token_stdin else None)
                 result = run(root, plan, fingerprint, args.image, args.step if args.action == 'accept' else None,
                              args.reviewer, args.allow_host_cli, token,
-                             _continuation_claim(args.owner_id, args.owner_epoch))
+                             _continuation_claim(args.owner_id, args.owner_epoch), args.plan)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0 if args.action in ('status', 'handoff', 'accept', 'cancel') or result.get('status') == 'complete' or result.get('isolated_execution_ready') else 2
     except (ValueError, OSError, RuntimeError, subprocess.SubprocessError) as exc:

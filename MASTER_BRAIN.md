@@ -79,3 +79,11 @@ Owner proposes Crewloom tools following a shared contract/clean-code/reuse stand
 
 ### 2026-10-07 — PR8 repair guarantees
 Verified with real validation, real processes and a real Docker daemon: one owner wins a simultaneous handoff and a loser cannot dispatch or publish; no side effect precedes its required checkpoint; an aggregate output reservation cannot be over-allocated; cancellation stops a whole process tree and removes only containers whose ID and label match. Not claimed: cost caps, caps on native CLI use, a real cross-host handoff, universal isolation, or W01–W12 completion. New tools follow N04: one catalog, lifecycle, evidence bound to source, an incremental gate.
+
+### 2026-10-07 — Repaired-head guarantees remain scoped
+Independent review confirms135 targeted passes,45 preserved frozen files and9 successful CI checks at e77dbeb, including real Docker ownership. N04 still has staged-view/classification and acceptance/dependency-provenance gaps; actual Python3.9 can promote zero tests, and unavailable process observation can lose live-resource tracking. Preserve current source-scoped handoffs and repair these existing W03/W09 deltas before stronger enforcement/release claims. No runtime repair, host pilot or merge is established by this review.
+
+Existing recorded-plan/OpenCode-bound review observations also reproduce; four unresolved conversations under required resolution are a concrete merge condition despite green CI. Default plan validation and effective host bounds stay in W04/W03. This assessment did not resolve threads, reply externally or change branch protection.
+
+### 2026-10-07 — Remaining PR8 defects repaired within stated bounds
+The tool gate now judges the staged or committed snapshot, rejects unguarded and disguised operational code, requires a contract or exact-bytes exception for changed legacy tools, and binds verification to implementation, imports, contract, acceptance bytes and structured counts; empty acceptance cannot promote on Python 3.9 or 3.14. Process-inspection failure preserves tracking; checkpoints are validated against their recorded plan; OpenCode preflight uses its argv bound. Still not claimed: coverage of dynamic imports/test helpers, the 15 legacy tools, Windows process identity, cost caps, a real cross-host handoff or universal enforcement.

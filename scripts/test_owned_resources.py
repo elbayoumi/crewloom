@@ -463,5 +463,168 @@ class RealContainerOwnership(unittest.TestCase):
         self.assertNotEqual(outcome['result']['exit_code'], 0, 'the cancelled command did not report success')
 
 
+REAL_RUN = subprocess.run
+
+
+def failing_ps(mode):
+    """A subprocess.run replacement that makes `ps` fail in one named way and leaves everything else real."""
+    def run(argv, *args, **kwargs):
+        if argv and argv[0] == 'ps':
+            table = '-axo' in argv
+            if mode == 'missing':
+                raise FileNotFoundError('ps')
+            if mode == 'timeout':
+                raise subprocess.TimeoutExpired(argv, 10)
+            if mode == 'nonzero':
+                return subprocess.CompletedProcess(argv, 2, '', 'ps: internal failure')
+            if mode == 'malformed':
+                return subprocess.CompletedProcess(argv, 0, 'not a process table\n' if table else 'garbage\n', '')
+            if mode == 'partial':  # a readable table that does not even list this process
+                return subprocess.CompletedProcess(argv, 0, '1 0 1 Ss Thu Jan  1 00:00:00 2026\n' if table else '', '')
+            if mode == 'empty':
+                return subprocess.CompletedProcess(argv, 0, '', '')
+        return REAL_RUN(argv, *args, **kwargs)
+    return run
+
+
+MODES = ('missing', 'timeout', 'nonzero', 'malformed', 'partial', 'empty')
+
+
+@unittest.skipUnless(HAS_PS, 'process groups need POSIX and ps')
+class ProcessInspectionFailure(unittest.TestCase):
+    """Failing to look at a process is not evidence that it is gone (W09)."""
+
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory(prefix='crewloom-inspect-')
+        self.addCleanup(temporary.cleanup)
+        self.folder = Path(temporary.name) / 'batch'
+        adm.configure(self.folder, 'batch-inspect', {})
+        self.created = []
+        self.addCleanup(self.reap)
+
+    def reap(self):
+        for process in self.created:
+            if process.poll() is None:
+                process.kill()
+            process.wait(timeout=10)
+
+    def sleeper(self):
+        process = subprocess.Popen(['sleep', '120'], start_new_session=True)
+        self.created.append(process)
+        return process
+
+    def tracked(self, process, task='inspected'):
+        adm.track_process(self.folder, 'process', process.pid, process.pid, task)
+        return 'process:%d' % process.pid
+
+    def test_each_inspection_failure_keeps_the_live_resource_tracked_and_unsignalled(self):
+        for mode in MODES:
+            with self.subTest(mode=mode):
+                process = self.sleeper()
+                key = self.tracked(process)
+                with patch.object(adm.subprocess, 'run', side_effect=failing_ps(mode)):
+                    outcome = adm.terminate_owned(self.folder)
+                self.assertEqual([o['key'] for o in outcome], [key])
+                self.assertTrue(outcome[0]['result'].startswith('unverifiable: process inspection failed'), outcome)
+                self.assertIsNone(process.poll(), 'the process was not signalled on an unverified observation')
+                self.assertEqual(adm.summary(self.folder)['tracked_processes'], [key], 'the entry stays visible')
+                healthy = adm.terminate_owned(self.folder)  # the next healthy attempt settles it
+                self.assertIn(healthy[0]['result'], ('terminated', 'killed'))
+                process.wait(timeout=10)
+                self.assertEqual(adm.summary(self.folder)['tracked_processes'], [])
+
+    def test_a_genuinely_exited_resource_settles_as_gone(self):
+        process = self.sleeper()
+        key = self.tracked(process)
+        process.kill()
+        process.wait(timeout=10)
+        outcome = adm.terminate_owned(self.folder)
+        self.assertEqual((outcome[0]['key'], outcome[0]['result']), (key, 'gone'))
+        self.assertEqual(adm.summary(self.folder)['tracked_processes'], [])
+
+    def test_the_observation_distinguishes_present_absent_and_unknown(self):
+        process = self.sleeper()
+        state, start = adm.observe_process(process.pid)
+        self.assertEqual(state, 'present')
+        self.assertTrue(start)
+        self.assertEqual(adm.pid_state(process.pid, start)[0], 'alive')
+        self.assertEqual(adm.pid_state(process.pid, 'Thu Jan  1 00:00:00 1970')[0], 'dead', 'a different start is a different process')
+        process.kill()
+        process.wait(timeout=10)
+        self.assertEqual(adm.observe_process(process.pid), ('absent', None))
+        self.assertEqual(adm.pid_state(process.pid, start)[0], 'dead')
+        for mode in MODES[:4]:
+            with patch.object(adm.subprocess, 'run', side_effect=failing_ps(mode)):
+                self.assertEqual(adm.observe_process(os.getpid())[0], 'unknown', mode)
+                self.assertEqual(adm.pid_state(os.getpid())[0], 'unknown', mode)
+                self.assertFalse(adm.pid_alive(os.getpid()), 'unknown is not claimed alive either')
+                self.assertIsNone(adm.process_start(os.getpid()))
+        with patch.object(adm.subprocess, 'run', side_effect=failing_ps('empty')):
+            self.assertEqual(adm.observe_process(os.getpid())[0], 'unknown', 'silence with exit 0 proves nothing')
+        self.assertEqual(adm.observe_process('not-a-pid')[0], 'unknown')
+
+    def test_a_process_whose_identity_cannot_be_read_is_not_tracked_at_all(self):
+        process = self.sleeper()
+        for mode in MODES:
+            with self.subTest(mode=mode), patch.object(adm.subprocess, 'run', side_effect=failing_ps(mode)):
+                with self.assertRaisesRegex(adm.AdmissionError, 'cannot be verified'):
+                    adm.track_process(self.folder, 'process', process.pid, process.pid, 'unreadable')
+        self.assertEqual(adm.summary(self.folder)['tracked_processes'], [])
+        self.assertIsNone(process.poll())
+
+    def test_a_process_that_exited_before_tracking_is_tracked_without_an_identity_and_never_matches_a_reused_pid(self):
+        process = self.sleeper()
+        process.kill()
+        process.wait(timeout=10)
+        key = self.tracked(process, 'already-gone')
+        entry = json.loads((self.folder / 'admission.json').read_text())['processes'][key]
+        self.assertIsNone(entry['pid_start'])
+        reused = self.sleeper()
+        record = json.loads((self.folder / 'admission.json').read_text())
+        record['processes'][key]['pid'] = reused.pid  # a different live process now holds the recorded pid
+        (self.folder / 'admission.json').write_text(json.dumps(record))
+        self.assertEqual(adm.terminate_owned(self.folder)[0]['result'], 'gone')
+        self.assertIsNone(reused.poll(), 'a process with no recorded identity is never assumed to be ours')
+
+    def test_restart_recovery_with_an_unreadable_controller_preserves_the_entry(self):
+        process = self.sleeper()
+        key = self.tracked(process, 'orphan-candidate')
+        record = json.loads((self.folder / 'admission.json').read_text())
+        record['processes'][key].update(controller_pid=2 ** 22 + 4242, controller_start='gone')
+        (self.folder / 'admission.json').write_text(json.dumps(record))
+        with patch.object(adm.subprocess, 'run', side_effect=failing_ps('nonzero')):
+            report = adm.recover(self.folder)
+        self.assertTrue(report['stopped'][0]['result'].startswith('unverifiable'), report)
+        self.assertIsNone(process.poll())
+        self.assertEqual(adm.summary(self.folder)['tracked_processes'], [key])
+        healthy = adm.recover(self.folder)
+        self.assertIn(healthy['stopped'][0]['result'], ('terminated', 'killed'))
+        process.wait(timeout=10)
+
+    def test_an_owner_that_cannot_be_checked_is_not_orphaned_on_a_guess(self):
+        self.assertEqual(adm.admit(self.folder, 'req-1', {})['decision'], 'admitted')
+        path = self.folder / 'admission.json'
+        record = json.loads(path.read_text())
+        record['requests']['req-1']['owner'].update(pid=2 ** 22 + 4242, pid_start='gone')  # an owner that is not running
+        path.write_text(json.dumps(record))
+        with patch.object(adm.subprocess, 'run', side_effect=failing_ps('timeout')):
+            report = adm.recover(self.folder)
+        self.assertEqual(report['orphaned_requests'], [])
+        self.assertEqual([u['request'] for u in report['unverified_owners']], ['req-1'])
+        self.assertEqual(json.loads(path.read_text())['requests']['req-1']['state'], 'dispatched')
+        report = adm.recover(self.folder)  # a healthy observation proves the owner is not running
+        self.assertEqual(report['orphaned_requests'], ['req-1'])
+        self.assertEqual(report['unverified_owners'], [])
+
+    def test_reaping_a_group_never_claims_a_clean_result_it_could_not_observe(self):
+        process = self.sleeper()
+        with patch.object(adm.subprocess, 'run', side_effect=failing_ps('missing')):
+            survivors = adm.reap_group(process.pid, time.time() - 60, grace=0.2)
+        self.assertTrue(survivors and str(survivors[0]).startswith('unverified'), survivors)
+        self.assertIsNone(process.poll())
+        self.assertEqual(adm.reap_group(process.pid, time.time() - 60), [])
+        process.wait(timeout=10)
+
+
 if __name__ == '__main__':
     unittest.main()

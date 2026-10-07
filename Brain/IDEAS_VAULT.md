@@ -111,3 +111,12 @@ The one-time `owner_token` plus epoch could fence any single-writer resource (co
 
 ### 2026-10-07 — Pre-registered launch intent
 Record a launch intent (task, controller, unique run label in the environment) before `Popen`, so recovery can find a process orphaned between launch and tracking. Needs a portable way to read another process's environment.
+
+### 2026-10-07 — Bind verification to the artifact being accepted
+Evaluate commit contracts, classifications, dependencies and evidence on one staged snapshot, then the exact committed CI tree. Include declared acceptance/test hashes and the relevant supporting implementation closure in provenance; record structured discovered/executed/skipped counts so interpreter exit-code differences cannot promote empty acceptance. Observe resources with found/absent/unknown states rather than treating a failed query as absence. Apply these corrections inside current W03/W09 without a new registry/runtime; benefit remains reliability, not an unmeasured token-saving claim.
+
+### 2026-10-07 — Import-closure evidence for acceptance helpers
+Evidence now follows a tool's imports; a later step could add the helper modules an acceptance file imports, restricted to files not already in the tool's closure, to avoid blanket re-verification.
+
+### 2026-10-07 — Legacy exception expiry
+`legacy_exceptions` are bound to exact bytes; a review checklist item could list them in PR descriptions so each one is retired by a contract instead of renewed.

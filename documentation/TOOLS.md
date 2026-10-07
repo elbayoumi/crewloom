@@ -18,7 +18,7 @@ Run `python3 scripts/crewloom.py tools` to list these tools, or `python3 scripts
 | [context](../.agents/skills/context-guardian/scripts/context_pack.py) | verified | Bounded English or Arabic context pack | `--skill context-guardian --out /tmp/context.md` |
 | [validate-skill](../.agents/skills/skill-forge-recruiter/scripts/validate_skill.py) | legacy-unverified | Validate role structure | `--skill context-guardian` |
 | [resource-budget](../.agents/skills/ultra-light-optimizer/scripts/check_resource_budget.py) | legacy-unverified | Heuristic resource-waste pattern scan | `--project-dir {input}` |
-| [workflow](../scripts/workflow.py) | legacy-unverified | Project-bound workflows, persistent task ownership, cancellation and isolated execution | `doctor` |
+| [workflow](../scripts/workflow.py) | verified | Project-bound workflows, persistent task ownership, cancellation and isolated execution | `doctor` |
 | [project-context](../scripts/project_binding.py) | legacy-unverified | Project identity, checkout binding, entry, status, finalization, cancellation and relocation | `status --project /path/to/project --project-id sample-project` |
 | [project-lessons](../scripts/project_lessons.py) | legacy-unverified | Record, verify with executor evidence, retrieve and review project lessons | `list --project /path/to/project` |
 | [context-pilot](../scripts/context_pilot.py) | legacy-unverified | Reproducible cold and warm context pilot with byte comparison | `--out /tmp/crewloom-pilot.json` |

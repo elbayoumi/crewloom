@@ -22,6 +22,8 @@ crewloom continuation accept    --project /abs/app --workflow handoff-flow --rec
 
 You choose the receiver; nothing selects a host, changes billing or retries on its own. `validate` refuses when the packet is corrupt or edited, is not the latest checkpoint, belongs to another project/checkout/root (a moved checkout needs an explicit rebind), the plan or project policy changed, another workflow or context task holds the project, a live owner holds the writable slot, or the receiver is not a supported host. It always recomputes the receiver's own [capability profile](../scripts/model_host.py) instead of copying the sender's.
 
+**The plan is always verified.** `validate` and `accept` resolve the project-relative plan path the checkpoint recorded (`crewloom workflow run --plan` stores it in the run state and every later checkpoint copies it) and refuse unless that file's identity and fingerprint still match; the path may not escape the project, use symlinks or be missing. `--plan FILE` names a different file for the same plan, and is held to the same identity and fingerprint, so an override cannot weaken the check. A checkpoint with no recorded path (a plan run programmatically, or a run started by the coordinator or the context pilot) is refused with a message saying so until the caller supplies `--plan` or, from code, `plan=` with the plan object (`continuation.validate/accept(..., plan=...)`); nothing invents a path or skips the check. A refusal changes nothing: no owner record, ledger, output or uncommitted edit.
+
 Steps whose recorded outputs still match are reported as preserved; changed ones are listed as stale for scoped re-verification. Uncommitted edits stay where they are: nothing is stashed, reset or committed.
 
 ## Safety rules

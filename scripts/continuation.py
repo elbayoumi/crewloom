@@ -140,6 +140,7 @@ def build_packet(root, plan, state, ledger, boundary, step_id=None, interruption
                  plan_file=None, sequence=0, previous=None):
     import project_binding as pb
     binding = pb.load_binding(root)
+    plan_file = plan_file or state.get('plan_file')  # the path the workflow was run from, recorded in its state
     attempts = [{'step': a.get('step'), 'kind': a.get('kind', 'command'), 'status': a.get('status'),
                  'signature': a.get('signature'), 'uncertain_side_effects': bool(a.get('uncertain_side_effects'))}
                 for a in ledger['attempts'] if a.get('workflow') == plan['id']]
@@ -413,15 +414,50 @@ def _load_packet(path):
     return json.loads(path.read_text(encoding='utf-8'))
 
 
-def validate(root, packet_path, receiver, plan_file=None):
+def validate(root, packet_path, receiver, plan_file=None, plan=None):
     """Advisory, lock-free validation for a receiver; only `accept` can take the owner slot.
 
     The decision here can be stale a moment later, which is why `accept` repeats it inside the
-    project lock instead of trusting a caller's earlier result."""
-    return _validate(root, packet_path, receiver, plan_file)
+    project lock instead of trusting a caller's earlier result.
+
+    The plan is always verified. It comes from the project-relative path the checkpoint recorded; `plan_file`
+    names a different file for the same plan, and `plan` supplies a programmatic plan object when the
+    checkpoint recorded no path. Both are held to the recorded identity and fingerprint, never to less."""
+    return _validate(root, packet_path, receiver, plan_file, plan)
 
 
-def _validate(root, packet_path, receiver, plan_file=None):
+def _plan_problem(root, packet, plan_file, plan):
+    """None when the plan on offer is the checkpoint's plan, otherwise the reason it cannot be accepted."""
+    recorded = packet['workflow'].get('plan_file')
+    try:
+        if plan is not None and plan_file:
+            raise ValueError('supply a plan file or an in-memory plan, not both')
+        if plan is not None:
+            current, fingerprint = w.validate_plan(root, plan, recorded)
+        else:
+            relative = plan_file or recorded
+            if not relative:
+                raise ValueError('the checkpoint recorded no plan path; supply the project-relative plan file or the '
+                                 'plan object, or create the checkpoint from a plan file')
+            w.safe_path(root, relative)  # escapes and reserved runtime/Git paths are refused here
+            walk = root
+            for part in Path(relative).parts:  # the spelled path, not its resolved target
+                walk = walk / part
+                if walk.is_symlink():
+                    raise ValueError('the plan path may not use symlinks')
+            if not w.safe_path(root, relative).is_file():
+                raise ValueError('the plan file is missing')
+            current, fingerprint = w.read_plan(root, relative)
+    except (ValueError, OSError) as exc:
+        return 'workflow plan cannot be verified: ' + str(exc)[:200]
+    if current['id'] != packet['identity']['task_id']:
+        return 'workflow plan identity differs from the checkpoint'
+    if fingerprint != packet['workflow']['plan_sha256']:
+        return 'workflow plan changed since the checkpoint'
+    return None
+
+
+def _validate(root, packet_path, receiver, plan_file=None, plan=None):
     """Everything a receiver must hold before it may continue. Returns {accepted, reasons, ...}."""
     import model_host
     import project_binding as pb
@@ -461,10 +497,9 @@ def _validate(root, packet_path, receiver, plan_file=None):
         reasons.append('stale or copied packet: it is not the latest checkpoint of this workflow')
     if packet['policy_sha256'] != _policy_sha(root):
         reasons.append('project policy changed since the checkpoint')
-    if plan_file:
-        current_plan, fingerprint = w.read_plan(root, plan_file)
-        if fingerprint != packet['workflow']['plan_sha256']:
-            reasons.append('workflow plan changed since the checkpoint')
+    problem = _plan_problem(root, packet, plan_file, plan)
+    if problem:
+        reasons.append(problem)
     active = w.active_workflow(root)
     if active and active['workflow'] != workflow:
         reasons.append('another workflow holds the project: ' + active['workflow'])
@@ -509,7 +544,7 @@ def _validate(root, packet_path, receiver, plan_file=None):
     return result
 
 
-def accept(root, packet_path, receiver, plan_file=None):
+def accept(root, packet_path, receiver, plan_file=None, plan=None):
     """Validate and claim the single writable owner slot in one critical section.
 
     The project lock is the same non-reentrant lock a running workflow holds, so a live run, a second
@@ -518,7 +553,7 @@ def accept(root, packet_path, receiver, plan_file=None):
     `owner_token` is shown once; only its hash is stored. Budgets and counters are never touched."""
     root = Path(root).resolve()
     with _project_lock(root, reentrant=False):
-        result = _validate(root, packet_path, receiver, plan_file)
+        result = _validate(root, packet_path, receiver, plan_file, plan)
         if not result['accepted']:
             raise ValueError('Continuation refused: ' + '; '.join(result['reasons']))
         packet = _load_packet(packet_path)
@@ -544,7 +579,8 @@ def main(argv=None):
     parser.add_argument('action', choices=('create', 'show', 'validate', 'accept', 'interrupt', 'reconcile', 'release'))
     parser.add_argument('--project', required=True)
     parser.add_argument('--workflow')
-    parser.add_argument('--plan', help='Project-relative workflow plan file')
+    parser.add_argument('--plan', help='Project-relative workflow plan file (create: the plan to record; validate and '
+                                       'accept: the recorded plan path by default, or another file for the same plan)')
     parser.add_argument('--packet')
     parser.add_argument('--receiver-id')
     parser.add_argument('--receiver-host')

@@ -26,6 +26,8 @@ Managed `model` steps default to tool-free provider RPC. Set `host` to `openai` 
 
 Requests use fixed HTTPS endpoints without redirects or ambient proxies. Responses are capped at 2 MiB, prompts at 256 KiB and generated output at 4096 tokens. A killable worker enforces the wall timeout. The project ledger permits at most 32 model attempts across workflow IDs; two failures with unchanged evidence block retries. These limits are not a dollar spending cap: configure account spending controls with the provider.
 
+Prompt size is bounded by the transport the selected host actually uses, in UTF-8 bytes, and an oversized prompt is refused at capability preflight before any attempt, batch reservation, probe or launch. `codex` and `claude` read the prompt from stdin and `openai`/`anthropic` send it in the request body (262,144 bytes); `opencode` receives it as one argv element (131,072 bytes). The recorded limit is the adapter's documented bound, not the model's context window, which is never guessed.
+
 Native `codex` and `claude` CLI steps are rejected by default. The operator can explicitly pass `--allow-host-cli` for compatibility with existing plans. This runs an external host outside the enforced model boundary. A plan cannot enable that exception itself. Historical CLI evaluations establish their recorded results, not enforcement by this provider gateway.
 
 ## Trust boundary

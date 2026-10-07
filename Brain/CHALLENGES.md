@@ -1,5 +1,25 @@
 # Challenges
 
+### 2026-10-07 — Gate judged files the commit would not contain
+- Root cause: `tool_catalog.gate` read the working tree and ran `git diff <base>` plus untracked files, so an unstaged edit could hide a staged violation.
+- Fix: one `GitView` over the staged index (hook) or committed tree (CI) for catalog, code, closure, acceptance and evidence; foreign `GIT_*` ignored, custom index explicit, unknown state is an error; tests in `scripts/test_tool_catalog.py` (`SnapshotRules`).
+- State: resolved 2026-10-07.
+
+### 2026-10-07 — Operational code escaped classification and evidence ignored what it depended on
+- Root cause: "entrypoint" meant main-guard plus a CLI import; evidence hashed only the entrypoint and selected fields; acceptance trusted a subprocess exit code (3.9 exits 0 for zero tests, 3.14 exits 5).
+- Fix: reviewed operational-reason rules (guards in any spelling, import-time effects, exec bit, console scripts), label checks for assets, `legacy_exceptions` bound to exact bytes, provenance 2 (closure + acceptance bytes + structured unittest counts), TOCTOU refusal while tests run.
+- State: resolved 2026-10-07; heuristics are static (dynamic imports, non-Python resources and acceptance helper modules are not followed).
+
+### 2026-10-07 — Process inspection failure became proof of absence
+- Root cause: `process_start`/`_process_table` returned None/{} on any `ps` failure, so cancel reported `gone` and deleted tracking.
+- Fix: present/absent/unknown observation, complete-table check (own pid listed, rows parse), `unverifiable:` results keep tracking, tracking refuses unreadable identity, recovery never orphans or stops on unknown.
+- State: resolved 2026-10-07 for POSIX `ps`; Windows is unexercised.
+
+### 2026-10-07 — Scripts that coordinate other tools forced a registration decision
+- Root cause: editing an unregistered CLI (`task_coordinator.py`) or legacy tool (`context_pilot.py`) is now gated; threading `plan_file` through them would have required contracts for each.
+- Fix: left them unchanged and defined the explicit plan-object contract for checkpoints with no recorded path.
+- State: open — register or retire those CLIs, then record their plan path.
+
 ### 2026-10-06 — Depth-limited sdist globs leak nested private state
 - Root cause: distutils globs cannot match a directory name at every depth; egg_info builds the final sdist list after `prune_file_list`.
 - Fix: filter in `sdist.make_release_tree` (`setup.py`) plus real-archive canary test (canary built at runtime so the test file is not itself a canary).
@@ -278,3 +298,13 @@
 - السبب الجذري: the batch now passes `max_output_tokens` to `generate`; two stand-in providers in Docker-gated suites did not accept it, and my local gate runs skip those suites (CI `coordinator` job caught it)
 - الحل المعتمد: stand-ins accept and record the ceiling; run `CREWLOOM_DOCKER_TESTS=1` for test_task_coordinator and test_development_example before pushing changes to adapter signatures
 - الحالة: محلول (2026-10-07)
+
+### 2026-10-07 — New tool gate and evidence have incomplete boundaries
+- Root causes: gate reads working-tree blobs; main-guard heuristic misses executable scripts; changed legacy tools need no contract; evidence omits acceptance/test and dependency closure; recorder trusts exit0; failed process observation becomes absence.
+- Evidence: staged CLI masked by a helper passes; unguarded CLI/changed legacy pass; replacement acceptance/helper change stays current; actual Python3.9 empty test promotes verified; unavailable ps erases tracking while a real child lives. Python3.14 correctly rejects the empty test, and the corrected first probe assumption is retained.
+- Required solution: current W03/N04 and W09 deltas in INTELLIGENCE_ROADMAP; preserve unknown resources and current source-scoped handoffs. Status: open;135 positives and9 green CI checks do not close these counterexamples.
+
+### 2026-10-07 — Two existing PR observations still reproduce
+- Root causes: continuation checks plan drift only with an explicit override; capability profiles use a generic prompt bound while OpenCode has a smaller argv limit.
+- Evidence: recorded workflow.json changed after checkpoint still accepts by default but refuses with the explicit plan;153,600 bytes pass preflight then fail command construction against131,072 bytes. No provider executed.
+- Required solution: recorded-plan validation and effective adapter-specific byte bounds in W04/W03. Four unresolved review conversations remain under mandatory conversation resolution; approval count is0. No thread was resolved or external reply sent by this review.

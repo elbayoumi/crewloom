@@ -16,19 +16,24 @@ and path with a migration note. A changed implementation or contract makes recor
 import argparse
 import ast
 import hashlib
+import io
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import sysconfig
+import tempfile
 import time
-from pathlib import Path
+import unittest
+from pathlib import Path, PurePosixPath
 
 CATALOG_RELATIVE = 'documentation/TOOLS.json'
 DOC_RELATIVE = 'documentation/TOOLS.md'
 CONTRACT_VERSION = 1
 CATALOG_VERSION = 2
+PROVENANCE_VERSION = 2
 LEGACY_FIELDS = ('id', 'skill', 'path', 'description', 'example_args', 'dependencies', 'effect')
 CONTRACT_FIELDS = ('contract_version', 'interface_version', 'owner', 'status', 'inputs', 'outputs', 'errors',
                    'capabilities', 'limits', 'idempotent', 'acceptance', 'evidence', 'activation',
@@ -36,7 +41,14 @@ CONTRACT_FIELDS = ('contract_version', 'interface_version', 'owner', 'status', '
 REQUIRED_CONTRACT = ('interface_version', 'owner', 'status', 'inputs', 'outputs', 'errors', 'capabilities',
                      'limits', 'acceptance')
 FINGERPRINTED_CONTRACT = ('interface_version', 'inputs', 'outputs', 'errors', 'capabilities', 'limits',
-                          'dependencies', 'effect', 'example_args', 'idempotent')
+                          'dependencies', 'effect', 'example_args', 'idempotent', 'acceptance')
+EVIDENCE_FIELDS = ('test', 'command', 'exit_code', 'source_sha256', 'contract_sha256', 'support_sha256',
+                   'acceptance_sha256', 'counts', 'provenance', 'recorded_at')
+COUNT_FIELDS = ('discovered', 'run', 'executed', 'skipped', 'failures', 'errors', 'expected_failures',
+                'unexpected_successes')
+CATALOG_FIELDS = ('tools', 'catalog_version', 'assets', 'gate_baseline', 'legacy_exceptions')
+SNAPSHOTS = ('index', 'commit')
+ENTRY_MODES = ('100644', '100755')
 STATUSES = ('draft', 'verified', 'active', 'deprecated', 'retired')
 RUNNABLE = ('legacy-unverified', 'verified', 'active', 'deprecated')
 CAPABILITIES = ('read-project-files', 'write-project-files', 'write-runtime-state', 'git-read', 'process-spawn',
@@ -58,7 +70,188 @@ def sha(value):
     return hashlib.sha256(canonical(value).encode('utf-8')).hexdigest()
 
 
-def load_catalog(root):
+class SnapshotError(ValueError):
+    """The artifact state to be judged cannot be established; callers report it, never treat it as clean."""
+
+
+def _clean_environment():
+    return {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+
+
+def _git_run(root, *argv, env=None, binary=False):
+    result = subprocess.run(['git', '-C', str(root), *argv], capture_output=True, text=not binary, timeout=60,
+                            env=_clean_environment() if env is None else env)
+    return result if result.returncode == 0 else None
+
+
+def _git(root, *argv):
+    # A commit hook exports GIT_DIR/GIT_INDEX_FILE for the repository being committed; plain queries observe
+    # exactly the checkout they were given (fixtures included), so inherited repository selection is dropped.
+    result = _git_run(root, *argv)
+    return result.stdout if result is not None else None
+
+
+class WorkingView:
+    """Read-only view of files on disk. Used for execution and evidence recording, which act on the working
+    copy; never for the commit/CI gate, which judges a Git snapshot."""
+    kind = 'worktree'
+
+    def __init__(self, root):
+        self.root = Path(root)
+        self._cache = {}
+        self.acceptance_required = True
+        try:
+            import crewloom_resources as resources
+            self.acceptance_required = bool(resources.source_checkout())
+        except Exception:  # an unresolvable installation keeps the strict default for source trees
+            pass
+
+    def _file(self, relative):
+        candidate = self.root / relative
+        if candidate.is_file():
+            return candidate
+        try:
+            import crewloom_resources as resources
+            if self.root.resolve() == Path(resources.distribution_root()).resolve():
+                return Path(resources.resolve(relative))
+        except Exception:  # an unresolvable installation is reported as a missing file
+            pass
+        return candidate
+
+    def is_symlink(self, relative):
+        return self._file(relative).is_symlink()
+
+    def read(self, relative):
+        if relative not in self._cache:
+            file = self._file(relative)
+            self._cache[relative] = file.read_bytes() if file.is_file() else None
+        return self._cache[relative]
+
+    def exists(self, relative):
+        return self.read(relative) is not None
+
+    def mode(self, relative):
+        file = self._file(relative)
+        return ('100755' if os.access(file, os.X_OK) else '100644') if file.is_file() else None
+
+
+class GitView:
+    """Read-only view of one Git snapshot: the staged index or a committed tree. Every read comes from the
+    object database, so nothing in the working tree can stand in for it."""
+
+    def __init__(self, root, kind, entries, label):
+        self.root, self.kind, self.entries, self.label = Path(root), kind, entries, label
+        self.acceptance_required = True
+        self._cache = {}
+
+    def exists(self, relative):
+        entry = self.entries.get(relative)
+        return entry is not None and entry[0] in ENTRY_MODES
+
+    def is_symlink(self, relative):
+        entry = self.entries.get(relative)
+        return entry is not None and entry[0] == '120000'
+
+    def mode(self, relative):
+        entry = self.entries.get(relative)
+        return entry[0] if entry else None
+
+    def read(self, relative):
+        entry = self.entries.get(relative)
+        if entry is None or entry[0] not in ENTRY_MODES:
+            return None
+        if relative not in self._cache:
+            result = _git_run(self.root, 'cat-file', 'blob', entry[1], binary=True)
+            if result is None:
+                raise SnapshotError('%s: blob %s of %s is unreadable' % (self.label, entry[1][:12], relative))
+            self._cache[relative] = result.stdout
+        return self._cache[relative]
+
+
+def _parse_entries(output, staged):
+    """{path: (mode, oid)} from `ls-files -s -z` (mode oid stage) or `ls-tree -r -z` (mode type oid)."""
+    entries = {}
+    for record in output.split(b'\0'):
+        if not record:
+            continue
+        head, _, path = record.partition(b'\t')
+        fields = head.decode().split()
+        if len(fields) != 3 or not path:
+            raise SnapshotError('unparseable Git listing entry')
+        if staged:
+            mode, oid, stage = fields
+            if stage != '0':
+                raise SnapshotError('the index has unmerged entries (%s)' % path.decode('utf-8', 'replace'))
+        else:
+            mode, _, oid = fields
+        entries[path.decode('utf-8', 'surrogateescape')] = (mode, oid)
+    return entries
+
+
+def _belongs(root, candidate):
+    """True when a GIT_INDEX_FILE inherited from a hook is an index of the selected repository."""
+    git_dir = _git(root, 'rev-parse', '--absolute-git-dir')
+    common = _git(root, 'rev-parse', '--path-format=absolute', '--git-common-dir')
+    if git_dir is None:
+        return False
+    allowed = [Path(git_dir.strip()).resolve()] + ([Path(common.strip()).resolve()] if common else [])
+    inherited_dir = os.environ.get('GIT_DIR')
+    if inherited_dir and Path(inherited_dir).resolve() not in allowed:
+        return False
+    target = Path(candidate).resolve()
+    return target.is_file() and any(target == base or base in target.parents for base in allowed)
+
+
+def index_file_for(root, explicit=None):
+    """The index to judge: an explicit custom index, the index a commit hook is using for this repository,
+    or the repository's own. A hook variable that points at another repository is ignored."""
+    chosen = explicit or os.environ.get('CREWLOOM_TOOL_GATE_INDEX')
+    if chosen:
+        path = Path(chosen).resolve()
+        if not path.is_file():
+            raise SnapshotError('the selected index file does not exist: %s' % chosen)
+        return str(path)
+    inherited = os.environ.get('GIT_INDEX_FILE')
+    if inherited and _belongs(root, inherited):
+        return str(Path(inherited).resolve())
+    return None
+
+
+def open_snapshot(root, kind='index', rev='HEAD', index_file=None):
+    """GitView of the staged index (commit hook) or of the committed tree `rev` (CI). Raises SnapshotError."""
+    if kind not in SNAPSHOTS:
+        raise SnapshotError('unknown snapshot %r (supported: %s)' % (kind, ', '.join(SNAPSHOTS)))
+    if kind == 'commit':
+        if _git(root, 'rev-parse', '--verify', rev + '^{commit}') is None:
+            raise SnapshotError('commit snapshot %s cannot be resolved' % rev)
+        result = _git_run(root, 'ls-tree', '-r', '-z', '--full-tree', rev, binary=True)
+        if result is None:
+            raise SnapshotError('commit snapshot %s cannot be listed' % rev)
+        return GitView(root, 'commit', _parse_entries(result.stdout, False), 'commit ' + rev)
+    chosen = index_file_for(root, index_file)
+    environment = _clean_environment()
+    if chosen:
+        environment['GIT_INDEX_FILE'] = chosen
+    result = _git_run(root, 'ls-files', '-s', '-z', env=environment, binary=True)
+    if result is None:
+        raise SnapshotError('the staged index cannot be listed (not a Git checkout?)')
+    return GitView(root, 'index', _parse_entries(result.stdout, True), 'index')
+
+
+def default_snapshot():
+    """CI judges the exact committed tree; a developer or commit hook judges what is staged."""
+    chosen = os.environ.get('CREWLOOM_TOOL_GATE_SNAPSHOT')
+    if chosen:
+        return chosen
+    return 'commit' if os.environ.get('GITHUB_ACTIONS') or os.environ.get('CI') == 'true' else 'index'
+
+
+def load_catalog(root, view=None):
+    if view is not None:
+        data = view.read(CATALOG_RELATIVE)
+        if data is None:
+            raise SnapshotError('%s is not part of the %s snapshot' % (CATALOG_RELATIVE, view.kind))
+        return json.loads(data.decode('utf-8'))
     return json.loads((Path(root) / CATALOG_RELATIVE).read_text(encoding='utf-8'))
 
 
@@ -71,19 +264,16 @@ def implementation_file(root, item, path=None):
     the module the installed distribution maps that path to (a wheel keeps scripts beside site-packages)."""
     if path is not None:
         return Path(path)
-    candidate = Path(root) / item['path']
-    if candidate.is_file():
-        return candidate
-    try:
-        import crewloom_resources as resources
-        if Path(root).resolve() == Path(resources.distribution_root()).resolve():
-            return Path(resources.resolve(item['path']))
-    except Exception:  # an unresolvable installation is reported as a missing implementation
-        pass
-    return candidate
+    return WorkingView(root)._file(item['path'])
 
 
-def implementation_fingerprint(root, item, path=None):
+def _digest(data):
+    return hashlib.sha256(data).hexdigest() if data is not None else None
+
+
+def implementation_fingerprint(root, item, path=None, view=None):
+    if view is not None and path is None:
+        return _digest(view.read(item['path']))
     file = implementation_file(root, item, path)
     return hashlib.sha256(file.read_bytes()).hexdigest() if file.is_file() else None
 
@@ -92,7 +282,93 @@ def contract_fingerprint(item):
     return sha({key: item.get(key) for key in FINGERPRINTED_CONTRACT})
 
 
-def verification(item, root, path=None):
+def _local_modules(view, relative, tree):
+    """Repository files `relative` imports: siblings, the shared scripts directory and relative imports."""
+    here = PurePosixPath(relative).parent
+    roots = [here, PurePosixPath('scripts')]
+    found = set()
+
+    def probe(base, dotted):
+        stem = base.joinpath(*dotted.split('.')) if dotted else base
+        for candidate in (stem.with_suffix('.py') if dotted else None, stem / '__init__.py'):
+            if candidate is not None and view.exists(str(candidate)):
+                found.add(str(candidate))
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                for base in roots:
+                    probe(base, alias.name)
+        elif isinstance(node, ast.ImportFrom):
+            bases = roots
+            if node.level:
+                bases = [here.joinpath(*(['..'] * (node.level - 1)))]
+            for base in bases:
+                base = PurePosixPath(os.path.normpath(str(base)))
+                if node.module:
+                    probe(base, node.module)
+                for alias in node.names:
+                    probe(base, (node.module + '.' if node.module else '') + alias.name)
+    return found
+
+
+def support_closure(view, relative):
+    """{path: sha256} of the repository modules a tool imports, transitively (the tool itself excluded). Dynamic
+    imports and non-Python resources are not followed; that boundary is documented, not hidden."""
+    seen, queue = {}, [relative]
+    while queue and len(seen) < 256:
+        current = queue.pop()
+        data = view.read(current)
+        if data is None:
+            continue
+        try:
+            tree = ast.parse(data)
+        except (SyntaxError, ValueError):
+            continue
+        for module in sorted(_local_modules(view, current, tree)):
+            if module != relative and module not in seen:
+                seen[module] = _digest(view.read(module))
+                queue.append(module)
+    return dict(sorted(seen.items()))
+
+
+def provenance(item, root, path=None, view=None):
+    """What a verification must be bound to right now: implementation, supporting closure, contract, acceptance."""
+    view = view or WorkingView(root)
+    relative = item.get('path')
+    source = implementation_fingerprint(root, item, path, view)
+    support = support_closure(view, relative) if source and isinstance(relative, str) else {}
+    acceptance = {test: _digest(view.read(test)) for test in item.get('acceptance') or [] if isinstance(test, str)}
+    return {'source': source, 'support': support, 'contract': contract_fingerprint(item), 'acceptance': acceptance}
+
+
+def _record_problem(record, now, test, view):
+    if record.get('provenance') != PROVENANCE_VERSION:
+        return 'evidence predates provenance %d; record acceptance again' % PROVENANCE_VERSION
+    if record.get('exit_code') != 0:
+        return 'the recorded run did not succeed'
+    if record.get('source_sha256') != now['source']:
+        return 'the implementation changed after the evidence was recorded'
+    if record.get('contract_sha256') != now['contract']:
+        return 'the contract changed after the evidence was recorded'
+    recorded = record.get('support_sha256')
+    if recorded != now['support']:
+        names = sorted(set(now['support']) ^ set(recorded or {}) | {
+            name for name in now['support'] if (recorded or {}).get(name) != now['support'][name]})
+        return 'supporting implementation changed (%s)' % ', '.join(names[:4])
+    current = now['acceptance'].get(test)
+    if current is None and view.acceptance_required:
+        return 'acceptance file %s is missing from the snapshot' % test
+    if current is not None and record.get('acceptance_sha256') != current:
+        return 'acceptance %s changed after the evidence was recorded' % test
+    counts = record.get('counts')
+    if not isinstance(counts, dict) or any(type(counts.get(key)) is not int for key in COUNT_FIELDS):
+        return 'the evidence has no structured acceptance counts'
+    problem = acceptance_problem(counts)
+    return 'the recorded counts are not meaningful passing acceptance (%s)' % problem if problem else None
+
+
+def verification(item, root, path=None, view=None):
     """{'state': current|stale|missing|not-applicable, 'detail': ...} for an entry's recorded evidence."""
     status = status_of(item)
     if status not in ('verified', 'active'):
@@ -100,11 +376,33 @@ def verification(item, root, path=None):
     evidence = item.get('evidence') or []
     if not evidence:
         return {'state': 'missing', 'detail': 'no evidence is recorded'}
-    source, contract = implementation_fingerprint(root, item, path), contract_fingerprint(item)
-    for record in evidence:
-        if record.get('source_sha256') == source and record.get('contract_sha256') == contract:
-            return {'state': 'current', 'detail': 'evidence matches the current source and contract'}
-    return {'state': 'stale', 'detail': 'the source or contract changed after the evidence was recorded'}
+    view = view or WorkingView(root)
+    now = provenance(item, root, path, view)
+    if now['source'] is None:
+        return {'state': 'stale', 'detail': 'the implementation is missing from the snapshot'}
+    required = [test for test in item.get('acceptance') or [] if isinstance(test, str)]
+    if not required:
+        return {'state': 'stale', 'detail': 'no acceptance is declared'}
+    for test in required:
+        records = [r for r in evidence if isinstance(r, dict) and r.get('test') == test]
+        if not records:
+            return {'state': 'stale', 'detail': 'required acceptance %s has no recorded evidence' % test}
+        problems = [_record_problem(record, now, test, view) for record in records]
+        if all(problems):
+            return {'state': 'stale', 'detail': problems[-1]}
+    return {'state': 'current',
+            'detail': 'evidence matches the current source, supporting code, contract and acceptance'}
+
+
+def acceptance_problem(counts):
+    """None when the counts describe meaningful passing acceptance, otherwise the reason it is not."""
+    if counts['discovered'] < 1:
+        return 'no tests were discovered'
+    if counts['failures'] or counts['errors'] or counts['unexpected_successes']:
+        return 'tests failed or errored'
+    if counts['executed'] < 1:
+        return 'every test was skipped' if counts['skipped'] else 'no test executed'
+    return None
 
 
 def execution_decision(item, root, path=None):
@@ -138,7 +436,7 @@ def _bounded_shape(name, value, errors, label, keys):
             errors.append('%s: %s.%s.required must be boolean' % (name, label, key))
 
 
-def validate_tool(item, root, files=True):
+def validate_tool(item, root, files=True, view=None):
     name = str(item.get('id'))
     errors = []
     unknown = set(item) - set(LEGACY_FIELDS) - set(CONTRACT_FIELDS)
@@ -152,7 +450,9 @@ def validate_tool(item, root, files=True):
     path = item.get('path')
     if not isinstance(path, str) or path.startswith('/') or '..' in Path(path).parts:
         errors.append('%s: path must stay inside the repository' % name)
-    elif not implementation_file(root, item).is_file() or implementation_file(root, item).is_symlink():
+    elif view is not None and not (view.exists(path) and not view.is_symlink(path)):
+        errors.append('%s: path %s is not a regular file' % (name, path))
+    elif view is None and (not implementation_file(root, item).is_file() or implementation_file(root, item).is_symlink()):
         errors.append('%s: path %s is not a regular file' % (name, path))
     if not isinstance(item.get('dependencies'), list) or any(not isinstance(d, str) for d in item.get('dependencies', [])):
         errors.append('%s: dependencies must be a list of strings' % name)
@@ -187,16 +487,17 @@ def validate_tool(item, root, files=True):
     acceptance = item['acceptance']
     if not isinstance(acceptance, list) or not acceptance or any(
             not isinstance(p, str) or not Path(p).name.startswith('test_')
-            or (files and not (Path(root) / p).is_file()) for p in acceptance):
+            or (files and not (view.exists(p) if view is not None else (Path(root) / p).is_file()))
+            for p in acceptance):
         errors.append('%s: acceptance must list existing test_*.py files' % name)
     for record in item.get('evidence') or []:
-        if not isinstance(record, dict) or set(record) - {'test', 'command', 'exit_code', 'source_sha256',
-                                                          'contract_sha256', 'recorded_at'} \
-                or record.get('exit_code') != 0:
-            errors.append('%s: evidence records need only test, command, exit_code 0, fingerprints, recorded_at' % name)
+        if not isinstance(record, dict) or set(record) - set(EVIDENCE_FIELDS) or record.get('exit_code') != 0:
+            errors.append('%s: evidence records need only %s with exit_code 0' % (name, ', '.join(EVIDENCE_FIELDS)))
     status = item['status']
-    if status in ('verified', 'active') and verification(item, root)['state'] != 'current':
-        errors.append('%s: status %s needs current evidence (%s)' % (name, status, verification(item, root)['detail']))
+    if status in ('verified', 'active'):
+        state = verification(item, root, view=view)
+        if state['state'] != 'current':
+            errors.append('%s: status %s needs current evidence (%s)' % (name, status, state['detail']))
     if status == 'active' and not (isinstance(item.get('activation'), dict) and item['activation'].get('by')
                                    and item['activation'].get('at')):
         errors.append('%s: active status needs an activation record naming who activated it and when' % name)
@@ -206,13 +507,13 @@ def validate_tool(item, root, files=True):
     return errors
 
 
-def validate_catalog(catalog, root, files=True):
+def validate_catalog(catalog, root, files=True, view=None):
     if not isinstance(catalog, dict) or not isinstance(catalog.get('tools'), list) or not catalog['tools']:
         return ['catalog: a non-empty "tools" list is required']
     errors = []
     if catalog.get('catalog_version') not in (None, CATALOG_VERSION):
         errors.append('catalog: unsupported catalog_version %r (supported: %d)' % (catalog['catalog_version'], CATALOG_VERSION))
-    unknown = set(catalog) - {'tools', 'catalog_version', 'assets', 'gate_baseline'}
+    unknown = set(catalog) - set(CATALOG_FIELDS)
     if 'gate_baseline' in catalog and not re.fullmatch(r'[0-9a-f]{40}', str(catalog['gate_baseline'])):
         errors.append('catalog: gate_baseline must be a full 40-hex commit id')
     if unknown:
@@ -222,7 +523,7 @@ def validate_catalog(catalog, root, files=True):
         if not isinstance(item, dict):
             errors.append('catalog: every tool must be an object')
             continue
-        errors.extend(validate_tool(item, root, files))
+        errors.extend(validate_tool(item, root, files, view))
         for table, key in ((seen_ids, 'id'), (seen_paths, 'path')):
             if item.get(key) in table:
                 errors.append('catalog: duplicate %s %r' % (key, item.get(key)))
@@ -234,10 +535,33 @@ def validate_catalog(catalog, root, files=True):
         for kind, entries in assets.items():
             for entry in entries:
                 if not isinstance(entry, dict) or set(entry) != {'path', 'reason'} or not entry['reason'] \
-                        or (files and not (Path(root) / entry['path']).is_file()):
+                        or (files and not (view.exists(entry['path']) if view is not None
+                                           else (Path(root) / entry['path']).is_file())):
                     errors.append('catalog: assets.%s entries need an existing path and a reason' % kind)
                 elif entry['path'] in seen_paths:
                     errors.append('catalog: %s is both a registered tool and assets.%s' % (entry['path'], kind))
+    errors.extend(_exception_errors(catalog, seen_paths))
+    return errors
+
+
+def _exception_errors(catalog, tool_paths):
+    """`legacy_exceptions` authorize one exact change to a legacy tool: path, the sha256 of the changed bytes,
+    a responsible owner and a real reason. They are reviewed in the diff and expire when the bytes change again."""
+    entries = catalog.get('legacy_exceptions', [])
+    if not isinstance(entries, list):
+        return ['catalog: legacy_exceptions must be a list']
+    errors = []
+    by_path = {t.get('path'): t for t in catalog.get('tools', []) if isinstance(t, dict)}
+    for entry in entries:
+        if not isinstance(entry, dict) or set(entry) != {'path', 'sha256', 'owner', 'reason'} \
+                or not re.fullmatch(r'[0-9a-f]{64}', str(entry.get('sha256'))) or not entry.get('owner') \
+                or not isinstance(entry.get('reason'), str) or len(entry['reason'].strip()) < 20:
+            errors.append('catalog: legacy_exceptions entries need path, a 64-hex sha256, owner and a reason '
+                          'of at least 20 characters')
+        elif entry['path'] not in tool_paths:
+            errors.append('catalog: legacy exception for %s names no registered tool' % entry['path'])
+        elif by_path[entry['path']].get('contract_version') is not None:
+            errors.append('catalog: legacy exception for %s is obsolete; the tool has a contract' % entry['path'])
     return errors
 
 
@@ -266,53 +590,192 @@ def imports_of(tree):
     return found
 
 
-def classify_source(name, text):
-    """('test'|'entrypoint'|'module'|'spoofed-test', detail). Syntax errors are reported by other gates."""
+OPERATIONAL_SUFFIXES = ('.py', '.sh', '.bash', '.zsh', '.js', '.mjs', '.cjs', '.ts', '.rb', '.pl')
+CLI_MODULES = {'argparse', 'click', 'typer', 'optparse', 'fire', 'docopt'}
+EFFECT_BARE = {'open', 'print', 'input', 'exec', 'eval', '__import__', 'exit', 'quit', 'breakpoint'}
+EFFECT_MODULES = {'subprocess', 'requests', 'urllib', 'http', 'smtplib', 'ftplib', 'webbrowser', 'pty'}
+EFFECT_FUNCTIONS = {'shutil': {'copy', 'copy2', 'copyfile', 'copytree', 'move', 'rmtree', 'make_archive',
+                               'unpack_archive', 'chown', 'copymode', 'copystat'},
+                    'socket': {'socket', 'create_connection', 'create_server'}, 'asyncio': {'run'}}
+EFFECT_OS = {'system', 'popen', 'remove', 'unlink', 'rmdir', 'removedirs', 'rename', 'replace', 'mkdir', 'makedirs',
+             'chmod', 'chown', 'kill', 'killpg', 'execv', 'execve', 'execl', 'execlp', 'execvp', 'fork', '_exit',
+             'chdir', 'putenv', 'symlink', 'link', 'truncate', 'utime', 'write'}
+EFFECT_METHODS = {'write_text', 'write_bytes', 'unlink', 'rmdir', 'mkdir', 'touch', 'symlink_to', 'rename'}
+IMPORT_TIME_OK = {'sys.path.insert', 'sys.path.append', 'sys.path.extend', 'sys.path.remove', 'warnings.filterwarnings',
+                  'warnings.simplefilter', 'os.environ.setdefault', 'logging.disable', 'multiprocessing.set_start_method',
+                  'locale.setlocale', 'mimetypes.add_type', '__all__.extend', '__all__.append', 'random.seed',
+                  'sys.setrecursionlimit', 'faulthandler.enable', 'csv.field_size_limit'}
+TEST_MAIN = {'unittest.main', 'pytest.main'}
+TEST_LOADERS = ('.exec_module',)  # a test that loads the script under test by path may execute that module
+
+
+def _dotted(node):
+    parts = []
+    while isinstance(node, ast.Attribute):
+        parts.append(node.attr)
+        node = node.value
+    if isinstance(node, ast.Name):
+        parts.append(node.id)
+    elif isinstance(node, ast.Call):
+        parts.append('?')
+    else:
+        return None
+    return '.'.join(reversed(parts))
+
+
+def _shallow(node):
+    """Nodes a statement executes at import: everything except function and lambda bodies."""
+    stack = [node]
+    while stack:
+        current = stack.pop()
+        yield current
+        for child in ast.iter_child_nodes(current):
+            if not isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+                stack.append(child)
+
+
+def _is_main_test(test):
+    if isinstance(test, ast.BoolOp):
+        return any(_is_main_test(value) for value in test.values)
+    if not isinstance(test, ast.Compare):
+        return False
+    operands = [test.left] + list(test.comparators)
+    named = any(isinstance(n, ast.Name) and n.id == '__name__' for n in operands)
+
+    def is_main(node):
+        if isinstance(node, ast.Constant):
+            return node.value == '__main__'
+        return isinstance(node, (ast.Tuple, ast.List, ast.Set)) and any(is_main(e) for e in node.elts)
+    return named and any(is_main(n) for n in operands)
+
+
+def _statements(body):
+    """Module-level statements, descending only through plain control flow that runs at import."""
+    for statement in body:
+        yield statement
+        if isinstance(statement, (ast.If, ast.Try)) and not (isinstance(statement, ast.If)
+                                                              and _is_main_test(statement.test)):
+            nested = list(statement.body) + list(statement.orelse)
+            if isinstance(statement, ast.Try):
+                nested += list(statement.finalbody) + [s for h in statement.handlers for s in h.body]
+            yield from _statements(nested)
+
+
+def _effect_reason(node, testish):
+    """Why one node performs an effect when the module is merely imported, or None."""
+    if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == 'sys' \
+            and node.attr in ('argv', 'stdin'):
+        return 'reads sys.' + node.attr
+    if isinstance(node, ast.Call):
+        name = _dotted(node.func) or ''
+        root, _, tail = name.partition('.')
+        leaf = name.rsplit('.', 1)[-1]
+        if not tail and root in EFFECT_BARE:
+            return 'calls %s()' % root
+        if root in EFFECT_MODULES and tail:
+            return 'calls %s' % name
+        if root in EFFECT_FUNCTIONS and leaf in EFFECT_FUNCTIONS[root] and name.count('.') == 1:
+            return 'calls %s' % name
+        if root == 'os' and leaf in EFFECT_OS and name.startswith('os.') and name.count('.') == 1:
+            return 'calls %s' % name
+        if root == 'sys' and leaf == 'exit':
+            return 'calls sys.exit'
+        if isinstance(node.func, ast.Attribute) and node.func.attr in EFFECT_METHODS:
+            return 'calls .%s()' % node.func.attr
+    return None
+
+
+def operational_reasons(tree, testish=False):
+    """Reasons a module is operational code rather than importable logic: a main guard, import-time effects
+    (bare top-level calls, loops, `with`, raises, I/O/process/network calls, argv/stdin reads)."""
+    reasons = []
+    for statement in _statements(tree.body):
+        if isinstance(statement, (ast.Import, ast.ImportFrom, ast.FunctionDef, ast.AsyncFunctionDef, ast.Pass)):
+            continue
+        if isinstance(statement, ast.If) and _is_main_test(statement.test):
+            calls = {_dotted(n.func) or '?' for n in _shallow(statement) if isinstance(n, ast.Call)}
+            if not (testish and calls and calls <= TEST_MAIN | {'sys.exit', 'SystemExit', 'exit'}):
+                reasons.append('main guard')
+            continue
+        if isinstance(statement, (ast.For, ast.AsyncFor, ast.While, ast.With, ast.AsyncWith)):
+            reasons.append('top-level %s block' % type(statement).__name__.lower())
+        elif isinstance(statement, ast.Raise):
+            reasons.append('top-level raise')
+        elif isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Call):
+            name = _dotted(statement.value.func) or '?'
+            if name not in IMPORT_TIME_OK and not (testish and (name in TEST_MAIN or name.endswith(TEST_LOADERS))):
+                reasons.append('top-level call %s()' % name)
+        header = [statement.test] if isinstance(statement, (ast.If, ast.While)) else \
+            [] if isinstance(statement, (ast.Try, ast.ClassDef)) else [statement]
+        for part in header:
+            for node in _shallow(part):
+                reason = _effect_reason(node, testish)
+                if reason:
+                    reasons.append(reason)
+        if isinstance(statement, ast.ClassDef):
+            for inner in statement.body:
+                if isinstance(inner, (ast.Assign, ast.Expr)):
+                    for node in _shallow(inner):
+                        reason = _effect_reason(node, testish)
+                        if reason:
+                            reasons.append(reason)
+    return list(dict.fromkeys(reasons))
+
+
+def console_scripts(view):
+    """Module names pyproject.toml publishes as installed commands (an explicit, reviewed inventory)."""
+    data = view.read('pyproject.toml')
+    if data is None:
+        return set()
+    block = re.search(r'^\[project\.scripts\]\s*\n((?:[^\[\n][^\n]*\n?)*)', data.decode('utf-8', 'replace'), re.M)
+    return set(re.findall(r'=\s*"([A-Za-z0-9_.]+):', block.group(1))) if block else set()
+
+
+def classify_source(name, text, mode='100644', console=False):
+    """('test'|'entrypoint'|'module'|'spoofed-test', detail). Syntax errors are reported by other gates.
+
+    A name never decides the category. A file named like a test must import a test framework and run nothing
+    but that framework; any other main guard or import-time effect makes it operational code in disguise."""
     try:
         tree = ast.parse(text)
     except SyntaxError:
         return 'module', 'unparseable'
     modules = imports_of(tree)
-    guarded = any(isinstance(n, ast.If) and isinstance(n.test, ast.Compare) and isinstance(n.test.left, ast.Name)
-                  and n.test.left.id == '__name__' for n in tree.body)
-    cli = bool({'argparse', 'click', 'typer', 'optparse'} & modules) or 'sys.argv' in text
     testish = name.startswith('test_') or name.endswith('_test.py')
     if testish:
         if not ({'unittest', 'pytest'} & modules):
             return 'spoofed-test', 'named like a test but imports neither unittest nor pytest'
-        if cli and guarded and not re.search(r'unittest\.main\(|pytest\.main\(', text):
+        reasons = operational_reasons(tree, testish=True)
+        if 'main guard' in reasons:
             return 'spoofed-test', 'named like a test but exposes its own command line'
+        if reasons:
+            return 'spoofed-test', 'named like a test but executes operational code at import (%s)' % reasons[0]
         return 'test', ''
-    if guarded and cli:
-        return 'entrypoint', ''
+    reasons = operational_reasons(tree)
+    if mode == '100755':
+        reasons.append('executable bit')
+    if name == '__main__.py':
+        reasons.append('package entry point')
+    if console:
+        reasons.append('published console script')
+    if reasons:
+        return 'entrypoint', '; '.join(dict.fromkeys(reasons))
     return 'module', ''
 
 
-def _git(root, *argv):
-    # A commit hook exports GIT_DIR/GIT_INDEX_FILE for the repository being committed; the gate must observe
-    # exactly the checkout it was given (fixtures included), so inherited repository selection is dropped.
-    environment = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
-    result = subprocess.run(['git', '-C', str(root), *argv], capture_output=True, text=True, timeout=60,
-                            env=environment)
-    return result.stdout if result.returncode == 0 else None
-
-
-def changed_assets(root, base):
-    """[(status, path)] of files that differ from `base` in the working tree (plus untracked); None if unknown."""
+def changed_assets(root, base, view):
+    """[(status, path)] of files whose snapshot entry differs from `base`; None if the base cannot be resolved."""
     if _git(root, 'rev-parse', '--verify', base + '^{commit}') is None:
         return None
-    diff = _git(root, 'diff', '--name-status', '-M', base)
-    if diff is None:
+    result = _git_run(root, 'ls-tree', '-r', '-z', '--full-tree', base, binary=True)
+    if result is None:
         return None
+    before = _parse_entries(result.stdout, False)
     changed = []
-    for line in diff.splitlines():
-        parts = line.split('\t')
-        if parts[0][0] == 'R':
-            changed.append(('A', parts[2]))
-        elif parts[0][0] in 'AMD':
-            changed.append((parts[0][0], parts[1]))
-    untracked = _git(root, 'ls-files', '--others', '--exclude-standard') or ''
-    changed.extend(('A', line) for line in untracked.splitlines() if line)
+    for path in sorted(set(before) | set(view.entries)):
+        old, new = before.get(path), view.entries.get(path)
+        if old != new:
+            changed.append(('D' if new is None else 'A' if old is None else 'M', path))
     return changed
 
 
@@ -321,29 +784,97 @@ def base_catalog(root, base):
     return json.loads(text) if text else None
 
 
-def gate(root, base='HEAD', changed=None, previous=None):
+def _is_candidate(path, view):
+    if not TOOL_ROOT.match(path):
+        return False
+    if path.endswith(OPERATIONAL_SUFFIXES) or view.mode(path) == '100755':
+        return True
+    data = view.read(path)
+    return bool(data and data.startswith(b'#!'))
+
+
+def _declared_assets(catalog):
+    return {e['path']: kind for kind in ASSET_LISTS for e in ((catalog.get('assets') or {}).get(kind) or [])
+            if isinstance(e, dict) and 'path' in e}
+
+
+def _referenced_by_a_test(view, path):
+    name = Path(path).name
+    for candidate in sorted(view.entries):
+        if TOOL_ROOT.match(candidate) and Path(candidate).name.startswith('test_') and candidate.endswith('.py'):
+            data = view.read(candidate)
+            if data and name.encode() in data:
+                return True
+    return False
+
+
+def _label_errors(view, declared, consoles):
+    """A category label never exempts code from classification: `internal` and `fixtures` assets must not be
+    operational (a published console script is the one reviewed exception for internal), and an executable
+    fixture must be exercised by a test."""
+    errors = []
+    for path, kind in sorted(declared.items()):
+        data = view.read(path)
+        if data is None or not path.endswith('.py'):
+            continue
+        category, detail = classify_source(Path(path).name, data.decode('utf-8', 'replace'), view.mode(path),
+                                           Path(path).stem in consoles)
+        if category == 'spoofed-test':
+            errors.append('%s: classification spoofing: %s' % (path, detail))
+        elif category == 'entrypoint' and kind in ('internal', 'fixtures'):
+            published = Path(path).stem in consoles
+            if kind == 'internal' and published:
+                continue
+            if kind == 'fixtures' and _referenced_by_a_test(view, path):
+                continue
+            errors.append('%s: declared as assets.%s but it is operational code (%s); register it as a tool'
+                          % (path, kind, detail))
+    return errors
+
+
+def gate(root, base='HEAD', changed=None, previous=None, snapshot=None, index_file=None, view=None):
     """The commit/CI gate. Returns (errors, notes); errors reject, notes only inform.
 
-    Static rules always run on the whole catalog. Incremental rules inspect only files changed since
-    `base`: unregistered operational entrypoints, spoofed test classification, parallel/duplicate
-    implementations, undeclared third-party dependencies, new tools without declared acceptance,
-    activation at creation, and compatibility of ids/paths/commands against the base catalog."""
+    Every artifact read (catalog, implementations, supporting code, acceptance, evidence) comes from one Git
+    snapshot: the staged index for a commit, the committed tree for CI. The working tree is never substituted
+    for it. An unknown or unreadable snapshot is an error, not a pass.
+
+    Static rules run on the whole catalog. Incremental rules inspect only files that differ from `base`:
+    unregistered operational code (guarded or not), spoofed test classification, parallel/duplicate
+    implementations, undeclared third-party dependencies, changed legacy tools without a contract transition,
+    new tools without declared acceptance, activation at creation, and compatibility against the base."""
     root = Path(root)
     notes = []
     try:
-        catalog = load_catalog(root)
+        view = view or open_snapshot(root, snapshot or default_snapshot(), index_file=index_file)
+        return _gate(root, base, changed, previous, view, notes)
+    except SnapshotError as exc:
+        return ['snapshot: %s' % exc], notes
     except (OSError, ValueError) as exc:
         return ['catalog: unreadable: %s' % exc], notes
-    errors = validate_catalog(catalog, root)
+
+
+def _gate(root, base, changed, previous, view, notes):
+    catalog = load_catalog(root, view)
+    errors = validate_catalog(catalog, root, view=view)
     tools = [t for t in catalog.get('tools', []) if isinstance(t, dict)]
     by_path = {t.get('path'): t for t in tools}
-    declared = {e['path'] for kind in ASSET_LISTS for e in ((catalog.get('assets') or {}).get(kind) or [])
-                if isinstance(e, dict) and 'path' in e}
+    declared = _declared_assets(catalog)
+    consoles = console_scripts(view)
+    errors.extend(_label_errors(view, declared, consoles))
+    exceptions = {e['path']: e for e in catalog.get('legacy_exceptions') or []
+                  if isinstance(e, dict) and 'path' in e and 'sha256' in e}
+    for path, entry in exceptions.items():
+        tool = by_path.get(path)
+        if tool is not None and tool.get('contract_version') is None \
+                and implementation_fingerprint(root, tool, view=view) != entry['sha256']:
+            errors.append('%s: legacy exception does not match the current bytes; it authorized a different '
+                          'version' % path)
     baseline = catalog.get('gate_baseline')
     if baseline and changed is None:
         # Code that predates the standard is inventoried, not grandfathered: it is judged from the first commit
         # that carried the standard, so every later addition or change is held to it.
-        if changed_assets(root, baseline) is not None:
+        if changed_assets(root, baseline, view) is not None:
             base = baseline
         else:
             notes.append('gate_baseline %s is not resolvable here (shallow clone?); using %s' % (baseline[:12], base))
@@ -351,22 +882,28 @@ def gate(root, base='HEAD', changed=None, previous=None):
     if head_catalog and head_catalog.get('gate_baseline') and head_catalog['gate_baseline'] != baseline:
         errors.append('catalog: gate_baseline may not move once committed (it would hide earlier violations)')
     if changed is None:
-        changed = changed_assets(root, base)
+        changed = changed_assets(root, base, view)
     if changed is None:
         notes.append('incremental checks skipped: %r is not a resolvable base revision' % base)
         return errors, notes
     previous = previous if previous is not None else base_catalog(root, base)
     hashes = {}
     for tool in tools:
-        digest = implementation_fingerprint(root, tool) if isinstance(tool.get('path'), str) else None
+        digest = implementation_fingerprint(root, tool, view=view) if isinstance(tool.get('path'), str) else None
         if digest:
             hashes.setdefault(digest, []).append(tool['path'])
     for status, path in changed:
-        if status == 'D' or not path.endswith('.py') or not TOOL_ROOT.match(path) or not (root / path).is_file():
+        if status == 'D' or not _is_candidate(path, view):
             continue
         name = Path(path).name
-        text = (root / path).read_text(encoding='utf-8', errors='replace')
-        kind, detail = classify_source(name, text)
+        data = view.read(path)
+        if data is None:
+            continue
+        text = data.decode('utf-8', errors='replace')
+        if not path.endswith('.py'):
+            kind, detail = 'entrypoint', 'non-Python executable'
+        else:
+            kind, detail = classify_source(name, text, view.mode(path), Path(path).stem in consoles)
         if kind == 'spoofed-test':
             errors.append('%s: classification spoofing: %s' % (path, detail))
             continue
@@ -376,16 +913,17 @@ def gate(root, base='HEAD', changed=None, previous=None):
             errors.append('%s: parallel implementation name; extend the existing tool in place' % path)
         registered = by_path.get(path)
         if kind == 'entrypoint' and registered is None and path not in declared:
-            errors.append('%s: unregistered operational entrypoint; register it in %s or declare it under assets '
-                          'with a reason' % (path, CATALOG_RELATIVE))
+            errors.append('%s: unregistered operational entrypoint (%s); register it in %s or declare it under '
+                          'assets with a reason' % (path, detail, CATALOG_RELATIVE))
         if registered is not None:
-            clones = [p for p in hashes.get(implementation_fingerprint(root, registered), []) if p != path]
+            digest = implementation_fingerprint(root, registered, view=view)
+            clones = [p for p in hashes.get(digest, []) if p != path]
             if clones:
                 errors.append('%s: byte-identical to registered tool %s; reuse it' % (path, clones[0]))
             try:
                 third = {m for m in imports_of(ast.parse(text)) if not is_stdlib(m)
-                         and not (root / 'scripts' / (m + '.py')).is_file()
-                         and not (root / Path(path).parent / (m + '.py')).is_file()}
+                         and not view.exists('scripts/' + m + '.py')
+                         and not view.exists(str(PurePosixPath(path).parent / (m + '.py')))}
             except SyntaxError:
                 third = set()
             blob = ' '.join(registered.get('dependencies', [])).lower()
@@ -393,7 +931,13 @@ def gate(root, base='HEAD', changed=None, previous=None):
                 if module.lower() not in blob:
                     errors.append('%s: undeclared dependency %r; declare it in the tool dependencies' % (path, module))
             if status_of(registered) == 'legacy-unverified':
-                notes.append('%s changed and stays legacy-unverified: no contract or evidence is claimed' % path)
+                reviewed = exceptions.get(path)
+                if reviewed is not None and reviewed['sha256'] == digest:
+                    notes.append('%s changed under a reviewed legacy exception (owner %s)' % (path, reviewed['owner']))
+                else:
+                    errors.append('%s: a changed legacy-unverified tool must adopt contract version %d with '
+                                  'current evidence, or carry a legacy_exceptions record for sha256 %s'
+                                  % (path, CONTRACT_VERSION, digest))
     previous_by_id = {t['id']: t for t in (previous or {}).get('tools', []) if isinstance(t, dict) and 'id' in t}
     ids = {t.get('id'): t for t in tools}
     for ident, old in previous_by_id.items():
@@ -438,14 +982,28 @@ def render_into(text, catalog):
     raise ValueError('The generated-table markers are missing from ' + DOC_RELATIVE)
 
 
-def check_rendered(root):
+def check_rendered(root, view=None):
     root = Path(root)
-    text = (root / DOC_RELATIVE).read_text(encoding='utf-8')
     try:
-        expected = render_into(text, load_catalog(root))
+        text = (view.read(DOC_RELATIVE).decode('utf-8') if view is not None
+                else (root / DOC_RELATIVE).read_text(encoding='utf-8'))
+        expected = render_into(text, load_catalog(root, view))
+    except (AttributeError, SnapshotError) as exc:
+        return ['%s is not readable in the snapshot: %s' % (DOC_RELATIVE, exc)]
     except ValueError as exc:
         return [str(exc)]
     return [] if expected == text else [DOC_RELATIVE + ' differs from the catalog; run scripts/tool_catalog.py render']
+
+
+def check_all(root, base='HEAD', snapshot=None, index_file=None):
+    """The whole commit/CI check on one snapshot: (errors, notes) for the gate and the generated human view."""
+    notes = []
+    try:
+        view = open_snapshot(root, snapshot or default_snapshot(), index_file=index_file)
+    except SnapshotError as exc:
+        return ['snapshot: %s' % exc], notes
+    errors, notes = gate(root, base, view=view)
+    return errors + check_rendered(root, view), notes
 
 
 def discover(catalog):
@@ -463,10 +1021,55 @@ def describe(catalog, root, ident):
                 contract_sha256=contract_fingerprint(item))
 
 
-def record_evidence(root, ident, runner=subprocess.run, timeout=300):
-    """Controlled writer: run the tool's declared acceptance and bind a passing result to the exact fingerprints.
+def run_acceptance_worker(start_dir, pattern, output):
+    """Run one acceptance module with unittest's own result object and write structured counts as JSON.
 
-    A failing run records nothing and an existing record is never rewritten with a different result."""
+    The outcome is read from the result, never from an exit code or display text: Python 3.9 exits 0 for a
+    module with no tests where 3.12+ exits 5, so the exit code cannot define meaningful acceptance."""
+    stream = io.StringIO()
+    suite = unittest.defaultTestLoader.discover(start_dir, pattern=pattern)
+    result = unittest.TextTestRunner(stream=stream, verbosity=0).run(suite)
+    skipped = len(result.skipped)
+    counts = {'discovered': suite.countTestCases(), 'run': result.testsRun, 'executed': result.testsRun - skipped,
+              'skipped': skipped, 'failures': len(result.failures), 'errors': len(result.errors),
+              'expected_failures': len(result.expectedFailures),
+              'unexpected_successes': len(result.unexpectedSuccesses)}
+    Path(output).write_text(json.dumps({'counts': counts, 'tail': stream.getvalue()[-600:]}), encoding='utf-8')
+    return 0
+
+
+def _run_acceptance(root, test, runner, timeout):
+    """(counts, command) for one required acceptance file; ValueError unless it ran meaningful passing tests."""
+    directory = tempfile.mkdtemp(prefix='crewloom-acceptance-')
+    output = Path(directory) / 'result.json'
+    command = [sys.executable, str(Path(__file__).resolve()), 'acceptance-worker', str(Path(test).parent),
+               Path(test).name, str(output)]
+    try:
+        result = runner(command, cwd=str(root), capture_output=True, text=True, timeout=timeout)
+        if result.returncode != 0:
+            raise ValueError('Acceptance failed for %s (exit %d); no evidence was recorded\n%s' % (
+                test, result.returncode, (result.stderr or '')[-400:]))
+        try:
+            report = json.loads(output.read_text(encoding='utf-8'))
+            counts = {key: report['counts'][key] for key in COUNT_FIELDS}
+        except (OSError, ValueError, KeyError, TypeError):
+            raise ValueError('Acceptance for %s produced no structured result; no evidence was recorded' % test)
+    finally:
+        shutil.rmtree(directory, ignore_errors=True)
+    problem = acceptance_problem(counts) if all(type(v) is int for v in counts.values()) else 'malformed counts'
+    if problem:
+        raise ValueError('Acceptance for %s is not meaningful (%s; %s); no evidence was recorded\n%s' % (
+            test, problem, ', '.join('%s=%s' % kv for kv in counts.items()), (report.get('tail') or '')[-400:]))
+    return counts, 'tool_catalog.py acceptance-worker %s %s' % (Path(test).parent, Path(test).name)
+
+
+def record_evidence(root, ident, runner=subprocess.run, timeout=300):
+    """Controlled writer: run every declared (required) acceptance file and bind the passing, meaningful results
+    to the exact implementation, supporting code, contract and acceptance bytes that were tested.
+
+    All declared acceptance is required: there is no optional tier, and a failing, wholly skipped or empty
+    module blocks promotion. A failing run records nothing, an existing record is never rewritten with a
+    different result, and evidence is refused if anything it binds to changed while the tests ran."""
     root = Path(root)
     catalog = load_catalog(root)
     item = next((t for t in catalog['tools'] if t.get('id') == ident), None)
@@ -475,20 +1078,26 @@ def record_evidence(root, ident, runner=subprocess.run, timeout=300):
     problems = [e for e in validate_tool(item, root) if 'needs current evidence' not in e]
     if problems:
         raise ValueError('Contract is invalid: ' + '; '.join(problems))
-    records = []
+    before = provenance(item, root)
+    if before['source'] is None:
+        raise ValueError('The implementation of %s is missing; no evidence was recorded' % ident)
+    tested = []
     for test in item['acceptance']:
-        command = [sys.executable, '-m', 'unittest', 'discover', '-s', str(Path(test).parent), '-p', Path(test).name]
-        result = runner(command, cwd=str(root), capture_output=True, text=True, timeout=timeout)
-        if result.returncode != 0:
-            raise ValueError('Acceptance failed for %s (exit %d); no evidence was recorded\n%s' % (
-                test, result.returncode, (result.stderr or '')[-400:]))
-        records.append({'test': test, 'command': ' '.join(command[1:]), 'exit_code': 0,
-                        'source_sha256': implementation_fingerprint(root, item),
-                        'contract_sha256': contract_fingerprint(item),
-                        'recorded_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())})
-    item['evidence'] = records
+        counts, command = _run_acceptance(root, test, runner, timeout)
+        tested.append((test, counts, command))
+    after = provenance(item, root)
+    if after != before:
+        raise ValueError('The source, supporting code, contract or acceptance changed while acceptance ran; '
+                         'no evidence was recorded')
+    stamp = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+    item['evidence'] = [{'test': test, 'command': command, 'exit_code': 0, 'source_sha256': before['source'],
+                         'contract_sha256': before['contract'], 'support_sha256': before['support'],
+                         'acceptance_sha256': before['acceptance'][test], 'counts': counts,
+                         'provenance': PROVENANCE_VERSION, 'recorded_at': stamp} for test, counts, command in tested]
     if item['status'] == 'draft':
         item['status'] = 'verified'
+    if provenance(item, root) != before:  # last look before the catalog write
+        raise ValueError('The artifacts changed while the evidence was prepared; no evidence was recorded')
     (root / CATALOG_RELATIVE).write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
     return item
 
@@ -502,12 +1111,20 @@ def main(argv=None, root=None):
     commands.add_parser('validate')
     checking = commands.add_parser('gate')
     checking.add_argument('--base', default=os.environ.get('CREWLOOM_TOOL_GATE_BASE') or 'HEAD')
+    checking.add_argument('--snapshot', choices=SNAPSHOTS, default=None,
+                          help='Artifact view to judge: the staged index (default locally) or the committed tree (CI)')
+    checking.add_argument('--index-file', default=None, help='Judge this custom index of the selected repository')
+    worker = commands.add_parser('acceptance-worker', help=argparse.SUPPRESS)
+    for argument in ('start_dir', 'pattern', 'output'):
+        worker.add_argument(argument)
     commands.add_parser('render')
     commands.add_parser('render-check')
     recording = commands.add_parser('record-evidence')
     recording.add_argument('tool')
     parser.add_argument('--root', help='Toolkit checkout (defaults to this checkout)')
     args = parser.parse_args(argv)
+    if args.command == 'acceptance-worker':  # needs no checkout resolution: it runs in the checkout's directory
+        return run_acceptance_worker(args.start_dir, args.pattern, args.output)
     if not (args.root or root):
         import crewloom_resources
         root = crewloom_resources.distribution_root()  # the checkout or the installed distribution, not a guess
@@ -524,7 +1141,7 @@ def main(argv=None, root=None):
             print('\n'.join(errors) if errors else 'PASS: tool catalog')
             return 1 if errors else 0
         elif args.command == 'gate':
-            errors, notes = gate(root, args.base)
+            errors, notes = gate(root, args.base, snapshot=args.snapshot, index_file=args.index_file)
             for note in notes:
                 print('note: ' + note)
             for error in errors:

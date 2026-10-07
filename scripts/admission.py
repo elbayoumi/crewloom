@@ -72,42 +72,93 @@ def validate_limits(limits):
     return {key: limits.get(key) for key in LIMIT_KEYS}
 
 
-def process_start(pid):
-    """An identity for a pid that survives pid reuse: its reported start time, or None if gone.
+class ProcessObservationError(AdmissionError):
+    """The process table could not be read completely; presence and absence are both unknown."""
 
-    A zombie (exited, not yet reaped) is gone for every purpose here."""
+
+LSTART = re.compile(r'[A-Za-z]{3}\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+\d{4}')
+
+
+def _run_ps(argv):
+    """(completed process, problem). A problem means ps itself did not give an answer."""
     try:
-        result = subprocess.run(['ps', '-o', 'stat=,lstart=', '-p', str(int(pid))], capture_output=True,
-                                text=True, timeout=10)
-    except (OSError, subprocess.SubprocessError, ValueError):
-        return None
+        return subprocess.run(['ps', *argv], capture_output=True, text=True, timeout=10), None
+    except OSError as exc:
+        return None, 'ps is unavailable (%s)' % exc.__class__.__name__
+    except subprocess.SubprocessError as exc:
+        return None, 'ps did not complete (%s)' % exc.__class__.__name__
+
+
+def observe_process(pid):
+    """('present', start) | ('absent', None) | ('unknown', reason): what ps proves about one pid.
+
+    Absence is only what ps says when it answered cleanly that no such process exists. A missing ps, a timeout,
+    an unexpected exit status or unreadable output is `unknown`, never `absent`. A zombie (exited, not yet
+    reaped) is absent for every purpose here."""
+    try:
+        number = int(pid)
+    except (TypeError, ValueError):
+        return 'unknown', 'the recorded pid is not an integer'
+    result, problem = _run_ps(['-o', 'stat=,lstart=', '-p', str(number)])
+    if problem:
+        return 'unknown', problem
     text = result.stdout.strip()
-    if not text:
-        return None
-    state, _, started = text.partition(' ')
-    if state.startswith('Z'):
-        return None
-    return ' '.join(started.split()) or None
+    if result.returncode == 0 and text:
+        state, _, started = text.partition(' ')
+        started = ' '.join(started.split())
+        if not state or not LSTART.fullmatch(started):
+            return 'unknown', 'ps output for pid %d is unreadable' % number
+        return ('absent', None) if state.startswith('Z') else ('present', started)
+    complaint = result.stderr.strip().lower()
+    if result.returncode == 1 and not text and (not complaint or re.search(r'too large|out of range', complaint)):
+        return 'absent', None  # no such process, or an id beyond the kernel's range: either way nothing runs under it
+    return 'unknown', 'ps exited %d for pid %d%s' % (result.returncode, number,
+                                                    (': ' + result.stderr.strip()[:80]) if result.stderr.strip() else '')
+
+
+def process_start(pid):
+    """An identity for a pid that survives pid reuse: its reported start time, or None if not proven present."""
+    state, value = observe_process(pid)
+    return value if state == 'present' else None
+
+
+def pid_state(pid, start=None):
+    """('alive' | 'dead' | 'unknown', reason): `dead` means proven absent or proven a different process."""
+    state, value = observe_process(pid)
+    if state == 'unknown':
+        return 'unknown', value
+    if state == 'absent' or (start is not None and value != ' '.join(str(start).split())):
+        return 'dead', None
+    return 'alive', None
 
 
 def pid_alive(pid, start=None):
-    current = process_start(pid)
-    return current is not None and (start is None or current == ' '.join(str(start).split()))
+    """True only when the recorded process is proven present; unknown is not alive and not dead."""
+    return pid_state(pid, start)[0] == 'alive'
 
 
 def _process_table():
-    """Every live process as {pid: {ppid, pgid, start}}; zombies are not live."""
-    try:
-        result = subprocess.run(['ps', '-axo', 'pid=,ppid=,pgid=,stat=,lstart='], capture_output=True,
-                                text=True, timeout=10)
-    except (OSError, subprocess.SubprocessError):
-        return {}
+    """Every live process as {pid: {ppid, pgid, start}}; zombies are not live.
+
+    Raises ProcessObservationError unless the whole table was read: a missing ps, a timeout, a nonzero exit,
+    an unparseable row or a table that does not list this process is a partial observation and proves nothing."""
+    result, problem = _run_ps(['-axo', 'pid=,ppid=,pgid=,stat=,lstart='])
+    if problem:
+        raise ProcessObservationError(problem)
+    if result.returncode != 0:
+        raise ProcessObservationError('ps exited %d' % result.returncode)
     table = {}
     for line in result.stdout.splitlines():
+        if not line.strip():
+            continue
         match = re.match(r'\s*(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(.+?)\s*$', line)
-        if match and not match.group(4).startswith('Z'):
+        if not match or not LSTART.fullmatch(' '.join(match.group(5).split())):
+            raise ProcessObservationError('ps returned an unreadable row')
+        if not match.group(4).startswith('Z'):
             table[int(match.group(1))] = {'ppid': int(match.group(2)), 'pgid': int(match.group(3)),
                                           'start': ' '.join(match.group(5).split())}
+    if os.getpid() not in table:
+        raise ProcessObservationError('the process table does not list this process')
     return table
 
 
@@ -342,12 +393,10 @@ def remove_container(record):
     return 'unverifiable: removal was refused or failed'
 
 
-def _same(pid, start):
-    return process_start(pid) == ' '.join(str(start).split())
-
-
-def _alive_targets(targets):
-    return [pid for pid, start in targets.items() if _same(pid, start)]
+def _survivors(targets):
+    """[pid] of recorded targets still present (same start time); ProcessObservationError if unobservable."""
+    table = _process_table()
+    return [pid for pid, start in targets.items() if pid in table and table[pid]['start'] == ' '.join(str(start).split())]
 
 
 def _signal(pid, number):
@@ -370,7 +419,8 @@ def _collect_tree(item, table):
     are descendants, while a process whose pid equals the id is a different one and ends the search."""
     pid, start, pgid = item.get('pid'), item.get('pid_start'), item.get('pgid')
     own = bool(item.get('own_group')) and _group_valid(pgid)
-    leader = pid is not None and pid in table and (start is None or table[pid]['start'] == ' '.join(str(start).split()))
+    leader = pid is not None and start is not None and pid in table \
+        and table[pid]['start'] == ' '.join(str(start).split())
     targets = {}
     if own:
         members = {p: r['start'] for p, r in table.items() if r['pgid'] == pgid}
@@ -393,8 +443,13 @@ def _collect_tree(item, table):
 def _stop_pid(item, grace=3.0):
     """Stop the recorded process and everything it owns, escalating from SIGTERM to SIGKILL.
 
-    Every signal is preceded by an identity check of that process, so a reused pid is never signalled."""
-    targets, problem = _collect_tree(item, _process_table())
+    Every signal is preceded by an identity check of that process, so a reused pid is never signalled.
+    `gone` is returned only when a complete process table proved the tree absent; if the table cannot be read
+    at any point the result is `unverifiable: ...` (never `gone`) and the resource stays tracked."""
+    try:
+        targets, problem = _collect_tree(item, _process_table())
+    except ProcessObservationError as exc:
+        return 'unverifiable: process inspection failed (%s); the resource was not signalled' % exc
     if problem:
         return problem
     if not targets:
@@ -402,25 +457,29 @@ def _stop_pid(item, grace=3.0):
     pgid = item.get('pgid') if item.get('own_group') and _group_valid(item.get('pgid')) else None
 
     def deliver(number):
+        table = _process_table()  # identity is re-verified from a complete table before every round of signals
         if pgid is not None:
             try:
                 os.killpg(pgid, number)
             except OSError:
                 pass
-        for pid in _alive_targets(targets):
-            if pgid is None or _process_table().get(pid, {}).get('pgid') != pgid:
+        for pid in _survivors(targets):
+            if pgid is None or table.get(pid, {}).get('pgid') != pgid:
                 _signal(pid, number)
-    deliver(signal.SIGTERM)
-    deadline = time.monotonic() + grace
-    while time.monotonic() < deadline and _alive_targets(targets):
-        time.sleep(0.05)
-    if not _alive_targets(targets):
-        return 'terminated'
-    deliver(signal.SIGKILL)
-    deadline = time.monotonic() + 2.0
-    while time.monotonic() < deadline and _alive_targets(targets):
-        time.sleep(0.05)
-    survivors = _alive_targets(targets)
+
+    def wait(seconds):
+        deadline = time.monotonic() + seconds
+        while time.monotonic() < deadline and _survivors(targets):
+            time.sleep(0.05)
+        return _survivors(targets)
+    try:
+        deliver(signal.SIGTERM)
+        if not wait(grace):
+            return 'terminated'
+        deliver(signal.SIGKILL)
+        survivors = wait(2.0)
+    except ProcessObservationError as exc:
+        return 'unverifiable: process inspection failed (%s); termination could not be confirmed' % exc
     return 'killed' if not survivors else 'survivors: ' + ', '.join(str(p) for p in sorted(survivors))
 
 
@@ -449,17 +508,21 @@ def reap_group(pgid, not_before=None, grace=2.0):
     def ours():
         return sorted(p for p, r in _process_table().items() if r['pgid'] == pgid and p != os.getpid()
                       and (not_before is None or (_started_at(r['start']) or 0) >= not_before - 2))
-    deadline = time.monotonic() + grace
-    for number in (signal.SIGTERM, signal.SIGKILL):
-        members = ours()
-        if not members:
-            return []
-        for pid in members:
-            _signal(pid, number)
-        while time.monotonic() < deadline and ours():
-            time.sleep(0.05)
+    try:
         deadline = time.monotonic() + grace
-    return ours()
+        for number in (signal.SIGTERM, signal.SIGKILL):
+            members = ours()
+            if not members:
+                return []
+            for pid in members:
+                _signal(pid, number)
+            while time.monotonic() < deadline and ours():
+                time.sleep(0.05)
+            deadline = time.monotonic() + grace
+        return ours()
+    except ProcessObservationError as exc:
+        # An unreadable process table cannot show that nothing survived: report it so tracking is kept.
+        return ['unverified (process inspection failed: %s)' % exc]
 
 
 def track_process(folder, kind, ident, pid=None, task=None, container=None):
@@ -477,16 +540,24 @@ def track_process(folder, kind, ident, pid=None, task=None, container=None):
         if value is None:
             raise AdmissionError('Admission is not configured for this batch; the resource cannot be tracked')
         key = kind + ':' + str(ident)
-        pgid = own_group = None
+        pgid = own_group = pid_start = None
         if pid and kind == 'process':
+            observed, detail = observe_process(pid)
+            if observed == 'unknown':
+                # Tracking a pid whose identity cannot be established would let cancellation later mistake a
+                # reused pid for ours, or report a live process gone. The caller stops the launch instead.
+                raise AdmissionError('The process identity cannot be verified (%s); the process is not tracked' % detail)
+            pid_start = detail if observed == 'present' else None
             try:
                 pgid = os.getpgid(pid)
                 own_group = pgid == pid and _group_valid(pgid)
             except OSError:
                 pass
-        entry = {'kind': kind, 'ident': str(ident), 'pid': pid,
-                 'pid_start': process_start(pid) if pid else None, 'pgid': pgid, 'own_group': own_group,
-                 'controller_pid': os.getpid(), 'controller_start': process_start(os.getpid()),
+        controller_state, controller_start = observe_process(os.getpid())
+        if controller_state != 'present':
+            raise AdmissionError('The controller identity cannot be verified (%s); nothing is tracked' % controller_start)
+        entry = {'kind': kind, 'ident': str(ident), 'pid': pid, 'pid_start': pid_start, 'pgid': pgid,
+                 'own_group': own_group, 'controller_pid': os.getpid(), 'controller_start': controller_start,
                  'task': task, 'tracked_at': now()}
         if container:
             entry.update(container_id=container['id'], labels=dict(container['labels']))
@@ -513,8 +584,14 @@ def terminate_owned(folder, only_orphans=False):
         if value is None:
             return outcomes
         for key, item in sorted(value['processes'].items()):
-            if only_orphans and pid_alive(item['controller_pid'], item.get('controller_start')):
-                continue
+            if only_orphans:
+                controller, detail = pid_state(item['controller_pid'], item.get('controller_start'))
+                if controller == 'alive':
+                    continue
+                if controller == 'unknown':
+                    outcomes.append({'key': key, 'task': item.get('task'),
+                                     'result': 'unverifiable: the controller could not be checked (%s)' % detail})
+                    continue
             if item['kind'] == 'container':
                 result = remove_container(item)
             elif item.get('pid'):
@@ -531,19 +608,25 @@ def terminate_owned(folder, only_orphans=False):
 
 def recover(folder):
     """Restart reconciliation: dispatches whose owner died become `orphaned` (charged, never replayed)."""
-    orphaned = []
+    orphaned, unverified = [], []
     with _locked(folder):
         value = _load(folder)
         if value is None:
-            return {'orphaned_requests': [], 'stopped': []}
+            return {'orphaned_requests': [], 'unverified_owners': [], 'stopped': []}
         for request_id, entry in sorted(value['requests'].items()):
             owner = entry.get('owner') or {}
-            if entry['state'] == 'dispatched' and not pid_alive(owner.get('pid'), owner.get('pid_start')):
+            if entry['state'] != 'dispatched':
+                continue
+            state, detail = pid_state(owner.get('pid'), owner.get('pid_start'))
+            if state == 'unknown':
+                unverified.append({'request': request_id, 'reason': detail})  # not proven dead: never orphaned on a guess
+            elif state == 'dead':
                 entry.update(state='orphaned', orphaned_at=now(),
                              note='owner process ended before the outcome was recorded; side effects unknown; not replayed')
                 orphaned.append(request_id)
         _save(folder, value)
-    return {'orphaned_requests': orphaned, 'stopped': terminate_owned(folder, only_orphans=True)}
+    return {'orphaned_requests': orphaned, 'unverified_owners': unverified,
+            'stopped': terminate_owned(folder, only_orphans=True)}
 
 
 def cancel_queued(folder):

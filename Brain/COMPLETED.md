@@ -1,5 +1,10 @@
 # Completed work
 
+### 2026-10-07 — PR8 remaining-defect repair: snapshot gate, provenance 2, tri-state process observation, plan and host bounds (W03/N04/W04/W09)
+- Artifact: `scripts/tool_catalog.py`, `scripts/admission.py`, `scripts/continuation.py`, `scripts/workflow.py`, `scripts/model_host.py`, `scripts/check_repository.py`, `documentation/TOOLS.json`, their tests and `documentation/{CONTINUATION,ENFORCEMENT,INTELLIGENCE_ROADMAP,PROJECT_REVIEW}.md`
+- Impact: the commit/CI gate judges the staged index or committed tree only; unguarded/alternative entrypoints and disguised tests/fixtures are rejected; a changed legacy tool needs contract v1 or an exact-bytes exception; evidence binds implementation, import closure, contract, acceptance bytes and structured counts (empty/skipped acceptance cannot promote on 3.9 or 3.14); an unreadable `ps` no longer reads as `gone`; `validate/accept` check the recorded plan by default; OpenCode's bound is its 131,072-byte argv transport
+- Evidence: every review counterexample re-run on Python 3.9.6 and 3.14.7 with identical results (`.crewloom/pr8-repair-20261007b/probe-after-repair-*.json`); 313 targeted cases pass on both; real-container ownership cases pass; frozen recovery-ownership suite unchanged. Open: 15 legacy tools, older unregistered CLIs, coordinator/pilot checkpoints record no plan path, real cross-host pilot.
+
 ### 2026-10-07 — PR8 repair: source identity, atomic ownership, durable checkpoints (W01/W02/W04)
 - Artifact: `scripts/test_source_identity.py`, `scripts/continuation.py`, `scripts/workflow.py`, `scripts/test_continuation.py`, `documentation/CONTINUATION.md`
 - Impact: fixtures are hermetic about bytecode/metadata (`-S`, no bytecode; ambient and stale metadata tested explicitly); `accept` validates and claims the owner slot under the project lock; resume needs the owner id, epoch and one-time token and is fenced before reserve, dispatch and publish; the `dispatched` checkpoint is committed (fsync, rename commit point) before any side effect
@@ -334,3 +339,8 @@
 - Artifact: IDEAS_VAULT proposal grounded in the current18-entry catalog, dispatcher and reuse protocol.
 - Impact: defines candidate contracts, reusable cores, lazy discovery, scoped promotion and proportional quality gates; owner confirmed Crewloom tools only.
 - Evidence: inspected existing metadata/dispatch source; conceptual proposal only, no implementation, migration or saving measurement.
+
+### 2026-10-07 — Independent review of repaired PR8 head
+- Artifact: repaired-head review and current unified-register override; ignored head-review probes and receipts.
+- Impact: confirmed e77dbeb/9 successful CI checks and original boundary repairs in tested cases; reproduced staged-gate/classification, evidence-freshness/no-test-promotion, process-inspection, default plan-drift and OpenCode-bound gaps; four PR discussions remain unresolved under required conversation resolution.
+- Evidence:135 targeted passes including real Docker ownership;45 frozen hashes unchanged; Python3.9 empty acceptance promoted verified. Review/memory updates only, no runtime repair, provider pilot, consumer change or merge.

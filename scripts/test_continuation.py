@@ -51,7 +51,7 @@ class ContinuationBoundaries(unittest.TestCase):
         (self.root / 'workflow.json').write_text(json.dumps(plan), encoding='utf-8')
         self.parsed, self.fingerprint = w.read_plan(self.root, 'workflow.json')
 
-    def run_flow(self, interrupt_at=None, fail_at=None):
+    def run_flow(self, interrupt_at=None, fail_at=None, plan_file='workflow.json'):
         def execute(root, step, image, timeout):
             if step['id'] == interrupt_at:
                 raise KeyboardInterrupt('host quota exhausted mid-step')
@@ -62,11 +62,11 @@ class ContinuationBoundaries(unittest.TestCase):
             return {'exit_code': 0, 'output': '', 'image_id': image, 'duration_ms': 1}
         with patch.object(w, 'inspect_image', return_value='sha256:t'), \
                 patch.object(execution_policy, 'execute', side_effect=execute):
-            return w.run(self.root, self.parsed, self.fingerprint, 'image')
+            return w.run(self.root, self.parsed, self.fingerprint, 'image', plan_file=plan_file)
 
-    def interrupted_mid_task(self):
+    def interrupted_mid_task(self, plan_file='workflow.json'):
         with self.assertRaises(KeyboardInterrupt):
-            self.run_flow(interrupt_at='verify')
+            self.run_flow(interrupt_at='verify', plan_file=plan_file)
         return json.loads((cont.folder(self.root, PLAN_ID) / 'latest.json').read_text())
 
     def latest_path(self):
@@ -272,7 +272,7 @@ class ContinuationBoundaries(unittest.TestCase):
         with patch.object(w, 'inspect_image', return_value='sha256:t'), \
                 patch.object(execution_policy, 'execute', side_effect=execute), \
                 patch.object(cont, 'write_checkpoint', side_effect=OSError('disk full')):
-            result = w.run(self.root, self.parsed, self.fingerprint, 'image')
+            result = w.run(self.root, self.parsed, self.fingerprint, 'image', plan_file='workflow.json')
         self.assertEqual((result['status'], dispatched), ('failed', []))
         self.assertIn('disk full', result['blocker'])
         self.assertFalse((self.root / 'output.txt').exists())
@@ -310,10 +310,10 @@ class ContinuationBoundaries(unittest.TestCase):
         with patch.object(w, 'inspect_image', return_value='sha256:t'), \
                 patch.object(execution_policy, 'execute', side_effect=execute):
             with patch.object(cont, 'write_checkpoint', side_effect=after_first):
-                first = w.run(self.root, self.parsed, self.fingerprint, 'image')
+                first = w.run(self.root, self.parsed, self.fingerprint, 'image', plan_file='workflow.json')
             self.assertEqual((first['status'], calls), ('failed', ['build']))
             built = (self.root / 'output.txt').read_bytes()
-            second = w.run(self.root, self.parsed, self.fingerprint, 'image')
+            second = w.run(self.root, self.parsed, self.fingerprint, 'image', plan_file='workflow.json')
         self.assertEqual((second['status'], calls), ('complete', ['build', 'verify']))  # build was not replayed
         self.assertEqual((self.root / 'output.txt').read_bytes(), built)
 
@@ -356,6 +356,103 @@ class ContinuationBoundaries(unittest.TestCase):
                 self.assertEqual(packet['previous_sha256'], packets[index - 1]['packet_sha256'])
         self.assertEqual(packets[-1]['boundary'], 'complete')
         self.assertIn('nothing to continue', packets[-1]['next_safe_action'])
+
+    # the recorded plan is validated by default (W04)
+    def snapshot_state(self):
+        folder = cont.folder(self.root, PLAN_ID)
+        return (sorted(p.name for p in folder.iterdir()), self.attempts_bytes(),
+                (self.root / 'output.txt').read_bytes())
+
+    def test_the_recorded_plan_path_is_used_by_default_and_drift_is_refused_without_side_effects(self):
+        packet = self.interrupted_mid_task()
+        self.assertEqual(packet['workflow']['plan_file'], 'workflow.json')
+        self.assertEqual(json.loads((w.runtime(self.root, PLAN_ID) / 'state.json').read_text())['plan_file'], 'workflow.json')
+        (self.root / 'dirty.txt').write_text('uncommitted edit', encoding='utf-8')
+        self.assertTrue(cont.validate(self.root, self.latest_path(), RECEIVER)['accepted'])
+        original = (self.root / 'workflow.json').read_text()
+        changed = json.loads(original)
+        changed['steps'][1]['summary'] = 'Verify differently'
+        (self.root / 'workflow.json').write_text(json.dumps(changed), encoding='utf-8')
+        before = self.snapshot_state()
+        result = cont.validate(self.root, self.latest_path(), RECEIVER)
+        self.assertFalse(result['accepted'])
+        self.assertIn('workflow plan changed since the checkpoint', result['reasons'])
+        with self.assertRaisesRegex(ValueError, 'workflow plan changed since the checkpoint'):
+            cont.accept(self.root, self.latest_path(), RECEIVER)
+        self.assertFalse((cont.folder(self.root, PLAN_ID) / 'owner.json').exists(), 'a refusal claims nothing')
+        self.assertEqual(self.snapshot_state(), before)
+        self.assertEqual((self.root / 'dirty.txt').read_text(), 'uncommitted edit')
+        command = ['validate', '--project', str(self.root), '--workflow', PLAN_ID, '--receiver-id', 'agent-b',
+                   '--receiver-host', 'codex', '--receiver-model', 'gpt-6-sol']
+        with patch('builtins.print'):
+            self.assertEqual(cont.main(command), 2, 'the normal command refuses without a --plan argument')
+        (self.root / 'workflow.json').write_text(original, encoding='utf-8')
+        with patch('builtins.print'):
+            self.assertEqual(cont.main(command), 0)
+
+    def test_an_explicit_plan_file_is_held_to_the_recorded_identity_and_fingerprint(self):
+        self.interrupted_mid_task()
+        shutil.copy(self.root / 'workflow.json', self.root / 'moved.json')
+        self.assertTrue(cont.validate(self.root, self.latest_path(), RECEIVER, 'moved.json')['accepted'],
+                        'the same plan under another name is the same plan')
+        other = json.loads((self.root / 'workflow.json').read_text())
+        other['steps'][0]['summary'] = 'Not the recorded build'
+        (self.root / 'other.json').write_text(json.dumps(other), encoding='utf-8')
+        result = cont.validate(self.root, self.latest_path(), RECEIVER, 'other.json')
+        self.assertIn('workflow plan changed since the checkpoint', result['reasons'])
+        other['id'] = 'another-flow'
+        (self.root / 'renamed.json').write_text(json.dumps(other), encoding='utf-8')
+        self.assertIn('workflow plan identity differs from the checkpoint',
+                      cont.validate(self.root, self.latest_path(), RECEIVER, 'renamed.json')['reasons'])
+        (self.root / 'broken.json').write_text('{not json', encoding='utf-8')
+        self.assertTrue(cont.validate(self.root, self.latest_path(), RECEIVER, 'broken.json')['reasons'][0]
+                        .startswith('workflow plan cannot be verified'))
+
+    def test_escaping_missing_and_linked_plan_paths_are_refused_safely(self):
+        self.interrupted_mid_task()
+        outside = self.base / 'outside.json'
+        shutil.copy(self.root / 'workflow.json', outside)
+        os.symlink(self.root / 'workflow.json', self.root / 'link.json')
+        for override in ('../outside.json', str(outside), 'missing.json', 'link.json', '.git/config', '.crewloom/x.json'):
+            with self.subTest(override=override):
+                result = cont.validate(self.root, self.latest_path(), RECEIVER, override)
+                self.assertFalse(result['accepted'])
+                self.assertTrue(result['reasons'][0].startswith('workflow plan cannot be verified'), result['reasons'])
+        # the recorded path itself replaced by a link to an identical file is refused too
+        (self.root / 'real.json').write_text((self.root / 'workflow.json').read_text(), encoding='utf-8')
+        (self.root / 'workflow.json').unlink()
+        os.symlink(self.root / 'real.json', self.root / 'workflow.json')
+        result = cont.validate(self.root, self.latest_path(), RECEIVER)
+        self.assertIn('symlinks', ' '.join(result['reasons']))
+        (self.root / 'workflow.json').unlink()
+        result = cont.validate(self.root, self.latest_path(), RECEIVER)
+        self.assertIn('the plan file is missing', ' '.join(result['reasons']))
+
+    def test_a_programmatic_plan_has_an_explicit_validated_contract(self):
+        self.interrupted_mid_task(plan_file=None)
+        packet = json.loads((cont.folder(self.root, PLAN_ID) / 'latest.json').read_text())
+        self.assertIsNone(packet['workflow']['plan_file'])
+        before = self.snapshot_state()
+        refused = cont.validate(self.root, self.latest_path(), RECEIVER)
+        self.assertIn('recorded no plan path', ' '.join(refused['reasons']), 'no path is invented and no check is skipped')
+        with self.assertRaisesRegex(ValueError, 'recorded no plan path'):
+            cont.accept(self.root, self.latest_path(), RECEIVER)
+        self.assertEqual(self.snapshot_state(), before)
+        self.assertTrue(cont.validate(self.root, self.latest_path(), RECEIVER, plan=self.parsed)['accepted'])
+        drifted = json.loads(json.dumps(self.parsed))
+        drifted['steps'][0]['summary'] = 'drifted'
+        self.assertIn('workflow plan changed since the checkpoint',
+                      cont.validate(self.root, self.latest_path(), RECEIVER, plan=drifted)['reasons'])
+        wrong_id = dict(self.parsed, id='another-flow')
+        self.assertIn('workflow plan identity differs from the checkpoint',
+                      cont.validate(self.root, self.latest_path(), RECEIVER, plan=wrong_id)['reasons'])
+        invalid = dict(self.parsed, steps=[])
+        self.assertTrue(cont.validate(self.root, self.latest_path(), RECEIVER, plan=invalid)['reasons'][0]
+                        .startswith('workflow plan cannot be verified'))
+        both = cont.validate(self.root, self.latest_path(), RECEIVER, 'workflow.json', plan=self.parsed)
+        self.assertIn('not both', ' '.join(both['reasons']))
+        accepted = cont.accept(self.root, self.latest_path(), RECEIVER, plan=self.parsed)
+        self.assertEqual(accepted['owner']['state'], 'active')
 
 
 class ContinuationCommand(unittest.TestCase):
@@ -449,10 +546,36 @@ class ContinuationOwnership(ContinuationBoundaries):
         with patch.object(w, 'inspect_image', return_value='sha256:t'), \
                 patch.object(execution_policy, 'execute', side_effect=execute):
             try:
-                result = w.run(self.root, self.parsed, self.fingerprint, 'image', owner=claim)
+                result = w.run(self.root, self.parsed, self.fingerprint, 'image', owner=claim, plan_file='workflow.json')
             except RuntimeError as exc:
                 result = exc
         return result, calls
+
+    def test_an_interrupt_between_steps_stops_the_running_owner_before_its_next_dispatch(self):
+        with self.assertRaises(KeyboardInterrupt):
+            self.run_flow(interrupt_at='build')  # nothing completed: both steps are still pending
+        cont.reconcile(self.root, PLAN_ID)
+        accepted = cont.accept(self.root, self.latest_path(), RECEIVER)
+        claim = {'owner': 'agent-b', 'epoch': accepted['owner']['epoch'], 'token': accepted['owner_token']}
+        calls = []
+
+        def execute(root, step, image, timeout):
+            calls.append(step['id'])
+            for name in step['outputs']:
+                (root / name).write_text('produced by ' + step['id'], encoding='utf-8')
+            if step['id'] == 'build':  # the interrupt lands between the two steps, on the run's own lock
+                cont.interrupt(self.root, PLAN_ID, {'kind': 'quota_exhausted', 'confidence': 'confirmed'}, 'host stopped')
+            return {'exit_code': 0, 'output': '', 'image_id': image, 'duration_ms': 1}
+        with patch.object(w, 'inspect_image', return_value='sha256:t'), \
+                patch.object(execution_policy, 'execute', side_effect=execute):
+            with self.assertRaisesRegex(cont.OwnershipError, 'was interrupted'):
+                w.run(self.root, self.parsed, self.fingerprint, 'image', owner=claim, plan_file='workflow.json')
+        self.assertEqual(calls, ['build'], 'the second step was never dispatched')
+        self.assertFalse((self.root / 'verified.txt').exists())
+        self.assertEqual((self.root / 'output.txt').read_text(), 'produced by build', 'completed work is preserved')
+        result, calls_after = self.resume(claim)  # the interrupted slot admits nobody, including the old owner
+        self.assertIsInstance(result, cont.OwnershipError)
+        self.assertEqual(calls_after, [])
 
     def test_only_the_live_owner_with_its_token_may_dispatch_and_publish(self):
         self.prepare()

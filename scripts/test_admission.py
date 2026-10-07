@@ -456,6 +456,32 @@ class BatchBudgetAtTheModelStep(unittest.TestCase):
             self.assertEqual(w.run(self.root, self.parsed, self.fingerprint, 'image')['status'], 'complete')
         self.assertFalse(self.folder.exists())
 
+    def test_an_opencode_prompt_beyond_its_argv_bound_is_refused_before_any_reservation_attempt_or_launch(self):
+        steps = [{'id': 'cli', 'role': 'context-guardian', 'kind': 'model', 'host': 'opencode', 'model': 'm/test',
+                  'summary': 'Generate', 'inputs': ['a.py'], 'outputs': ['cli.py']}]
+        (self.root / 'cli.json').write_text(json.dumps({'schema_version': 1, 'id': 'oc-flow', 'steps': steps}))
+        parsed, fingerprint = w.read_plan(self.root, 'cli.json')
+        adm.configure(self.folder, 'b', {'max_model_requests': 5})
+        dispatched = []
+        for size, refused in ((model_host.MAX_ARGV_TEXT + 1, True), (153600, True), (model_host.MAX_ARGV_TEXT, False)):
+            with self.subTest(size=size), patch.object(w, 'inspect_image', return_value='sha256:t'), \
+                    patch.object(model_host, 'build_prompt', return_value='x' * size), \
+                    patch.object(model_host, 'generate', side_effect=lambda h, p, o, *a, **k: (
+                        dispatched.append(h), ({o[0]: 'x = 1\n'}, {}))[1]), \
+                    adm.context(self.folder, 't'):
+                dispatched.clear()
+                result = w.run(self.root, parsed, fingerprint, 'image', allow_host_cli=True)
+                summary = adm.summary(self.folder)
+                ledger = self.root / '.crewloom/attempts.json'
+                attempts = json.loads(ledger.read_text())['attempts'] if ledger.exists() else []
+                if refused:
+                    self.assertEqual(result['status'], 'failed')
+                    self.assertIn('exceeds the 131072 byte bound', json.dumps(result))
+                    self.assertEqual((summary['charged_requests'], attempts, dispatched), (0, [], []))
+                else:
+                    self.assertEqual(result['status'], 'complete', result)
+                    self.assertEqual((summary['charged_requests'], dispatched), (1, ['opencode']))
+
     def test_a_queued_request_waits_and_is_refused_when_the_batch_is_cancelled(self):
         adm.configure(self.folder, 'b', {'max_concurrent_requests': 1})
         adm.admit(self.folder, 'someone-else', {})          # holds the only concurrent slot

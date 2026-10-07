@@ -10,6 +10,10 @@
 
 ## Unreleased
 
+- Tool gate: judges the staged index (commit hook) or committed tree (CI), classifies unguarded/alternative entrypoints, requires a contract or exact-bytes exception for changed legacy tools, and binds evidence to imports, acceptance bytes and structured test counts; empty or wholly skipped acceptance cannot promote.
+- Owned resources: process inspection is present/absent/unknown; an unreadable `ps` keeps tracking and never reports `gone`.
+- Continuation: `validate`/`accept` check the checkpoint's recorded plan by default; `--plan`/`plan=` supplies a plan with no recorded path.
+- Model hosts: OpenCode's prompt bound is its 131,072-byte argv transport and oversized prompts refuse before any attempt or launch.
 - Make continuation ownership atomic and fenced, commit the pre-dispatch checkpoint before any side effect, reserve aggregate model output, cancel whole process trees and remove containers only by verified immutable ID.
 - Add a single tool catalog with contract version 1, lifecycle, evidence bound to source hashes and a commit/CI gate for new and changed tools.
 - Package the Python runtime, all 42 roles, native adapters and runnable examples in a wheel and source archive; add an optional pinned JavaScript/TypeScript syntax backend.

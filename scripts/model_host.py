@@ -30,10 +30,31 @@ MAX_ARTIFACT_BYTES = 1024 * 1024
 # The prompt travels as one argv element for hosts without verified stdin support,
 # so an oversized prompt is refused instead of silently truncated.
 MAX_ARGV_TEXT = 128 * 1024
+# How each adapter hands the prompt to its host. Only the argv transport has the smaller bound.
+INPUT_TRANSPORT = {'codex': 'stdin', 'claude': 'stdin', 'opencode': 'argv',
+                   'openai': 'api-request', 'anthropic': 'api-request'}
 SCHEMA = {'type':'object','properties':{'artifacts':{'type':'array','items':{'type':'object',
     'properties':{'path':{'type':'string'},'content':{'type':'string'}},
     'required':['path','content'],'additionalProperties':False}}},
     'required':['artifacts'],'additionalProperties':False}
+def input_bound(host):
+    """Largest prompt, in UTF-8 bytes, the selected adapter can deliver (not the model's context window).
+
+    OpenCode receives the prompt as one argv element and nothing is added around it by this adapter (its schema
+    instruction travels in its agent configuration file), so its bound is exactly the argv budget. The other
+    hosts read the prompt from stdin or an API request body and keep the general bound."""
+    if host not in INPUT_TRANSPORT:raise ValueError('Host must be one of: '+', '.join(HOSTS))
+    return MAX_ARGV_TEXT if INPUT_TRANSPORT[host]=='argv' else MAX_TEXT
+
+
+def _refuse_oversized_prompt(host,prompt):
+    """Refuse before a probe, an attempt, a reservation or a launch; size is the encoded byte length."""
+    bound=input_bound(host);size=len(prompt.encode())
+    if size>bound:
+        raise ValueError('Host prompt exceeds the %s budget of %d bytes for %s (%d bytes)'
+                         % ('argv' if INPUT_TRANSPORT[host]=='argv' else 'input',bound,host,size))
+
+
 USAGE_KEYS = ('input_tokens','uncached_input_tokens','cached_input_tokens','cache_write_tokens',
               'output_tokens','reasoning_tokens','total_tokens')
 CODEX_TOKEN_FIELDS = ('input_tokens','cached_input_tokens','output_tokens','reasoning_tokens','total_tokens')
@@ -162,7 +183,7 @@ def command(host, executable, scratch, model=None, prompt=None, outputs=None):
               '--dir',str(scratch)]
         if model:argv.extend(['--model',model])
         if prompt is not None:
-            if len(prompt.encode())>MAX_ARGV_TEXT:raise ValueError('Host prompt exceeds the argv budget')
+            _refuse_oversized_prompt(host,prompt)
             argv.append(prompt)
         return argv
     if host=='codex':
@@ -467,8 +488,8 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None, max_
         # An installed CLI exposes no output-token bound this adapter can set, so a guaranteed ceiling
         # is refused instead of being advertised and silently ignored.
         raise ValueError('Host %s cannot enforce an output-token ceiling' % host)
+    _refuse_oversized_prompt(host,prompt)
     info=probe(host)
-    if len(prompt.encode())>MAX_TEXT:raise ValueError('Host prompt exceeds 256 KiB')
     started=time.monotonic()
     if evidence is not None:
         folder=Path(evidence).resolve();folder.mkdir(parents=True,exist_ok=True)
@@ -796,7 +817,9 @@ def capability_profile(host,model=None,launch_mode=None,probe_info=None,reported
                                   'host response' if reported_model else 'no generation observed',at)},
         'tools':tools,
         'structured_output':_fact(STRUCTURED_OUTPUT[host],'documented','adapter request construction',at),
-        'limits':{'input_bytes':_fact(MAX_TEXT,'documented','adapter prompt bound (not the model context window)',at),
+        'limits':{'input_bytes':_fact(input_bound(host),'documented',
+                                      'adapter prompt bound for the %s transport (not the model context window)'
+                                      % INPUT_TRANSPORT[host],at),
                   'output_bytes':_fact(MAX_ARTIFACT_BYTES,'documented','adapter artifact bound',at),
                   'context_window_tokens':_fact(None,'unknown','not reported by the host',at),
                   'knowledge_cutoff':_fact(None,'unknown','never inferred from a model name',at)},

@@ -179,7 +179,18 @@ All earlier entries below retain their original snapshot status. Pending work is
 > - [ ] Test quota/rate-limit interruption and optional allowlisted automatic continuation after manual handoff and aggregate budget/cancellation acceptance — priority: medium.
 
 - [x] 2026-10-07: PR8 repairs for source identity, atomic continuation ownership, durable required checkpoints, aggregate output reservation, process-tree cancellation, immutable container identity and the N04 carry-forward — priority: high.
-- [ ] Verify Python 3.9/3.14 CI on the exact pushed head; reconcile the PR description and receipts — priority: high.
+- [x] Verify Python 3.9/3.14 CI and all9 checks on e77dbeb; public PR description updated. Private source-scoped receipt/handoff reconciliation remains below.
 - [ ] Run a real Claude-to-other-host continuation pilot with a pre-approved host/budget (needs owner authorization) — priority: high.
 - [ ] Close the launch-to-tracking crash window (pre-registered launch intent) and descendants that leave their group after the leader exits — priority: medium.
 - [ ] Migrate more tools to contract v1 and record owner activations; inventory the unregistered supporting modules; W08 usefulness/composition evidence — priority: medium.
+- [x] Independently review e77dbeb with135 targeted passes, actual Docker ownership and45 unchanged frozen hashes; preserve follow-up counterexamples — 2026-10-07.
+- [ ] W03/N04: Gate staged snapshots, unguarded operational scripts and changed legacy behavior; bind acceptance/supporting-source evidence and reject empty/skipped required suites across supported Python versions — priority: high.
+- [ ] W09: Preserve unresolved live-resource tracking when process inspection is unavailable, failed or partial — priority: high.
+- [ ] W04/W12: Preserve old attempts and write a current head/CI/open-findings checkpoint and handoff; do not repeat already completed commits/pushes — priority: high.
+- [ ] W04/W03: Validate recorded-plan drift by default and correct OpenCode's effective byte bound; reconcile evidence for the four unresolved PR discussions — priority: high.
+
+### 2026-10-07 — After the remaining-defect repair
+- Completed: staged/committed snapshot gate, reviewed classification, legacy transition, provenance 2 with structured acceptance counts, tri-state process observation, default recorded-plan validation, host-specific OpenCode bound.
+- Remaining: contracts or retirement for 15 legacy tools and older unregistered CLIs; record plan paths from coordinator/pilot runs; Windows process identity; real cross-host handoff pilot; independent review of the pushed head.
+- [ ] Register `task_coordinator.py`, `evaluate_*`, `host_lifecycle.py`, `repo_map.py`, `reviewer_credentials.py` with contracts or declare reviewed categories — priority: medium
+- [ ] Fingerprint helper modules imported by acceptance files without blanket retesting — priority: low

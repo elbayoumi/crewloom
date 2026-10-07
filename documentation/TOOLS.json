@@ -158,11 +158,24 @@
       "evidence": [
         {
           "test": ".agents/skills/qa-test-automation-engineer/scripts/test_delivery_packet.py",
-          "command": "-m unittest discover -s .agents/skills/qa-test-automation-engineer/scripts -p test_delivery_packet.py",
+          "command": "tool_catalog.py acceptance-worker .agents/skills/qa-test-automation-engineer/scripts test_delivery_packet.py",
           "exit_code": 0,
           "source_sha256": "ffc1ce1fb92b04444ed4a7c072c0272c3ce34fcddf733fb86af6f1d0b7db6c8c",
-          "contract_sha256": "ea6ecc70805d55966fccaf8476966e0eace14a582dc63ac6e9a5cd792fdb351c",
-          "recorded_at": "2026-10-06T23:11:55Z"
+          "contract_sha256": "0d264ced40762c4e95f4a5fbc4e4a12f9d40acbf0b0f2e4d2d7e093676846e2b",
+          "support_sha256": {},
+          "acceptance_sha256": "ff8e7dbc2a4936d0af50b513b907b50108794321736bbc75350d7c59c68798db",
+          "counts": {
+            "discovered": 12,
+            "run": 12,
+            "executed": 12,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 2,
+          "recorded_at": "2026-10-07T03:24:49Z"
         }
       ]
     },
@@ -235,11 +248,24 @@
       "evidence": [
         {
           "test": ".agents/skills/context-guardian/scripts/test_context_pack.py",
-          "command": "-m unittest discover -s .agents/skills/context-guardian/scripts -p test_context_pack.py",
+          "command": "tool_catalog.py acceptance-worker .agents/skills/context-guardian/scripts test_context_pack.py",
           "exit_code": 0,
           "source_sha256": "05003cfa644c1fb48e876818f4be1d84de7916af9f39e7ddb2565bbfb698dd06",
-          "contract_sha256": "d7d8a0d83430da5a3e1881412bcd80dbfb6721e75a7a7ed695885d489c54a52b",
-          "recorded_at": "2026-10-06T23:11:55Z"
+          "contract_sha256": "b927fc2acd66fc2664b65c085b514ab332af45b8427420d919bd38ff975b758d",
+          "support_sha256": {},
+          "acceptance_sha256": "d4f60bde0526926409b6148dc4005be4ff8830cc204139a0dad2ea7069b4d9a8",
+          "counts": {
+            "discovered": 8,
+            "run": 8,
+            "executed": 8,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 2,
+          "recorded_at": "2026-10-07T03:24:49Z"
         }
       ]
     },
@@ -276,7 +302,117 @@
         "Docker daemon and prepared image",
         "Authenticated Codex/Claude CLI only for model steps"
       ],
-      "effect": "writes-project-artifacts-and-runtime-state"
+      "effect": "writes-project-artifacts-and-runtime-state",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "context-guardian",
+      "status": "verified",
+      "inputs": {
+        "action": {
+          "type": "string",
+          "required": true,
+          "description": "run, status, handoff, accept, cancel or doctor"
+        },
+        "--project": {
+          "type": "path",
+          "required": false,
+          "description": "Explicit canonical project root; required for every task action"
+        },
+        "--plan": {
+          "type": "path",
+          "required": false,
+          "description": "Project-relative workflow plan file (default workflow.json); recorded in the run state so checkpoints can be validated against it"
+        },
+        "--image": {
+          "type": "string",
+          "required": false,
+          "description": "Prepared isolation image for command steps"
+        },
+        "--step": {
+          "type": "string",
+          "required": false,
+          "description": "Task step to accept (accept action)"
+        },
+        "--reviewer": {
+          "type": "string",
+          "required": false,
+          "description": "Reviewer identity for accept"
+        },
+        "--owner-id": {
+          "type": "string",
+          "required": false,
+          "description": "Continuation owner id; its token is read from CREWLOOM_OWNER_TOKEN"
+        },
+        "--owner-epoch": {
+          "type": "string",
+          "required": false,
+          "description": "Continuation owner epoch"
+        }
+      },
+      "outputs": {
+        "result": {
+          "type": "json",
+          "required": true,
+          "description": "Handoff or status report with per-step state, attempts and evidence hashes"
+        }
+      },
+      "errors": {
+        "blocked": {
+          "exit_code": 2,
+          "meaning": "The plan, project binding, ownership, budget or a step failed; recorded state and verified outputs are preserved"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-project-files",
+        "write-runtime-state",
+        "process-spawn",
+        "docker",
+        "model-provider"
+      ],
+      "limits": {
+        "timeout_seconds": 3600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_workflow.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_workflow.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_workflow.py",
+          "exit_code": 0,
+          "source_sha256": "e5caafdc24eb5b2b529ada0cb035f09858652d4a16f48dc770fd82ff6d021726",
+          "contract_sha256": "6693b5e59f5d8e0862a059986aebbc0e1328e67c752c344b88a1bd496a335c19",
+          "support_sha256": {
+            "scripts/admission.py": "11e56d7031fd3a10b19ceb814c768e1b698fb28320adb95b930af715f3af2e8e",
+            "scripts/continuation.py": "0de89daf9e5d32e38f44b1df00625e9833783b3cf1b63ff4e5ce2dfee6fd0542",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "efe3d2566b4431ce08bef0460f72d6850a1189e0cd743548787e68bdedd5ed44",
+            "scripts/project_binding.py": "e7ae751c2b6a8bef1d82564a26c7debf351dffd987b9e98664757d276b14b560",
+            "scripts/project_context.py": "08ec16c8c81482750ea8836dfd14dcaf042764e95e1aa58db8a4b629b3ae6485",
+            "scripts/project_lessons.py": "00833357e4d069bf82fa353f226bfb229585cc3951c9eeb0162218c628814e82",
+            "scripts/provider_gateway.py": "6d19cff534344a980e4f40c1a3f22f26f67ba6d536ebdda8c190822f105b3039",
+            "scripts/repo_map.py": "ff546fee74b4a1fe2d090a293575f007cf81ea8fca7c54c27f7e545944657969",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e"
+          },
+          "acceptance_sha256": "a2f0cfcf07478b803735c354278e43b0dff47d52d617e6d29c3190589e7f99a4",
+          "counts": {
+            "discovered": 28,
+            "run": 28,
+            "executed": 23,
+            "skipped": 5,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 2,
+          "recorded_at": "2026-10-07T03:25:13Z"
+        }
+      ]
     },
     {
       "id": "project-context",
@@ -395,11 +531,37 @@
       "evidence": [
         {
           "test": "scripts/test_continuation.py",
-          "command": "-m unittest discover -s scripts -p test_continuation.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_continuation.py",
           "exit_code": 0,
-          "source_sha256": "02669420659064447a25f9739454c6d88ace48d609baad00608b588b9b15a386",
-          "contract_sha256": "ba459fe1791b462ea3e24995017302e4a2fd30d7d0ec74c0b15f55f6c5a748d4",
-          "recorded_at": "2026-10-06T23:36:25Z"
+          "source_sha256": "0de89daf9e5d32e38f44b1df00625e9833783b3cf1b63ff4e5ce2dfee6fd0542",
+          "contract_sha256": "1728e152bcb11d855385ed146a15b9e1fb8df9a2cdd47f885c1c51d5568af451",
+          "support_sha256": {
+            "scripts/admission.py": "11e56d7031fd3a10b19ceb814c768e1b698fb28320adb95b930af715f3af2e8e",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "efe3d2566b4431ce08bef0460f72d6850a1189e0cd743548787e68bdedd5ed44",
+            "scripts/project_binding.py": "e7ae751c2b6a8bef1d82564a26c7debf351dffd987b9e98664757d276b14b560",
+            "scripts/project_context.py": "08ec16c8c81482750ea8836dfd14dcaf042764e95e1aa58db8a4b629b3ae6485",
+            "scripts/project_lessons.py": "00833357e4d069bf82fa353f226bfb229585cc3951c9eeb0162218c628814e82",
+            "scripts/provider_gateway.py": "6d19cff534344a980e4f40c1a3f22f26f67ba6d536ebdda8c190822f105b3039",
+            "scripts/repo_map.py": "ff546fee74b4a1fe2d090a293575f007cf81ea8fca7c54c27f7e545944657969",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/workflow.py": "e5caafdc24eb5b2b529ada0cb035f09858652d4a16f48dc770fd82ff6d021726"
+          },
+          "acceptance_sha256": "f44f0663a51c792c1818946b5cd4c3695998484d215c00c6e8d8db0e30fc3f29",
+          "counts": {
+            "discovered": 53,
+            "run": 53,
+            "executed": 53,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 2,
+          "recorded_at": "2026-10-07T03:28:08Z"
         }
       ]
     },
@@ -469,11 +631,26 @@
       "evidence": [
         {
           "test": "scripts/test_tool_catalog.py",
-          "command": "-m unittest discover -s scripts -p test_tool_catalog.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_tool_catalog.py",
           "exit_code": 0,
-          "source_sha256": "d6fa42269cd07f4f0d9b552f90517a57a1422b2b7278cb49d652be32da0dd9f9",
-          "contract_sha256": "641b2f14a54b0cac1c3515241cafc85a892728196e5bb44b3c10ba903853a1c0",
-          "recorded_at": "2026-10-06T23:48:19Z"
+          "source_sha256": "f269516195eded4c3b62ea2761801d0b356d92788bf17752263015e87b475be0",
+          "contract_sha256": "03238b6e949cc71cd0bfedaa5b1f80c27f96de0566b2bb1fc7d7c56ef65c23dc",
+          "support_sha256": {
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f"
+          },
+          "acceptance_sha256": "40af50271911445092cd24978085de286b7dca5ef9063e3f26e28cfb73da643a",
+          "counts": {
+            "discovered": 56,
+            "run": 56,
+            "executed": 56,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 2,
+          "recorded_at": "2026-10-07T03:44:14Z"
         }
       ]
     }
