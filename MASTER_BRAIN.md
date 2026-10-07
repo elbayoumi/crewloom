@@ -87,3 +87,9 @@ Existing recorded-plan/OpenCode-bound review observations also reproduce; four u
 
 ### 2026-10-07 — Remaining PR8 defects repaired within stated bounds
 The tool gate now judges the staged or committed snapshot, rejects unguarded and disguised operational code, requires a contract or exact-bytes exception for changed legacy tools, and binds verification to implementation, imports, contract, acceptance bytes and structured counts; empty acceptance cannot promote on Python 3.9 or 3.14. Process-inspection failure preserves tracking; checkpoints are validated against their recorded plan; OpenCode preflight uses its argv bound. Still not claimed: coverage of dynamic imports/test helpers, the 15 legacy tools, Windows process identity, cost caps, a real cross-host handoff or universal enforcement.
+
+### 2026-10-07 — Second-repair assurance remains scoped
+Independent review at3f28df8 confirms earlier repaired counterexamples,9 green CI checks,4 resolved conversations and45 unchanged frozen hashes. Three N04 defects remain: lost concurrent catalog edits, all-expected-failure promotion and missing static package initializer provenance. Stronger verified-tool/release claims require these existing W03 boundaries to be repaired; no merge, real cross-host pilot or W01–W12 completion is established by this review.
+
+### 2026-10-07 — Second-review evidence defects repaired
+Crewloom now serializes catalog evidence recorders, preserves detected concurrent catalog edits, refuses all-expected-failure promotion and invalidates evidence after static package initializer changes. The expanded70-case suite and independent probes pass on Python3.9/3.14; migrated evidence is current and45 frozen files remain unchanged. This closes the three second-review findings in tested cases; legacy migration, actual cross-host usefulness and the wider unified plan are not complete.

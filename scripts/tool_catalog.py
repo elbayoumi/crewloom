@@ -288,8 +288,19 @@ def _local_modules(view, relative, tree):
     roots = [here, PurePosixPath('scripts')]
     found = set()
 
-    def probe(base, dotted):
+    def probe(base, dotted, package_base=False):
         stem = base.joinpath(*dotted.split('.')) if dotted else base
+        # Importing pkg.nested.child executes both package initializers before child.py.
+        # A namespace package has no initializer; only existing repository files are bound.
+        parents = stem.parents if dotted else (stem, *stem.parents)
+        for parent in parents:
+            if parent == base and not package_base:
+                break
+            if parent != base and base not in parent.parents:
+                continue
+            initializer = str(parent / '__init__.py')
+            if view.exists(initializer):
+                found.add(initializer)
         for candidate in (stem.with_suffix('.py') if dotted else None, stem / '__init__.py'):
             if candidate is not None and view.exists(str(candidate)):
                 found.add(str(candidate))
@@ -306,9 +317,10 @@ def _local_modules(view, relative, tree):
             for base in bases:
                 base = PurePosixPath(os.path.normpath(str(base)))
                 if node.module:
-                    probe(base, node.module)
+                    probe(base, node.module, package_base=bool(node.level))
                 for alias in node.names:
-                    probe(base, (node.module + '.' if node.module else '') + alias.name)
+                    probe(base, (node.module + '.' if node.module else '') + alias.name,
+                          package_base=bool(node.level))
     return found
 
 
@@ -396,12 +408,18 @@ def verification(item, root, path=None, view=None):
 
 def acceptance_problem(counts):
     """None when the counts describe meaningful passing acceptance, otherwise the reason it is not."""
+    if (any(value < 0 for value in counts.values()) or counts['run'] > counts['discovered']
+            or counts['executed'] + counts['skipped'] != counts['run']
+            or counts['expected_failures'] > counts['executed']):
+        return 'inconsistent test counts'
     if counts['discovered'] < 1:
         return 'no tests were discovered'
     if counts['failures'] or counts['errors'] or counts['unexpected_successes']:
         return 'tests failed or errored'
     if counts['executed'] < 1:
         return 'every test was skipped' if counts['skipped'] else 'no test executed'
+    if counts['executed'] - counts['expected_failures'] < 1:
+        return 'no test passed (expected failures are not passing acceptance)'
     return None
 
 
@@ -1063,15 +1081,56 @@ def _run_acceptance(root, test, runner, timeout):
     return counts, 'tool_catalog.py acceptance-worker %s %s' % (Path(test).parent, Path(test).name)
 
 
+def _assert_catalog_unchanged(root, expected):
+    """Reject any catalog drift, including unrelated edits, instead of overwriting another writer."""
+    import workflow as w
+    try:
+        path = w.safe_path(root, CATALOG_RELATIVE, internal=True)
+        current = path.read_bytes()
+    except (OSError, ValueError) as exc:
+        raise ValueError('The catalog changed or became unreadable; no evidence was recorded') from exc
+    if current != expected:
+        raise ValueError('The catalog changed while acceptance ran; no evidence was recorded')
+    return path
+
+
+def _publish_evidence_catalog(root, expected, catalog):
+    """Replace the complete catalog atomically, preserving permissions and cleaning failed preparations."""
+    path = _assert_catalog_unchanged(root, expected)
+    mode = path.stat().st_mode & 0o777
+    descriptor, temporary = tempfile.mkstemp(dir=str(path.parent), prefix='.TOOLS-')
+    try:
+        with os.fdopen(descriptor, 'w', encoding='utf-8') as stream:
+            stream.write(json.dumps(catalog, indent=2, ensure_ascii=False) + '\n')
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.chmod(temporary, mode)
+        _assert_catalog_unchanged(root, expected)  # also check changes during preparation
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
 def record_evidence(root, ident, runner=subprocess.run, timeout=300):
     """Controlled writer: run every declared (required) acceptance file and bind the passing, meaningful results
     to the exact implementation, supporting code, contract and acceptance bytes that were tested.
 
     All declared acceptance is required: there is no optional tier, and a failing, wholly skipped or empty
-    module blocks promotion. A failing run records nothing, an existing record is never rewritten with a
-    different result, and evidence is refused if anything it binds to changed while the tests ran."""
-    root = Path(root)
-    catalog = load_catalog(root)
+    module blocks promotion; expected failures alone cannot pass. Cooperating recorders use the existing
+    project lock protocol. Any catalog drift refuses recording and preserves the other writer's bytes.
+    The final complete catalog is atomically replaced; arbitrary host editors do not honor this lock."""
+    import workflow as w
+    root = Path(root).resolve()
+    w.safe_path(root, CATALOG_RELATIVE, internal=True)
+    folder = w.safe_path(root, '.crewloom/tool-catalog', internal=True)
+    with w.project_lock(folder):
+        return _record_evidence(root, ident, runner, timeout)
+
+
+def _record_evidence(root, ident, runner, timeout):
+    snapshot = (root / CATALOG_RELATIVE).read_bytes()
+    catalog = json.loads(snapshot.decode('utf-8'))
     item = next((t for t in catalog['tools'] if t.get('id') == ident), None)
     if item is None or item.get('contract_version') != CONTRACT_VERSION:
         raise ValueError('Tool %r has no contract version %d to verify' % (ident, CONTRACT_VERSION))
@@ -1085,6 +1144,7 @@ def record_evidence(root, ident, runner=subprocess.run, timeout=300):
     for test in item['acceptance']:
         counts, command = _run_acceptance(root, test, runner, timeout)
         tested.append((test, counts, command))
+    _assert_catalog_unchanged(root, snapshot)
     after = provenance(item, root)
     if after != before:
         raise ValueError('The source, supporting code, contract or acceptance changed while acceptance ran; '
@@ -1098,7 +1158,7 @@ def record_evidence(root, ident, runner=subprocess.run, timeout=300):
         item['status'] = 'verified'
     if provenance(item, root) != before:  # last look before the catalog write
         raise ValueError('The artifacts changed while the evidence was prepared; no evidence was recorded')
-    (root / CATALOG_RELATIVE).write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+    _publish_evidence_catalog(root, snapshot, catalog)
     return item
 
 

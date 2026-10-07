@@ -120,3 +120,9 @@ Evidence now follows a tool's imports; a later step could add the helper modules
 
 ### 2026-10-07 — Legacy exception expiry
 `legacy_exceptions` are bound to exact bytes; a review checklist item could list them in PR descriptions so each one is retired by a contract instead of renewed.
+
+### 2026-10-07 — Evidence needs successful behavior and a consistent write boundary
+Apply the existing catalog lock/snapshot pattern to controlled evidence promotion: retain the tested artifact snapshot, refuse catalog drift, and preserve unrelated concurrent work. Actual successful unittest outcomes must be distinguished from expected failures. Static package initializer bytes belong to import provenance. These are proposed repairs with reproduced counterexamples, not implemented guarantees or measured token improvements.
+
+### 2026-10-07 — Existing primitives cover the evidence writer
+Implemented the previously proposed evidence boundary using the current project lock/path guard, without a second registry or lock system. Minimum positive test outcomes and static initializer provenance are verified; broader usefulness still requires task-level acceptance and later provider pilots. Keep the arbitrary-host-write/import limitations explicit instead of expanding a local evidence fix into a universal enforcement claim.

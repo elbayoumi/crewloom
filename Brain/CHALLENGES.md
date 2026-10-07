@@ -308,3 +308,13 @@
 - Root causes: continuation checks plan drift only with an explicit override; capability profiles use a generic prompt bound while OpenCode has a smaller argv limit.
 - Evidence: recorded workflow.json changed after checkpoint still accepts by default but refuses with the explicit plan;153,600 bytes pass preflight then fail command construction against131,072 bytes. No provider executed.
 - Required solution: recorded-plan validation and effective adapter-specific byte bounds in W04/W03. Four unresolved review conversations remain under mandatory conversation resolution; approval count is0. No thread was resolved or external reply sent by this review.
+
+### 2026-10-07 — Evidence recorder and static closure still have false-current paths
+- Root causes: catalog item is not reread during recording; expected failures count as executed success; dotted imports omit parent package initializers.
+- Evidence: on3.9.6/3.14.7, timeout123 is overwritten with30; all-xfail required acceptance promotes verified; changing imported __init__.py leaves evidence current although rerecording fails. Clean controls promote correctly.
+- Required solution: consistent catalog snapshot and serialized atomic update preserving concurrent edits; at least one actual passing test per required module; initializer-aware static import closure. Status: open W03/N04; private independent-review-3f28df8 receipts, PROJECT_REVIEW details.
+
+### 2026-10-07 — Evidence-boundary defects resolved in place
+- Root causes: in-memory-only catalog comparison, expected failures counted as passing acceptance, omitted static package initializers.
+- Solution: reuse project_lock/safe_path; bind exact initial catalog bytes and refuse detected drift before atomic replacement; require actual passing outcomes and consistent counts; bind existing nested/relative package initializers.
+- Evidence:70 passing cases on3.9.6/3.14.7 and independently replayed counterexamples; real contender, drift/rename/symlink failures and compatible mixed/namespace clean cases. Status: the three second-review findings resolved in tested cases; arbitrary noncooperating host writes and dynamic/resource/test-helper imports are outside this guarantee.

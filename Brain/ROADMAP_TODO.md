@@ -194,3 +194,15 @@ All earlier entries below retain their original snapshot status. Pending work is
 - Remaining: contracts or retirement for 15 legacy tools and older unregistered CLIs; record plan paths from coordinator/pilot runs; Windows process identity; real cross-host handoff pilot; independent review of the pushed head.
 - [ ] Register `task_coordinator.py`, `evaluate_*`, `host_lifecycle.py`, `repo_map.py`, `reviewer_credentials.py` with contracts or declare reviewed categories — priority: medium
 - [ ] Fingerprint helper modules imported by acceptance files without blanket retesting — priority: low
+
+### 2026-10-07 — Independent second-repair acceptance
+- [x] Replay earlier repaired counterexamples on3.9/3.14; verify45 frozen hashes and9 green checks at3f28df8; confirm4 resolved PR discussions.
+- [ ] W03/N04: refuse evidence recording after catalog/contract drift and preserve concurrent unrelated catalog edits; serialize cooperating writers and replace atomically — priority: high.
+- [ ] W03/N04: reject required acceptance with no genuinely passing tests, including all expected failures; retain passing mixed-suite compatibility — priority: high.
+- [ ] W03/N04: bind static package initializers, including nested packages, to evidence; initializer drift must become stale — priority: high.
+
+### 2026-10-07 — Evidence repair completion
+- [x] W03/N04 second review: preserve target/unrelated concurrent catalog edits, serialize recorders and publish complete catalog atomically; preparation/rename failures leave no partial catalog.
+- [x] W03/N04 second review: required acceptance needs an actual passing test; mixed expected-failure suites remain compatible, malformed counts refuse verification.
+- [x] W03/N04 second review: static nested/relative package initializer drift invalidates evidence; namespace and unrelated-package clean controls remain usable.
+- Remaining:15 legacy tools and older unregistered CLIs, acceptance helper/dynamic/resource coverage, recorded coordinator/pilot plan paths, Windows process identity and budget-authorized real cross-host delivery pilots remain in the existing unified plan.

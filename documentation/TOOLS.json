@@ -573,7 +573,8 @@
       "example_args": "discover",
       "dependencies": [
         "Python standard library",
-        "Git for the incremental gate"
+        "Git for the incremental gate",
+        "Toolkit workflow project lock and path guard"
       ],
       "effect": "reads-toolkit-and-writes-catalog-evidence",
       "contract_version": 1,
@@ -618,7 +619,8 @@
         "read-project-files",
         "write-project-files",
         "git-read",
-        "process-spawn"
+        "process-spawn",
+        "write-runtime-state"
       ],
       "limits": {
         "timeout_seconds": 600,
@@ -633,16 +635,28 @@
           "test": "scripts/test_tool_catalog.py",
           "command": "tool_catalog.py acceptance-worker scripts test_tool_catalog.py",
           "exit_code": 0,
-          "source_sha256": "f269516195eded4c3b62ea2761801d0b356d92788bf17752263015e87b475be0",
-          "contract_sha256": "03238b6e949cc71cd0bfedaa5b1f80c27f96de0566b2bb1fc7d7c56ef65c23dc",
+          "source_sha256": "00976a6422c6282d88cd931c427e02050c1cece77906eb91cfa8fd44c9ca596d",
+          "contract_sha256": "55d687c36b2d3dc5f8b75a3381ab11a4198531ab8023f2d946eb1f07da50422d",
           "support_sha256": {
-            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f"
+            "scripts/admission.py": "11e56d7031fd3a10b19ceb814c768e1b698fb28320adb95b930af715f3af2e8e",
+            "scripts/continuation.py": "0de89daf9e5d32e38f44b1df00625e9833783b3cf1b63ff4e5ce2dfee6fd0542",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "efe3d2566b4431ce08bef0460f72d6850a1189e0cd743548787e68bdedd5ed44",
+            "scripts/project_binding.py": "e7ae751c2b6a8bef1d82564a26c7debf351dffd987b9e98664757d276b14b560",
+            "scripts/project_context.py": "08ec16c8c81482750ea8836dfd14dcaf042764e95e1aa58db8a4b629b3ae6485",
+            "scripts/project_lessons.py": "00833357e4d069bf82fa353f226bfb229585cc3951c9eeb0162218c628814e82",
+            "scripts/provider_gateway.py": "6d19cff534344a980e4f40c1a3f22f26f67ba6d536ebdda8c190822f105b3039",
+            "scripts/repo_map.py": "ff546fee74b4a1fe2d090a293575f007cf81ea8fca7c54c27f7e545944657969",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/workflow.py": "e5caafdc24eb5b2b529ada0cb035f09858652d4a16f48dc770fd82ff6d021726"
           },
-          "acceptance_sha256": "55e88ad91c1f627117d8ea973694e605714aa701276595653d7e6124dd6cbf36",
+          "acceptance_sha256": "460e574ba520d4606a9d4c5d2001dc25e195b055ad8046c779ad26ef88b6f742",
           "counts": {
-            "discovered": 56,
-            "run": 56,
-            "executed": 56,
+            "discovered": 70,
+            "run": 70,
+            "executed": 70,
             "skipped": 0,
             "failures": 0,
             "errors": 0,
@@ -650,7 +664,7 @@
             "unexpected_successes": 0
           },
           "provenance": 2,
-          "recorded_at": "2026-10-07T06:58:41Z"
+          "recorded_at": "2026-10-07T10:30:51Z"
         }
       ]
     }

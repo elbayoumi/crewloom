@@ -31,6 +31,19 @@ Run `python3 scripts/crewloom.py tools` to list these tools, or `python3 scripts
 
 For exact JSON contracts inspect the tool docstring and validation function. The source is linked directly above so the input contract is reviewable.
 
+`record-evidence` requires at least one genuinely passing test in every declared acceptance file;
+skipped tests and expected failures alone cannot promote a tool. Mixed suites may retain expected
+failures when actual tests pass. Static import provenance includes existing package initializers,
+including nested packages and relative imports; namespace packages need no invented initializer.
+Dynamic imports, non-Python resources and acceptance helper modules remain outside that fingerprint.
+
+Evidence recording reuses the project lock protocol at `.crewloom/tool-catalog/lock`, binds the initial
+catalog bytes and refuses any detected catalog edit during acceptance or write preparation, including
+edits to unrelated tools. It preserves those edits without publishing new evidence. A successful write
+replaces the complete catalog atomically and retains its permissions; failed preparation removes its
+temporary file. Cooperating recorders contend on that lock. Arbitrary host editors do not honor it:
+these checks do not provide an operating-system sandbox or a filesystem compare-and-swap against them.
+
 Workflow execution requires Docker and a locally available image. See [execution](EXECUTION.md). Feature evaluation has a separate [benchmark contract](../examples/evaluation/unicode-slug/README.md).
 
 The [readiness guide](READINESS.md) explains required evidence, exit statuses and the optional private report directory. Readiness does not reconcile project records or deploy changes.

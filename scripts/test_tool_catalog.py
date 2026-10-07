@@ -635,6 +635,123 @@ class AcceptanceBinding(Lifecycle):
             tc.record_evidence(self.root, 'alpha', runner=mutating)
         self.assertEqual((self.root / 'documentation/TOOLS.json').read_text(), before)
 
+    def test_static_nested_package_initializers_are_bound_and_drift_blocks_dispatch(self):
+        self.write('scripts/pkg/__init__.py', 'VALUE = 1\n')
+        self.write('scripts/pkg/nested/__init__.py', 'NESTED = 2\n')
+        self.write('scripts/pkg/nested/child.py', 'CHILD = 3\n')
+        self.write('scripts/alpha.py', 'import pkg.nested.child\n' + TOOL_SOURCE)
+        item = self.verified()
+        expected = {'scripts/pkg/__init__.py', 'scripts/pkg/nested/__init__.py', 'scripts/pkg/nested/child.py'}
+        self.assertTrue(expected <= set(item['evidence'][0]['support_sha256']))
+        self.assertEqual(tc.verification(item, self.root)['state'], 'current')
+        self.write('scripts/pkg/nested/__init__.py', 'NESTED = 999\n')
+        self.assertEqual(tc.verification(item, self.root)['state'], 'stale')
+        self.assertFalse(tc.execution_decision(item, self.root)[0])
+
+    def test_from_imports_relative_imports_and_namespace_packages_have_precise_closure(self):
+        self.write('scripts/pkg/__init__.py', 'VALUE = 1\n')
+        self.write('scripts/pkg/nested/__init__.py', 'NESTED = 2\n')
+        self.write('scripts/pkg/nested/child.py', 'from .. import helper\n')
+        self.write('scripts/pkg/helper.py', 'HELPER = 3\n')
+        self.write('scripts/namespace/child.py', 'CHILD = 4\n')  # no initializer: a real namespace package
+        self.write('scripts/unrelated/__init__.py', 'OTHER = 5\n')
+        self.write('scripts/alpha.py', 'from pkg.nested import child\nimport namespace.child\n' + TOOL_SOURCE)
+        item = self.verified()
+        support = item['evidence'][0]['support_sha256']
+        self.assertEqual(set(support), {'scripts/pkg/__init__.py', 'scripts/pkg/nested/__init__.py',
+            'scripts/pkg/nested/child.py', 'scripts/pkg/helper.py', 'scripts/namespace/child.py'})
+        self.assertEqual(tc.verification(item, self.root)['state'], 'current')
+        self.write('scripts/unrelated/__init__.py', 'OTHER = 6\n')
+        self.assertEqual(tc.verification(item, self.root)['state'], 'current')
+
+
+class CatalogRecording(Lifecycle):
+    def prepare(self):
+        self.catalog['tools'][0] = legacy('alpha', 'scripts/alpha.py', **contract())
+        self.save()
+        return self.root / tc.CATALOG_RELATIVE
+
+    def test_target_contract_and_unrelated_catalog_edits_survive_refused_recording(self):
+        path = self.prepare()
+        for edit in ('target', 'unrelated'):
+            changed = []
+            def mutating(command, **options):
+                result = subprocess.run(command, **options)
+                catalog = tc.load_catalog(self.root)
+                if edit == 'target':
+                    catalog['tools'][0]['limits']['timeout_seconds'] = 123
+                else:
+                    catalog['tools'].append(legacy('beta', 'scripts/beta.py'))
+                value = json.dumps(catalog, indent=2)
+                path.write_text(value)
+                changed.append(value)
+                return result
+            with self.assertRaisesRegex(ValueError, 'catalog changed'):
+                tc.record_evidence(self.root, 'alpha', runner=mutating)
+            self.assertEqual(path.read_text(), changed[0])
+            self.assertEqual(tc.load_catalog(self.root)['tools'][0]['evidence'], [])
+            self.save()
+
+    def test_another_process_cannot_record_while_acceptance_holds_the_lock(self):
+        self.prepare()
+        attempts = []
+        def contending(command, **options):
+            result = subprocess.run([sys.executable, tc.__file__, '--root', str(self.root),
+                'record-evidence', 'alpha'], capture_output=True, text=True, timeout=10)
+            attempts.append(result)
+            return subprocess.run(command, **options)
+        item = tc.record_evidence(self.root, 'alpha', runner=contending)
+        self.assertEqual(len(attempts), 1)
+        self.assertEqual(attempts[0].returncode, 2, attempts[0].stdout + attempts[0].stderr)
+        self.assertIn('locked', attempts[0].stderr + attempts[0].stdout)
+        self.assertEqual(tc.verification(item, self.root)['state'], 'current')
+        self.assertFalse((self.root / '.crewloom/tool-catalog/lock').exists())
+
+    def test_replace_failure_leaves_complete_old_catalog_and_cleans_temporary_file(self):
+        path = self.prepare()
+        before = path.read_bytes()
+        with patch.object(tc.os, 'replace', side_effect=OSError('synthetic rename failure')):
+            with self.assertRaisesRegex(OSError, 'synthetic rename failure'):
+                tc.record_evidence(self.root, 'alpha')
+        self.assertEqual(path.read_bytes(), before)
+        self.assertEqual({p.name for p in path.parent.iterdir()}, {'TOOLS.json'})
+        self.assertFalse((self.root / '.crewloom/tool-catalog/lock').exists())
+        self.assertEqual(tc.record_evidence(self.root, 'alpha')['status'], 'verified')
+
+    def test_a_change_while_preparing_the_atomic_write_is_preserved(self):
+        path = self.prepare()
+        changed = []
+        real_sync = os.fsync
+        def mutate_on_sync(descriptor):
+            catalog = tc.load_catalog(self.root)
+            catalog['tools'][0]['limits']['timeout_seconds'] = 123
+            value = json.dumps(catalog)
+            path.write_text(value)
+            changed.append(value)
+            return real_sync(descriptor)
+        with patch.object(tc.os, 'fsync', side_effect=mutate_on_sync):
+            with self.assertRaisesRegex(ValueError, 'catalog changed'):
+                tc.record_evidence(self.root, 'alpha')
+        self.assertEqual(path.read_text(), changed[-1])
+        self.assertEqual({p.name for p in path.parent.iterdir()}, {'TOOLS.json'})
+
+    def test_symlinked_catalog_or_runtime_path_is_refused_before_acceptance(self):
+        path = self.prepare()
+        outside = tempfile.TemporaryDirectory(prefix='crewloom-catalog-outside-')
+        self.addCleanup(outside.cleanup)
+        external = Path(outside.name) / 'TOOLS.json'
+        external.write_bytes(path.read_bytes())
+        path.unlink()
+        path.symlink_to(external)
+        with self.assertRaisesRegex(ValueError, 'symlink|escapes'):
+            tc.record_evidence(self.root, 'alpha', runner=lambda *a, **k: self.fail('acceptance must not run'))
+        path.unlink()
+        self.save()
+        (self.root / '.crewloom').symlink_to(outside.name, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, 'symlink|escapes'):
+            tc.record_evidence(self.root, 'alpha', runner=lambda *a, **k: self.fail('acceptance must not run'))
+        self.assertEqual({p.name for p in Path(outside.name).iterdir()}, {'TOOLS.json'})
+
 
 class MeaningfulAcceptance(Lifecycle):
     def record(self, source):
@@ -686,6 +803,27 @@ class MeaningfulAcceptance(Lifecycle):
         self.save()
         with self.assertRaisesRegex(ValueError, 'no structured result'):
             tc.record_evidence(self.root, 'alpha', runner=lambda *a, **k: subprocess.CompletedProcess([], 0, '', ''))
+
+    def test_all_expected_failures_cannot_promote_but_a_passing_mixed_suite_can(self):
+        expected = TEST_SOURCE.replace('    def test_ok(self):',
+            '    @unittest.expectedFailure\n    def test_ok(self):').replace('assertTrue(True)', 'assertTrue(False)')
+        self.assertRefused(expected, 'no test passed')
+        mixed = expected.replace("if __name__ == '__main__':", 'class Passing(unittest.TestCase):\n'
+            '    def test_ok(self):\n        self.assertEqual(2 + 2, 4)\n\n'
+            "if __name__ == '__main__':")
+        item = self.record(mixed)
+        self.assertEqual(item['status'], 'verified')
+        self.assertEqual(item['evidence'][0]['counts']['expected_failures'], 1)
+        self.assertEqual(item['evidence'][0]['counts']['executed'], 2)
+        self.assertEqual(tc.verification(item, self.root)['state'], 'current')
+
+    def test_impossible_or_all_expected_failure_counts_are_stale(self):
+        item = self.record(TEST_SOURCE)
+        for mutation in ({'expected_failures': 1}, {'expected_failures': -1},
+                         {'skipped': 2}, {'run': 2}, {'expected_failures': 3}):
+            counts = dict(item['evidence'][0]['counts'], **mutation)
+            record = dict(item['evidence'][0], counts=counts)
+            self.assertEqual(tc.verification(dict(item, evidence=[record]), self.root)['state'], 'stale', mutation)
 
 
 if __name__ == '__main__':
