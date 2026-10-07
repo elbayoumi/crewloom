@@ -32,6 +32,39 @@ def fake_cli(folder, name, cases):
 
 
 class ArtifactTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'posix', 'real POSIX disposable native adapter')
+    def test_managed_native_generation_waits_for_tracking_before_target_effects(self):
+        import admission
+        import contextlib
+        import test_transport_acceptance_boundaries as fixtures
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory).resolve()
+            for refuse in (False, True):
+                with self.subTest(refuse_tracking=refuse):
+                    folder = base / ('refused' if refuse else 'accepted')
+                    folder.mkdir(); marker = folder / 'executed'
+                    binary = folder / 'fixture-host'
+                    payload = fixtures.stream(fixtures.text(), fixtures.finish()) + '\n'
+                    binary.write_text('#!' + sys.executable + '\nimport sys\nfrom pathlib import Path\n'
+                        + 'Path(' + repr(str(marker)) + ').write_text("executed")\n'
+                        + 'sys.stdout.write(' + repr(payload) + ')\n')
+                    binary.chmod(0o755)
+                    admission.configure(folder / 'admission', 'fixture', {})
+                    info = {'host': 'opencode', 'executable': str(binary), 'version': 'fixture',
+                            'generation_supported': True, 'authentication_verified': False}
+                    guard = patch.object(admission, 'track_process', side_effect=RuntimeError('tracking refused')) if refuse else contextlib.nullcontext()
+                    with admission.context(folder / 'admission', 'fixture'), patch.object(h, 'probe', return_value=info), guard:
+                        if refuse:
+                            with self.assertRaisesRegex(RuntimeError, 'tracking refused'):
+                                h.generate('opencode', 'fixture prompt', ['src/result.py'])
+                            self.assertFalse(marker.exists())
+                        else:
+                            artifacts, evidence = h.generate('opencode', 'fixture prompt', ['src/result.py'])
+                            self.assertEqual(artifacts, {'src/result.py': 'VALUE = 1\n'})
+                            self.assertTrue(marker.exists())
+                            self.assertEqual(json.loads((folder / 'admission/admission.json').read_text())['processes'], {})
+                    admission.terminate_owned(folder / 'admission')
+
     def test_exact_declared_set(self):
         self.assertEqual(h.validate_artifacts({'artifacts':[{'path':'src/a.py','content':'print(1)'}]},['src/a.py']),{'src/a.py':'print(1)'})
 

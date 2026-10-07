@@ -5,7 +5,8 @@ import { parseArgv } from '../lib/argv.ts';
 type Skill = { id: string; description: string; lastActivity: string | null; openTasks: number; doneEntries: number; openChallenges: number; resolvedChallenges: number; unknownChallenges: number; ideas: number; tools: string[]; runs: number; failedRuns: number; currentFailures: string[]; evidence: { documented: boolean; configured: boolean; exercised: boolean; verified: boolean; acceptance: string }; status: 'attention' | 'verified' | 'exercised' | 'configured' | 'documented' };
 type Tool = { id: string; skill: string; description: string; example_args: string; effect: string };
 type Run = { ts: string; tool: string; skill: string; exit_code: number; duration_ms: number; source: string; output?: string };
-type Overview = { projectRoot: string; generatedAt: string; totals: Record<string, number>; skills: Skill[]; tools: Tool[]; runs: Run[] };
+type ManagedTask = { id: string; role: string; status: string; verified: boolean; updatedAt: string | null };
+type Overview = { tasks: ManagedTask[]; taskDiagnostics: string[]; projectId: string; projects: { id: string; root: string }[]; projectRoot: string; generatedAt: string; totals: Record<string, number>; skills: Skill[]; tools: Tool[]; runs: Run[] };
 type Detail = { id: string; skill: string; brain: Record<string, string> };
 
 const T = {
@@ -36,6 +37,11 @@ export default function Dashboard() {
   const [token, setToken] = useState('');
   const [auth, setAuth] = useState<'unknown' | 'in' | 'out' | 'error'>('unknown');
   const openId = useRef<string | null>(null);
+  const [projects, setProjects] = useState<{ id: string; root: string }[]>([]);
+  const [projectId, setProjectId] = useState('');
+  const activeProject = useRef(projectId);
+  activeProject.current = projectId;
+
 
   const session = useCallback(async () => {
     try {
@@ -57,24 +63,41 @@ export default function Dashboard() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch('/api/overview', { cache: 'no-store' });
+      if (!projectId) return;
+      const requested = projectId;
+      const res = await fetch(`/api/overview?project=${encodeURIComponent(requested)}`, { cache: 'no-store' });
       if (res.status === 401 || res.status === 403) { setAuth('out'); return; }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setData(await res.json()); setError('');
-    } catch (e) { setError(String(e)); }
-  }, []);
+      const received = await res.json();
+      if (activeProject.current !== requested) return;
+      setData(received); setError('');
+    } catch (e) { if (activeProject.current === projectId) setError(String(e)); }
+  }, [projectId]);
 
   const loadDetail = useCallback(async (id: string) => {
-    const res = await fetch(`/api/skills/${id}`, { cache: 'no-store' });
-    if (res.ok) setDetail(await res.json());
-  }, []);
+    const res = await fetch(`/api/skills/${id}?project=${encodeURIComponent(projectId)}`, { cache: 'no-store' });
+    const received = res.ok ? await res.json() : null;
+    if (received && activeProject.current === projectId) setDetail(received);
+  }, [projectId]);
 
   useEffect(() => { document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; }, [lang]);
   useEffect(() => { void session(); }, [session]);
-  useEffect(() => { if (auth === 'in') void load(); }, [auth, load]);
   useEffect(() => {
     if (auth !== 'in') return;
-    const source = new EventSource('/api/events');
+    const controller = new AbortController();
+    void fetch('/api/projects', { cache: 'no-store', signal: controller.signal }).then(async (res) => {
+      if (!res.ok) throw new Error('Unable to load approved projects');
+      const body = await res.json();
+      if (controller.signal.aborted) return;
+      setProjects(body.projects);
+      setProjectId((current) => body.projects.some((item: { id: string }) => item.id === current) ? current : body.projects[0]?.id ?? '');
+    }).catch((error) => { if (!controller.signal.aborted) setError(String(error)); });
+    return () => controller.abort();
+  }, [auth]);
+  useEffect(() => { if (auth === 'in') void load(); }, [auth, load]);
+  useEffect(() => {
+    if (auth !== 'in' || !projectId) return;
+    const source = new EventSource(`/api/events?project=${encodeURIComponent(projectId)}`);
     source.addEventListener('ready', () => setLive(true));
     source.addEventListener('change', () => { void load(); if (openId.current) void loadDetail(openId.current); });
     source.onerror = () => setLive(false);
@@ -91,7 +114,7 @@ export default function Dashboard() {
     if (parsedArgs.error) { setOutput({ ok: false, text: parsedArgs.error }); return; }
     setBusy(true); setOutput(null);
     try {
-      const res = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool: toolId, args: parsedArgs.argv }) });
+      const res = await fetch(`/api/run?project=${encodeURIComponent(projectId)}`,  { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool: toolId, args: parsedArgs.argv }) });
       const body = await res.json();
       if (res.status === 401 || res.status === 403) { setAuth('out'); return; }
       setOutput({ ok: res.ok && body.exit_code === 0, text: body.error ?? body.output ?? '' });
@@ -137,8 +160,21 @@ export default function Dashboard() {
           <button className="ghost" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>{t.lang}</button>
         </div>
       </header>
-      <p>{lang === "ar" ? "المشروع الحالي" : "Current project"}: <code>{data?.projectRoot ?? "…"}</code></p>
+      <label>{lang === 'ar' ? 'اختار المشروع' : 'Select project'}{' '}
+        <select aria-label={lang === 'ar' ? 'اختار المشروع' : 'Select project'} value={projectId} disabled={busy} onChange={(event) => {
+          activeProject.current = event.target.value;
+          setProjectId(event.target.value); setData(null); setDetail(null); setOutput(null); setLive(false); openId.current = null;
+        }}>{projects.map((project) => <option key={project.id} value={project.id}>{project.id}</option>)}</select>
+      </label>
+      <p>{lang === "ar" ? "المشروع الحالي" : "Current project"}: <code dir="ltr">{data?.projectRoot ?? "…"}</code></p>
       {error && <div className="card" role="alert">API: {error}</div>}
+      <section className="card" aria-label={lang === 'ar' ? 'مهام المشروع' : 'Project tasks'}>
+        <h2>{lang === 'ar' ? 'مهام المشروع' : 'Project tasks'}</h2>
+        {data?.tasks?.length ? <table><thead><tr><th>{lang === 'ar' ? 'المهمة' : 'Task'}</th><th>{t.role}</th><th>{t.status}</th><th>{lang === 'ar' ? 'التحقق' : 'Acceptance'}</th></tr></thead>
+          <tbody>{data.tasks.map((task) => <tr key={task.id}><td><code>{task.id}</code></td><td>{task.role}</td><td>{task.status}</td><td>{task.verified ? (lang === 'ar' ? 'تم التحقق' : 'Verified') : (lang === 'ar' ? 'لم يُثبت القبول' : 'Acceptance unproven')}</td></tr>)}</tbody></table>
+          : <p>{lang === 'ar' ? 'لا توجد مهام مُدارة مسجلة في المشروع المختار.' : 'No managed tasks recorded in the selected project.'}</p>}
+        {data?.taskDiagnostics?.map((diagnostic, index) => <p role="status" key={index}>{diagnostic}</p>)}
+      </section>
       <section className="tiles" aria-label="Totals">
         <div className="tile"><b>{totals.skills ?? '—'}</b><span>{t.skills}</span></div>
         <div className="tile"><b>{totals.tools ?? '—'}</b><span>{t.tools}</span></div>

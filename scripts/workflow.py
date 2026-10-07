@@ -227,8 +227,16 @@ def hashes(root, paths):
     return result
 
 
+def plan_source(root, filename):
+    """A public plan or one controller-owned pilot plan; other runtime/Git paths stay forbidden."""
+    parts = Path(filename).parts if isinstance(filename, str) else ()
+    private = (len(parts) == 4 and parts[:2] == ('.crewloom', 'pilots')
+               and ID.fullmatch(parts[2]) and parts[3] == 'workflow.json')
+    return safe_path(root, filename, internal=bool(private))
+
+
 def read_plan(root, filename):
-    source = safe_path(root, filename)
+    source = plan_source(root, filename)
     return validate_plan(root, json.loads(source.read_text(encoding='utf-8')), filename)
 
 
@@ -251,7 +259,7 @@ def validate_plan(root, plan, filename=None):
         raise ValueError('Workflow needs at least one step')
     seen = set()
     outputs = set(); output_targets = set(); output_keys = set()
-    plan_path = safe_path(root, filename) if filename else None
+    plan_path = plan_source(root, filename) if filename else None
     plan_key = path_key(filename) if filename else None
     for step in steps:
         if not isinstance(step, dict) or not ID.fullmatch(str(step.get('id', ''))) or step['id'] in seen:
@@ -682,6 +690,7 @@ def docker_execute(root, argv, image_id, timeout, writable=None):
     started = time.monotonic()
     captured = bytearray()
     discarded = [False]
+    admission.track_container_intent(name, labels)
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     container_id = _container_id(cidfile, process)
     cleanup = None
@@ -690,10 +699,13 @@ def docker_execute(root, argv, image_id, timeout, writable=None):
             if container_id is None:
                 raise ValueError('The container identity could not be established; not running it untracked')
             _track('container', name, process.pid, {'id': container_id, 'labels': labels})
+            admission.untrack_process(batch['folder'], 'container-launch', name)
     except BaseException:
         process.kill()
         process.wait()
-        _remove_owned(container_id, name, labels)
+        outcome = _remove_owned(container_id, name, labels)
+        if batch and (outcome in ('removed', 'gone') or outcome.startswith('preserved')):
+            admission.untrack_process(batch['folder'], 'container-launch', name)
         shutil.rmtree(cid_folder, ignore_errors=True)
         raise
     def collect():
@@ -874,6 +886,12 @@ def cancel(root, plan, fingerprint, reason='operator request'):
 def run(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None, owner=None,
         plan_file=None):
     """Reserve the root, execute under the shared project lock, then finalize recorded evidence."""
+    import admission
+    if admission.current() is None:
+        folder = safe_path(root, '.crewloom/workflows/' + plan['id'] + '/admission', internal=True)
+        admission.configure(folder, plan['id'], {})
+        with admission.context(folder, plan['id']):
+            return run(root, plan, fingerprint, image, accept, reviewer, allow_host_cli, review_token, owner, plan_file)
     with project_lock(safe_path(root, '.crewloom', internal=True), reentrant=True):
         try:
             result = _execute(root, plan, fingerprint, image, accept, reviewer, allow_host_cli, review_token, owner,
@@ -1047,7 +1065,7 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
         lifecycle = project_context_enter(root, plan, state) if lifecycle_mode(root) else None
         if lifecycle: state = state_for(root, plan, fingerprint)[1]
         if plan_file is not None and state.get('plan_file') != plan_file:
-            safe_path(root, plan_file)  # the recorded path is a validated project-relative one, never free text
+            plan_source(root, plan_file)  # public source or narrowly scoped controller-owned pilot plan
             state['plan_file'] = plan_file; save(folder, state)
         for step in plan['steps']:
             record = state['steps'].setdefault(step['id'], {'status': 'pending', 'role': step['role'], 'summary': step['summary'], 'kind': step.get('kind', 'command'), 'argv': list(step.get('argv') or []), 'attempts': []})
@@ -1225,10 +1243,16 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
     import model_host as host_module
     from model_host import build_prompt, generate
     try:
+        accepted = _fence(root, plan, owner)
+        use_receiver = bool(owner and owner.get('use_receiver_host'))
+        if use_receiver and (not accepted or accepted.get('state') != 'active'):
+            raise ValueError('Receiver dispatch requires a live accepted continuation owner')
+        dispatch_host = accepted['host'] if use_receiver else step['host']
+        dispatch_model = accepted.get('model') if use_receiver else step.get('model')
         # Every installed-CLI host, not a hardcoded pair, needs the explicit operator opt-in.
         # The list is owned by the adapter, so a host added there is guarded here too instead of
         # becoming a CLI-execution path the gate does not know about.
-        if step['host'] in host_module.CLI_HOSTS and not allow_host_cli:
+        if dispatch_host in host_module.CLI_HOSTS and not allow_host_cli:
             raise ValueError('Host CLI execution is disabled in enforced mode; use openai/anthropic or explicit operator --allow-host-cli')
         from provider_gateway import MAX_PROJECT_MODEL_REQUESTS
         if sum(a.get('kind')=='model' for a in ledger['attempts']) >= MAX_PROJECT_MODEL_REQUESTS:
@@ -1240,10 +1264,12 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
         record['context_bytes']=len(prompt.encode())
         # Capability preflight before any attempt, ledger entry or side effect: managed generation
         # is tool-free text, and the prompt must fit the adapter's documented bound.
-        profile=host_module.capability_profile(step['host'],step.get('model'))
+        profile=host_module.capability_profile(dispatch_host,dispatch_model)
+        if use_receiver and profile['fingerprint'] != accepted['receiver_profile_fingerprint']:
+            raise ValueError('Receiver capability profile changed since acceptance; accept again')
         host_module.check_prompt_fits(profile,record['context_bytes'])
         record['capability_profile']={'fingerprint':profile['fingerprint'],'launch_mode':profile['launch_mode'],
-                                      'host':step['host'],'model_requested':step.get('model'),
+                                      'host':dispatch_host,'model_requested':dispatch_model,
                                       'tools':'none (managed text generation)','schema_version':profile['schema_version']}
         if consumed:
             # Bind this step to the generation it actually read; a later reuse resolves the
@@ -1254,7 +1280,7 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
             record.pop('context_generation',None)
             record.pop('context_semantic_sha256',None)
         record['memory_mode']=step.get('memory_mode','focused')
-        signature=digest(json.dumps({'prompt':prompt,'host':step['host'],'model':step.get('model'),
+        signature=digest(json.dumps({'prompt':prompt,'host':dispatch_host,'model':dispatch_model,
                                     'timeout':step.get('timeout_seconds',180),
                                     'adapter_sha256':digest(Path(host_module.__file__).read_bytes()),
                                     'gateway_sha256':digest(resources.module_file('provider_gateway.py').read_bytes()),
@@ -1278,7 +1304,8 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
                 entry['status']='failed';save_ledger(root,ledger)
             raise
         try:
-            artifacts,evidence=generate(step['host'],prompt,step['outputs'],step.get('timeout_seconds',180),step.get('model'),
+            generation_dispatched = True
+            artifacts,evidence=generate(dispatch_host,prompt,step['outputs'],step.get('timeout_seconds',180),dispatch_model,
                                         **({'max_output_tokens':ceiling} if ceiling else {}))
         except BaseException:
             _finish_model_request(admitted_context,request_id,'failed',None)
@@ -1298,18 +1325,29 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
         if isinstance(usage,dict):
             record['provider_usage']={key:usage[key] for key in ('input_tokens','cached_input_tokens','output_tokens','total_tokens') if isinstance(usage.get(key),int)}
             record['provider_usage_available']=bool(record['provider_usage'])
+        record.pop('failure', None)
         record.pop('error',None);save(folder,state)
     except (ValueError,OSError,subprocess.SubprocessError) as exc:
         if 'entry' in locals():
             entry['status']='failed';save_ledger(root,ledger)
             attempt.update(status='finished',exit_code=2)
         record['status']='failed';record['error']=str(exc)
+        classification = getattr(exc, 'classification', None)
+        record['failure'] = classification if isinstance(classification, dict) else host_module.classify_failure()
+        if 'entry' in locals() and locals().get('generation_dispatched') and (
+                record['failure'].get('side_effects') == 'uncertain' or dispatch_host in host_module.CLI_HOSTS):
+            entry['uncertain_side_effects'] = True
+            save_ledger(root, ledger)
         state['status']='failed';state['error']=str(exc);save(folder,state)
 
 
-def _continuation_claim(owner_id, epoch):
+def _continuation_claim(owner_id, epoch, use_receiver_host=False):
     import continuation
-    return continuation.claim_from(owner_id, epoch)
+    claim = continuation.claim_from(owner_id, epoch)
+    if use_receiver_host:
+        if claim is None: raise ValueError("Receiver dispatch needs an accepted owner id, epoch and token")
+        claim["use_receiver_host"] = True
+    return claim
 
 
 def doctor(image, root=None, host=None, model_host=None):
@@ -1341,6 +1379,7 @@ def main(argv=None):
     parser.add_argument('--host', choices=('agents', 'claude'))
     parser.add_argument('--step'); parser.add_argument('--reviewer'); parser.add_argument('--reason')
     parser.add_argument('--owner-id', help='Continuation owner id returned by accept; its token is read from CREWLOOM_OWNER_TOKEN')
+    parser.add_argument('--use-receiver-host', action='store_true', help='Dispatch pending model steps using the fenced accepted receiver host/model; the immutable plan stays unchanged')
     parser.add_argument('--owner-epoch', help='Continuation owner epoch returned by accept')
     parser.add_argument('--reviewer-token-stdin', action='store_true',
                         help='Read the reviewer credential from standard input; it is never a command argument')
@@ -1369,7 +1408,7 @@ def main(argv=None):
                 token = reviewer_credentials.credential_from_environment(sys.stdin if args.reviewer_token_stdin else None)
                 result = run(root, plan, fingerprint, args.image, args.step if args.action == 'accept' else None,
                              args.reviewer, args.allow_host_cli, token,
-                             _continuation_claim(args.owner_id, args.owner_epoch), args.plan)
+                             _continuation_claim(args.owner_id, args.owner_epoch, args.use_receiver_host), args.plan)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0 if args.action in ('status', 'handoff', 'accept', 'cancel') or result.get('status') == 'complete' or result.get('isolated_execution_ready') else 2
     except (ValueError, OSError, RuntimeError, subprocess.SubprocessError) as exc:

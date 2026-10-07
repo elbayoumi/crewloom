@@ -12,7 +12,7 @@ const SKILL_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export type Tool = { id: string; skill: string; path: string; description: string; example_args: string; effect: string };
 export type Run = { ts: string; tool: string; skill: string; exit_code: number; duration_ms: number; source: 'cli' | 'dashboard'; project_root?: string; output?: string };
 /** What is actually known about a role. `verified` needs an explicit acceptance record, never a tool exit code alone. */
-export type Evidence = { documented: boolean; configured: boolean; exercised: boolean; verified: boolean; acceptance: 'recorded' | 'none-recorded' };
+export type Evidence = { documented: boolean; configured: boolean; exercised: boolean; verified: boolean; acceptance: 'recorded' | 'none-recorded' | 'unverified' };
 export type RoleStatus = 'attention' | 'verified' | 'exercised' | 'configured' | 'documented';
 export type SkillSummary = {
   id: string; description: string; lastActivity: string | null;
@@ -111,24 +111,25 @@ export function parseRuns(text: string): Run[] {
   return runs;
 }
 
-function assertProjectLog() {
-  const folder = path.dirname(RUN_LOG);
-  for (const candidate of [folder, RUN_LOG]) {
+function assertProjectLog(project = PROJECT) {
+  const runLog = path.join(project, '.crewloom', 'runs.jsonl');
+  const folder = path.dirname(runLog);
+  for (const candidate of [folder, runLog]) {
     if (!existsSync(candidate)) continue;
-    const relative = path.relative(realpathSync(PROJECT), realpathSync(candidate));
+    const relative = path.relative(realpathSync(project), realpathSync(candidate));
     if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) throw new Error('Run history escapes selected project');
   }
 }
 
-export async function readRuns(limit = 200): Promise<Run[]> {
-  assertProjectLog();
-  try { return parseRuns(await fs.readFile(RUN_LOG, 'utf8')).slice(-limit).reverse(); } catch { return []; }
+export async function readRuns(limit = 200, project = PROJECT): Promise<Run[]> {
+  assertProjectLog(project);
+  try { return parseRuns(await fs.readFile(path.join(project, '.crewloom', 'runs.jsonl'), 'utf8')).slice(-limit).reverse(); } catch { return []; }
 }
 
-export async function appendRun(run: Run) {
-  assertProjectLog();
-  await fs.mkdir(path.dirname(RUN_LOG), { recursive: true });
-  await fs.appendFile(RUN_LOG, JSON.stringify({ ...run, project_root: PROJECT }) + '\n', 'utf8');
+export async function appendRun(run: Run, project = PROJECT) {
+  assertProjectLog(project);
+  await fs.mkdir(path.join(project, '.crewloom'), { recursive: true });
+  await fs.appendFile(path.join(project, '.crewloom', 'runs.jsonl'), JSON.stringify({ ...run, project_root: project }) + '\n', 'utf8');
 }
 
 export async function readTools(): Promise<Tool[]> {
@@ -136,13 +137,13 @@ export async function readTools(): Promise<Tool[]> {
   return (JSON.parse(raw) as { tools: Tool[] }).tools;
 }
 
-async function readBrain(id: string) {
-  const agentDir = path.join(PROJECT, '.agents', 'skills', id);
-  const claudeDir = path.join(PROJECT, '.claude', 'skills', id);
+async function readBrain(id: string, project = PROJECT) {
+  const agentDir = path.join(project, '.agents', 'skills', id);
+  const claudeDir = path.join(project, '.claude', 'skills', id);
   const dirs = [agentDir, claudeDir].filter((dir) => existsSync(path.join(dir, 'SKILL.md')));
   if (dirs.length > 1) throw new Error('Ambiguous project role: choose one host installation');
   const dir = path.join(dirs[0] ?? agentDir, 'brain');
-  const within = (file: string) => { const rel = path.relative(realpathSync(PROJECT), realpathSync(file)); return rel !== '..' && !rel.startsWith(`..${path.sep}`) && !path.isAbsolute(rel); };
+  const within = (file: string) => { const rel = path.relative(realpathSync(project), realpathSync(file)); return rel !== '..' && !rel.startsWith(`..${path.sep}`) && !path.isAbsolute(rel); };
   if (existsSync(dir) && !within(dir)) throw new Error('Project brain escapes through symlink');
   const files: Partial<Record<(typeof BRAIN_FILES)[number], string>> = {};
   let latest = 0;
@@ -157,22 +158,19 @@ async function readBrain(id: string) {
   return { files, latest };
 }
 
-const ACCEPTANCE_BYTES = 8 * 1024;
+/** One bounded controller call per request verifies role records against existing executor evidence. */
+async function readAcceptances(ids: string[], project: string): Promise<Record<string, boolean>> {
+  const directory = path.join(project, '.crewloom', 'acceptance');
+  if (!existsSync(directory)) return {};
+  if (realpathSync(directory) !== directory) return {};
+  const roles = ids.filter(isSkillId).slice(0, 64);
+  const program = 'import sys,json;sys.path.insert(0,sys.argv[1]);import project_binding as p;print(json.dumps({role:p.role_acceptance(sys.argv[2],role)["verified"] for role in json.loads(sys.argv[3])}))';
+  const result = await exec(['-c', program, path.join(ROOT, 'scripts'), project, JSON.stringify(roles)], 15000, project);
+  try { return result.exit_code === 0 ? JSON.parse(result.output) : {}; } catch { return {}; }
+}
 
-/** An explicit acceptance record `.crewloom/acceptance/<role>.json`: {schema_version:1, passed:true, command, exit_code:0}. */
-export async function readAcceptance(id: string): Promise<boolean> {
-  if (!isSkillId(id)) return false;
-  try {
-    const file = path.join(PROJECT, '.crewloom', 'acceptance', `${id}.json`);
-    if (!existsSync(file)) return false;
-    const relative = path.relative(realpathSync(PROJECT), realpathSync(file));
-    if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) return false;
-    const raw = await fs.readFile(file, 'utf8');
-    if (raw.length > ACCEPTANCE_BYTES) return false;
-    const value = JSON.parse(raw) as Record<string, unknown>;
-    return value.schema_version === 1 && value.passed === true && value.exit_code === 0
-      && typeof value.command === 'string' && value.command.length > 0;
-  } catch { return false; }
+export async function readAcceptance(id: string, project = PROJECT): Promise<boolean> {
+  return (await readAcceptances([id], project))[id] === true;
 }
 
 /** The tools whose most recent run failed; `runs` is newest first. */
@@ -189,28 +187,29 @@ export function currentFailures(runs: Run[]): string[] {
 
 /** Documented -> configured -> exercised -> verified; a failing current run or an open/unknown challenge needs attention. */
 export function roleStatus(input: { evidence: Evidence; currentFailures: string[]; openChallenges: number; unknownChallenges: number }): RoleStatus {
-  if (input.currentFailures.length || input.openChallenges || input.unknownChallenges) return 'attention';
+  if (input.evidence.acceptance === 'unverified' || input.currentFailures.length || input.openChallenges || input.unknownChallenges) return 'attention';
   if (input.evidence.verified) return 'verified';
   if (input.evidence.exercised) return 'exercised';
   if (input.evidence.configured) return 'configured';
   return 'documented';
 }
 
-export async function listSkills(): Promise<SkillSummary[]> {
-  const [ids, tools, runs] = await Promise.all([fs.readdir(SKILLS), readTools(), readRuns(1000)]);
+export async function listSkills(project = PROJECT): Promise<SkillSummary[]> {
+  const [ids, tools, runs] = await Promise.all([fs.readdir(SKILLS), readTools(), readRuns(1000, project)]);
   const out: SkillSummary[] = [];
+  const verifiedRoles = await readAcceptances(ids, project);
   for (const id of ids.sort()) {
     const skillFile = path.join(SKILLS, id, 'SKILL.md');
     if (!isSkillId(id) || !existsSync(skillFile)) continue;
-    const { files, latest } = await readBrain(id);
+    const { files, latest } = await readBrain(id, project);
     const meta = parseFrontmatter(await fs.readFile(skillFile, 'utf8'));
     const mine = runs.filter((r) => r.skill === id);
     const failedRuns = mine.filter((r) => r.exit_code !== 0).length;
     const counts = countBrain(files);
     const failing = currentFailures(mine);
-    const configured = ['.agents', '.claude'].some((host) => existsSync(path.join(PROJECT, host, 'skills', id, 'SKILL.md')));
-    const verified = await readAcceptance(id);
-    const evidence: Evidence = { documented: true, configured, exercised: mine.length > 0, verified, acceptance: verified ? 'recorded' : 'none-recorded' };
+    const configured = ['.agents', '.claude'].some((host) => existsSync(path.join(project, host, 'skills', id, 'SKILL.md')));
+    const verified = verifiedRoles[id] === true;
+    const evidence: Evidence = { documented: true, configured, exercised: mine.length > 0, verified, acceptance: verified ? 'recorded' : existsSync(path.join(project, '.crewloom', 'acceptance', id + '.json')) ? 'unverified' : 'none-recorded' };
     out.push({
       id, description: meta.description ?? '', lastActivity: latest ? new Date(latest).toISOString() : null,
       ...counts, tools: tools.filter((t) => t.skill === id).map((t) => t.id), runs: mine.length, failedRuns,
@@ -220,11 +219,57 @@ export async function listSkills(): Promise<SkillSummary[]> {
   return out;
 }
 
-export async function skillDetail(id: string) {
+export async function skillDetail(id: string, project = PROJECT) {
   if (!isSkillId(id) || !existsSync(path.join(SKILLS, id, 'SKILL.md'))) return null;
-  const { files } = await readBrain(id);
+  const { files } = await readBrain(id, project);
   return { id, skill: await fs.readFile(path.join(SKILLS, id, 'SKILL.md'), 'utf8'), brain: files };
 }
+
+
+export type TaskSummary = { id: string; role: string; status: string; verified: boolean; updatedAt: string | null };
+
+/** Read bounded task summaries only; project payloads, prompts and acceptance bodies stay private. */
+export async function readTasks(project = PROJECT): Promise<{ tasks: TaskSummary[]; diagnostics: string[] }> {
+  const tasks: TaskSummary[] = []; const diagnostics: string[] = [];
+  const directory = path.join(project, '.crewloom', 'tasks');
+  if (!existsSync(directory)) return { tasks, diagnostics };
+  if (realpathSync(directory) !== directory) throw new Error('Task directory is not canonical');
+  const configFile = path.join(project, 'crewloom.project.json');
+  const bindingFile = path.join(project, '.crewloom', 'binding.json');
+  const boundedJSON = async (file: string) => {
+    const stat = await fs.lstat(file);
+    if (!stat.isFile() || stat.nlink !== 1 || realpathSync(file) !== file || stat.size > 65536) throw new Error('Invalid task metadata file');
+    return JSON.parse(await fs.readFile(file, 'utf8'));
+  };
+  let config; let binding;
+  try { [config, binding] = await Promise.all([boundedJSON(configFile), boundedJSON(bindingFile)]); }
+  catch { return { tasks, diagnostics: ['Task identity could not be verified'] }; }
+  const names = (await fs.readdir(directory)).sort();
+  if (names.length > 200) diagnostics.push('Task list limited to 200 entries');
+  for (const id of names.slice(0, 200)) {
+    if (!isSkillId(id)) { diagnostics.push('Invalid task identifier omitted'); continue; }
+    try {
+      const record = await boundedJSON(path.join(directory, id, 'state.json'));
+      if (record.schema_version !== 1 || record.task_id !== id || record.project_root !== project ||
+          record.project_id !== config.project_id || record.checkout_id !== binding.checkout_id ||
+          binding.project_root !== project || binding.project_id !== config.project_id ||
+          typeof record.status !== 'string' || !isSkillId(record.role)) throw new Error('Mismatched task identity');
+      tasks.push({ id, role: record.role, status: record.status.slice(0, 40), verified: false,
+                   updatedAt: typeof record.updated_at === 'string' ? record.updated_at.slice(0, 40) : null });
+    } catch { diagnostics.push('Unavailable or invalid task record: ' + id); }
+  }
+  if (tasks.length) {
+    const program = 'import sys,json;sys.path.insert(0,sys.argv[1]);import project_binding as p;print(json.dumps({task:p.task_acceptance(sys.argv[2],task)["verified"] for task in json.loads(sys.argv[3])}))';
+    const result = await exec(['-c', program, path.join(ROOT, 'scripts'), project, JSON.stringify(tasks.slice(0, 64).map((task) => task.id))], 15000, project);
+    if (result.exit_code !== 0) diagnostics.push('Current task acceptance could not be checked');
+    try {
+      const verified = result.exit_code === 0 ? JSON.parse(result.output) : {};
+      for (const task of tasks) task.verified = verified[task.id] === true;
+    } catch { diagnostics.push('Current task acceptance could not be checked'); }
+  }
+  return { tasks, diagnostics };
+}
+
 
 export type ExecResult = { exit_code: number; output: string; duration_ms: number };
 
@@ -251,12 +296,12 @@ export function validateArgs(args: string[]): string | null {
 }
 
 /** Run a registered tool only; arguments must be plain strings and use project-relative paths. */
-export async function runTool(toolId: string, args: string[]): Promise<ExecResult & { error?: string }> {
+export async function runTool(toolId: string, args: string[], project = PROJECT): Promise<ExecResult & { error?: string }> {
   const tool = (await readTools()).find((t) => t.id === toolId);
   if (!tool) return { exit_code: 2, output: '', duration_ms: 0, error: 'Unknown tool' };
   const rejected = validateArgs(args);
   if (rejected) return { exit_code: 2, output: '', duration_ms: 0, error: rejected };
-  const result = await exec([path.join(ROOT, 'scripts/crewloom.py'), 'run', '--project', PROJECT, tool.id, '--', ...args], 60000);
+  const result = await exec([path.join(ROOT, 'scripts/crewloom.py'), 'run', '--project', project, tool.id, '--', ...args], 60000, project);
   return result;
 }
 

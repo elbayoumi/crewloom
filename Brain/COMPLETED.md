@@ -354,3 +354,8 @@
 - Artifact: existing tool_catalog/test_tool_catalog, current catalog evidence, usage guide and unified review/plan.
 - Impact: concurrent catalog edits survive refusal; cooperating recorders are serialized; all-expected-failure acceptance cannot promote; static package initializer drift invalidates evidence.
 - Evidence:70 catalog cases pass on3.9.6/3.14.7 after9 pre-repair failures; independent adverse/clean probes pass on both, shipped catalog2 passes, five migrated tools current,45 frozen files unchanged. Hook/remote CI recorded in final private checkpoint; no provider pilot, merge or release.
+
+### 2026-10-07 — Integrated tools, continuation and project UX candidate
+- Artifact: existing continuation/workflow/admission/catalog/context/lesson modules; request-scoped dashboard; native process backend.
+- Impact: bounded approved quota fallback, preserved private source plans, required tool receipts/limits, static acceptance-helper freshness, ranked conditional guidance and current scoped acceptance.
+- Evidence: local continuation67, owned resources37 real Docker, coordinator49 real Docker, catalog73, lessons28, map32/context19 and tool bounds7 pass; production dashboard build passes. Exact-head CI/package/final gate recorded in final task checkpoint. No paid generation, merge or release.

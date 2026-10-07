@@ -239,6 +239,24 @@ class ContainerIdentity(unittest.TestCase):
     def track(self, ident, name='crewloom-x', labels=None):
         adm.track_process(self.folder, 'container', name, 1, 'task', {'id': ident, 'labels': labels or self.OWNED})
 
+    def test_interrupted_container_launch_resolves_labels_then_removes_only_the_owned_id(self):
+        name = 'crewloom-' + 'a' * 32
+        with adm.context(self.folder, 'intent-task'):
+            adm.track_container_intent(name, self.OWNED)
+        owned = self.daemon.add(name, self.OWNED)
+        self.assertEqual(adm.terminate_owned(self.folder)[0]['result'], 'removed')
+        self.assertEqual(self.daemon.removed, [owned])
+        self.assertEqual(adm.summary(self.folder)['tracked_processes'], [])
+
+    def test_reused_name_after_interrupted_container_launch_is_preserved(self):
+        name = 'crewloom-' + 'b' * 32
+        with adm.context(self.folder, 'intent-task'):
+            adm.track_container_intent(name, self.OWNED)
+        stranger = self.daemon.add(name, {'app': 'unrelated'})
+        self.assertTrue(adm.terminate_owned(self.folder)[0]['result'].startswith('preserved'))
+        self.assertEqual(self.daemon.removed, [])
+        self.assertIn(stranger, self.daemon.containers)
+
     def test_an_owned_container_is_removed_by_its_immutable_id(self):
         ident = self.daemon.add('crewloom-x', self.OWNED)
         other = self.daemon.add('unrelated-service', {'app': 'db'})
@@ -449,7 +467,8 @@ class RealContainerOwnership(unittest.TestCase):
         deadline = time.monotonic() + 30
         tracked = {}
         while time.monotonic() < deadline and not tracked:
-            tracked = json.loads((self.folder / 'admission.json').read_text())['processes']
+            tracked = {key: entry for key, entry in json.loads((self.folder / 'admission.json').read_text())['processes'].items()
+                       if entry.get('kind') == 'container'}
             time.sleep(0.1)
         self.assertEqual(len(tracked), 1, 'the running container was recorded before it could be cancelled')
         entry = next(iter(tracked.values()))
@@ -624,6 +643,72 @@ class ProcessInspectionFailure(unittest.TestCase):
         self.assertIsNone(process.poll())
         self.assertEqual(adm.reap_group(process.pid, time.time() - 60), [])
         process.wait(timeout=10)
+
+
+
+@unittest.skipUnless(HAS_PS, 'acknowledged launch requires POSIX and process inspection')
+class AcknowledgedLaunch(unittest.TestCase):
+    setUp = OwnedProcessTree.setUp
+    reap = OwnedProcessTree.reap
+    unrelated = OwnedProcessTree.unrelated
+    assert_gone = OwnedProcessTree.assert_gone
+
+    def test_tracking_failure_never_runs_the_target_and_keeps_the_intent(self):
+        target = self.base / 'side-effect'
+        with adm.context(self.folder, 'launch-task'), patch.object(adm, 'track_process', side_effect=adm.AdmissionError('disk unavailable')):
+            with self.assertRaisesRegex(adm.AdmissionError, 'disk unavailable'):
+                adm.launch_owned([sys.executable, '-c', 'open(__import__("sys").argv[1],"w").write("bad")', str(target)],
+                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+        self.assertFalse(target.exists())
+        self.assertTrue(any(key.startswith('launch:') for key in adm.summary(self.folder)['tracked_processes']))
+        self.assertEqual(adm.terminate_owned(self.folder)[0]['result'], 'gone')
+
+    def test_acknowledgement_does_not_consume_the_target_prompt(self):
+        with adm.context(self.folder, 'payload-task'):
+            process = adm.launch_owned([sys.executable, '-c', 'import sys;print(sys.stdin.read())'],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+            output, error = process.communicate('prompt with Arabic: مرحبا', timeout=10)
+        self.assertEqual(process.returncode, 0, error)
+        self.assertEqual(output.strip(), 'prompt with Arabic: مرحبا')
+        record = json.loads((self.folder / 'admission.json').read_text())
+        self.assertIn('launch_token', record['processes']['process:%d' % process.pid])
+        self.assertFalse(any(key.startswith('launch:') for key in record['processes']))
+        adm.terminate_owned(self.folder)
+
+    def test_escaped_child_after_leader_exit_is_stopped_and_bystander_survives(self):
+        bystander = self.unrelated()
+        code = 'import subprocess,sys; p=subprocess.Popen([sys.executable,"-c","import time;time.sleep(120)"],start_new_session=True);print(p.pid,flush=True)'
+        with adm.context(self.folder, 'escape-task'):
+            parent = adm.launch_owned([sys.executable, '-c', code], stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+            # The child inherits output descriptors, so read one line rather than communicate.
+            child = int(parent.stdout.readline().strip())
+            self.spawned.append(child)
+            parent.wait(timeout=10)
+        self.assertTrue(alive(child), 'the negative precondition is a real escaped surviving child')
+        result = adm.terminate_owned(self.folder)
+        self.assertIn(result[0]['result'], ('terminated', 'killed'))
+        self.assert_gone([child])
+        self.assertIsNone(bystander.poll(), 'an unrelated process is never selected by launch ownership')
+        parent.stdin.close(); parent.stdout.close(); parent.stderr.close()
+
+    def test_controller_death_before_identity_commit_never_releases_target(self):
+        target = self.base / 'unreleased-target'
+        target_code = 'import sys;open(sys.argv[1],"w").write("bad")'
+        code = ('import admission as a,subprocess,sys,os; '
+                'a.configure(sys.argv[1],"crash-test",{}); '
+                'a.track_process=lambda *args,**kwargs: os._exit(73); '
+                'c=a.context(sys.argv[1],"crash-task");c.__enter__(); '
+                'a.launch_owned([sys.executable,"-c",' + repr(target_code) + ',sys.argv[2]],stdin=subprocess.PIPE,text=True,start_new_session=True)')
+        folder = self.base / 'crash-ledger'
+        controller = subprocess.run([sys.executable, '-c', code, str(folder), str(target)],
+            env={**os.environ, 'PYTHONPATH': str(Path(adm.__file__).parent)}, timeout=10, capture_output=True, text=True)
+        self.assertEqual(controller.returncode, 73, controller.stderr)
+        self.assertFalse(target.exists())
+        report = adm.recover(folder)
+        self.assertTrue(report['stopped'])
+        self.assertTrue(all(item['result'] in ('gone', 'terminated', 'killed') for item in report['stopped']), report)
+        self.assertFalse(target.exists())
 
 
 if __name__ == '__main__':

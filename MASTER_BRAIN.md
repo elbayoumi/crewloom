@@ -93,3 +93,6 @@ Independent review at3f28df8 confirms earlier repaired counterexamples,9 green C
 
 ### 2026-10-07 — Second-review evidence defects repaired
 Crewloom now serializes catalog evidence recorders, preserves detected concurrent catalog edits, refuses all-expected-failure promotion and invalidates evidence after static package initializer changes. The expanded70-case suite and independent probes pass on Python3.9/3.14; migrated evidence is current and45 frozen files remain unchanged. This closes the three second-review findings in tested cases; legacy migration, actual cross-host usefulness and the wider unified plan are not complete.
+
+### 2026-10-07 — Managed-library integration candidate
+Crewloom keeps independent project roots and one tool catalog. The current increment adds bounded receiver continuation, acknowledged ownership, current acceptance and explainable conditional context/lessons. Public claims stay scoped to actual controller/fixture evidence; account-specific model usefulness, billed savings and broad role readiness remain pending. See the single unified plan and current source-scoped review.

@@ -622,31 +622,68 @@ def tolerant_lessons(root):
     return found, problems
 
 
+def selection_score(value, seeds, tokens):
+    """Observed relevance and evidence strength; no invented success-rate or savings metric."""
+    haystack = {str(item).casefold() for item in list(seeds) + list(tokens)}
+    conditions = value.get('conditions') or {}
+    hits = sum(_wanted(item, haystack) for key in ('paths', 'languages', 'symbols')
+               for item in conditions.get(key, []))
+    text = (value['issue'] + ' ' + value['remedy']).casefold()
+    lexical = sum(word in text for word in haystack if len(word) >= 3)
+    evidence = value.get('verification', {}).get('evidence', [])
+    checks = sum(item.get('passed') is True for item in evidence if isinstance(item, dict))
+    verified_at = str(value.get('verification', {}).get('at') or '')
+    return (hits, lexical, checks, verified_at)
+
+
 def select(root, seeds, tokens, limit):
-    """Verified lessons that match these conditions, bounded, with negative evidence labelled."""
+    """Eligible verified remedies ranked by relevance and executed evidence.
+
+    Contradictory eligible remedies for the same normalized issue are withheld for
+    review. Negative observations cannot silently retain a verified recommendation.
+    Retrieval never executes a lesson command or broadens project permissions.
+    """
     if type(limit) is not int or limit < 0:
         raise ValueError('Lesson selection limit must be a non-negative integer')
-    chosen = []
+    eligible = []
     negatives = 0
-    omitted = 0
     lessons, diagnostics = tolerant_lessons(root)
     for value in lessons:
         if not matches(value, seeds, tokens, root, diagnostics):
             continue
-        if value['state'] == 'verified':
-            if len(chosen) >= limit:
-                omitted += 1
-                continue
-            chosen.append({'id': value['id'], 'state': value['state'], 'issue': value['issue'],
-                           'remedy': value['remedy'], 'conditions': value['conditions'],
-                           'verification': value['verification'], 'negative': False,
-                           'source_task': value.get('source_task'), 'fingerprints': value['fingerprints'],
-                           'command_execution': value['command_execution']})
-        elif value.get('negative') and value['state'] in ('candidate', 'invalidated'):
+        if value.get('negative') and value['state'] in ('candidate', 'invalidated', 'verified'):
             negatives += 1
-    return {'lessons': chosen, 'negative_evidence_count': negatives, 'omitted': omitted,
-            'ineligible': diagnostics,
-            'policy': 'verified lessons only; failed attempts stay as labelled negative evidence'}
+        elif value['state'] == 'verified':
+            eligible.append(value)
+    groups = {}
+    for value in eligible:
+        key = ' '.join(value['issue'].casefold().split())
+        groups.setdefault(key, []).append(value)
+    conflicts = []
+    refused = set()
+    for group in groups.values():
+        if len({' '.join(item['remedy'].casefold().split()) for item in group}) > 1:
+            ids = sorted(item['id'] for item in group)
+            refused.update(ids)
+            conflicts.append({'ids': ids, 'reason': 'eligible remedies disagree for the same issue; review before reuse'})
+    eligible = [value for value in eligible if value['id'] not in refused]
+    # Stable ID resolves exact ties only; it is never the primary selection criterion.
+    eligible.sort(key=lambda value: value['id'])
+    eligible.sort(key=lambda value: selection_score(value, seeds, tokens), reverse=True)
+    chosen = []
+    for value in eligible[:limit]:
+        score = selection_score(value, seeds, tokens)
+        chosen.append({'id': value['id'], 'state': value['state'], 'issue': value['issue'],
+                       'remedy': value['remedy'], 'conditions': value['conditions'],
+                       'verification': value['verification'], 'negative': False,
+                       'source_task': value.get('source_task'), 'fingerprints': value['fingerprints'],
+                       'command_execution': value['command_execution'],
+                       'selection_reason': {'condition_matches': score[0], 'query_matches': score[1],
+                                            'executed_passes': score[2], 'verified_at': score[3]}})
+    return {'lessons': chosen, 'negative_evidence_count': negatives,
+            'omitted': max(0, len(eligible) - limit), 'ineligible': diagnostics,
+            'conflicts': conflicts[:32], 'conflict_count': len(conflicts),
+            'policy': 'eligible verified lessons only; ranked relevance and executed evidence; conflicting or negative remedies withheld'}
 
 
 def record_from_task(root, binding, task_id, entries, checks, role=None):

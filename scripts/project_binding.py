@@ -769,6 +769,65 @@ def installed_roles(root):
     return found
 
 
+
+def role_acceptance(root, role):
+    """Resolve role acceptance from current scoped executor evidence, never a self-reported exit code.
+
+    Dashboard schema1 command/pass records remain historical attestations. Schema2
+    binds role/project/checkout and existing workflow references; no command is run.
+    """
+    try:
+        root = project_root(root)
+        if not isinstance(role, str) or not PROJECT_ID.fullmatch(role):
+            raise ValueError('Invalid role identifier')
+        binding = load_binding(root)
+        path = w.safe_path(root, '.crewloom/acceptance/' + role + '.json', internal=True)
+        if not path.is_file() or path.stat().st_size > 8192:
+            raise ValueError('Missing or oversized role acceptance')
+        value = read_json(path, 'role acceptance')
+        if value.get('schema_version') != 2 or value.get('role') != role or \
+                value.get('project_id') != binding['project_id'] or value.get('checkout_id') != binding['checkout_id']:
+            raise ValueError('Acceptance identity is not current')
+        references = value.get('references')
+        if not isinstance(references, list) or not 1 <= len(references) <= 16:
+            raise ValueError('Acceptance needs 1..16 executed references')
+        import project_lessons
+        evidence = project_lessons.executor_evidence(root, references, binding, 'Role acceptance')
+        for item in evidence:
+            state = read_json(w.safe_path(root, '.crewloom/workflows/' + item['workflow'] + '/state.json', internal=True), 'workflow evidence')
+            if state['steps'][item['step']].get('role') != role:
+                raise ValueError('Acceptance step belongs to another role')
+        return {'verified': bool(evidence) and all(item['passed'] for item in evidence),
+                'basis': 'current executor references and artifact hashes; tested scope only'}
+    except (ValueError, OSError, KeyError, TypeError):
+        return {'verified': False, 'basis': 'missing, stale, unscoped or self-reported acceptance'}
+
+
+
+def task_acceptance(root, task_id):
+    """Recheck a completed task's recorded executor references against current artifacts."""
+    try:
+        root = project_root(root)
+        if not isinstance(task_id, str) or not PROJECT_ID.fullmatch(task_id):
+            raise ValueError('Invalid task identifier')
+        binding = load_binding(root)
+        state = task_state(root, task_id)
+        if not state or state['status'] != 'complete' or state.get('project_root') != str(root) or \
+                state.get('project_id') != binding['project_id'] or state.get('checkout_id') != binding['checkout_id']:
+            raise ValueError('Task identity or completion is not current')
+        checks = state.get('verification') or []
+        if not isinstance(checks, list) or not 1 <= len(checks) <= 64:
+            raise ValueError('Task needs bounded executor references')
+        references = [{key: value[key] for key in ('workflow', 'step', 'scope') if key in value}
+                      for value in checks if isinstance(value, dict)]
+        import project_lessons
+        evidence = project_lessons.executor_evidence(root, references, binding, 'Current task acceptance')
+        return {'verified': len(evidence) == len(checks) and all(value['passed'] for value in evidence),
+                'basis': 'current executor references and artifact hashes; historical state preserved'}
+    except (ValueError, OSError, KeyError, TypeError):
+        return {'verified': False, 'basis': 'missing, stale, unscoped or self-reported task acceptance'}
+
+
 def task_state(root, task_id):
     path = w.safe_path(root, '.crewloom/tasks/' + task_id + '/state.json', internal=True)
     if not path.exists():

@@ -33,7 +33,7 @@ CATALOG_RELATIVE = 'documentation/TOOLS.json'
 DOC_RELATIVE = 'documentation/TOOLS.md'
 CONTRACT_VERSION = 1
 CATALOG_VERSION = 2
-PROVENANCE_VERSION = 2
+PROVENANCE_VERSION = 3
 LEGACY_FIELDS = ('id', 'skill', 'path', 'description', 'example_args', 'dependencies', 'effect')
 CONTRACT_FIELDS = ('contract_version', 'interface_version', 'owner', 'status', 'inputs', 'outputs', 'errors',
                    'capabilities', 'limits', 'idempotent', 'acceptance', 'evidence', 'activation',
@@ -43,7 +43,7 @@ REQUIRED_CONTRACT = ('interface_version', 'owner', 'status', 'inputs', 'outputs'
 FINGERPRINTED_CONTRACT = ('interface_version', 'inputs', 'outputs', 'errors', 'capabilities', 'limits',
                           'dependencies', 'effect', 'example_args', 'idempotent', 'acceptance')
 EVIDENCE_FIELDS = ('test', 'command', 'exit_code', 'source_sha256', 'contract_sha256', 'support_sha256',
-                   'acceptance_sha256', 'counts', 'provenance', 'recorded_at')
+                   'acceptance_sha256', 'acceptance_support_sha256', 'counts', 'provenance', 'recorded_at')
 COUNT_FIELDS = ('discovered', 'run', 'executed', 'skipped', 'failures', 'errors', 'expected_failures',
                 'unexpected_successes')
 CATALOG_FIELDS = ('tools', 'catalog_version', 'assets', 'gate_baseline', 'legacy_exceptions')
@@ -341,6 +341,8 @@ def support_closure(view, relative):
             if module != relative and module not in seen:
                 seen[module] = _digest(view.read(module))
                 queue.append(module)
+    if queue:
+        raise SnapshotError('Static support closure exceeds 256 modules; verification is incomplete')
     return dict(sorted(seen.items()))
 
 
@@ -351,7 +353,12 @@ def provenance(item, root, path=None, view=None):
     source = implementation_fingerprint(root, item, path, view)
     support = support_closure(view, relative) if source and isinstance(relative, str) else {}
     acceptance = {test: _digest(view.read(test)) for test in item.get('acceptance') or [] if isinstance(test, str)}
-    return {'source': source, 'support': support, 'contract': contract_fingerprint(item), 'acceptance': acceptance}
+    acceptance_support = {}
+    for test in acceptance:
+        acceptance_support.update(support_closure(view, test))
+    for name in [relative, *support, *acceptance]: acceptance_support.pop(name, None)
+    return {'source': source, 'support': support, 'contract': contract_fingerprint(item),
+            'acceptance': acceptance, 'acceptance_support': dict(sorted(acceptance_support.items()))}
 
 
 def _record_problem(record, now, test, view):
@@ -368,6 +375,11 @@ def _record_problem(record, now, test, view):
         names = sorted(set(now['support']) ^ set(recorded or {}) | {
             name for name in now['support'] if (recorded or {}).get(name) != now['support'][name]})
         return 'supporting implementation changed (%s)' % ', '.join(names[:4])
+    helpers = record.get('acceptance_support_sha256')
+    if not isinstance(helpers, dict):
+        return 'acceptance helper fingerprints are missing'
+    if view.acceptance_required and helpers != now['acceptance_support']:
+        return 'supporting acceptance implementation changed'
     current = now['acceptance'].get(test)
     if current is None and view.acceptance_required:
         return 'acceptance file %s is missing from the snapshot' % test
@@ -403,7 +415,9 @@ def verification(item, root, path=None, view=None):
         if all(problems):
             return {'state': 'stale', 'detail': problems[-1]}
     return {'state': 'current',
-            'detail': 'evidence matches the current source, supporting code, contract and acceptance'}
+            'detail': ('evidence matches current source, support, contract, acceptance and static test helpers'
+                       if view.acceptance_required else
+                       'installed source/support/contract match; acceptance/helper fingerprints retained from build, not rerun locally')}
 
 
 def acceptance_problem(counts):
@@ -1152,7 +1166,8 @@ def _record_evidence(root, ident, runner, timeout):
     stamp = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
     item['evidence'] = [{'test': test, 'command': command, 'exit_code': 0, 'source_sha256': before['source'],
                          'contract_sha256': before['contract'], 'support_sha256': before['support'],
-                         'acceptance_sha256': before['acceptance'][test], 'counts': counts,
+                         'acceptance_sha256': before['acceptance'][test],
+                         'acceptance_support_sha256': before['acceptance_support'], 'counts': counts,
                          'provenance': PROVENANCE_VERSION, 'recorded_at': stamp} for test, counts, command in tested]
     if item['status'] == 'draft':
         item['status'] = 'verified'

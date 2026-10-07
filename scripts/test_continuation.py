@@ -75,6 +75,82 @@ class ContinuationBoundaries(unittest.TestCase):
     def attempts_bytes(self):
         return (self.root / '.crewloom/attempts.json').read_bytes()
 
+    def model_plan(self):
+        value = {'schema_version': 1, 'id': PLAN_ID, 'steps': [{
+            'id': 'build', 'kind': 'model', 'host': 'anthropic', 'model': 'explicit-original',
+            'role': ROLE, 'summary': 'Build', 'inputs': ['input.txt'], 'outputs': ['output.txt']}]}
+        (self.root / 'workflow.json').write_text(json.dumps(value))
+        self.parsed, self.fingerprint = w.read_plan(self.root, 'workflow.json')
+        return (self.root / 'workflow.json').read_bytes()
+
+    def test_confirmed_quota_resumes_on_fenced_receiver_without_plan_or_budget_reset(self):
+        original = self.model_plan()
+        failure = model_host.GenerationFailure('Quota rejected', model_host.classify_failure(error_code='insufficient_quota'))
+        with patch.object(model_host, 'generate', side_effect=[failure, ({'output.txt': 'receiver output'}, {'usage': {}})]) as generate:
+            result = cont.resume(self.root, 'workflow.json', [{'id': 'receiver', 'host': 'openai', 'model': 'explicit-next'}], 1, 2)
+        self.assertEqual(result['status'], 'complete')
+        self.assertEqual([call.args[0] for call in generate.call_args_list], ['anthropic', 'openai'])
+        self.assertEqual(generate.call_args_list[1].args[4], 'explicit-next')
+        self.assertEqual((self.root / 'workflow.json').read_bytes(), original)
+        self.assertEqual(len(cont._ledger(self.root)['attempts']), 2)
+        self.assertEqual(json.loads((cont.folder(self.root, PLAN_ID) / 'fallback.json').read_text())['switches'], 1)
+
+    def test_probable_quota_rate_limit_and_timeout_never_switch(self):
+        self.model_plan()
+        for signal in (model_host.classify_failure(text='usage limit reached'),
+                       model_host.classify_failure(http_status=429, retry_after_seconds=30),
+                       model_host.classify_failure(timed_out=True)):
+            with self.subTest(signal=signal):
+                # A distinct workflow keeps failed-attempt history honest for each independent case.
+                value = dict(self.parsed, id='quota-' + signal['kind'].replace('_', '-') + '-' + signal['confidence'])
+                value['steps'] = [dict(self.parsed['steps'][0], model='fixture-' + signal['kind'])]
+                (self.root / 'workflow.json').write_text(json.dumps(value))
+                with patch.object(model_host, 'generate', side_effect=model_host.GenerationFailure('Rejected', signal)) as generate:
+                    result = cont.resume(self.root, 'workflow.json', [{'id': 'receiver', 'host': 'openai', 'model': 'explicit-next'}], 1, 2)
+                self.assertEqual(result['status'], 'failed'); self.assertEqual(generate.call_count, 1)
+                self.assertEqual(result['fallback']['switches'], 0)
+
+    def test_fallback_budget_prevents_receiver_dispatch_and_remains_charged(self):
+        self.model_plan()
+        failure = model_host.GenerationFailure('Quota rejected', model_host.classify_failure(error_code='insufficient_quota'))
+        with patch.object(model_host, 'generate', side_effect=failure) as generate:
+            result = cont.resume(self.root, 'workflow.json', [{'id': 'receiver', 'host': 'openai', 'model': 'explicit-next'}], 1, 1)
+        self.assertEqual(result['status'], 'failed'); self.assertEqual(generate.call_count, 1)
+        self.assertIn('budget', result['blocker'].lower())
+        self.assertEqual(len(cont._ledger(self.root)['attempts']), 1)
+
+    def test_fallback_refuses_invalid_limits_and_native_optin_before_writes(self):
+        self.model_plan()
+        before = set(self.root.rglob('*'))
+        for receivers, switches, requests in [([{'id': 'receiver', 'host': 'claude'}], 1, 2),
+                                             ([{'id': 'receiver', 'host': 'openai'}], 1, 2),
+                                             ([{'id': 'receiver', 'host': 'openai', 'model': 'explicit'}], 0, 2)]:
+            with self.assertRaises(ValueError): cont.resume(self.root, 'workflow.json', receivers, switches, requests)
+        self.assertEqual(set(self.root.rglob('*')), before)
+
+    def test_restart_cannot_replay_a_timed_out_rpc(self):
+        self.model_plan()
+        receivers = [{'id': 'receiver', 'host': 'openai', 'model': 'explicit-next'}]
+        with patch.object(model_host, 'generate', side_effect=model_host.GenerationFailure('timeout', model_host.classify_failure(timed_out=True))):
+            cont.resume(self.root, 'workflow.json', receivers, 1, 2)
+        self.assertTrue(cont._ledger(self.root)['attempts'][0]['uncertain_side_effects'])
+        with patch.object(model_host, 'generate') as generate, self.assertRaisesRegex(ValueError, 'Uncertain prior dispatch'):
+            cont.resume(self.root, 'workflow.json', receivers, 1, 2)
+        generate.assert_not_called()
+
+    def test_fallback_refuses_copied_or_negative_counter_records_without_dispatch(self):
+        self.model_plan()
+        receiver = [{'id': 'receiver', 'host': 'openai', 'model': 'explicit-next'}]
+        with patch.object(model_host, 'generate', return_value=({'output.txt': 'fixture'}, {'usage': {}})):
+            cont.resume(self.root, 'workflow.json', receiver, 1, 2)
+        file = cont.folder(self.root, PLAN_ID) / 'fallback.json'
+        clean = json.loads(file.read_text())
+        for field, value in [('switches', -1), ('identity', {'project_id': 'foreign'})]:
+            file.write_text(json.dumps(dict(clean, **{field: value})))
+            with patch.object(model_host, 'generate') as generate, self.assertRaisesRegex(ValueError, 'foreign fallback'):
+                cont.resume(self.root, 'workflow.json', receiver, 1, 2)
+            generate.assert_not_called()
+
     # exhaustion before generation, and the controller dying before anyone can summarise
     def test_a_checkpoint_exists_before_dispatch_even_if_the_host_dies_immediately(self):
         with self.assertRaises(KeyboardInterrupt):
@@ -358,6 +434,19 @@ class ContinuationBoundaries(unittest.TestCase):
         self.assertIn('nothing to continue', packets[-1]['next_safe_action'])
 
     # the recorded plan is validated by default (W04)
+    def test_private_pilot_plan_is_validated_by_default_and_its_drift_is_refused(self):
+        relative = '.crewloom/pilots/' + PLAN_ID + '/workflow.json'
+        cont._private_write(w.plan_source(self.root, relative), json.dumps(self.parsed))
+        packet = self.interrupted_mid_task(plan_file=relative)
+        self.assertEqual(packet['workflow']['plan_file'], relative)
+        self.assertTrue(cont.validate(self.root, self.latest_path(), RECEIVER)['accepted'])
+        changed = json.loads(w.plan_source(self.root, relative).read_text())
+        changed['steps'][1]['summary'] = 'Different verification'
+        cont._private_write(w.plan_source(self.root, relative), json.dumps(changed))
+        result = cont.validate(self.root, self.latest_path(), RECEIVER)
+        self.assertFalse(result['accepted'])
+        self.assertIn('workflow plan changed since the checkpoint', result['reasons'])
+
     def snapshot_state(self):
         folder = cont.folder(self.root, PLAN_ID)
         return (sorted(p.name for p in folder.iterdir()), self.attempts_bytes(),

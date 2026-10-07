@@ -156,7 +156,7 @@ def build_packet(root, plan, state, ledger, boundary, step_id=None, interruption
                 unverified.append(step['id'])
         else:
             pending.append({'step': step['id'], 'status': record.get('status', 'pending'),
-                            'error': record.get('error')})
+                            'error': record.get('error'), 'failure': record.get('failure')})
     in_flight = [a for a in attempts if a['status'] == 'running']
     exhausted = sorted({a['step'] for a in attempts if a['step'] and sum(
         b['signature'] == a['signature'] and b['status'] != 'succeeded' for b in attempts) >= 2})
@@ -439,13 +439,13 @@ def _plan_problem(root, packet, plan_file, plan):
             if not relative:
                 raise ValueError('the checkpoint recorded no plan path; supply the project-relative plan file or the '
                                  'plan object, or create the checkpoint from a plan file')
-            w.safe_path(root, relative)  # escapes and reserved runtime/Git paths are refused here
+            w.plan_source(root, relative)
             walk = root
             for part in Path(relative).parts:  # the spelled path, not its resolved target
                 walk = walk / part
                 if walk.is_symlink():
                     raise ValueError('the plan path may not use symlinks')
-            if not w.safe_path(root, relative).is_file():
+            if not w.plan_source(root, relative).is_file():
                 raise ValueError('the plan file is missing')
             current, fingerprint = w.read_plan(root, relative)
     except (ValueError, OSError) as exc:
@@ -574,9 +574,103 @@ def accept(root, packet_path, receiver, plan_file=None, plan=None):
         return result
 
 
+def resume(root, plan_file, receivers, max_switches, max_model_requests, image=w.DEFAULT_IMAGE,
+           allow_host_cli=False, claim=None):
+    """Opt-in quota fallback under existing ownership, checkpoints and aggregate admission.
+
+    Receivers and integer bounds are operator inputs. Only a confirmed structured
+    quota rejection can switch hosts; uncertain dispatches are never replayed.
+    The durable switch count and request ledger survive controller restarts.
+    """
+    import admission
+    import model_host
+    if admission.current() is not None:
+        raise ValueError('Quota resume needs its own workflow admission scope; nested batch fallback is unsupported')
+    if type(max_switches) is not int or not 1 <= max_switches <= 8:
+        raise ValueError('max-switches must be an integer from 1 to 8')
+    if type(max_model_requests) is not int or not 1 <= max_model_requests <= 32:
+        raise ValueError('max-model-requests must be an integer from 1 to 32')
+    if not isinstance(receivers, list) or not 1 <= len(receivers) <= 8:
+        raise ValueError('Receivers must be a bounded ordered list of 1..8 explicit hosts')
+    for receiver in receivers:
+        if not isinstance(receiver, dict) or set(receiver) - {'id', 'host', 'model'} or not isinstance(receiver.get('id'), str) \
+                or not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', receiver['id']) or receiver.get('host') not in model_host.HOSTS:
+            raise ValueError('Each receiver needs a stable id and supported host')
+        if receiver['host'] in model_host.CLI_HOSTS and not allow_host_cli:
+            raise ValueError('Native receivers require explicit --allow-host-cli')
+        if receiver['host'] in ('openai', 'anthropic') and (not isinstance(receiver.get('model'), str) or not receiver['model'].strip()):
+            raise ValueError('API receivers require an explicit model')
+    if len({r['id'] for r in receivers}) != len(receivers): raise ValueError('Receiver ids must be unique')
+    root = Path(root).resolve(strict=True)
+    import project_binding
+    binding = project_binding.load_binding(root)
+    plan, fingerprint = w.read_plan(root, plan_file)
+    checkpoint_dir = folder(root, plan['id'])
+    config_path = w.safe_path(root, '.crewloom/handoffs/' + plan['id'] + '/fallback.json', internal=True)
+    identity = {'project_id': binding['project_id'], 'checkout_id': binding['checkout_id'], 'project_root': str(root)}
+    def read_config():
+        if not config_path.exists(): return None
+        metadata = config_path.stat()
+        if not config_path.is_file() or metadata.st_nlink != 1 or metadata.st_size > 65536:
+            raise ValueError('Fallback record must be a bounded regular file with one link')
+        value = json.loads(config_path.read_text())
+        if not isinstance(value, dict) or value.get('schema_version') != 1 or value.get('identity') != identity \
+                or type(value.get('switches')) is not int or not 0 <= value['switches'] <= 8 \
+                or type(value.get('max_switches')) is not int or not 1 <= value['max_switches'] <= 8:
+            raise ValueError('Malformed or foreign fallback record')
+        return value
+    with _project_lock(root, reentrant=True):
+        fence(root, plan['id'], claim)
+        if claim is not None: claim = dict(claim, use_receiver_host=True)
+        old = read_config()
+        receiver_hash = sha(receivers)
+        if old and (old.get('receivers_sha256') != receiver_hash or old.get('plan_sha256') != fingerprint):
+            raise ValueError('Fallback receivers or immutable plan changed; use a reviewed new workflow')
+        config = old or {'schema_version': 1, 'identity': identity, 'plan_sha256': fingerprint, 'receivers_sha256': receiver_hash,
+                         'switches': 0, 'max_switches': max_switches}
+        config['max_switches'] = min(config['max_switches'], max_switches)
+        _private_write(config_path, json.dumps(config, indent=2))
+    admission_dir = w.safe_path(root, '.crewloom/workflows/' + plan['id'] + '/admission', internal=True)
+    admission.configure(admission_dir, plan['id'], {'max_model_requests': max_model_requests})
+    def finish(report, details):
+        # This controller releases only its own authenticated, settled slot. No token
+        # needs to be written to disk or leaked in a retained workflow report.
+        if claim is not None:
+            with _project_lock(root, reentrant=True):
+                fence(root, plan['id'], claim)
+                release(root, plan['id'])
+        return dict(report, fallback=details)
+    with admission.context(admission_dir, plan['id']):
+        while True:
+            # A prior uncertain attempt is retained and requires explicit reconciliation/review.
+            if any(a.get('workflow') == plan['id'] and (a.get('status') == 'running' or a.get('uncertain_side_effects')) for a in _ledger(root)['attempts']):
+                raise ValueError('Uncertain prior dispatch prevents automatic replay; inspect and reconcile explicitly')
+            report = w.run(root, plan, fingerprint, image, allow_host_cli=allow_host_cli, owner=claim, plan_file=plan_file)
+            state = w.state_for(root, plan, fingerprint)[1]
+            pending = next((s for s in plan['steps'] if state['steps'].get(s['id'], {}).get('status') != 'complete'), None)
+            failure = (state['steps'].get(pending['id'], {}).get('failure') or {}) if pending else {}
+            if report.get('status') != 'failed' or not pending or pending.get('kind') != 'model' \
+                    or failure.get('kind') != 'quota_exhausted' or failure.get('confidence') != 'confirmed' \
+                    or failure.get('side_effects') == 'uncertain':
+                return finish(report, {'switches': config['switches'], 'automatic_switch_eligible': False})
+            with _project_lock(root, reentrant=True):
+                fence(root, plan['id'], claim)
+                config = read_config()
+                if config['switches'] >= min(config['max_switches'], len(receivers)):
+                    return finish(report, {'switches': config['switches'], 'stop_reason': 'switch budget exhausted'})
+                receiver = receivers[config['switches']]
+                # Charge before ownership transfer; a crash never grants a replacement switch.
+                config['switches'] += 1
+                _private_write(config_path, json.dumps(config, indent=2))
+                interrupt(root, plan['id'], failure, 'Explicit bounded quota fallback')
+            accepted = accept(root, checkpoint_dir / 'latest.json', receiver, plan_file=plan_file)
+            claim = {'owner': accepted['owner']['owner'], 'epoch': accepted['owner']['epoch'],
+                     'token': accepted['owner_token'], 'use_receiver_host': True}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('create', 'show', 'validate', 'accept', 'interrupt', 'reconcile', 'release'))
+    parser.add_argument('action', choices=('create', 'show', 'validate', 'accept', 'interrupt', 'reconcile', 'release', 'resume'))
     parser.add_argument('--project', required=True)
     parser.add_argument('--workflow')
     parser.add_argument('--plan', help='Project-relative workflow plan file (create: the plan to record; validate and '
@@ -588,10 +682,19 @@ def main(argv=None):
     parser.add_argument('--owner-epoch', help='Epoch returned by accept; the token comes from ' + TOKEN_ENVIRONMENT)
     parser.add_argument('--failure', help='JSON classification from model_host.classify_failure')
     parser.add_argument('--reason', default='')
+    parser.add_argument('--receivers', help='Explicit ordered JSON list of receiver id/host/model objects for bounded quota resume')
+    parser.add_argument('--max-switches', type=int, help='Persistent maximum host switches (1..8); required for resume')
+    parser.add_argument('--max-model-requests', type=int, help='Aggregate workflow request ceiling (1..32), never reset on resume')
+    parser.add_argument('--image', default=w.DEFAULT_IMAGE)
+    parser.add_argument('--allow-host-cli', action='store_true')
     args = parser.parse_args(argv)
     try:
         root = Path(args.project).resolve()
-        if args.action == 'create':
+        if args.action == 'resume':
+            result = resume(root, args.plan or 'workflow.json', json.loads(args.receivers or 'null'),
+                            args.max_switches, args.max_model_requests, args.image, args.allow_host_cli,
+                            claim_from(args.receiver_id, args.owner_epoch))
+        elif args.action == 'create':
             plan, fingerprint = w.read_plan(root, args.plan)
             state = w.state_for(root, plan, fingerprint)[1]
             result = write_checkpoint(root, plan, state, _ledger(root), 'manual', None, None, None, args.plan)
@@ -608,7 +711,7 @@ def main(argv=None):
             packet = args.packet or str(folder(root, args.workflow) / 'latest.json')
             result = (accept if args.action == 'accept' else validate)(root, packet, receiver, args.plan)
         print(json.dumps(result, indent=2, ensure_ascii=False))
-        return 0 if result.get('accepted', True) is not False else 2
+        return 0 if result.get('accepted', True) is not False and (args.action != 'resume' or result.get('status') == 'complete') else 2
     except (ValueError, OSError, subprocess.SubprocessError, KeyError, OwnershipError) as exc:
         print(json.dumps({'status': 'rejected', 'error': str(exc)}))
         return 2

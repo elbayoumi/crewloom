@@ -469,7 +469,34 @@ def _untrack_owned(kind,ident):
 
 def _reap_descendants(pgid,launched):
     import admission
+    outcome = admission.settle_current_process(pgid)
+    if outcome is not None:
+        return [] if outcome in ('gone', 'terminated', 'killed') else [outcome]
     return admission.reap_group(pgid,launched)
+
+
+
+class GenerationFailure(ValueError):
+    """Sanitized transport failure with classification; provider text and credentials stay private."""
+    def __init__(self, message, classification):
+        super().__init__(message)
+        self.classification = classification
+
+
+def transport_failure(stdout, stderr):
+    """Only structured provider error codes confirm quota; bounded prose remains probable."""
+    for raw in (stderr, stdout):
+        candidates = [raw] + raw.splitlines()[-32:]
+        for candidate in candidates:
+            try:
+                value = json.loads(candidate)
+                error = value.get('error') if isinstance(value, dict) else None
+                if isinstance(error, dict):
+                    result = classify_failure(error_code=error.get('code') or error.get('type'))
+                    if result['kind'] != 'unknown': return dict(result, side_effects='uncertain')
+            except (ValueError, TypeError, AttributeError):
+                continue
+    return dict(classify_failure(text=(stderr + '\n' + stdout)[-65536:]), side_effects='uncertain')
 
 
 def generate(host, prompt, outputs, timeout=180, model=None, evidence=None, max_output_tokens=None):
@@ -510,14 +537,18 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None, max_
         stdout_path=scratch/'stdout';stderr_path=scratch/'stderr'
         with stdout_path.open('w') as out,stderr_path.open('w') as err:
             launched=time.time()
-            process=subprocess.Popen(argv,cwd=scratch,stdin=subprocess.PIPE,stdout=out,stderr=err,
+            import admission
+            # Standalone POSIX CLI evaluation has no bound project/admission ledger and
+            # keeps its original Popen adapter. Managed workflows always establish a
+            # scope first and therefore use acknowledged ownership before dispatch.
+            launcher = admission.launch_owned if admission.current() is not None or os.name == 'nt' else subprocess.Popen
+            process=launcher(argv,cwd=scratch,stdin=subprocess.PIPE,stdout=out,stderr=err,
                                      text=True,env=env,start_new_session=True)
             try:
-                _track_owned('process',process.pid,process.pid)
                 pending=prompt if host in ('codex','claude') else None
                 while True:
                     if time.monotonic()-started>timeout:
-                        raise ValueError('Host generation timed out; process group terminated')
+                        raise GenerationFailure('Host generation timed out; managed process terminated', classify_failure(timed_out=True))
                     if stdout_path.stat().st_size>2*MAX_ARTIFACT_BYTES or stderr_path.stat().st_size>MAX_ARTIFACT_BYTES:
                         raise ValueError('Host output exceeds size limit; process group terminated')
                     try:
@@ -525,7 +556,11 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None, max_
                     except subprocess.TimeoutExpired:
                         pending=None
             except (ValueError,KeyboardInterrupt):
-                os.killpg(process.pid,signal.SIGKILL);process.communicate()
+                if os.name == 'posix':
+                    os.killpg(process.pid,signal.SIGKILL)
+                else:
+                    admission.settle_current_process(process.pid)
+                process.communicate()
                 _retain(evidence,'stdout',stdout_path);_retain(evidence,'stderr',stderr_path)
                 if not _reap_descendants(process.pid,launched):_untrack_owned('process',process.pid)
                 raise
@@ -536,7 +571,9 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None, max_
         _untrack_owned('process',process.pid)
         _retain(evidence,'stdout',stdout_path);_retain(evidence,'stderr',stderr_path)
         # Do not copy host error output into project/public records: may contain credentials.
-        if process.returncode:raise ValueError('Host generation failed (exit '+str(process.returncode)+'); check local authentication and provider limits')
+        if process.returncode:
+            failure = transport_failure(stdout_path.read_text(errors='replace'), stderr_path.read_text(errors='replace'))
+            raise GenerationFailure('Host generation failed (exit '+str(process.returncode)+'); provider output withheld', failure)
         if stdout_path.stat().st_size>2*MAX_ARTIFACT_BYTES:raise ValueError('Host response exceeds size limit')
         value,usage,cost=parse_response(host,stdout_path.read_text(),scratch)
         artifacts=validate_artifacts(value,outputs)
@@ -766,7 +803,7 @@ def build_prompt(root, step, language, task_id=None, context=None):
 # Model identity, host identity and tool access are separate facts. Each fact is labelled with
 # how it is known; a model's description of itself is never accepted as evidence, and an
 # unknown fact is unavailable for dispatch rather than assumed.
-PROFILE_VERSION=1
+PROFILE_VERSION=2
 PROFILE_TTL_SECONDS=3600
 FACT_BASES=('documented','observed','requested','unavailable','unknown')
 ACTIONS=('read_files','write_files','run_commands','network','browser','image_input','delegate_agents')
@@ -825,7 +862,11 @@ def capability_profile(host,model=None,launch_mode=None,probe_info=None,reported
                   'knowledge_cutoff':_fact(None,'unknown','never inferred from a model name',at)},
         'quota':{'remaining':_fact(None,'unknown','no quota telemetry from this host',at),
                  'reset_at':_fact(None,'unknown','no quota telemetry from this host',at)},
-        'image_input':_fact(None,'unknown','not observed',at)}
+        'image_input':_fact(None,'unknown','not observed',at),
+        'controller_processes': {'platform':os.name,
+            'ownership':_fact('Windows job + creation FILETIME' if os.name=='nt' else 'POSIX acknowledged exec + process identity + inherited marker',
+                              'documented','managed controller implementation; current host version/help is not live task acceptance',at),
+            'native_cli_sandbox':_fact(False,'documented','native host exception; no filesystem/network sandbox',at)}}
     if host in ('openai','anthropic'):
         profile['limits']['output_tokens']=_fact(MAX_OUTPUT_TOKENS_API,'documented','provider gateway request',at)
     profile['fingerprint']=_profile_fingerprint(profile)
@@ -836,7 +877,7 @@ MAX_OUTPUT_TOKENS_API=4096  # mirrors provider_gateway.MAX_OUTPUT_TOKENS (not im
 
 
 def _profile_fingerprint(profile):
-    identity={'host':profile['host']['name'],'version':profile['host']['version']['value'],
+    identity={'adapter_schema':PROFILE_VERSION,'platform':os.name,'host':profile['host']['name'],'version':profile['host']['version']['value'],
               'model':profile['model']['requested']['value'],'mode':profile['launch_mode']}
     return hashlib.sha256(json.dumps(identity,sort_keys=True).encode()).hexdigest()
 

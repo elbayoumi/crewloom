@@ -17,11 +17,11 @@
 
 Crewloom is a repository-native toolkit for specialist AI agent work. Choose a role, give it your project inputs, keep working memory, and check the result with local tools. Use your existing agent host and model.
 
-The toolkit brings together **42 English role guides**, **150 detailed reference documents**, **18 catalogued Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic.
+The toolkit brings together **42 English role guides**, **150 detailed reference documents**, **26 catalogued Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic.
 
 Managed workflows add project and checkout identities, frozen context, isolated Docker acceptance, credential-scoped review, and concurrent task worktrees. [Native lifecycle setup](documentation/HOST_LIFECYCLE.md) connects supported host callbacks; [agency readiness](documentation/READINESS.md) reports client evidence without modifying client projects. See [enforcement boundaries](documentation/ENFORCEMENT.md) for what each execution path actually covers.
 
-Managed workflows add project and checkout identities, frozen context, isolated Docker acceptance, credential-scoped review, and concurrent task worktrees. [Native lifecycle setup](documentation/HOST_LIFECYCLE.md) connects supported host callbacks; [agency readiness](documentation/READINESS.md) reports client evidence without modifying client projects. See [enforcement boundaries](documentation/ENFORCEMENT.md) for what each execution path actually covers.
+[Project navigation](documentation/REPOSITORY_MAP.md) selects explainable dependency context with Arabic or English technical queries. Verified conditional lessons remain project-local. [Continuation](documentation/CONTINUATION.md) carries durable task evidence between agents and supports explicitly bounded quota fallback. The authenticated dashboard selects approved external project roots without copying their data into the toolkit.
 
 ## Install and run your first checks
 

@@ -28,7 +28,7 @@ class ShippedCatalog(unittest.TestCase):
                 self.assertEqual(tc.verification(item, self.ROOT)['state'], expected, item['id'])
         migrated = {t['id'] for t in catalog['tools'] if t.get('contract_version')}
         self.assertTrue({'delivery-evidence', 'context', 'continuation', 'tool-catalog'} <= migrated)
-        self.assertGreater(len(catalog['tools']) - len(migrated), 10, 'unmigrated tools stay visibly legacy-unverified')
+        self.assertEqual(len(catalog['tools']), len(migrated), 'all shipped operational tools need current contracts')
 
 
 if __name__ == '__main__':

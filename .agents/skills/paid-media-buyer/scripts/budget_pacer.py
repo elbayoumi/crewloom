@@ -6,11 +6,13 @@ approved daily budget (from Campaign_Brief_Template.md), so over/under-spend
 is caught with a real number instead of a guess.
 """
 import argparse
+import math
 import sys
 
 
 def pace_check(daily_budget: float, days_elapsed: int, actual_spend: float) -> None:
-    if daily_budget <= 0 or days_elapsed <= 0:
+    if (not math.isfinite(daily_budget) or daily_budget <= 0 or days_elapsed <= 0
+            or not math.isfinite(actual_spend) or actual_spend < 0):
         print("خطأ: الميزانية اليومية وعدد الأيام يجب أن يكونا أكبر من صفر.", file=sys.stderr)
         sys.exit(1)
     expected_spend = daily_budget * days_elapsed

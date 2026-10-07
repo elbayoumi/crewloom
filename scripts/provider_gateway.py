@@ -4,7 +4,7 @@ import os
 import multiprocessing
 import urllib.error
 import urllib.request
-from model_host import MAX_TEXT, SCHEMA, validate_artifacts
+from model_host import MAX_TEXT, SCHEMA, validate_artifacts, GenerationFailure, classify_failure
 
 PROVIDERS={'openai':('https://api.openai.com/v1/responses','OPENAI_API_KEY'),
            'anthropic':('https://api.anthropic.com/v1/messages','ANTHROPIC_API_KEY')}
@@ -40,9 +40,22 @@ def _request(provider,model,prompt,timeout,max_output_tokens=None):
         with opener.open(req,timeout=timeout) as response:
             raw=response.read(MAX_RESPONSE_BYTES+1)
     except urllib.error.HTTPError as exc:
-        raise ValueError('Provider rejected generation (HTTP '+str(exc.code)+'); response body withheld') from None
+        code = None; retry = None
+        try:
+            detail = json.loads(exc.read(4096))
+            error = detail.get('error') if isinstance(detail, dict) else None
+            if isinstance(error, dict): code = error.get('code') or error.get('type')
+        except (OSError, ValueError, TypeError): pass
+        try:
+            hint = exc.headers.get('Retry-After') if exc.headers else None
+            if hint and hint.isdigit(): retry = min(int(hint), 3600)
+        except (ValueError, AttributeError): pass
+        finally: exc.close()
+        classification = classify_failure(http_status=exc.code, error_code=code if isinstance(code,str) else None, retry_after_seconds=retry)
+        raise GenerationFailure('Provider rejected generation (HTTP '+str(exc.code)+'); response body withheld', classification) from None
     except (urllib.error.URLError,TimeoutError,OSError):
-        raise ValueError('Provider connection failed; no automatic retry or host fallback') from None
+        raise GenerationFailure('Provider connection failed; no automatic retry or host fallback',
+                                dict(classify_failure(), side_effects='uncertain')) from None
     if len(raw)>MAX_RESPONSE_BYTES:raise ValueError('Provider response budget exceeded')
     return json.loads(raw)
 
@@ -54,11 +67,17 @@ def _ceiling(requested):
     return requested
 
 
-def _worker(provider,model,prompt,timeout,connection,max_output_tokens=None):
+def _worker(provider,model,prompt,timeout,connection,max_output_tokens=None,release=None):
     try:
+        if release is not None:
+            try:
+                if release.recv() is not True: return
+            except EOFError: return
+            finally: release.close()
         value={'response':_request(provider,model,prompt,timeout,max_output_tokens)}
     except Exception as exc:
-        value={'error':str(exc) if type(exc) is ValueError else 'Provider RPC failed; response/configuration withheld'}
+        value={'error':str(exc) if isinstance(exc, GenerationFailure) or type(exc) is ValueError else 'Provider RPC failed; response/configuration withheld'}
+        if isinstance(exc, GenerationFailure): value['classification'] = exc.classification
     try:connection.send_bytes(json.dumps(value).encode())
     finally:connection.close()
 
@@ -71,24 +90,43 @@ def request(provider,model,prompt,timeout,max_output_tokens=None):
     if not os.environ.get(PROVIDERS[provider][1]):raise ValueError('Configure '+PROVIDERS[provider][1]+' locally')
     context=multiprocessing.get_context('spawn')
     receive,send=context.Pipe(duplex=False)
-    process=context.Process(target=_worker,args=(provider,model,prompt,timeout,send,max_output_tokens))
-    process.start();send.close()
+    release_receive, release_send = context.Pipe(duplex=False)
+    process=context.Process(target=_worker,args=(provider,model,prompt,timeout,send,max_output_tokens,release_receive))
     try:
-        from model_host import _track_owned
-        _track_owned('process',process.pid,process.pid)
-        if not receive.poll(timeout):raise ValueError('Provider wall-time budget exhausted')
-        value=json.loads(receive.recv_bytes(MAX_RESPONSE_BYTES+65536))
-        if 'error' in value:raise ValueError(value['error'])
+        process.start()
+    except BaseException:
+        for channel in (receive, send, release_receive, release_send): channel.close()
+        raise
+    send.close();release_receive.close()
+    try:
+        import admission
+        admission.register_guarded_process(process)
+        release_send.send(True);release_send.close()
+        if not receive.poll(timeout):raise GenerationFailure('Provider wall-time budget exhausted', classify_failure(timed_out=True))
+        try:
+            value=json.loads(receive.recv_bytes(MAX_RESPONSE_BYTES+65536))
+        except (EOFError, OSError, ValueError):
+            raise GenerationFailure('Provider worker ended without a bounded response; side effects are uncertain', classify_failure()) from None
+        if 'error' in value:
+            if isinstance(value.get('classification'), dict): raise GenerationFailure(value['error'], value['classification'])
+            raise ValueError(value['error'])
         return value['response']
     finally:
+        release_send.close()
         try:
-            from model_host import _untrack_owned
-            _untrack_owned('process',process.pid)
-        except Exception:pass
-        if process.is_alive():process.terminate()
-        process.join(timeout=2)
-        if process.is_alive():process.kill();process.join(timeout=2)
-        receive.close()
+            import admission
+            outcome = admission.settle_current_process(process.pid)
+        except (OSError, ValueError, RuntimeError):
+            outcome = 'unverifiable: worker cleanup failed'
+        try:
+            if process.is_alive():process.terminate()
+            process.join(timeout=2)
+            if process.is_alive():process.kill();process.join(timeout=2)
+        finally:
+            receive.close()
+        # Never erase an uncertain resource or publish a response after uncertain cleanup.
+        if process.is_alive() or (outcome is not None and outcome not in ('gone', 'terminated', 'killed')):
+            raise GenerationFailure('Provider worker cleanup could not be verified; resource remains tracked', classify_failure())
 
 
 def parse(provider,value,outputs,max_output_tokens=None):

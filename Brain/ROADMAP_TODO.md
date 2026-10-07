@@ -206,3 +206,7 @@ All earlier entries below retain their original snapshot status. Pending work is
 - [x] W03/N04 second review: required acceptance needs an actual passing test; mixed expected-failure suites remain compatible, malformed counts refuse verification.
 - [x] W03/N04 second review: static nested/relative package initializer drift invalidates evidence; namespace and unrelated-package clean controls remain usable.
 - Remaining:15 legacy tools and older unregistered CLIs, acceptance helper/dynamic/resource coverage, recorded coordinator/pilot plan paths, Windows process identity and budget-authorized real cross-host delivery pilots remain in the existing unified plan.
+
+### 2026-10-07 — Integrated candidate acceptance
+- Implemented: W04 approved bounded fallback/source-plan preservation; W09 acknowledged launches/container intents/Windows backend; N04 all26 contracts/provenance3/receipts; W06 explainable bilingual navigation; W07 ranked safe lessons; W11 selected-root dashboard/current acceptance.
+- Pending evidence: final hook/install/remote CI, actual Windows CI, authorized live provider/application pilot, broader role activation/composition/usefulness. Refer to the single INTELLIGENCE_ROADMAP register; do not blanket-close W01–W12.

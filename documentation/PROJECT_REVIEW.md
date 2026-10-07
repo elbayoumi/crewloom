@@ -275,3 +275,11 @@ The review did not rerun a paid/provider study, live Claude callbacks, all runti
 6. Build project/task UX and representative role/language pilots; then prepare a coherent versioned release.
 
 Every fix should carry one canonical project identity, a bounded change, a reproduced failing case where appropriate, passing acceptance, and fresh evidence tied to its source revision. More roles or smaller prompts alone are not a success metric.
+
+## Integrated continuation, tools and project UX increment — 2026-10-07
+
+The unified plan's current increment supersedes earlier open implementation findings within its explicitly tested scope. Exact coordinator/pilot plans are preserved. A confirmed quota fixture changes to the fenced approved receiver without rewriting the plan or resetting attempts; probable quota, rate limits, timeout, native uncertain effects and exhausted bounds stop. Processes cannot execute before acknowledgement and identity tracking; actual crash/escaped-child and immutable-container controls are retained. The native Windows backend has separate actual-platform CI, not a local-emulation claim.
+
+All 26 operational contracts now have required acceptance; provenance 3 binds static acceptance helpers. Managed catalog dispatch gains required private receipts and wall/output bounds. Retrieval explains selected/missing dependencies and Arabic technical expansion. Lesson conflicts and later negative evidence are withheld. Dashboard requests use explicit external-root references, and completed tasks/self-attested roles cannot fabricate current verified status.
+
+Benefit is bounded: the synthetic context pilot selected 82.61% and 1.22% of full-context bytes and reused every unchanged parser, with successful isolated fixture acceptance. It established neither provider token/cost savings nor consistent speed improvement. Remaining live-provider, broader role/task usefulness and integration evidence stay open in the single plan; no generic hallucination-free or universal-agent-enforcement claim is made.

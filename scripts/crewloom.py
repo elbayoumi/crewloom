@@ -11,6 +11,8 @@ import subprocess
 import sys
 import tempfile
 import time
+import threading
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -44,6 +46,85 @@ def log_run(tool, skill, code, seconds, project=None):
             handle.write(json.dumps(record) + '\n')
     except OSError:
         pass
+
+
+
+def run_registered(item, path, arguments, project):
+    """Bound a noninteractive catalog invocation and retain project-local execution receipts.
+
+    The runner enforces declared wall time and combined output bytes, acknowledges
+    process identity before target dispatch, and cleans cooperating descendants.
+    Described effects/capabilities remain metadata; this is a native process boundary.
+    """
+    import admission
+    import continuation
+    import project_binding
+    import tool_catalog
+    import workflow as w
+    timeout = item.get('limits', {}).get('timeout_seconds', 600)
+    output_limit = item.get('limits', {}).get('output_bytes', 1048576)
+    if type(timeout) is not int or timeout < 1 or type(output_limit) is not int or output_limit < 1:
+        raise ValueError('Tool execution limits must be positive integers')
+    operation = uuid.uuid4().hex
+    project = Path(project).resolve()
+    validate_project_paths(item['id'], arguments, project, item.get('inputs'))
+    # Reuse the existing privacy writer; payloads stay ignored even in a first-use project.
+    folder = w.safe_path(project, '.crewloom/tools/' + item['id'] + '/' + operation, internal=True)
+    project_binding.preflight(project, ['.gitignore', str(folder.relative_to(project))])
+    project_binding.ignore_local_state(project)
+    admission.configure(folder, operation, {})
+    receipt_path = folder / 'execution.json'
+    provenance = tool_catalog.provenance(item, resources.distribution_root())
+    record = {'schema_version': 1, 'operation_id': operation, 'tool': item['id'],
+              'project_root': str(project), 'source_sha256': provenance['source'],
+              'contract_sha256': provenance['contract'], 'support_sha256': provenance['support'],
+              'started_at': datetime.now(timezone.utc).isoformat(), 'state': 'intent',
+              'limits': {'timeout_seconds': timeout, 'output_bytes': output_limit},
+              'boundary': 'native managed process; declared effects are not a filesystem/network sandbox',
+              'acceptance': 'tool execution receipt only; application acceptance is separate'}
+    def save():
+        continuation._private_write(receipt_path, json.dumps(record, indent=2))
+    save()  # Required before target side effects; never fall back to silent best effort.
+    with admission.context(folder, item['id']):
+        process = admission.launch_owned([sys.executable, str(path), *arguments], cwd=project,
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)
+        process.stdin.close()
+        count = [0]; exceeded = threading.Event(); read_error = threading.Event()
+        def collect():
+            try:
+                while True:
+                    chunk = process.stdout.read(8192)
+                    if not chunk: break
+                    allowed = max(0, output_limit - count[0]); count[0] += len(chunk)
+                    if len(chunk) > allowed: exceeded.set()
+                    if allowed:
+                        sink = getattr(sys.stdout, 'buffer', None)
+                        if sink is not None: sink.write(chunk[:allowed]); sink.flush()
+                        else: sys.stdout.write(chunk[:allowed].decode('utf-8', 'replace')); sys.stdout.flush()
+            except (OSError, ValueError): read_error.set()
+        reader = threading.Thread(target=collect, daemon=True); reader.start()
+        started = time.monotonic(); reason = None
+        try:
+            while process.poll() is None:
+                if exceeded.is_set(): reason = 'output-limit'; break
+                if read_error.is_set(): reason = 'output-reader-failed'; break
+                if time.monotonic() - started >= timeout: reason = 'timeout'; break
+                time.sleep(0.02)
+        finally:
+            cleanup = admission.settle_current_process(process.pid)
+            if process.poll() is None:
+                process.wait(timeout=5)
+            reader.join(timeout=5); process.stdout.close()
+        if exceeded.is_set(): reason = 'output-limit'
+        if read_error.is_set() or reader.is_alive(): reason = 'output-reader-failed'
+        if cleanup not in ('gone', 'terminated', 'killed'): reason = 'cleanup-unverified'
+        code = 124 if reason == 'timeout' else 2 if reason else process.returncode
+        record.update(state='finished', exit_code=code, reason=reason, cleanup=cleanup,
+                      output_bytes_observed=count[0], output_complete=not bool(reason),
+                      duration_ms=round((time.monotonic()-started)*1000))
+        save()
+        if reason: print('Tool execution stopped: ' + reason, file=sys.stderr)
+        return code
 
 
 def load_validator():
@@ -219,7 +300,8 @@ def tool_path(item):
     return path
 
 
-PATH_FLAGS = {'--project-dir', '--file', '--config', '--packet', '--snapshot', '--tokens', '--out', '--exceptions', '--project'}
+PATH_FLAGS = {'--project-dir', '--file', '--config', '--packet', '--snapshot', '--tokens', '--out', '--exceptions',
+              '--project', '--project-root', '--root', '--plan', '--manifest'}
 POSITIONAL_PATH_TOOLS = {'workflow-contract', 'delivery-evidence'}
 
 # Commands whose parser, defaults and exit codes live in another module. They declare no arguments
@@ -254,20 +336,28 @@ def delegated_command(argv):
     return None
 
 
-def validate_project_paths(tool, arguments, project):
+def validate_project_paths(tool, arguments, project, inputs=None):
     """Resolve registered input/output path arguments against one project root."""
     paths = []
+    roots = []
+    path_flags = PATH_FLAGS | {name for name, value in (inputs or {}).items()
+                              if name.startswith('--') and isinstance(value, dict) and value.get('type') == 'path'}
+    # These two registered readiness inputs are explicit read-only external references.
+    if tool == 'agency-readiness': path_flags -= {'--agency-root', '--registry'}
     index = 0
     while index < len(arguments):
         arg = arguments[index]
         flag, separator, value = arg.partition('=')
-        if flag in PATH_FLAGS:
+        if flag.startswith('--') and flag not in path_flags and any(name.startswith(flag) for name in path_flags):
+            raise ValueError('Abbreviated path flags are forbidden; use the complete declared flag')
+        if flag in path_flags:
             if not separator:
                 index += 1
                 if index >= len(arguments):
                     raise ValueError(f'Missing path for {flag}')
                 value = arguments[index]
             paths.append(value)
+            if flag in ('--project', '--project-root', '--root'): roots.append(value)
         elif index == 0 and tool in POSITIONAL_PATH_TOOLS and not arg.startswith('-'):
             paths.append(arg)
         index += 1
@@ -275,6 +365,12 @@ def validate_project_paths(tool, arguments, project):
         resolved = (project / value).resolve()
         if not resolved.is_relative_to(project):
             raise ValueError(f'Path escapes selected project: {value}')
+    for value in roots:
+        if (project / value).resolve() != project:
+            raise ValueError('Project/root selectors must equal the selected canonical root, not a nested project')
+    if tool == 'tool-catalog' and any(arg in ('render', 'record-evidence') for arg in arguments) \
+            and not roots and resources.distribution_root().resolve() != project:
+        raise ValueError('Catalog mutation needs the selected toolkit root or an explicit matching --root; consumer runs cannot modify the installed library')
 
 
 def main():
@@ -460,13 +556,18 @@ def main():
         try:
             if any(not candidate.resolve().is_relative_to(project) for candidate in (project / '.crewloom', project / '.crewloom/runs.jsonl')):
                 raise ValueError('Run history directory escapes selected project')
-            validate_project_paths(item['id'], arguments, project)
+            validate_project_paths(item['id'], arguments, project, item.get('inputs'))
         except (OSError, ValueError) as exc:
             parser.error(str(exc))
         if item['id'] == 'context' and project != resources.distribution_root() and '--project' not in arguments:
             arguments = ['--project', str(project), *arguments]
         started = time.monotonic()
-        code = subprocess.run([sys.executable, str(path), *arguments], cwd=project, check=False).returncode
+        try:
+            code = (run_registered(item, path, arguments, project) if item.get('contract_version') else
+                    subprocess.run([sys.executable, str(path), *arguments], cwd=project, check=False).returncode)
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
+            print('Tool execution refused or interrupted: ' + str(exc), file=sys.stderr)
+            return 2
         log_run(item['id'], item['skill'], code, time.monotonic() - started, project)
         return code
     if args.command == 'list':

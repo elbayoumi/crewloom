@@ -285,16 +285,22 @@ def snapshot(root, binding, task_id, role, config, criteria, seeds, language=Non
     if selection['truncated_seed_files']:
         omitted.append({'kind': 'map-seed-symbols', 'count': len(selection['truncated_seed_files']),
                         'detail': 'seed symbol lists exceeded the map budget; the file itself is present'})
+    if selection.get('dependency_omission_count'):
+        omitted.append({'kind': 'required-dependencies', 'count': selection['dependency_omission_count'],
+                        'detail': 'known seed dependency paths omitted; request them before editing'})
     if not selection['graph_complete']:
         omitted.append({'kind': 'dependency-resolution', 'count': len(value['incomplete_files']),
                         'detail': 'package, alias and unsupported syntax resolution is a deferred adapter'})
     if len(value['files']) > MAX_INDEXED_NAMES:
         omitted.append({'kind': 'indexed-names', 'count': len(value['files']),
                         'detail': 'the generation keeps a digest of the indexed file set plus a bounded sample'})
-    tokens = set(re.findall(r'\w{3,}', (' '.join(seeds) + ' ' + ' '.join(criteria)).casefold()))
+    tokens, _ = repo_map.query_terms(' '.join(seeds) + ' ' + ' '.join(criteria))
     lessons = lesson_selection(root, config, seeds, tokens)
     kept_lessons, dropped_lessons = bounded_lessons(lessons['lessons'],
                                                     config['budgets']['lesson_budget_bytes'])
+    if lessons.get('conflict_count'):
+        omitted.append({'kind': 'lesson-conflicts', 'count': lessons['conflict_count'],
+                        'detail': 'eligible remedies disagree; review before reuse'})
     omitted_lessons = lessons['omitted'] + dropped_lessons
     if omitted_lessons:
         omitted.append({'kind': 'lessons', 'count': omitted_lessons,

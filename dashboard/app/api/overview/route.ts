@@ -1,15 +1,17 @@
+import { inSelectedProject, projectReferences } from '../../../lib/projects.ts';
 import { guard, privateHeaders } from '../../../lib/auth.ts';
-import { PROJECT, listSkills, readRuns, readTools } from '../../../lib/repo.ts';
+import { listSkills, readRuns, readTools, readTasks } from '../../../lib/repo.ts';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   const denied = guard(req);
   if (denied) return denied;
-  const [skills, tools, runs] = await Promise.all([listSkills(), readTools(), readRuns(50)]);
+  return inSelectedProject(req, async (project) => {
+  const [skills, tools, runs, taskView] = await Promise.all([listSkills(project.root), readTools(), readRuns(50, project.root), readTasks(project.root)]);
   const failed = runs.filter((r) => r.exit_code !== 0).length;
   return Response.json({
-    projectRoot: PROJECT,
+    projectRoot: project.root, projectId: project.id, projects: projectReferences(),
     generatedAt: new Date().toISOString(),
     totals: {
       skills: skills.length, tools: tools.length, runs: runs.length, failedRuns: failed,
@@ -19,6 +21,7 @@ export async function GET(req: Request) {
       unknownChallenges: skills.reduce((n, s) => n + s.unknownChallenges, 0),
       verified: skills.filter((s) => s.status === 'verified').length,
     },
-    skills, tools, runs,
+    skills, tools, runs, tasks: taskView.tasks, taskDiagnostics: taskView.diagnostics,
   }, { headers: { ...privateHeaders } });
+  });
 }

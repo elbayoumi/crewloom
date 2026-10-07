@@ -32,6 +32,8 @@ import os
 import re
 import signal
 import subprocess
+import sys
+import uuid
 import tempfile
 import threading
 import time
@@ -50,6 +52,8 @@ USAGE_TOKEN_KEYS = ('input_tokens', 'output_tokens', 'total_tokens')
 USAGE_KEYS = USAGE_TOKEN_KEYS + ('cost_usd',)
 CHARGED = ('dispatched', 'succeeded', 'failed', 'orphaned')
 _local = threading.local()
+_windows_jobs = {}
+_jobs_lock = threading.Lock()
 
 
 class AdmissionError(ValueError):
@@ -99,6 +103,9 @@ def observe_process(pid):
         number = int(pid)
     except (TypeError, ValueError):
         return 'unknown', 'the recorded pid is not an integer'
+    if os.name == 'nt':
+        from process_backend import observe
+        return observe(number)
     result, problem = _run_ps(['-o', 'stat=,lstart=', '-p', str(number)])
     if problem:
         return 'unknown', problem
@@ -164,8 +171,6 @@ def _process_table():
 
 @contextmanager
 def _locked(folder):
-    if fcntl is None:
-        raise AdmissionError('Admission needs POSIX advisory locking')
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
     lock = folder / 'admission.lock'
@@ -173,7 +178,15 @@ def _locked(folder):
         raise AdmissionError('Admission lock may not be a symlink')
     descriptor = os.open(str(lock), os.O_CREAT | os.O_RDWR, 0o600)
     try:
-        fcntl.flock(descriptor, fcntl.LOCK_EX)
+        if fcntl is not None:
+            fcntl.flock(descriptor, fcntl.LOCK_EX)
+        elif os.name == 'nt':
+            import msvcrt
+            if os.fstat(descriptor).st_size == 0: os.write(descriptor, b'0')
+            os.lseek(descriptor, 0, os.SEEK_SET)
+            msvcrt.locking(descriptor, msvcrt.LK_LOCK, 1)
+        else:
+            raise AdmissionError('No verified admission locking backend on this platform')
         yield
     finally:
         os.close(descriptor)
@@ -197,8 +210,16 @@ def _save(folder, value):
     try:
         with os.fdopen(descriptor, 'w', encoding='utf-8') as stream:
             json.dump(value, stream, indent=2, ensure_ascii=False)
+            stream.flush()
+            os.fsync(stream.fileno())
         os.chmod(temporary, 0o600)
         os.replace(temporary, path)
+        if os.name == 'posix':
+            directory = os.open(str(folder), os.O_RDONLY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
@@ -407,7 +428,53 @@ def _signal(pid, number):
 
 
 def _group_valid(pgid):
-    return isinstance(pgid, int) and pgid > 1 and pgid != os.getpgrp()
+    return os.name == 'posix' and isinstance(pgid, int) and pgid > 1 and pgid != os.getpgrp()
+
+
+
+def _launch_members(token, table):
+    """Find cooperating descendants by their inherited random launch marker.
+
+    Environment bytes are inspected in memory only, never logged or persisted. This
+    is recovery ownership, not protection from a same-user process forging/stripping
+    the marker. An unreadable observation remains unknown and retains the receipt.
+    """
+    if not isinstance(token, str) or not re.fullmatch(r'[a-f0-9]{32}', token):
+        raise ProcessObservationError('invalid launch marker')
+    marker = ('CREWLOOM_LAUNCH_TOKEN=' + token).encode()
+    found = {}
+    if sys.platform.startswith('linux'):
+        for pid, row in table.items():
+            base = Path('/proc') / str(pid)
+            try:
+                if base.stat().st_uid != os.getuid():
+                    continue
+                with (base / 'environ').open('rb') as stream:
+                    raw = stream.read(262145)
+                if len(raw) > 262144:
+                    raise ProcessObservationError('process environment exceeds inspection limit')
+                if marker in raw.split(b'\0'):
+                    found[pid] = row['start']
+            except FileNotFoundError:
+                continue
+            except PermissionError as exc:
+                raise ProcessObservationError('owned-user process environment is unreadable') from exc
+    elif sys.platform == 'darwin':
+        result, problem = _run_ps(['eww', '-axo', 'pid=,uid=,command='])
+        if problem or result.returncode != 0 or len(result.stdout.encode()) > 8388608:
+            raise ProcessObservationError('process environment observation failed or exceeded limit')
+        pattern = re.compile(r'(?:^|\s)' + re.escape(marker.decode()) + r'(?:\s|$)')
+        for line in result.stdout.splitlines():
+            parts = line.strip().split(None, 2)
+            if len(parts) != 3 or not parts[0].isdigit() or not re.fullmatch(r'-?\d+', parts[1]):
+                raise ProcessObservationError('process environment row is unreadable')
+            pid = int(parts[0])
+            if int(parts[1]) == os.getuid() and pid in table and pattern.search(parts[2]):
+                found[pid] = table[pid]['start']
+    else:
+        raise ProcessObservationError('inherited launch ownership is unsupported on this platform')
+    found.pop(os.getpid(), None)
+    return found
 
 
 def _collect_tree(item, table):
@@ -436,6 +503,8 @@ def _collect_tree(item, table):
                 if row['ppid'] == parent and child not in targets:
                     targets[child] = row['start']
                     frontier.append(child)
+    if item.get('launch_token'):
+        targets.update(_launch_members(item['launch_token'], table))
     targets.pop(os.getpid(), None)
     return targets, None
 
@@ -446,6 +515,25 @@ def _stop_pid(item, grace=3.0):
     Every signal is preceded by an identity check of that process, so a reused pid is never signalled.
     `gone` is returned only when a complete process table proved the tree absent; if the table cannot be read
     at any point the result is `unverifiable: ...` (never `gone`) and the resource stays tracked."""
+    if os.name == 'nt':
+        from process_backend import ProcessBackendError
+        token = item.get('launch_token')
+        with _jobs_lock:
+            job = _windows_jobs.get(token)
+        if job is not None:
+            try:
+                result = job.stop()
+                with _jobs_lock: _windows_jobs.pop(token, None)
+                return result
+            except ProcessBackendError as exc:
+                return 'unverifiable: ' + str(exc)
+        if item.get('windows_job') and pid_state(item['controller_pid'], item.get('controller_start'))[0] == 'dead':
+            # KILL_ON_JOB_CLOSE closes with the verified dead controller; before job
+            # assignment the worker sees pipe EOF and cannot execute the target.
+            return 'gone'
+        if item.get('pid') and pid_state(item['pid'], item.get('pid_start'))[0] == 'dead':
+            return 'gone'
+        return 'unverifiable: Windows job handle is unavailable; resource remains tracked'
     try:
         targets, problem = _collect_tree(item, _process_table())
     except ProcessObservationError as exc:
@@ -525,7 +613,7 @@ def reap_group(pgid, not_before=None, grace=2.0):
         return ['unverified (process inspection failed: %s)' % exc]
 
 
-def track_process(folder, kind, ident, pid=None, task=None, container=None):
+def track_process(folder, kind, ident, pid=None, task=None, container=None, launch_token=None):
     """Record a process or container this batch started, with an identity to verify before stopping it.
 
     A batch that cannot record the resource raises: running it untracked would make cancellation and
@@ -549,7 +637,7 @@ def track_process(folder, kind, ident, pid=None, task=None, container=None):
                 raise AdmissionError('The process identity cannot be verified (%s); the process is not tracked' % detail)
             pid_start = detail if observed == 'present' else None
             try:
-                pgid = os.getpgid(pid)
+                pgid = os.getpgid(pid) if os.name == 'posix' else None
                 own_group = pgid == pid and _group_valid(pgid)
             except OSError:
                 pass
@@ -559,11 +647,150 @@ def track_process(folder, kind, ident, pid=None, task=None, container=None):
         entry = {'kind': kind, 'ident': str(ident), 'pid': pid, 'pid_start': pid_start, 'pgid': pgid,
                  'own_group': own_group, 'controller_pid': os.getpid(), 'controller_start': controller_start,
                  'task': task, 'tracked_at': now()}
+        if launch_token:
+            entry['launch_token'] = launch_token
+            if os.name == 'nt': entry['windows_job'] = True
         if container:
             entry.update(container_id=container['id'], labels=dict(container['labels']))
         value['processes'][key] = entry
         _save(folder, value)
         return key
+
+
+
+# The wrapper consumes exactly one byte from stdin. Target stdin remains untouched.
+# EOF before acknowledgement exits without executing the target. It has no imports
+# from mutable consumer projects and accepts only the controller's argv, never code.
+_LAUNCH_WORKER = "import os,sys,json,subprocess; a=os.read(0,1); sys.exit(125) if a!=b'1' else (sys.exit(subprocess.Popen(json.loads(sys.argv[2]),stdin=sys.stdin).wait()) if os.name=='nt' else os.execvpe(sys.argv[1],json.loads(sys.argv[2]),os.environ))"
+
+
+def launch_owned(argv, **kwargs):
+    """Durably register a launch intent and process identity before releasing target execution.
+
+    Requires PIPE stdin; the caller may communicate its actual payload after this returns.
+    Outside a batch the same handshake guards tracking failure, but no recovery ledger
+    exists. POSIX exec preserves PID; Windows assigns an acknowledged worker and its
+    descendants to a kill-on-close job before acknowledgement.
+    No arbitrary CLI sandbox is implied by ownership tracking.
+    """
+    if os.name not in ('posix', 'nt'):
+        raise AdmissionError('Managed acknowledged launch has no backend on this platform')
+    if not argv or kwargs.get('stdin') != subprocess.PIPE:
+        raise AdmissionError('Acknowledged launch needs argv and PIPE stdin')
+    token = uuid.uuid4().hex
+    active = current()
+    intent = 'launch:' + token
+    env = dict(kwargs.get('env', os.environ))
+    env['CREWLOOM_LAUNCH_TOKEN'] = token
+    kwargs['env'] = env
+    if active:
+        with _locked(active['folder']):
+            value = _load(active['folder'])
+            if value is None:
+                raise AdmissionError('Launch needs configured admission before dispatch')
+            state, started = observe_process(os.getpid())
+            if state != 'present':
+                raise AdmissionError('Launch controller identity is unknown')
+            value['processes'][intent] = {'kind': 'launch', 'ident': token,
+                'controller_pid': os.getpid(), 'controller_start': started,
+                'task': active.get('task'), 'tracked_at': now(), 'launch_token': token,
+                'windows_job': os.name == 'nt',
+                'note': 'target awaits acknowledgement; interrupted acknowledgement is uncertain, never replay'}
+            _save(active['folder'], value)
+    process = None
+    job = None
+    try:
+        if os.name == 'nt':
+            from process_backend import OwnedJob
+            job = OwnedJob()
+            kwargs.pop('start_new_session', None)
+        process = subprocess.Popen([sys.executable, '-c', _LAUNCH_WORKER, str(argv[0]), json.dumps(list(argv))], **kwargs)
+        if job is not None:
+            job.assign(process)
+            job.pid = process.pid
+            with _jobs_lock: _windows_jobs[token] = job
+            process._crewloom_launch_token = token
+        if active:
+            track_process(active['folder'], 'process', process.pid, process.pid,
+                          active.get('task'), launch_token=token)
+        process.stdin.write('1' if (kwargs.get('text') or kwargs.get('universal_newlines') or kwargs.get('encoding')) else b'1')
+        process.stdin.flush()
+        if active:
+            untrack_process(active['folder'], 'launch', token)
+        return process
+    except BaseException:
+        if process is not None:
+            # Closing the release pipe prevents target execution before acknowledgement.
+            try:
+                process.stdin.close()
+                process.wait(timeout=5)
+            except (OSError, subprocess.SubprocessError):
+                process.kill(); process.wait(timeout=5)
+            finally:
+                for stream in (process.stdin, process.stdout, process.stderr):
+                    if stream is not None and not stream.closed:
+                        stream.close()
+        if job is not None:
+            job.close()
+            with _jobs_lock: _windows_jobs.pop(token, None)
+        # Keep the intent: a failure after acknowledgement has uncertain side effects.
+        raise
+
+
+
+
+def register_guarded_process(process):
+    """Register a spawn worker while its separate release pipe still blocks all external effects."""
+    token = None
+    job = None
+    try:
+        if os.name == 'nt':
+            from process_backend import OwnedJob
+            token = uuid.uuid4().hex
+            job = OwnedJob(); job.assign(process); job.pid = process.pid
+            with _jobs_lock: _windows_jobs[token] = job
+        active = current()
+        if active:
+            track_process(active['folder'], 'process', process.pid, process.pid, active.get('task'), launch_token=token)
+        return token
+    except BaseException:
+        if job is not None:
+            job.close()
+            with _jobs_lock: _windows_jobs.pop(token, None)
+        raise
+
+
+def track_container_intent(name, labels):
+    """Persist labeled container ownership before Docker can create it or execute its command."""
+    active = current()
+    if not active:
+        return None
+    if not isinstance(name, str) or not re.fullmatch(r'crewloom-[a-f0-9]{32}', name) or not labels.get(RUN_LABEL):
+        raise AdmissionError('Container launch intent needs a generated name and ownership label')
+    with _locked(active['folder']):
+        value = _load(active['folder'])
+        if value is None:
+            raise AdmissionError('Container launch needs configured admission')
+        state, started = observe_process(os.getpid())
+        if state != 'present':
+            raise AdmissionError('Container launch controller identity is unknown')
+        key = 'container-launch:' + name
+        value['processes'][key] = {'kind': 'container-launch', 'ident': name,
+            'labels': dict(labels), 'controller_pid': os.getpid(), 'controller_start': started,
+            'task': active.get('task'), 'tracked_at': now(),
+            'note': 'creation/dispatch uncertain until immutable id is registered; never replay automatically'}
+        _save(active['folder'], value)
+    return key
+
+
+def reconcile_container_intent(item):
+    """Resolve an interrupted launch by name plus labels, then act only on inspected immutable ID."""
+    status, found = inspect_container(item['ident'])
+    if status == 'missing':
+        return 'gone'
+    if status != 'ok':
+        return 'unverifiable: container launch could not be inspected'
+    return remove_container({'container_id': found['id'], 'labels': item['labels']})
 
 
 def untrack_process(folder, kind, ident):
@@ -592,9 +819,11 @@ def terminate_owned(folder, only_orphans=False):
                     outcomes.append({'key': key, 'task': item.get('task'),
                                      'result': 'unverifiable: the controller could not be checked (%s)' % detail})
                     continue
-            if item['kind'] == 'container':
+            if item['kind'] == 'container-launch':
+                result = reconcile_container_intent(item)
+            elif item['kind'] == 'container':
                 result = remove_container(item)
-            elif item.get('pid'):
+            elif item.get('pid') or item.get('launch_token'):
                 result = _stop_pid(item)
             else:
                 result = 'no pid recorded'
@@ -604,6 +833,34 @@ def terminate_owned(folder, only_orphans=False):
                 del value['processes'][key]
         _save(folder, value)
     return outcomes
+
+
+
+def settle_current_process(ident):
+    """Stop one managed launch's remaining descendants and retain unverifiable ownership."""
+    active = current()
+    if not active:
+        if os.name != 'nt': return None
+        with _jobs_lock:
+            matching = [(token, job) for token, job in _windows_jobs.items() if getattr(job, 'pid', None) == ident]
+        if len(matching) != 1:
+            return 'unverifiable: Windows launch ownership is missing or ambiguous'
+        token, job = matching[0]
+        try:
+            outcome = job.stop()
+            with _jobs_lock: _windows_jobs.pop(token, None)
+            return outcome
+        except ValueError as exc:
+            return 'unverifiable: ' + str(exc)
+    with _locked(active['folder']):
+        value = _load(active['folder'])
+        item = (value or {}).get('processes', {}).get('process:' + str(ident))
+    if item is None:
+        return None
+    result = _stop_pid(item)
+    if result in ('gone', 'terminated', 'killed'):
+        untrack_process(active['folder'], 'process', ident)
+    return result
 
 
 def recover(folder):

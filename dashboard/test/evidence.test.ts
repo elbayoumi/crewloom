@@ -63,7 +63,7 @@ test('listSkills over a real project: no role is healthy without evidence; accep
     writeFileSync(path.join(folder, '.crewloom', 'runs.jsonl'), JSON.stringify({ ts: 't', tool: registered.id, skill: registered.skill, exit_code: 1, duration_ms: 1, source: 'cli' }) + '\n');
     const second = await repo.listSkills();
     const by = (id: string) => second.find((s: { id: string }) => s.id === id);
-    assert.equal(by('context-guardian').status === 'verified' || by('context-guardian').currentFailures.length > 0, true);
+    assert.equal(by('context-guardian').evidence.verified, false, 'schema1 self-reported success is an attestation, not executor acceptance');
     assert.equal(by('seo-growth-engineer').evidence.verified, false, 'an incomplete acceptance record does not verify');
     assert.equal(by(registered.skill).status, 'attention');
     assert.deepEqual(by(registered.skill).currentFailures, [registered.id]);

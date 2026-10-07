@@ -571,6 +571,41 @@ class AcceptanceBinding(Lifecycle):
         self.write('scripts/test_replacement.py', TEST_SOURCE)
         return self.verified()
 
+    def test_acceptance_helper_drift_invalidates_evidence_and_actual_rerecording_fails(self):
+        self.write('scripts/expectations.py', 'EXPECTED = True\n')
+        self.write('scripts/test_alpha.py', 'from expectations import EXPECTED\n' + TEST_SOURCE.replace('assertTrue(True)', 'assertTrue(EXPECTED)'))
+        item = self.verified()
+        self.assertEqual(tc.verification(item, self.root)['state'], 'current')
+        self.assertIn('scripts/expectations.py', item['evidence'][0]['acceptance_support_sha256'])
+        self.write('scripts/expectations.py', 'EXPECTED = False\n')
+        self.assertEqual(tc.verification(item, self.root)['state'], 'stale')
+        with self.assertRaises(ValueError): tc.record_evidence(self.root, 'alpha')
+
+    def test_transitive_acceptance_initializer_is_bound_and_unrelated_code_stays_current(self):
+        self.write('scripts/expectations/__init__.py', 'EXPECTED = True\n')
+        self.write('scripts/test_helper.py', 'from expectations import EXPECTED\n')
+        self.write('scripts/test_alpha.py', 'from test_helper import EXPECTED\n' + TEST_SOURCE.replace('assertTrue(True)', 'assertTrue(EXPECTED)'))
+        item = self.verified()
+        self.write('scripts/unrelated.py', 'VALUE = 2\n')
+        self.assertEqual(tc.verification(item, self.root)['state'], 'current')
+        self.assertIn('scripts/test_helper.py', item['evidence'][0]['acceptance_support_sha256'])
+        self.assertIn('scripts/expectations/__init__.py', item['evidence'][0]['acceptance_support_sha256'])
+        self.write('scripts/expectations/__init__.py', 'EXPECTED = False\n')
+        self.assertFalse(tc.execution_decision(item, self.root)[0])
+
+    def test_packaged_view_retains_build_evidence_without_claiming_local_test_reexecution(self):
+        self.write('scripts/expectations.py', 'EXPECTED = True\n')
+        self.write('scripts/test_alpha.py', 'from expectations import EXPECTED\n' + TEST_SOURCE.replace('assertTrue(True)', 'assertTrue(EXPECTED)'))
+        item = self.verified()
+        (self.root / 'scripts/test_alpha.py').unlink()
+        (self.root / 'scripts/expectations.py').unlink()
+        view = tc.WorkingView(self.root); view.acceptance_required = False
+        state = tc.verification(item, self.root, view=view)
+        self.assertEqual(state['state'], 'current')
+        self.assertIn('not rerun locally', state['detail'])
+        strict = tc.WorkingView(self.root); strict.acceptance_required = True
+        self.assertEqual(tc.verification(item, self.root, view=strict)['state'], 'stale')
+
     def test_evidence_binds_the_acceptance_list_and_bodies(self):
         item = self.tool_with_helper()
         state = tc.verification(item, self.root)

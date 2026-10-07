@@ -22,3 +22,20 @@ scripts/*.egg-info/
 # Public source/templates and deliberate release assets remain versioned.
 *.pyo
 .claude/settings.local.json
+# Crewloom project-local privacy
+.crewloom/
+.env
+.env.*
+!.env.example
+!.env.template
+__pycache__/
+*.pyc
+*.pyo
+*.log
+.venv/
+node_modules/
+.next/
+build/
+dist/
+*.egg-info/
+*.tsbuildinfo

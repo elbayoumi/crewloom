@@ -1140,7 +1140,8 @@ def _execute_task(root, meta, state, ident, image, log, allow_host_cli=False):
             outcome['criteria_sha256'] = criteria_sha
             log('task.started', task=ident, workflow=plan['id'], dependencies=dependencies)
             with admission.context(_coordinator_folder(root, state['batch']), ident):
-                w.run(path, plan, fingerprint, image, allow_host_cli=native)
+                w.run(path, plan, fingerprint, image, allow_host_cli=native,
+                      plan_file=record['workflow'])
             verified = _verify_execution(meta, ident, path, plan, fingerprint, criteria_sha)
             head, changed = _commit_outputs(path, _branch(state['batch'], ident),
                                             verified['declared_outputs'])

@@ -171,6 +171,73 @@ class LessonTests(unittest.TestCase):
         selected = pl.select(self.root, ['session.py'], set(), 10)
         self.assertEqual(selected['lessons'], [])
 
+    def test_relevant_verified_lesson_wins_a_small_budget(self):
+        pb.cancel(self.root, 'sample-project', 'evidence-task', 'fixture')
+        self.run_workflow()
+        generic = self.lesson('General advice', 'Check results')
+        relevant = self.lesson('Arabic auth failure', 'Check auth.py and session tokens', {'paths': ['auth.py']})
+        for value in (generic, relevant):
+            pl.verify(self.root, value['id'], [{'workflow': 'evidence-flow', 'step': 'check'}])
+        selection = pl.select(self.root, ['auth.py'], {'session'}, 1)
+        self.assertEqual([item['id'] for item in selection['lessons']], [relevant['id']])
+        self.assertEqual(selection['omitted'], 1)
+        self.assertEqual(selection['lessons'][0]['selection_reason']['condition_matches'], 1)
+        self.assertGreater(selection['lessons'][0]['selection_reason']['executed_passes'], 0)
+
+    def test_conflicting_eligible_remedies_are_reported_and_withheld(self):
+        pb.cancel(self.root, 'sample-project', 'evidence-task', 'fixture')
+        self.run_workflow()
+        first = self.lesson('Cache failure', 'Enable caching', {'paths': ['auth.py']})
+        second = self.lesson('Cache failure', 'Disable caching', {'symbols': ['session']})
+        for value in (first, second):
+            pl.verify(self.root, value['id'], [{'workflow': 'evidence-flow', 'step': 'check'}])
+        selection = pl.select(self.root, ['auth.py'], {'session'}, 10)
+        self.assertEqual(selection['lessons'], [])
+        self.assertEqual(selection['conflict_count'], 1)
+        self.assertEqual(set(selection['conflicts'][0]['ids']), {first['id'], second['id']})
+        # When only one remedy is applicable it remains available.
+        self.assertEqual(len(pl.select(self.root, ['auth.py'], set(), 10)['lessons']), 1)
+
+    def test_new_negative_observation_withholds_an_earlier_verified_remedy(self):
+        pb.cancel(self.root, 'sample-project', 'evidence-task', 'fixture')
+        self.run_workflow()
+        value = self.lesson('Intermittent failure', 'Earlier remedy')
+        pl.verify(self.root, value['id'], [{'workflow': 'evidence-flow', 'step': 'check'}])
+        pl.record(self.root, self.binding, 'Intermittent failure', 'Earlier remedy', negative=True)
+        selection = pl.select(self.root, [], set(), 10)
+        self.assertEqual(selection['lessons'], [])
+        self.assertEqual(selection['negative_evidence_count'], 1)
+
+    def test_role_acceptance_requires_current_executor_references_and_matching_role(self):
+        pb.cancel(self.root, 'sample-project', 'evidence-task', 'fixture')
+        self.run_workflow()
+        folder = self.root / '.crewloom' / 'acceptance'; folder.mkdir()
+        path = folder / (ROLE + '.json')
+        path.write_text(json.dumps({'schema_version': 1, 'passed': True, 'exit_code': 0, 'command': 'unexecuted'}))
+        self.assertFalse(pb.role_acceptance(self.root, ROLE)['verified'])
+        record = {'schema_version': 2, 'role': ROLE, 'project_id': self.binding['project_id'],
+                  'checkout_id': self.binding['checkout_id'], 'references': [{'workflow': 'evidence-flow', 'step': 'check'}]}
+        path.write_text(json.dumps(record))
+        self.assertTrue(pb.role_acceptance(self.root, ROLE)['verified'])
+        (self.root / 'output.txt').write_text('drifted')
+        self.assertFalse(pb.role_acceptance(self.root, ROLE)['verified'])
+        (self.root / 'output.txt').write_text('verified')
+        foreign = dict(record, role='seo-growth-engineer')
+        (folder / 'seo-growth-engineer.json').write_text(json.dumps(foreign))
+        self.assertFalse(pb.role_acceptance(self.root, 'seo-growth-engineer')['verified'])
+
+    def test_task_acceptance_rechecks_artifacts_without_rewriting_completed_history(self):
+        pb.cancel(self.root, 'sample-project', 'evidence-task', 'fixture')
+        self.run_workflow()
+        pb.enter(self.root, 'sample-project', 'current-task', ROLE, seeds=['input.txt'])
+        result = pb.finish(self.root, 'sample-project', 'current-task', evidence=[{'workflow': 'evidence-flow', 'step': 'check'}])
+        self.assertTrue(result['verified'])
+        self.assertTrue(pb.task_acceptance(self.root, 'current-task')['verified'])
+        state = (self.root / '.crewloom/tasks/current-task/state.json').read_bytes()
+        (self.root / 'output.txt').write_text('drifted after completion')
+        self.assertFalse(pb.task_acceptance(self.root, 'current-task')['verified'])
+        self.assertEqual((self.root / '.crewloom/tasks/current-task/state.json').read_bytes(), state)
+
     def test_export_requires_review_and_import_verifies_identity(self):
         pb.cancel(self.root, 'sample-project', 'evidence-task', 'fixture')
         self.run_workflow()

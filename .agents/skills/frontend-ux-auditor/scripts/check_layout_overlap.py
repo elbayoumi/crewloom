@@ -16,6 +16,7 @@ entirely — the snapshot script already flags them as normalFlow: false.
 from __future__ import annotations
 
 import argparse
+import math
 import json
 import sys
 from pathlib import Path
@@ -42,6 +43,29 @@ def is_nested(a: dict, b: dict) -> bool:
     a_in_b = bx1 <= ax1 and by1 <= ay1 and bx2 >= ax2 and by2 >= ay2
     b_in_a = ax1 <= bx1 and ay1 <= by1 and ax2 >= bx2 and ay2 >= by2
     return a_in_b or b_in_a
+
+
+def validate_snapshot(snapshot):
+    """Only observed, finite rectangles in a bounded snapshot may establish layout results."""
+    if not isinstance(snapshot, dict) or not isinstance(snapshot.get('viewport'), dict):
+        raise ValueError('Snapshot requires an object and a recorded viewport')
+    width = snapshot['viewport'].get('w')
+    if type(width) not in (int, float) or not math.isfinite(width) or width <= 0:
+        raise ValueError('Viewport width must be finite and greater than zero')
+    elements = snapshot.get('elements')
+    if not isinstance(elements, list) or not elements or len(elements) > 2000:
+        raise ValueError('Snapshot requires 1 to 2000 observed elements')
+    for element in elements:
+        if not isinstance(element, dict):
+            raise ValueError('Every observed element must be an object')
+        if element.get('normalFlow') and element.get('text'):
+            for key in ('x', 'y', 'w', 'h'):
+                value = element.get(key)
+                if type(value) not in (int, float) or not math.isfinite(value):
+                    raise ValueError('Element rectangle must contain finite x/y/w/h')
+                if key in ('w', 'h') and value < 0:
+                    raise ValueError('Element dimensions may not be negative')
+    return snapshot
 
 
 def analyze(snapshot: dict, viewport_label: str) -> list[dict]:
@@ -87,8 +111,8 @@ def main() -> int:
             print(f"ERROR: snapshot not found: {path}", file=sys.stderr)
             return 2
         try:
-            snapshot = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as e:
+            snapshot = validate_snapshot(json.loads(path.read_text(encoding="utf-8")))
+        except (OSError, UnicodeError, ValueError) as e:
             print(f"ERROR: invalid JSON in {path}: {e}", file=sys.stderr)
             return 2
         label = args.viewport_label[idx] if args.viewport_label else f"{snapshot.get('viewport', {}).get('w', '?')}px"

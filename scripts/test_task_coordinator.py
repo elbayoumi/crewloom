@@ -786,6 +786,9 @@ class DockerCoordinatorTests(CoordinatorFixture):
         self.assertIsNone(states['right']['commit'])
         recorded = json.loads((self.worktree('right') / '.crewloom/workflows/right-workflow'
                                / 'state.json').read_text())['error']
+        run_state = json.loads((self.worktree('right') / '.crewloom/workflows/right-workflow'
+                               / 'state.json').read_text())
+        self.assertEqual(run_state['plan_file'], 'workflows/right.json')
         self.assertEqual(recorded, 'Command failed: build',
                          'the managed run must carry the failing stage\'s own cause')
         self.assertEqual(states['combine']['status'], 'blocked')

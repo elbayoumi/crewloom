@@ -33,4 +33,22 @@ Steps whose recorded outputs still match are reported as preserved; changed ones
 - An attempt that was still running when the host stopped has unknown side effects. `reconcile` marks it failed with `uncertain_side_effects`; it is never replayed automatically, and it still counts toward the two-attempt limit. Accepting a packet never resets counters or budgets.
 - Failures are classified, not merged: quota exhaustion, rate limit (with a retry time, not exhausted quota), authentication, timeout and unknown.
 
-Automatic continuation to a pre-approved host and budget is not implemented. The aggregate budget and owned-resource cancellation it depends on now exist (W09), but a real Claude-to-other-agent handoff pilot has not been run; the concurrency, fencing and checkpoint guarantees above are established with real validation under controlled scheduling, not with a live vendor host. Native-host and managed-generation continuation are different execution boundaries and are tested separately; the tests here use a stand-in for the host interruption and establish controller behavior, not model quality.
+The earlier manual-only implementation is superseded by the explicit bounded quota fallback below. The aggregate budget and owned-resource cancellation it depends on now exist (W09), but a real Claude-to-other-agent handoff pilot has not been run; the concurrency, fencing and checkpoint guarantees above are established with real validation under controlled scheduling, not with a live vendor host. Native-host and managed-generation continuation are different execution boundaries and are tested separately; the tests here use a stand-in for the host interruption and establish controller behavior, not model quality.
+
+## Explicit receiver dispatch and bounded quota fallback
+
+Coordinator and context-pilot runs persist the exact generated plan under `.crewloom/pilots/<task-id>/workflow.json`; checkpoints record and validate that source. Consumer `workflow.json` is preserved. Other private paths remain forbidden as plan sources.
+
+After `accept`, `workflow run --use-receiver-host --owner-id <id> --owner-epoch <epoch>` uses the authenticated receiver's host/model for pending model steps. Supply the once-returned token through `CREWLOOM_OWNER_TOKEN`, never in a plan or command argument. The immutable plan, artifact scope, policy, prior attempts and budget remain unchanged. A receiver capability fingerprint change refuses dispatch. Native CLI receivers still need operator `--allow-host-cli`.
+
+Automatic quota fallback is explicit and bounded. The following example is configuration, not a statement that either model or account is available:
+
+```sh
+crewloom continuation resume --project /path/to/project --plan workflow.json \
+  --receivers '[{"id":"backup-agent","host":"openai","model":"YOUR_EXPLICIT_MODEL"}]' \
+  --max-switches 1 --max-model-requests 3
+```
+
+The receiver list is immutable for that workflow. Switch counts are persisted before transfer; aggregate admission counts survive resume and limits may tighten, never reset or loosen. Only a structured, confirmed quota rejection can trigger a switch. Probable CLI text, rate limits, authentication errors, timeouts and unknown/uncertain effects stop. Native CLI failures carry uncertain side effects, so they need explicit operator review/manual handoff. Outstanding or reconciled uncertain attempts prevent automatic replay. Completed evidence is rechecked and unchanged artifacts stay in place. A settled controller releases only its authenticated owner slot; a controller crash retains state and requires explicit ownership reconciliation, not a blind restart.
+
+Local fixtures prove controller switching and refusal behavior without a provider call. No live Claude-to-another-provider task or billed saving has been established by this change.

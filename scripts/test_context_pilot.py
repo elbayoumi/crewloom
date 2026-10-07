@@ -52,6 +52,25 @@ class PilotAccountingTests(unittest.TestCase):
         self.assertFalse(outcome['executed'])
         self.assertIn('tests/absent.py', outcome['reason'])
 
+    def test_pilot_plan_is_private_bound_and_never_replaces_the_application_plan(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as folder:
+            root = pilot.synthetic_project(Path(folder).resolve(), 2, 400)
+            existing = b'{"application": "keep this plan unchanged"}'
+            (root / 'workflow.json').write_bytes(existing)
+            with patch.object(pilot.w, 'run', return_value={'status': 'passed'}) as run:
+                result = pilot.acceptance_workflow(root, 'pilot-task', 'fixture-image', pilot.SYNTHETIC_INPUTS)
+            self.assertTrue(result['executed'])
+            relative = '.crewloom/pilots/pilot-task/workflow.json'
+            self.assertEqual(run.call_args.kwargs['plan_file'], relative)
+            self.assertEqual((root / 'workflow.json').read_bytes(), existing)
+            parsed, fingerprint = pilot.w.read_plan(root, relative)
+            self.assertEqual(parsed['id'], 'pilot-task')
+            self.assertTrue(fingerprint)
+            for forbidden in ('.crewloom/other.json', '.git/config', '../foreign.json'):
+                with self.assertRaises(ValueError):
+                    pilot.w.plan_source(root, forbidden)
+
     def test_forced_recorded_timing_changes_measured_bytes_and_nothing_else(self):
         import copy
         import project_binding as pb

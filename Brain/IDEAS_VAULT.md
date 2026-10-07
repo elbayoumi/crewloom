@@ -126,3 +126,7 @@ Apply the existing catalog lock/snapshot pattern to controlled evidence promotio
 
 ### 2026-10-07 — Existing primitives cover the evidence writer
 Implemented the previously proposed evidence boundary using the current project lock/path guard, without a second registry or lock system. Minimum positive test outcomes and static initializer provenance are verified; broader usefulness still requires task-level acceptance and later provider pilots. Keep the arbitrary-host-write/import limitations explicit instead of expanding a local evidence fix into a universal enforcement claim.
+
+### 2026-10-07 — Measure accepted work before promoting optimizations
+
+Next evidence target: the same real accepted application task across approved host transitions, recording attempts, provider-reported input/output/cache usage and preparation latency separately. Synthetic byte reduction and parser reuse are useful diagnostics but cannot establish billed savings or model quality. Promote only a conditional lesson whose executor evidence remains current.
