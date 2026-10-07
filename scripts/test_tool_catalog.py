@@ -68,6 +68,7 @@ class Repository(unittest.TestCase):
     def gate(self, stage=True, **options):
         if stage:  # the gate judges the staged index; staging is what a commit would capture
             self.git('add', '-A')
+        options.setdefault('snapshot', 'index')  # CI's default is the committed tree; these tests stage, not commit
         return tc.gate(self.root, 'HEAD', **options)
 
     def authorize_legacy_change(self, path, owner='context-guardian',
@@ -251,7 +252,7 @@ class IncrementalRules(Repository):
         self.assertEqual((errors, notes), ([], []))
 
     def test_a_missing_base_is_visible_not_a_silent_pass(self):
-        errors, notes = tc.gate(self.root, 'no-such-revision')
+        errors, notes = tc.gate(self.root, 'no-such-revision', snapshot='index')
         self.assertEqual(errors, [])
         self.assertTrue(any('incremental checks skipped' in n for n in notes))
 

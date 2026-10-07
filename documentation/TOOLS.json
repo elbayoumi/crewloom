@@ -638,7 +638,7 @@
           "support_sha256": {
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f"
           },
-          "acceptance_sha256": "40af50271911445092cd24978085de286b7dca5ef9063e3f26e28cfb73da643a",
+          "acceptance_sha256": "55e88ad91c1f627117d8ea973694e605714aa701276595653d7e6124dd6cbf36",
           "counts": {
             "discovered": 56,
             "run": 56,
@@ -650,7 +650,7 @@
             "unexpected_successes": 0
           },
           "provenance": 2,
-          "recorded_at": "2026-10-07T03:44:14Z"
+          "recorded_at": "2026-10-07T06:58:41Z"
         }
       ]
     }
