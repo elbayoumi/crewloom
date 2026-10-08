@@ -215,4 +215,5 @@ All earlier entries below retain their original snapshot status. Pending work is
 - [x] Native Windows identity/job ownership tests and managed-tool execution passed on3.9/3.14 at0575ab8.
 - [x] Reproduce and repair Linux pre-existing protected-process cleanup refusal; preserve current/unknown refusal.40 owned cases,7 managed-tool and30 model-host cases pass on Linux3.9.
 - [x] Declare optional tomllib availability/fallback for Python3.9 catalog validation; correct PID1 partial-table fixture.
-- [ ] Validate repaired pushed head, final installed archives and current catalog evidence; keep live cross-host/application pilot pending explicit host/budget. No merge or release.
+- [x] Final local delivery: hook105 modules/1387 cases (101 optional skips),26 current contracts,785 manifest hashes,45 frozen files and clean installed archives verified at3058289. Exact pushed-head CI is recorded in PR8/final task checkpoint.
+- [ ] Live cross-host/application pilot needs explicit selected host/budget; usefulness, broad role activation/composition and optional integration acceptance remain in the unified plan. No merge or release.
