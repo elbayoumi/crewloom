@@ -72,3 +72,6 @@ record_evidence holds the existing workflow.project_lock at the canonical toolki
 ### 2026-10-07 — Integrated managed continuation and project scope
 
 Reuse the existing workflow/admission lock, tool catalog and project binding. Acknowledgement gates target/RPC effects behind durable ownership; POSIX inherited markers extend owned-tree recovery, Windows owned jobs/FILETIME are a separate backend, container intent resolves only inspected IDs. Fenced receiver dispatch and explicit quota resume preserve immutable plans, budgets and attempts. Provenance 3 separates shipped runtime support from static acceptance helpers. Dashboard roots are request-scoped approved references; executor evidence determines current acceptance, not labels. No new registry, model sandbox or consumer-state store.
+
+### 2026-10-08 — Bound inherited-marker candidate observation
+Recovery compares process start times against the recorded launch time before reading inherited markers. Proven older processes cannot naturally inherit a newly generated marker and are excluded with a two-second ps precision margin. Unknown start/bound values and unreadable current candidates remain unresolved. Kernel ENOENT/ESRCH proves disappearance. This does not prevent same-user marker forgery/stripping or arbitrary host-tool access.

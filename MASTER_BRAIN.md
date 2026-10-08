@@ -96,3 +96,6 @@ Crewloom now serializes catalog evidence recorders, preserves detected concurren
 
 ### 2026-10-07 — Managed-library integration candidate
 Crewloom keeps independent project roots and one tool catalog. The current increment adds bounded receiver continuation, acknowledged ownership, current acceptance and explainable conditional context/lessons. Public claims stay scoped to actual controller/fixture evidence; account-specific model usefulness, billed savings and broad role readiness remain pending. See the single unified plan and current source-scoped review.
+
+### 2026-10-08 — Platform-scoped acceptance
+Native Windows3.9/3.14 ownership and tool tests passed at0575ab8. Linux CI exposed protected pre-existing environments and a conditional dependency declaration; bounded recovery now passes actual Linux adverse/clean controls. Final repaired-head acceptance and account-specific usefulness remain separate evidence requirements.

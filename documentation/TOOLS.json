@@ -1142,7 +1142,7 @@
           "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
           "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -1171,7 +1171,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T17:53:24Z"
+          "recorded_at": "2026-10-08T08:14:35Z"
         },
         {
           "test": "scripts/test_owned_resources.py",
@@ -1180,7 +1180,7 @@
           "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
           "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -1194,22 +1194,22 @@
             "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
             "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e"
           },
-          "acceptance_sha256": "de3f1e4ebbfd537da33eef3953ccf595b1cc14b07bf7468887d9287e05c18d82",
+          "acceptance_sha256": "3827a51dce4a814b4df8b4197f1806a6e17abd1a6e2389f2e15bf6b52f2ec591",
           "acceptance_support_sha256": {
             "scripts/test_transport_acceptance_boundaries.py": "460689673458c4ebe16248642822e9bd2d0f3a49a9465ec9d73a02f11756aa3b"
           },
           "counts": {
-            "discovered": 37,
-            "run": 37,
-            "executed": 35,
-            "skipped": 2,
+            "discovered": 40,
+            "run": 40,
+            "executed": 37,
+            "skipped": 3,
             "failures": 0,
             "errors": 0,
             "expected_failures": 0,
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T17:53:24Z"
+          "recorded_at": "2026-10-08T08:14:35Z"
         },
         {
           "test": "scripts/test_process_backend.py",
@@ -1218,7 +1218,7 @@
           "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
           "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -1247,7 +1247,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T17:53:24Z"
+          "recorded_at": "2026-10-08T08:14:35Z"
         },
         {
           "test": "scripts/test_provider_gateway.py",
@@ -1256,7 +1256,7 @@
           "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
           "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -1285,7 +1285,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T17:53:24Z"
+          "recorded_at": "2026-10-08T08:14:35Z"
         },
         {
           "test": "scripts/test_host_isolation_boundaries.py",
@@ -1294,7 +1294,7 @@
           "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
           "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -1323,7 +1323,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T17:53:24Z"
+          "recorded_at": "2026-10-08T08:14:35Z"
         },
         {
           "test": "scripts/test_model_host.py",
@@ -1332,7 +1332,7 @@
           "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
           "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -1361,7 +1361,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T17:53:24Z"
+          "recorded_at": "2026-10-08T08:14:35Z"
         }
       ]
     },
@@ -1511,7 +1511,7 @@
           "source_sha256": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
           "contract_sha256": "165c70709b13754a351cf2871177a3d2e251e92d309a4694bf0a070903be4ea4",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -1544,7 +1544,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T18:02:25Z"
+          "recorded_at": "2026-10-08T08:14:45Z"
         }
       ]
     },
@@ -1556,7 +1556,8 @@
       "example_args": "list --project /path/to/project",
       "dependencies": [
         "Python standard library",
-        "Recorded workflow evidence for promotion"
+        "Recorded workflow evidence for promotion",
+        "tomllib (Python 3.11+ standard library; optional, dependency-array fallback on Python 3.9/3.10)"
       ],
       "effect": "writes-project-runtime-state",
       "contract_version": 1,
@@ -1687,9 +1688,9 @@
           "command": "tool_catalog.py acceptance-worker scripts test_project_lessons.py",
           "exit_code": 0,
           "source_sha256": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
-          "contract_sha256": "38c90b6424533fbab0c1303781079ca269a472e30d6c912ba906f6c337101650",
+          "contract_sha256": "54da7cf0d7f2a85e3ff4084ce2789276aab47d071bff026e59d0f8dc1069ae0d",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -1722,7 +1723,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T18:02:35Z"
+          "recorded_at": "2026-10-08T08:14:54Z"
         }
       ]
     },
@@ -1842,7 +1843,7 @@
           "source_sha256": "ac50f55473e0de18900b58e7d05935f7a527f83d362011f2b6b4c528962f9abe",
           "contract_sha256": "1dec7ad85c024a9fe5abac30ae183462265f91c0468317f0a5190fcd621ad3d3",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom.py": "169e1eb5543ea633fa209fdd2fec77a9ea4d106f1616b90db8d7f1a53378760f",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
@@ -1875,7 +1876,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T18:02:46Z"
+          "recorded_at": "2026-10-08T08:15:04Z"
         }
       ]
     },
@@ -1965,7 +1966,7 @@
           "source_sha256": "b059432724a7f9d2fe1744393a0e11d7d9ec89a8542f05b27c72670e92813331",
           "contract_sha256": "506607ca772831d151e4bc190cd3a38b70d6024c397bd79635909cda48a199b3",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -1993,7 +1994,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T17:53:53Z"
+          "recorded_at": "2026-10-08T08:15:05Z"
         }
       ]
     },
@@ -2113,7 +2114,7 @@
           "source_sha256": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
           "contract_sha256": "c27ac2380f6d8233796e6fd19f191ac147116d05022137ffcaba925b57fd463a",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
             "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
@@ -2146,7 +2147,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T18:03:15Z"
+          "recorded_at": "2026-10-08T08:15:26Z"
         }
       ]
     },
@@ -2229,7 +2230,7 @@
           "source_sha256": "ca0b7614f587355a98600aa67b81ac53c8f0bde2bb164adb93767e9ef42868a2",
           "contract_sha256": "d332c5d29f436f8994ea06186fc046c95c609f8c501d62185f1639839baac395",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -2262,7 +2263,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T18:03:41Z"
+          "recorded_at": "2026-10-08T08:15:48Z"
         },
         {
           "test": "scripts/test_tool_execution.py",
@@ -2271,7 +2272,7 @@
           "source_sha256": "ca0b7614f587355a98600aa67b81ac53c8f0bde2bb164adb93767e9ef42868a2",
           "contract_sha256": "d332c5d29f436f8994ea06186fc046c95c609f8c501d62185f1639839baac395",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -2304,7 +2305,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T18:03:41Z"
+          "recorded_at": "2026-10-08T08:15:48Z"
         }
       ]
     },
@@ -2435,7 +2436,7 @@
           "source_sha256": "c0249302665a2de10209234270e90417954285b923546364a642b4246682e539",
           "contract_sha256": "c5ab566550ea84ad1d5005eda4ce53333a91e87cd5f26402c074c1dc70b1e76b",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -2468,7 +2469,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T18:03:56Z"
+          "recorded_at": "2026-10-08T08:16:02Z"
         }
       ]
     },
@@ -2553,7 +2554,7 @@
           "source_sha256": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
           "contract_sha256": "318e476e5d69b13bc898d6b26f5ec5de0a360b1919728a70c717145e609dff08",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -2580,7 +2581,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T17:55:02Z"
+          "recorded_at": "2026-10-08T08:16:07Z"
         }
       ]
     },
@@ -2760,7 +2761,7 @@
           "source_sha256": "734cb10c19e43532e846195f4571f9e212567779aa96d488a042760ccff7e07f",
           "contract_sha256": "f287272c86bc424ad0d71d6cf60f14d5e6bfc5982674a85b689921e7f6f13dc8",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -2794,7 +2795,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T18:04:26Z"
+          "recorded_at": "2026-10-08T08:16:37Z"
         }
       ]
     },
@@ -2870,7 +2871,7 @@
           "source_sha256": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
           "contract_sha256": "6f4914a572976246b78101c73653cda7f79fcd09dfc51d0fc517b2b346034040",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -2898,7 +2899,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T17:55:31Z"
+          "recorded_at": "2026-10-08T08:16:38Z"
         }
       ]
     },
@@ -3011,7 +3012,7 @@
           "source_sha256": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
           "contract_sha256": "38de6660d6874921008ce1d63d878e65aa201222eafa4ce0c1d696561c8ad626",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/evaluate_feature.py": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
@@ -3044,7 +3045,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T18:04:27Z"
+          "recorded_at": "2026-10-08T08:16:39Z"
         }
       ]
     },
@@ -3124,7 +3125,7 @@
           "source_sha256": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
           "contract_sha256": "555e92e79044359bc3150449ffd13384f76218c098b3208acc5b1257821a3693",
           "support_sha256": {
-            "scripts/admission.py": "3bad02bd33f3cac1da2a946382fb65e6a22fe083cc3eeb4b27365af1e57ddefa",
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
             "scripts/continuation.py": "474c004d9ed1a2962d02b13b8bc71ced7b93725d8b94f81b8d9500a342f9c09b",
             "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
             "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
@@ -3157,7 +3158,7 @@
             "unexpected_successes": 0
           },
           "provenance": 3,
-          "recorded_at": "2026-10-07T18:04:44Z"
+          "recorded_at": "2026-10-08T08:16:55Z"
         }
       ]
     }

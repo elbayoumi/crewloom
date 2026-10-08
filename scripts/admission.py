@@ -432,7 +432,7 @@ def _group_valid(pgid):
 
 
 
-def _launch_members(token, table):
+def _launch_members(token, table, not_before=None):
     """Find cooperating descendants by their inherited random launch marker.
 
     Environment bytes are inspected in memory only, never logged or persisted. This
@@ -443,8 +443,16 @@ def _launch_members(token, table):
         raise ProcessObservationError('invalid launch marker')
     marker = ('CREWLOOM_LAUNCH_TOKEN=' + token).encode()
     found = {}
+    def eligible(row):
+        # Pre-existing processes cannot naturally inherit this newly generated marker.
+        # ps timestamps have second precision; keep a conservative two-second margin.
+        # Unknown bounds/timestamps remain candidates, not proven absences.
+        if type(not_before) not in (int, float) or not math.isfinite(not_before): return True
+        started = _started_at(row.get('start', ''))
+        return started is None or started >= not_before - 2
     if sys.platform.startswith('linux'):
         for pid, row in table.items():
+            if not eligible(row): continue
             base = Path('/proc') / str(pid)
             try:
                 if base.stat().st_uid != os.getuid():
@@ -455,7 +463,7 @@ def _launch_members(token, table):
                     raise ProcessObservationError('process environment exceeds inspection limit')
                 if marker in raw.split(b'\0'):
                     found[pid] = row['start']
-            except FileNotFoundError:
+            except (FileNotFoundError, ProcessLookupError):
                 continue
             except PermissionError as exc:
                 raise ProcessObservationError('owned-user process environment is unreadable') from exc
@@ -469,7 +477,7 @@ def _launch_members(token, table):
             if len(parts) != 3 or not parts[0].isdigit() or not re.fullmatch(r'-?\d+', parts[1]):
                 raise ProcessObservationError('process environment row is unreadable')
             pid = int(parts[0])
-            if int(parts[1]) == os.getuid() and pid in table and pattern.search(parts[2]):
+            if int(parts[1]) == os.getuid() and pid in table and eligible(table[pid]) and pattern.search(parts[2]):
                 found[pid] = table[pid]['start']
     else:
         raise ProcessObservationError('inherited launch ownership is unsupported on this platform')
@@ -504,7 +512,7 @@ def _collect_tree(item, table):
                     targets[child] = row['start']
                     frontier.append(child)
     if item.get('launch_token'):
-        targets.update(_launch_members(item['launch_token'], table))
+        targets.update(_launch_members(item['launch_token'], table, item.get('tracked_at')))
     targets.pop(os.getpid(), None)
     return targets, None
 

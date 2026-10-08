@@ -210,3 +210,9 @@ All earlier entries below retain their original snapshot status. Pending work is
 ### 2026-10-07 — Integrated candidate acceptance
 - Implemented: W04 approved bounded fallback/source-plan preservation; W09 acknowledged launches/container intents/Windows backend; N04 all26 contracts/provenance3/receipts; W06 explainable bilingual navigation; W07 ranked safe lessons; W11 selected-root dashboard/current acceptance.
 - Pending evidence: final hook/install/remote CI, actual Windows CI, authorized live provider/application pilot, broader role activation/composition/usefulness. Refer to the single INTELLIGENCE_ROADMAP register; do not blanket-close W01–W12.
+
+### 2026-10-08 — CI repair verification
+- [x] Native Windows identity/job ownership tests and managed-tool execution passed on3.9/3.14 at0575ab8.
+- [x] Reproduce and repair Linux pre-existing protected-process cleanup refusal; preserve current/unknown refusal.40 owned cases,7 managed-tool and30 model-host cases pass on Linux3.9.
+- [x] Declare optional tomllib availability/fallback for Python3.9 catalog validation; correct PID1 partial-table fixture.
+- [ ] Validate repaired pushed head, final installed archives and current catalog evidence; keep live cross-host/application pilot pending explicit host/budget. No merge or release.

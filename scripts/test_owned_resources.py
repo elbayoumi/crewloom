@@ -485,6 +485,64 @@ class RealContainerOwnership(unittest.TestCase):
 REAL_RUN = subprocess.run
 
 
+class LaunchCandidateBounds(unittest.TestCase):
+    def test_only_proven_older_environments_are_excluded_unknown_bounds_stay_unknown(self):
+        clock = time.time(); token = uuid.uuid4().hex
+        pid = os.getpid() + 100000
+        timestamp = lambda value: time.strftime('%a %b %d %H:%M:%S %Y', time.localtime(value))
+        with tempfile.TemporaryDirectory() as directory:
+            proc = Path(directory); (proc / str(pid)).mkdir()
+            denied = proc / str(pid) / 'environ'
+            real_path = Path
+            def path(value): return proc if value == '/proc' else real_path(value)
+            with patch.object(adm.sys, 'platform', 'linux'), patch.object(adm, 'Path', side_effect=path), \
+                    patch.object(real_path, 'open', side_effect=PermissionError('fixture protected environment')) as opening:
+                table = {pid: {'start': timestamp(clock - 60)}}
+                self.assertEqual(adm._launch_members(token, table, clock), {})
+                opening.assert_not_called()
+                for start, bound in ((timestamp(clock), clock), ('unknown', clock), (timestamp(clock - 60), None)):
+                    with self.subTest(start=start, bound=bound), self.assertRaises(adm.ProcessObservationError):
+                        adm._launch_members(token, {pid: {'start': start}}, bound)
+
+    def test_kernel_proven_vanished_environment_is_absent_not_a_permission_failure(self):
+        token = uuid.uuid4().hex; pid = os.getpid() + 100000
+        with tempfile.TemporaryDirectory() as directory:
+            proc = Path(directory); (proc / str(pid)).mkdir(); real_path = Path
+            with patch.object(adm.sys, 'platform', 'linux'), \
+                    patch.object(adm, 'Path', side_effect=lambda value: proc if value == '/proc' else real_path(value)):
+                for error in (FileNotFoundError(), ProcessLookupError()):
+                    with self.subTest(error=type(error).__name__), patch.object(real_path, 'open', side_effect=error):
+                        self.assertEqual(adm._launch_members(token, {pid: {'start': 'unknown'}}), {})
+
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'real protected /proc environment requires Linux')
+    def test_real_preexisting_nondumpable_bystander_does_not_block_managed_cleanup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            code = 'import ctypes,time;assert ctypes.CDLL(None).prctl(4,0)==0;print("protected",flush=True);time.sleep(120)'
+            bystander = subprocess.Popen([sys.executable, '-c', code], cwd=root, stdout=subprocess.PIPE, text=True)
+            try:
+                self.assertEqual(bystander.stdout.readline().strip(), 'protected')
+                try:
+                    with (Path('/proc') / str(bystander.pid) / 'environ').open('rb') as stream: stream.read(1)
+                except PermissionError: pass
+                else: self.skipTest('this host permits nondumpable environment inspection; negative precondition absent')
+                with self.assertRaises(adm.ProcessObservationError):
+                    adm._launch_members(uuid.uuid4().hex, adm._process_table())
+                time.sleep(2.2)  # ps has second precision; establish the real pre-existing condition.
+                folder = root / 'admission'; adm.configure(folder, 'linux-fixture', {})
+                with adm.context(folder, 'fixture'):
+                    target = adm.launch_owned([sys.executable, '-c', 'print("accepted")'], cwd=root,
+                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+                    out, err = target.communicate(timeout=10)
+                    self.assertEqual(target.returncode, 0, err); self.assertEqual(out.strip(), 'accepted')
+                    self.assertIn(adm.settle_current_process(target.pid), ('gone', 'terminated', 'killed'))
+                self.assertEqual(adm.summary(folder)['tracked_processes'], [])
+                self.assertIsNone(bystander.poll(), 'unrelated protected process survives')
+            finally:
+                if bystander.poll() is None: bystander.kill()
+                bystander.wait(timeout=10); bystander.stdout.close()
+
+
 def failing_ps(mode):
     """A subprocess.run replacement that makes `ps` fail in one named way and leaves everything else real."""
     def run(argv, *args, **kwargs):
@@ -499,7 +557,7 @@ def failing_ps(mode):
             if mode == 'malformed':
                 return subprocess.CompletedProcess(argv, 0, 'not a process table\n' if table else 'garbage\n', '')
             if mode == 'partial':  # a readable table that does not even list this process
-                return subprocess.CompletedProcess(argv, 0, '1 0 1 Ss Thu Jan  1 00:00:00 2026\n' if table else '', '')
+                return subprocess.CompletedProcess(argv, 0, '999999 0 999999 Ss Thu Jan  1 00:00:00 2026\n' if table else '', '')
             if mode == 'empty':
                 return subprocess.CompletedProcess(argv, 0, '', '')
         return REAL_RUN(argv, *args, **kwargs)

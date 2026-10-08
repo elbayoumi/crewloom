@@ -130,3 +130,6 @@ Implemented the previously proposed evidence boundary using the current project 
 ### 2026-10-07 — Measure accepted work before promoting optimizations
 
 Next evidence target: the same real accepted application task across approved host transitions, recording attempts, provider-reported input/output/cache usage and preparation latency separately. Synthetic byte reduction and parser reuse are useful diagnostics but cannot establish billed savings or model quality. Promote only a conditional lesson whose executor evidence remains current.
+
+### 2026-10-08 — Cross-platform observations need real adverse preconditions
+Keep platform acceptance paired with a real protected unrelated process and a real owned target. A mock-only cleanup proof misses runner/kernel permissions; assert the negative precondition before claiming a repair and retain skipped cases separately.

@@ -59,3 +59,7 @@ A managed native launch durably records intent and exact process identity before
 The Windows design follows [Job Objects](https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects) and [nested-job rules](https://learn.microsoft.com/en-us/windows/win32/procthread/nested-jobs). The runtime uses ctypes and the standard library. Platform/backend facts describe the installed controller, not demonstrated model access.
 
 Observed local version/help probes were Codex CLI 0.155.1, Claude Code 2.1.150 and OpenCode 1.18.32. They establish version/launch flags only. Authentication, available quota, context window, knowledge cutoff, interactive tool access and application quality remain unknown unless independently observed. A requested model, provider-reported model and an inferred model identity are separate facts. Structured failures retain sanitized classification; raw provider error bodies are withheld.
+
+### Linux candidate observation scope
+
+Inherited-marker recovery excludes processes proven to predate launch, allowing a conservative two-second margin for ps timestamps. An unknown start/bound or unreadable current candidate remains unresolved. Kernel ENOENT/ESRCH proves disappearance; permission denial does not. Real protected unrelated-process and owned-target acceptance exercises this boundary. Both native Windows3.9/3.14 checks passed at0575ab8; this proves the tested ownership/tool paths, not all Windows workflows.
