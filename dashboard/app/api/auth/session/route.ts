@@ -1,4 +1,4 @@
-import { accessToken, authorize, credentialRefusal, privateHeaders, sessionState } from '../../../../lib/auth.ts';
+import { accessToken, authorize, credentialRefusal, localAccess, privateHeaders, sessionState } from '../../../../lib/auth.ts';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +9,11 @@ export const dynamic = 'force-dynamic';
  * never any project data, so it is safe to read before authentication.
  */
 export async function GET(req: Request) {
+  if (localAccess()) {
+    const decision = authorize(req);
+    return Response.json(decision.ok ? { authenticated: true, method: 'local', expires_at: null } : { authenticated: false, error: decision.error },
+      { status: decision.ok ? 200 : decision.status, headers: privateHeaders });
+  }
   const token = accessToken();
   if (!token) {
     return Response.json({ authenticated: false, error: credentialRefusal() },

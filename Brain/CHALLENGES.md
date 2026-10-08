@@ -243,3 +243,8 @@
 - Cause: project-local bindings did not provide a checked cross-project list; independent auth module copies could lose the process session list, and mobile grid min-content could overflow the viewport.
 - Fix: explicit catalog with disjoint canonical roots, shared process session state, and zero-minimum mobile grid tracks.
 - Check: redirected/moved identity, nested roots, concurrent registration and selected cancellation regressions; actual browser verification. Account-wide dollar limits and cross-provider quality remain unverified.
+
+### 2026-10-09 — Login friction on a local dashboard
+- Cause: the launcher required a generated access secret even on loopback.
+- Fix: explicit password-free local mode with URL/Origin guards; never inherited for remote binds.
+- Check: launcher and authorization regressions plus cookie-free browser/API smoke.

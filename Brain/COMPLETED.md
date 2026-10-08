@@ -231,3 +231,8 @@
 - Impact: no guessed project selection; stale identities are unavailable; cancellation retains files and affects only the selected root.
 - Evidence: 17 catalog cases, 37 dashboard cases, TypeScript, full repository gate and 49 live-Docker coordinator cases passed; real browser cancellation left the second fixture active.
 - Evidence: isolated wheel install/setup/registration passed outside source; mobile RTL viewport/document widths both 390px.
+
+### 2026-10-09 — Remove local dashboard password
+- Artifact: local launcher/access mode and direct-opening dashboard.
+- Impact: no sign-in field, no generated token and no logout control in local mode.
+- Evidence: 38 dashboard cases and 10 public-core cases pass; new browser reports zero password fields/sign-in buttons, session method local; foreign-Origin mutation returns 403.

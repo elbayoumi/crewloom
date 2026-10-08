@@ -29,3 +29,6 @@ Managed runs use tool-free provider RPC and declared-file container snapshots. N
 
 ### 2026-10-09 — Machine-local project catalog
 The existing project binding module owns catalog registration, overlap guards and setup. Portable config and checkout binding remain the identity sources; the catalog stores local references only. Dashboard monitoring reads explicit entries through the CLI; cancellation resolves project roots server-side and uses the existing project lock. Existing role/tool panels retain their selected execution root.
+
+### 2026-10-09 — Password-free local dashboard
+The launcher explicitly enables loopback-only local access. Local URLs and exact local mutation Origins are checked before project access; non-loopback deployments retain configured-token authentication. No generated token or cookie is required locally.

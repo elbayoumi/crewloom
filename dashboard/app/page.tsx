@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [args, setArgs] = useState('');
   const [busy, setBusy] = useState(false);
   const [output, setOutput] = useState<{ ok: boolean; text: string } | null>(null);
+  const [local, setLocal] = useState(false);
   const [token, setToken] = useState('');
   const [auth, setAuth] = useState<'unknown' | 'in' | 'out' | 'error'>('unknown');
   const openId = useRef<string | null>(null);
@@ -41,6 +42,7 @@ export default function Dashboard() {
     try {
       const res = await fetch('/api/auth/session', { cache: 'no-store' });
       const body = await res.json();
+      setLocal(body.method === 'local');
       setAuth(res.ok && body.authenticated ? 'in' : 'out');
     } catch { setAuth('error'); }
   }, []);
@@ -104,6 +106,7 @@ export default function Dashboard() {
   };
 
   const totals = data?.totals ?? {};
+  if (auth === 'unknown') return <main className="wrap"><h1>Crewloom</h1><p>{lang === 'ar' ? 'جارٍ فتح اللوحة…' : 'Opening dashboard…'}</p></main>;
   if (auth !== 'in') {
     return (
       <main className="wrap">
@@ -131,7 +134,7 @@ export default function Dashboard() {
         <h1>Crewloom</h1>
         <div className="toolbar">
           <span className="live" role="status"><i className={`dot ${live ? 'on' : ''}`} />{live ? t.live : t.offline}</span>
-          <button className="ghost" onClick={signOut}>{t.signOut}</button>
+          {!local && <button className="ghost" onClick={signOut}>{t.signOut}</button>}
           <button className="ghost" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>{t.lang}</button>
         </div>
       </header>

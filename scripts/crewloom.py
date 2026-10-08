@@ -5,7 +5,6 @@ import json
 import importlib.util
 import os
 import re
-import secrets
 import shutil
 import subprocess
 import sys
@@ -149,7 +148,7 @@ def dashboard_binding_allowed(hostname):
 
 
 def run_dashboard(port, project, hostname):
-    """Start the authenticated dashboard, or explain exactly what is missing."""
+    """Start password-free on loopback; remote interfaces still require a configured secret."""
     try:
         folder = resources.dashboard_dir()
     except ResourceError as exc:
@@ -165,26 +164,16 @@ def run_dashboard(port, project, hostname):
               'keep the default 127.0.0.1.', file=sys.stderr)
         return 2
     token = dashboard_token()
-    generated = token is None
-    if generated:
-        token = secrets.token_urlsafe(32)
+    local = hostname in LOOPBACK
     if not (folder / 'node_modules').is_dir():
         code = subprocess.run([npm, 'install', '--no-audit', '--no-fund'], cwd=folder, check=False).returncode
         if code:
             return code
-    # The token travels in the child environment only: never an argument, so it stays out of
-    # process listings, access logs, browser history, and the selected project's run records.
     env = {**os.environ, 'CREWLOOM_ROOT': str(library_root()), 'CREWLOOM_PROJECT': str(project),
-           'CREWLOOM_DASHBOARD_TOKEN': token, 'CREWLOOM_DASHBOARD_PORT': str(port),
-           'CREWLOOM_DASHBOARD_HOST': hostname}
-    if generated:
-        try:
-            secret = write_dashboard_secret(project, token)
-        except OSError as exc:
-            print(f'Could not write the dashboard credential file: {exc}', file=sys.stderr)
-            return 2
-        print(f'Dashboard access token written to {secret} (owner-only).')
-    print(f'Open http://{hostname}:{port} and paste that token into the sign-in box.')
+           'CREWLOOM_DASHBOARD_TOKEN': '' if local else token or '', 'CREWLOOM_DASHBOARD_PORT': str(port),
+           'CREWLOOM_DASHBOARD_HOST': hostname, 'CREWLOOM_DASHBOARD_LOCAL': '1' if local else '0'}
+    display_host = '[::1]' if hostname == '::1' else hostname
+    print(f'Open http://{display_host}:{port}' + (' — no password needed.' if local else ' and sign in with your configured token.'))
     return subprocess.run([npm, 'run', 'dev', '--', '-H', hostname, '-p', str(port)],
                           cwd=folder, env=env, check=False).returncode
 

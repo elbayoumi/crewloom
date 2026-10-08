@@ -325,5 +325,13 @@
       "document_width": 390
     },
     "production_dashboard_build": "passed"
+  },
+  "local_dashboard_20261009": {
+    "dashboard_cases": 38,
+    "public_core_cases": 10,
+    "browser_password_fields": 0,
+    "browser_sign_in_buttons": 0,
+    "session_method": "local",
+    "foreign_origin_mutation_status": 403
   }
 }

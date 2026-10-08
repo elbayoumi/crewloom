@@ -121,3 +121,31 @@ test('logout invalidates the actual issued session rather than clearing only a b
   assert.equal(result.status, 200);
   assert.equal(authenticated().ok, false);
 }));
+
+test('password-free local mode allows direct access but refuses foreign origins and remote binds', async () => {
+  const auth = await import('../lib/auth.ts');
+  const oldLocal = process.env.CREWLOOM_DASHBOARD_LOCAL;
+  const oldHost = process.env.CREWLOOM_DASHBOARD_HOST;
+  const oldPort = process.env.CREWLOOM_DASHBOARD_PORT;
+  process.env.CREWLOOM_DASHBOARD_LOCAL = '1'; process.env.CREWLOOM_DASHBOARD_HOST = '127.0.0.1';
+  process.env.CREWLOOM_DASHBOARD_PORT = '4317';
+  try {
+    const url = 'http://127.0.0.1:4317/api/overview';
+    const direct = auth.authorize(new Request(url));
+    assert.equal(direct.ok, true);
+    if (direct.ok) assert.equal(direct.method, 'local');
+    assert.equal(auth.authorize(new Request(url, { method: 'POST', headers: { Origin: 'http://127.0.0.1:4317' } })).ok, true);
+    for (const req of [new Request('http://attacker.example:4317/api/overview'), new Request(url, { headers: { Origin:'https://attacker.example' } }), new Request(url,{method:'POST'})]) {
+      assert.equal(auth.authorize(req).ok, false);
+    }
+    const session = await import('../app/api/auth/session/route.ts');
+    const response = await session.GET(new Request(url));
+    assert.equal((await response.json()).method, 'local');
+    process.env.CREWLOOM_DASHBOARD_HOST = '0.0.0.0';
+    assert.equal(auth.localAccess(),false);
+  } finally {
+    for (const [key, value] of Object.entries({ CREWLOOM_DASHBOARD_LOCAL:oldLocal, CREWLOOM_DASHBOARD_HOST:oldHost, CREWLOOM_DASHBOARD_PORT:oldPort })) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
+  }
+});

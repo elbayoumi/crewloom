@@ -137,3 +137,5 @@
 - [x] Reuse and verify existing worktree coordinator, package installation and executor limits.
 - [ ] Live bilingual multi-provider role evaluation with authenticated accounts and frozen acceptance.
 - [ ] Aggregate multi-checkout request admission and account spending controls; checkout ceilings are not account caps.
+
+- [x] Remove password requirement for local dashboard launch; retain project isolation and same-origin mutation checks.

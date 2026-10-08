@@ -52,3 +52,6 @@ After fixing the cause of the v1 failure (missing import form), the closure-map 
 
 ### 2026-10-09 — Explicit project management
 Crewloom now has a machine-local disjoint-root catalog, memory-preserving setup and authenticated multi-project task monitoring. Existing managed coordinator and execution budgets are reused. Live model comparisons and provider-account spending caps remain separate, explicitly unverified work.
+
+### 2026-10-09 — Dashboard usability
+Local Crewloom dashboard opens directly without passwords. Remote hosting remains a separate authenticated configuration; local guards do not sandbox arbitrary host processes.
