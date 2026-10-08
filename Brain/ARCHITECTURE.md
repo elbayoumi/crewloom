@@ -26,3 +26,6 @@ Managed runs use tool-free provider RPC and declared-file container snapshots. N
 
 ### 2026-10-02 — Automatic project context
 - Project identity is split into a portable `crewloom.project.json` project ID and a local `.crewloom/binding.json` checkout ID; navigation and context caches are rebuildable, lessons and task records are durable. Every generation is scoped to project ID, checkout ID, canonical root and task ID, and a stable semantic fingerprint excludes telemetry so unchanged entry reuses its generation. Lifecycle shares the workflow root lock and its reservation discipline in both directions; managed runner entry, checkpoint, publication gate and finalization reuse the existing broker, ledger and provider restrictions. Lesson promotion requires recorded executor evidence, never prose.
+
+### 2026-10-09 — Machine-local project catalog
+The existing project binding module owns catalog registration, overlap guards and setup. Portable config and checkout binding remain the identity sources; the catalog stores local references only. Dashboard monitoring reads explicit entries through the CLI; cancellation resolves project roots server-side and uses the existing project lock. Existing role/tool panels retain their selected execution root.

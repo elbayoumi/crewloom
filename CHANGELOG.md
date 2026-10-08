@@ -47,3 +47,7 @@
 ## 0.1.0 — 2026-10-01
 
 - Initial public role guides, clean memory, context packs, and repository gate.
+
+## Project catalog and monitoring
+
+Adds `project setup`, `projects add/list/remove/cancel-task`, catalog overlap guards and authenticated multi-project monitoring. Existing coordinator, packaging and executor limits are reused. Provider comparisons remain scoped to their recorded evidence.

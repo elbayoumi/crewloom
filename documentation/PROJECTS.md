@@ -57,3 +57,7 @@ Cancellation needs the matching unchanged plan and cannot bypass an occupied pro
 For parallel tasks in one Git project, use [the concurrent task coordinator](COORDINATOR.md). It binds one worktree per task under the project's `.crewloom`, runs each task's own workflow there, integrates verified task commits once, and fast-forwards the root only after an explicit reviewed decision. Manual worktrees are still valid: create separate roots and branches yourself, install project-local roles and memory in each, do not copy `.crewloom` runtime state between roots, and review conflicting changes before merging. Direct host tools remain outside both runner guards.
 
 Before client rollout, use the [readiness guide](READINESS.md) to check one explicit registered project against current recorded evidence without modifying its registry, configuration or memory.
+
+## Explicit project catalog
+
+[Project catalog and monitoring](PROJECT_CATALOG.md) adds canonical bound roots, overlap rejection, setup and dashboard task status. Select the same catalog explicitly for each managed host.

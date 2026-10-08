@@ -793,6 +793,8 @@ def cancel(root, plan, fingerprint, reason='operator request'):
 
 def run(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None):
     """Reserve the root, execute under the shared project lock, then finalize recorded evidence."""
+    from project_binding import catalog_guard
+    catalog_guard(root, plan.get('project_id'))
     with project_lock(safe_path(root, '.crewloom', internal=True), reentrant=True):
         try:
             result = _execute(root, plan, fingerprint, image, accept, reviewer, allow_host_cli, review_token)

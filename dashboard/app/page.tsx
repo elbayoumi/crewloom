@@ -1,4 +1,5 @@
 'use client';
+import ProjectsPanel from './projects-panel';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type Skill = { id: string; description: string; lastActivity: string | null; openTasks: number; doneEntries: number; openChallenges: number; ideas: number; tools: string[]; runs: number; failedRuns: number; status: 'healthy' | 'attention' | 'idle' };
@@ -134,8 +135,9 @@ export default function Dashboard() {
           <button className="ghost" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>{t.lang}</button>
         </div>
       </header>
-      <p>{lang === "ar" ? "المشروع الحالي" : "Current project"}: <code>{data?.projectRoot ?? "…"}</code></p>
+      <p>{lang === "ar" ? "المشروع الحالي" : "Current project"}: <code dir="ltr">{data?.projectRoot ?? "…"}</code></p>
       {error && <div className="card" role="alert">API: {error}</div>}
+      <ProjectsPanel language={lang} />
       <section className="tiles" aria-label="Totals">
         <div className="tile"><b>{totals.skills ?? '—'}</b><span>{t.skills}</span></div>
         <div className="tile"><b>{totals.tools ?? '—'}</b><span>{t.tools}</span></div>

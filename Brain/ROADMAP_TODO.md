@@ -131,3 +131,9 @@
 - [ ] Design harder held-out tasks so the arms can differ on quality (v2 hit the ceiling) — أولوية: متوسطة
 - [ ] Diagnose OpenCode structured-response failures before any OpenCode study — أولوية: متوسطة
 - [ ] Re-run OpenCode study only after structured-response failures (14/18) are diagnosed — أولوية: متوسطة
+
+### 2026-10-09 — Project management completion
+- [x] Explicit project catalog, overlap guards, preserved setup and authenticated task monitoring/cancellation.
+- [x] Reuse and verify existing worktree coordinator, package installation and executor limits.
+- [ ] Live bilingual multi-provider role evaluation with authenticated accounts and frozen acceptance.
+- [ ] Aggregate multi-checkout request admission and account spending controls; checkout ceilings are not account caps.

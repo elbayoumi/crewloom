@@ -49,3 +49,6 @@ A foreign application reached `main` once. The toolkit now carries a mandatory s
 
 ### 2026-10-06 — Closure map keeps quality on the first v2 run
 After fixing the cause of the v1 failure (missing import form), the closure-map arm matched full-source on every held-out check with about 18% fewer input tokens on three synthetic tasks (one host). It is a measured input-token reduction with no quality loss observed, not a cost or speed result; the tasks are at the ceiling, so do not claim a quality or billing advantage.
+
+### 2026-10-09 — Explicit project management
+Crewloom now has a machine-local disjoint-root catalog, memory-preserving setup and authenticated multi-project task monitoring. Existing managed coordinator and execution budgets are reused. Live model comparisons and provider-account spending caps remain separate, explicitly unverified work.

@@ -94,7 +94,10 @@ function sign(token: string, payload: string): string {
  * sessions it issued and stops accepting one the moment it is logged out. The record is
  * per process: restarting the dashboard invalidates every session, which fails closed.
  */
-const liveSessions = new Map<string, number>();
+// Next.js can load the same server module in several route bundles and hot reload it.
+// Keep revocation state shared across those copies within one process.
+const processSessions = globalThis as typeof globalThis & { __crewloomDashboardSessions?: Map<string, number> };
+const liveSessions = processSessions.__crewloomDashboardSessions ??= new Map<string, number>();
 
 function pruneSessions(now: number): void {
   for (const [nonce, expiresAt] of liveSessions) {

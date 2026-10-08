@@ -307,5 +307,23 @@
     "paused_task_reservation": "passed",
     "cancel_retains_files_and_history": "passed",
     "runtime_redirects": "rejected"
+  },
+  "project_catalog_20261009": {
+    "catalog_cases": 17,
+    "dashboard_cases": 37,
+    "live_docker_coordinator_cases": 49,
+    "browser_fixture_cancellation": {
+      "demo-shop": "cancelled",
+      "demo-reports": "active"
+    },
+    "typescript": "passed",
+    "repository_gate": "passed",
+    "live_cross_provider_quality": "not_run_no_configured_rpc_credentials",
+    "wheel_install_setup_and_registration": "passed_outside_source_checkout",
+    "mobile_rtl": {
+      "viewport": 390,
+      "document_width": 390
+    },
+    "production_dashboard_build": "passed"
   }
 }

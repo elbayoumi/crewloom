@@ -60,7 +60,7 @@ Core Python tools use the standard library. Commands run from the checkout root.
 | [scripts/repo_map.py](../scripts/repo_map.py) | Project-local symbol index, versioned generations, SHA-verified reuse and bounded navigation; context-guardian | `crewloom map --project /path/to/git-project --query login` |
 | [scripts/test_repo_map.py](../scripts/test_repo_map.py) | Map freshness, generations, seed visibility, import accuracy and CLI regressions; QA | `python3 -m unittest discover -s scripts -p test_repo_map.py` |
 
-| [scripts/project_binding.py](../scripts/project_binding.py) | Portable project identity, local checkout binding, agency ledger validation and lifecycle; context-guardian | `crewloom project status --project /path/to/project --project-id id` |
+| [scripts/project_binding.py](../scripts/project_binding.py) | Portable identity, safe setup, disjoint project catalog, agency ledger validation and lifecycle; context-guardian | `crewloom project status --project /path/to/project --project-id id` |
 | [scripts/crewloom_resources.py](../scripts/crewloom_resources.py) | One explicit resolver for roles, documentation and dashboard sources in a checkout or an installed distribution; no cwd or editable-path guessing | `python3 scripts/crewloom.py list` |
 | [scripts/reviewer_credentials.py](../scripts/reviewer_credentials.py) | Credential-verified reviewer identities with signed, scoped, revocable approval proofs held in owner-only runtime state; QA | `crewloom reviewer status --project /path/to/project` |
 | [scripts/project_context.py](../scripts/project_context.py) | Frozen per-task context generations with hash-validated code ranges; context-guardian | `crewloom project enter --project /path/to/project --project-id id --task-id task --role context-guardian` |
@@ -159,3 +159,5 @@ The public context acceptance checker consumes `crewloom-hook-pilot/{context.jso
 | [scripts/test_study_v2_verification_boundaries.py](../scripts/test_study_v2_verification_boundaries.py) | Independent acceptance for post-run verification of frozen inputs and v2 limits | `python3 -m unittest discover -s scripts -p test_study_v2_verification_boundaries.py` |
 | [scripts/test_opencode_schema_prompt_boundaries.py](../scripts/test_opencode_schema_prompt_boundaries.py) | Independent acceptance for stating the artifact schema to OpenCode through its agent profile | `python3 -m unittest discover -s scripts -p test_opencode_schema_prompt_boundaries.py` |
 | [scripts/test_host_prompt_budget.py](../scripts/test_host_prompt_budget.py) | Only OpenCode is bound by the argv budget; stdin hosts keep their larger prompts | `python3 -m unittest discover -s scripts -p test_host_prompt_budget.py` |
+
+| [scripts/test_project_catalog.py](../scripts/test_project_catalog.py) | Catalog roots, identity, atomic registration, selected cancellation and setup memory preservation; context-guardian / QA | `python3 -m unittest discover -s scripts -p test_project_catalog.py` |

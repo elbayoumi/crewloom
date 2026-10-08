@@ -225,3 +225,9 @@
 - الملف: `scripts/model_host.py`, `scripts/test_opencode_schema_prompt_boundaries.py`, `scripts/test_host_prompt_budget.py`
 - الأثر: cause verified from stored outputs (13 flat maps + 1 `{"files":…}`, shape never stated to OpenCode); schema now stated in the agent's system prompt, study prompt untouched, invented shapes still refused.
 - ملاحظة: 16 frozen cases pass; first design (append to the prompt) was rejected by the existing frozen isolation test and replaced; real-model check pending, the 4 ~300 s timeouts are a separate open cause.
+
+### 2026-10-09 — Project catalog and actionable monitoring
+- Artifact: explicit disjoint-root catalog, project setup and authenticated project/task panel.
+- Impact: no guessed project selection; stale identities are unavailable; cancellation retains files and affects only the selected root.
+- Evidence: 17 catalog cases, 37 dashboard cases, TypeScript, full repository gate and 49 live-Docker coordinator cases passed; real browser cancellation left the second fixture active.
+- Evidence: isolated wheel install/setup/registration passed outside source; mobile RTL viewport/document widths both 390px.

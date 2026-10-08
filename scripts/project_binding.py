@@ -527,6 +527,7 @@ def bootstrap(root, project_id=None, config_path=None, registry_path=None, mode=
         config = validate_config(default_config(project_id, mode or default_mode()), root)
     elif project_id != config['project_id']:
         raise ValueError('Requested project identity does not match the portable configuration')
+    catalog_guard(root, project_id)
     preflight(root, [relative, BINDING_RELATIVE] + [item for item in METADATA_PATHS if item != relative])
     if binding is not None and binding['project_id'] != project_id:
         raise ValueError('Local binding identity does not match the requested project')
@@ -1093,14 +1094,234 @@ def lesson_counts(root):
     return counts
 
 
+
+# One explicitly selected machine-local catalog. Portable identity remains in each project.
+def catalog_path(value):
+    raw = Path(value).expanduser()
+    if not raw.is_absolute() or '..' in raw.parts:
+        raise ValueError('Catalog path must be absolute')
+    for candidate in (raw, *raw.parents):
+        if candidate.is_symlink():
+            raise ValueError('Catalog path may not use symlinks')
+    if raw.exists() and (not raw.is_file() or raw.stat().st_nlink != 1):
+        raise ValueError('Catalog must be a regular file without hardlinks')
+    return raw
+
+
+def _root_key(root):
+    return tuple(w.folded(part) for part in Path(root).parts)
+
+
+def roots_overlap(left, right):
+    a, b = _root_key(left), _root_key(right)
+    return a[:len(b)] == b or b[:len(a)] == a
+
+
+def read_catalog(value):
+    path = catalog_path(value)
+    if not path.exists():
+        return {'schema_version': 1, 'projects': []}
+    if path.stat().st_size > 1048576:
+        raise ValueError('Catalog exceeds 1 MiB')
+    data = read_json(path, 'project catalog')
+    if set(data) != {'schema_version', 'projects'} or data['schema_version'] != 1:
+        raise ValueError('Invalid project catalog schema')
+    entries = data['projects']
+    if not isinstance(entries, list) or len(entries) > 128:
+        raise ValueError('Catalog needs at most 128 projects')
+    ids = set(); previous = []
+    for item in entries:
+        if not isinstance(item, dict) or set(item) != {'project_id', 'project_root', 'checkout_id'}:
+            raise ValueError('Invalid catalog entry')
+        if not PROJECT_ID.fullmatch(str(item['project_id'])) or item['project_id'] in ids:
+            raise ValueError('Duplicate or invalid catalog project ID')
+        if not re.fullmatch(r'[0-9a-f]{32}', str(item['checkout_id'])):
+            raise ValueError('Invalid catalog checkout identity')
+        if not isinstance(item['project_root'], str): raise ValueError('Catalog root must be text')
+        root = Path(item['project_root'])
+        if not root.is_absolute() or '..' in root.parts:
+            raise ValueError('Catalog root moved or redirected; remove and register it explicitly')
+        if any(roots_overlap(root, old) for old in previous):
+            raise ValueError('Catalog contains overlapping project roots')
+        if roots_overlap(path, root):
+            raise ValueError('Catalog must live outside registered projects')
+        ids.add(item['project_id']); previous.append(root)
+    return data
+
+
+
+def _managed_child(root, parent, project_id):
+    """Only linked coordinator worktrees may live below their own project root."""
+    if not root.is_relative_to(parent): return False
+    relative = root.relative_to(parent).parts
+    if len(relative) != 4 or relative[:2] != ('.crewloom', 'worktrees'):
+        return False
+    if not all(w.ID.fullmatch(part) for part in relative[2:]):
+        return False
+    if not (root / '.git').is_file() or (root / '.git').is_symlink():
+        return False
+    config, _ = load_config(parent)
+    if not config or (project_id and config['project_id'] != project_id):
+        return False
+    child_config, _ = load_config(root)
+    if child_config and child_config['project_id'] != config['project_id']: return False
+    import repo_map
+    def common(path):
+        result = subprocess.run(['git', 'rev-parse', '--git-common-dir'], cwd=path,
+                                env=repo_map.git_environment(), capture_output=True, text=True, timeout=10)
+        if result.returncode: return None
+        return (path / result.stdout.strip()).resolve()
+    return common(root) == common(parent) and common(parent) is not None
+
+def catalog_guard(root, project_id=None, catalog=None):
+    selected = catalog or os.environ.get('CREWLOOM_CATALOG')
+    # Nested portable projects are always ambiguous, even without a selected catalog.
+    for parent in root.parents:
+        if (parent / CONFIG_NAME).exists() and not _managed_child(root, parent, project_id):
+            raise ValueError('Project root is nested inside another bound project: ' + str(parent))
+    if not selected:
+        return
+    for item in read_catalog(selected)['projects']:
+        registered = Path(item['project_root'])
+        if roots_overlap(root, registered):
+            if str(root) != str(registered) and not _managed_child(root, registered, item['project_id']):
+                raise ValueError('Project root overlaps a registered project: ' + item['project_id'])
+            if project_id and project_id != item['project_id']:
+                raise ValueError('Catalog project identity mismatch')
+
+
+def _catalog_binding(item):
+    root = project_root(item['project_root'])
+    if str(root) != item['project_root']: raise ValueError('Registered root was redirected')
+    binding = load_binding(root)
+    config, _ = load_config(root)
+    if (binding['project_id'] != item['project_id'] or binding['checkout_id'] != item['checkout_id']
+            or not config or config['project_id'] != item['project_id']):
+        raise ValueError('Registered identity changed; remove and register explicitly')
+    return root
+
+
+def catalog_update(value, action, root=None, project_id=None):
+    path = catalog_path(value)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # A process-independent exclusive lock protects the complete read/check/write transaction.
+    lock_folder = path.parent / ('.' + path.name + '.lock')
+    if lock_folder.is_symlink(): raise ValueError('Catalog lock may not be a symlink')
+    with w.lock(lock_folder):
+        data = read_catalog(path)
+        if action == 'remove':
+            if not any(item['project_id'] == project_id for item in data['projects']):
+                raise ValueError('Unknown catalog project ID')
+            data['projects'] = [item for item in data['projects'] if item['project_id'] != project_id]
+        elif action == 'add':
+            root = project_root(root)
+            catalog_guard(root, project_id, path)
+            binding = load_binding(root)
+            config, _ = load_config(root)
+            if not config or config['project_id'] != project_id or binding['project_id'] != project_id:
+                raise ValueError('Bind the selected project with this identity before registering')
+            if roots_overlap(path, root):
+                raise ValueError('Catalog must live outside registered projects')
+            item = {'project_id': project_id, 'project_root': str(root), 'checkout_id': binding['checkout_id']}
+            if any(roots_overlap(root, entry['project_root']) and str(root) != entry['project_root'] for entry in data['projects']):
+                raise ValueError('Catalog registrations must have disjoint roots, including worktrees')
+            existing = next((entry for entry in data['projects'] if entry['project_id'] == project_id), None)
+            if existing and existing != item:
+                raise ValueError('Project ID is already registered to a different checkout')
+            if not existing:
+                if len(data['projects']) >= 128: raise ValueError('Catalog is full')
+                data['projects'].append(item)
+        else:
+            raise ValueError('Unknown catalog mutation')
+        catalog_path(path)
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=path.parent, delete=False) as stream:
+            temporary = Path(stream.name)
+            json.dump(data, stream, ensure_ascii=False, indent=2)
+        os.replace(temporary, path)
+    return data
+
+
+def catalog_overview(value):
+    projects = []
+    for item in read_catalog(value)['projects']:
+        report = dict(item, tasks=[], workflows=[], batches=[])
+        try:
+            root = _catalog_binding(item)
+            for directory in ('.crewloom/tasks', '.crewloom/lessons', '.agents/skills', '.claude/skills'):
+                w.safe_path(root, directory, internal=True)
+            states = list((root / '.crewloom/tasks').glob('*/state.json'))
+            if len(states) > 128: raise ValueError('Project task list exceeds 128 entries')
+            for task_path in states:
+                w.safe_path(root, str(task_path.relative_to(root)), internal=True)
+                if task_path.stat().st_size > 1048576: raise ValueError('Task state exceeds 1 MiB')
+                task = read_json(task_path, 'catalog task state')
+                if (task.get('project_root') != str(root) or task.get('project_id') != item['project_id']
+                        or task.get('checkout_id') != item['checkout_id']):
+                    raise ValueError('Foreign project or checkout task state')
+            report.update(status(root, item['project_id']))
+            active_batch = w.safe_path(root, '.crewloom/active_coordinator.json', internal=True)
+            report['active_batch'] = read_json(active_batch, 'active coordinator') if active_batch.exists() else None
+            for kind, relative in (('workflows', '.crewloom/workflows'), ('batches', '.crewloom/coordinators')):
+                folder = w.safe_path(root, relative, internal=True)
+                state_paths = sorted(folder.glob('*/state.json'))
+                if len(state_paths) > 128: raise ValueError('Runtime collection exceeds 128 entries')
+                for state_path in state_paths:
+                    state_path = w.safe_path(root, str(state_path.relative_to(root)), internal=True)
+                    if state_path.stat().st_size > 1048576: raise ValueError('Runtime state exceeds 1 MiB')
+                    state = read_json(state_path, kind + ' state')
+                    if state.get('project_root') != str(root):
+                        raise ValueError('Foreign runtime state')
+                    report[kind].append({'id': state_path.parent.name, 'status': state.get('status', 'unknown'),
+                                         'reason': state.get('reason') or state.get('error'),
+                                         'steps': [{ 'id': step.get('id'), 'status': step.get('status') }
+                                                   for step in state.get('steps', [])] if isinstance(state.get('steps'), list) else []})
+            report['available'] = True
+        except (ValueError, OSError) as exc:
+            report.update(available=False, error=str(exc))
+        projects.append(report)
+    return {'schema_version': 1, 'projects': projects}
+
+
+def catalog_main(argv=None):
+    parser = argparse.ArgumentParser(description='Explicit machine-local project catalog; never scans arbitrary roots')
+    parser.add_argument('action', choices=('add', 'remove', 'list', 'cancel-task'))
+    parser.add_argument('--catalog', required=True)
+    parser.add_argument('--project'); parser.add_argument('--project-id')
+    parser.add_argument('--task-id')
+    args = parser.parse_args(argv)
+    try:
+        if args.action != 'list' and not args.project_id: parser.error('Mutation requires --project-id')
+        if args.action == 'add' and not args.project: parser.error('Registration requires --project')
+        if args.action == 'cancel-task':
+            if not args.task_id or not PROJECT_ID.fullmatch(args.task_id): parser.error('Valid --task-id required')
+            item = next((entry for entry in read_catalog(args.catalog)['projects'] if entry['project_id'] == args.project_id), None)
+            if item is None: raise ValueError('Unknown catalog project ID')
+            root = _catalog_binding(item)
+            with w.project_lock(w.safe_path(root, '.crewloom', internal=True), reentrant=True):
+                root = _catalog_binding(item)
+                # Never release only half of a workflow owner, even across a concurrent handoff.
+                if w.active_workflow(root): raise ValueError('Cancel the owning workflow with its original plan')
+                task = task_state(root, args.task_id)
+                if not task or task.get('project_root') != str(root) or task.get('project_id') != args.project_id or task.get('checkout_id') != item['checkout_id']:
+                    raise ValueError('Unknown or foreign catalog task')
+                result = cancel(root, args.project_id, args.task_id, 'operator request from project catalog', hold_lock=False)
+        else:
+            result = catalog_overview(args.catalog) if args.action == 'list' else catalog_update(
+                args.catalog, args.action, args.project, args.project_id)
+        print(json.dumps(result, ensure_ascii=False, indent=2)); return 0
+    except (ValueError, OSError) as exc:
+        print(json.dumps({'error': str(exc)})); return 2
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('enter', 'status', 'finish', 'cancel', 'rebind'))
+    parser.add_argument('action', choices=('setup', 'enter', 'status', 'finish', 'cancel', 'rebind'))
     parser.add_argument('--project', required=True)
     parser.add_argument('--project-id')
     parser.add_argument('--task-id')
     parser.add_argument('--role')
     parser.add_argument('--config')
+    parser.add_argument('--host', choices=('agents', 'claude'), default='agents')
+    parser.add_argument('--skill', action='append', default=[])
     parser.add_argument('--agency-registry', help='Explicit agency project-control ledger path')
     parser.add_argument('--agency-root', help='Agency workspace root that ledger paths are relative to')
     parser.add_argument('--agency-validator', help='Explicitly selected agency validator script to run first')
@@ -1116,7 +1337,27 @@ def main(argv=None):
     parser.add_argument('--reason')
     args = parser.parse_args(argv)
     try:
-        if args.action == 'enter':
+        if args.action == 'setup':
+            import crewloom
+            root = project_root(args.project)
+            names = args.skill or ['context-guardian']
+            if any(not (w.LIBRARY / '.agents/skills' / name / 'SKILL.md').is_file() or not PROJECT_ID.fullmatch(name) for name in names):
+                raise ValueError('Unknown setup role')
+            catalog_guard(root, args.project_id)
+            preflight(root, METADATA_PATHS)
+            with w.project_lock(w.safe_path(root, '.crewloom', internal=True), reentrant=True):
+                if reservation(root) or w.active_workflow(root): raise ValueError('Project is reserved; finish or cancel work before setup')
+                result = bootstrap(root, args.project_id, args.config, args.agency_registry,
+                                   agency_root=args.agency_root, agency_validator=args.agency_validator)
+                # Never force an installed role update during setup; project memory is preserved.
+                destination = root / crewloom.HOST_DIRS[args.host]
+                missing = [name for name in names if not (destination / name).exists()]
+                installed, errors = crewloom.install_skills(root, args.host, missing, False) if missing else ([], [])
+                if errors: raise ValueError('; '.join(errors))
+                result = {'status': 'ready', 'project_id': result['binding']['project_id'],
+                          'project_root': str(root), 'installed': installed, 'preserved': [name for name in names if name not in missing],
+                          'instruction': 'Project setup complete; provider authentication and Docker readiness are separate checks.'}
+        elif args.action == 'enter':
             result = enter(args.project, args.project_id, args.task_id, args.role, args.config,
                            args.agency_registry, args.criteria, args.seed, args.language, args.source,
                            True, args.agency_root, args.agency_validator)
@@ -1132,7 +1373,7 @@ def main(argv=None):
         else:
             result = rebind(args.project, args.project_id, args.reason or 'operator relocation')
         print(json.dumps(result, ensure_ascii=False, indent=2))
-        accepted = {'enter': ('active', 'complete'), 'finish': ('complete',), 'cancel': ('cancelled',),
+        accepted = {'setup': ('ready',), 'enter': ('active', 'complete'), 'finish': ('complete',), 'cancel': ('cancelled',),
                     'status': ('bound', None), 'rebind': ('manual', None)}[args.action]
         return 0 if args.action in ('status', 'rebind') or result.get('status') in [item for item in accepted if item] else 2
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
