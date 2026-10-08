@@ -102,3 +102,5 @@ Native Windows3.9/3.14 ownership and tool tests passed at0575ab8. Linux CI expos
 
 ### 2026-10-08 — Review operational failure paths
 Deep review repaired declared-path truth, role-ID traversal, malformed handoff shape and unresolved output cleanup in the existing library. Promotion remains source/acceptance-scoped; uncertainty is retained explicitly rather than converted into success. Source-matched final evidence belongs in PR8 and the selected project's private checkpoint.
+
+2026-10-08 limited live smoke: one successful Codex pair retains11/11 quality and reports20.1095% fewer input tokens; this is scoped evidence, not general or billed savings. Same-host fenced manual handoff passes8 application and9 independent core checks. Claude login blocks cross-host acceptance. Keep operational project state separate and failed/unknown usage visible; six charged reservations cannot be reset for a repeat. See documentation/CONTEXT_STUDY.md and documentation/CONTINUATION.md.

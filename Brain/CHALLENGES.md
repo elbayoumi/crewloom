@@ -338,3 +338,8 @@
 - Evidence: source-c18 adverse/clean collector fixture (no provider); malformed bound packets; actual descendant pipe blocked beyond7s until explicit fixture-owned recovery.165 targeted cases pass before the extra snapshot control; Linux3.9 runner11 and snapshot gate controls pass. Final gate/package/exact-head CI remain separately recorded;45 frozen files unchanged.
 
 Latest deep-review acceptance:166 targeted cases pass on Python3.14; Linux3.9 continuation71 and managed runner11 pass. Same-snapshot path vocabulary rejects mislabeled/invalid/working-tree-masked cases and accepts clean staged contracts. Final exact source and delivery results remain in PR8/the selected ignored checkpoint.
+
+### 2026-10-08 — Available CLI is not an authenticated receiver
+- Root cause: generation flags/version were supported while Claude local auth was loggedOut; OpenCode had0 registered credentials. Native failures remained uncertain, not confirmed quota.
+- Response: retain failures/skip remaining failed-host trial; do not replay or fabricate exhaustion. Spend only remaining reservations on a separately declared same-host manual pilot. Keep observed identity/cost unknown.
+- Evidence: sanitized live-smoke record, same-host app8/core9 and scoped comparison11/11; six managed reservations/seventh refusal. Cross-host remains pending local login and a new explicit budget. Future versioned authentication preflight is an idea, not implemented runtime behavior.

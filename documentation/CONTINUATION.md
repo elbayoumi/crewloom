@@ -56,3 +56,9 @@ Local fixtures prove controller switching and refusal behavior without a provide
 ## Incoming structure and identity
 
 A correct packet checksum proves byte integrity, not a valid schema or an authorized origin. Validate consumed project/workflow/source/completed-step fields before dereferencing them or claiming an owner slot. Missing or wrong-shaped operational objects produce a named refusal; optional telemetry remains extensible. Receiver IDs must be stable lowercase hyphenated IDs, and a supplied model must be a nonempty string. These checks preserve the existing latest-record, root/checkout, plan, policy, epoch/token and budget fences; they never reset attempts or authorize replay.
+
+## Live same-host acceptance — 2026-10-08
+
+A real limited pilot exercised a manually selected clean boundary between two distinct Codex agents: the first generated the Unicode core, the receiver validated/claimed the packet with an epoch/token fence, generated CLI integration, and completed Docker acceptance. The core and immutable plan were preserved;8 application tests and9/9 independently graded core checks passed. The original failed Claude attempt and counters remained; a shared6-request ledger (also covering a context comparison) refused a seventh before dispatch. [Sanitized acceptance](../examples/evaluation/live-smoke-20261008.json) records the exact scope.
+
+This establishes the exercised same-host managed text-generation handoff. Claude-to-Codex remains incomplete because local Claude authentication was absent. No genuine quota exhaustion, automatic cross-provider switch or arbitrary native-editor continuation was observed. Authenticate the selected second host locally before a new explicitly budgeted pilot; never reset the exhausted pilot ledger or replay uncertain native failures automatically.

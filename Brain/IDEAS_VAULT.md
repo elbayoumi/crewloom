@@ -136,3 +136,6 @@ Keep platform acceptance paired with a real protected unrelated process and a re
 
 ### 2026-10-08 — Surface uncertainty before retry
 A later task could expose unsettled tool receipts and explicit scoped resource recovery in the dashboard. Keep that distinct from automatic replay or automatic deletion; ownership observation failure is not absence. Current repair makes uncertainty durable and returns promptly, but adds no universal project sandbox or autonomous recovery permission.
+
+### 2026-10-08 — Authentication-aware pilot planning
+Before spending a trial reservation, use a safe read-only authentication status when the exact host supports it; store availability only, never credentials or account details. Login is not quota telemetry. A future in-place adapter change needs positive/negative/version compatibility acceptance. Expand live evaluation to unfamiliar accepted applications, multiple pairs and complete reported usage before broad claims; current smoke is intentionally limited.

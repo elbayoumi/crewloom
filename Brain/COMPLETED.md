@@ -373,3 +373,8 @@
 - Evidence: actual safe fixtures reproduce earlier failures;165 targeted cases and Linux3.9 runner11 pass before final integration; staged-vocabulary bad/clean controls pass. Final source/package/hook/remote proof is in PR8 and ignored .crewloom/deep-review-20261008/checkpoint.json. No provider call, consumer enrollment, merge or release.
 
 Latest deep-review acceptance:166 targeted cases pass on Python3.14; Linux3.9 continuation71 and managed runner11 pass. Same-snapshot path vocabulary rejects mislabeled/invalid/working-tree-masked cases and accepts clean staged contracts. Final exact source and delivery results remain in PR8/the selected ignored checkpoint.
+
+### 2026-10-08 — Limited live acceptance (W04/W08/W12)
+- Artifact: sanitized examples/evaluation/live-smoke-20261008.json and linked context/continuation/review documentation; raw records/application remain in the independent pilot.
+- Evidence: real Codex pair11/11 in both arms, input16,261/12,991 (20.1095% fewer); wrong control1/11. Same-host fenced handoff/app8/core9 checks; core/plan unchanged; six charged requests and seventh refusal;19 frozen inputs/ready privacy/no owned resources.
+- Limits: Claude login absent; cross-host/quota acceptance incomplete. Unreported model/cost and auth-failure usage stay unknown. Single public task is no general benefit claim. Final docs hook/exact-head CI is recorded in PR8. No merge/release.

@@ -223,3 +223,8 @@ All earlier entries below retain their original snapshot status. Pending work is
 - [x] Restrict role selection to stable IDs; reject malformed operational handoff/receiver fields without ownership mutation.
 - [x] Bound unresolved output cleanup and retain named unsettled receipts/owned resources instead of hanging or reporting success.
 - Final local package/hook and exact-head remote outcome: PR8/final ignored checkpoint. Live cross-host application usefulness still needs explicit host/budget; arbitrary native host activity is outside sandbox enforcement.
+
+### 2026-10-08 — Live smoke outcome
+- [x] New frozen paired context smoke, known-wrong grader control and real same-host clean-boundary continuation; sanitized evidence/independent project privacy and six-request refusal checked.
+- [ ] Authenticate an approved second host locally, then preregister a new separately budgeted real cross-host/application pilot; genuine quota fallback remains unobserved.
+- [ ] Broader unfamiliar application/role/language acceptance, multiple pairs and complete usage/cost reporting. No general savings/quality claim, merge or release.
