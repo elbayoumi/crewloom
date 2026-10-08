@@ -142,10 +142,14 @@ def acceptance_workflow(root, task_id, image, inputs):
         {'id': 'acceptance', 'role': ROLE, 'summary': 'Run the fixed acceptance check',
          'argv': list(ACCEPTANCE_ARGV), 'timeout_seconds': 120,
          'inputs': sorted(inputs), 'outputs': [ACCEPTANCE_OUTPUT]}]}
-    (root / 'workflow.json').write_text(json.dumps(plan), encoding='utf-8')
-    parsed, fingerprint = w.read_plan(root, 'workflow.json')
+    if not w.ID.fullmatch(task_id):
+        raise ValueError('Pilot task ID must be stable kebab-case')
+    plan_file = '.crewloom/pilots/' + task_id + '/workflow.json'
+    import continuation
+    continuation._private_write(w.plan_source(root, plan_file), json.dumps(plan))
+    parsed, fingerprint = w.read_plan(root, plan_file)
     try:
-        result = w.run(root, parsed, fingerprint, image)
+        result = w.run(root, parsed, fingerprint, image, plan_file=plan_file)
     except ValueError as exc:
         return {'executed': False, 'reason': str(exc), 'command': plan['steps'][0]['argv'],
                 'inputs': plan['steps'][0]['inputs'], 'outputs': plan['steps'][0]['outputs']}

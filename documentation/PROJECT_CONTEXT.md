@@ -1,5 +1,7 @@
 # Project context
 
+Consumer runtime state, local host configuration and installed role memory are ignored local data. Portable declarative policy and public toolkit templates remain source. See [publication privacy](PROJECT_PRIVACY.md) for organization, index checks and worktree memory snapshots.
+
 Project context gives a registered task the minimum evidence it needs inside one project: a stable project identity, a local checkout binding, a bounded navigation index, a frozen task context, and lessons that only an objective check can promote. It is opt-in per project. Nothing here changes workflow isolation, provider defaults or host permissions.
 
 ## Identity and files
@@ -133,3 +135,9 @@ The synthetic suite measures two project sizes so the crossover is reported rath
 The [two frozen public-project runs](../examples/evaluation/project-context-20261003/README.md) passed all nine navigation/context checks in English and Arabic, including the full declared source, managed finalization, verified lessons and one-attempt reuse. Selected payloads were 43,231 bytes for Crewloom and 54,106 bytes for the scoped Paperclip UI. These are navigation byte measurements; provider token and cost effects remain unknown.
 
 Before client rollout, use the [readiness guide](READINESS.md) to check one explicit registered project against current recorded evidence without modifying its registry, configuration or memory.
+
+## Conditional learning and current acceptance
+
+Eligible verified lessons rank by matched conditions, query relevance, recorded passed checks and verification recency, with stable identifiers for ties. A later negative observation withholds the lesson until reverification. Conflicting remedies for the same normalized issue are withheld together with visible diagnostics. Lessons supply reviewed guidance; their stored commands are never executed automatically.
+
+Role acceptance uses schema 2 project/checkout-scoped executor references and verifies current artifact/input fingerprints plus the referenced command's role. A legacy `passed: true` statement is unverified. Task completion history remains intact when files change, but current verified acceptance becomes false. Self-Editing retains bounded changed-hypothesis repairs and required acceptance; this does not claim autonomous general model improvement.

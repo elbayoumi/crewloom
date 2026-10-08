@@ -227,9 +227,22 @@ def hashes(root, paths):
     return result
 
 
+def plan_source(root, filename):
+    """A public plan or one controller-owned pilot plan; other runtime/Git paths stay forbidden."""
+    parts = Path(filename).parts if isinstance(filename, str) else ()
+    private = (len(parts) == 4 and parts[:2] == ('.crewloom', 'pilots')
+               and ID.fullmatch(parts[2]) and parts[3] == 'workflow.json')
+    return safe_path(root, filename, internal=bool(private))
+
+
 def read_plan(root, filename):
-    source = safe_path(root, filename)
-    plan = json.loads(source.read_text(encoding='utf-8'))
+    source = plan_source(root, filename)
+    return validate_plan(root, json.loads(source.read_text(encoding='utf-8')), filename)
+
+
+def validate_plan(root, plan, filename=None):
+    """The one plan validation. `filename` is the plan's project-relative file when it has one (an artifact may not
+    overwrite it); a programmatic plan with no persisted path passes None and gets every other check."""
     if not isinstance(plan, dict) or plan.get('schema_version') != 1 or not ID.fullmatch(str(plan.get('id', ''))):
         raise ValueError('Workflow requires schema_version 1 and a stable kebab-case id')
     if plan.get('language', 'en') not in ('en', 'ar'):
@@ -246,7 +259,8 @@ def read_plan(root, filename):
         raise ValueError('Workflow needs at least one step')
     seen = set()
     outputs = set(); output_targets = set(); output_keys = set()
-    plan_path = safe_path(root, filename); plan_key = path_key(filename)
+    plan_path = plan_source(root, filename) if filename else None
+    plan_key = path_key(filename) if filename else None
     for step in steps:
         if not isinstance(step, dict) or not ID.fullmatch(str(step.get('id', ''))) or step['id'] in seen:
             raise ValueError('Step IDs must be unique kebab-case')
@@ -276,7 +290,7 @@ def read_plan(root, filename):
                 raise ValueError('Each step needs inputs and nonempty outputs lists')
             for value in values:
                 resolved = safe_path(root, value)
-                if field == 'outputs' and (resolved == plan_path or path_key(value) == plan_key
+                if field == 'outputs' and (resolved == plan_path or (plan_key is not None and path_key(value) == plan_key)
                                            or any(resolved == safe_path(root, old) for old in outputs)):
                     raise ValueError('Each artifact needs one owner and cannot overwrite the plan')
                 if value in outputs and field == 'outputs':
@@ -597,12 +611,68 @@ def inspect_image(image):
     return result.stdout.strip()
 
 
+def _track(kind, ident, pid=None, container=None):
+    """Record a batch-owned process/container. Outside a batch there is nothing to record; inside one a
+    failure to record raises, because a resource that cancellation cannot find must not be started."""
+    import admission
+    return admission.track_current(kind, ident, pid, container)
+
+
+def _untrack(kind, ident):
+    try:
+        import admission
+        admission.untrack_current(kind, ident)
+    except Exception:
+        pass
+
+
+def _container_id(cidfile, process, wait=15.0):
+    """The immutable 64-hex id Docker wrote at creation, or None. Waits only while the client still runs."""
+    import admission
+    deadline = time.monotonic() + (wait if process is not None else 0)
+    while True:
+        try:
+            text = Path(cidfile).read_text().strip()
+        except OSError:
+            text = ''
+        if admission.CONTAINER_ID.fullmatch(text):
+            return text
+        if process is None or process.poll() is not None or time.monotonic() > deadline:
+            return None
+        time.sleep(0.05)
+
+
+def _remove_owned(container_id, name, labels):
+    """Remove the container this call created, by immutable id after verifying it; never by name alone."""
+    import admission
+    if container_id is None:
+        # Never created or its id was not written: look the name up and require our run label before acting.
+        status, found = admission.inspect_container(name)
+        if status == 'missing':
+            return 'gone'
+        if status != 'ok':
+            return 'unverifiable: ' + str(found)
+        container_id = found['id']
+    return admission.remove_container({'container_id': container_id, 'labels': labels})
+
+
 def docker_execute(root, argv, image_id, timeout, writable=None):
     """Only project mounted; runtime state hidden; image immutable; network off."""
     if ',' in str(root):
         raise ValueError('Docker mount paths cannot contain commas')
     name = 'crewloom-' + uuid.uuid4().hex
-    command = ['docker', 'run', '--rm', '--name', name, '--network', 'none', '--read-only',
+    import admission
+    batch = admission.current() or {}
+    labels = {admission.OWNER_LABEL: 'crewloom', admission.RUN_LABEL: uuid.uuid4().hex,
+              'crewloom.project': hashlib.sha256(str(root).encode()).hexdigest()[:32]}
+    if batch:
+        labels.update({'crewloom.task': str(batch.get('task') or ''),
+                       'crewloom.batch': hashlib.sha256(str(batch['folder']).encode()).hexdigest()[:32]})
+    cid_folder = Path(tempfile.mkdtemp(prefix='crewloom-cid-'))
+    cidfile = cid_folder / 'cid'
+    command = ['docker', 'run', '--rm', '--name', name, '--cidfile', str(cidfile),
+               *[part for key, value in labels.items() for part in ('--label', key + '=' + value)],
+               '--network', 'none', '--read-only',
                '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--pids-limit', '128',
                '--memory', '1g', '--cpus', '2', '--ulimit', 'fsize=4194304:4194304',
                '--user', f'{os.getuid()}:{os.getgid()}', '--tmpfs', '/tmp:rw,nosuid,size=128m',
@@ -620,7 +690,24 @@ def docker_execute(root, argv, image_id, timeout, writable=None):
     started = time.monotonic()
     captured = bytearray()
     discarded = [False]
+    admission.track_container_intent(name, labels)
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    container_id = _container_id(cidfile, process)
+    cleanup = None
+    try:
+        if batch:
+            if container_id is None:
+                raise ValueError('The container identity could not be established; not running it untracked')
+            _track('container', name, process.pid, {'id': container_id, 'labels': labels})
+            admission.untrack_process(batch['folder'], 'container-launch', name)
+    except BaseException:
+        process.kill()
+        process.wait()
+        outcome = _remove_owned(container_id, name, labels)
+        if batch and (outcome in ('removed', 'gone') or outcome.startswith('preserved')):
+            admission.untrack_process(batch['folder'], 'container-launch', name)
+        shutil.rmtree(cid_folder, ignore_errors=True)
+        raise
     def collect():
         while True:
             chunk = process.stdout.read(4096)
@@ -638,14 +725,19 @@ def docker_execute(root, argv, image_id, timeout, writable=None):
         except subprocess.TimeoutExpired:
             process.kill(); process.wait(); code = 124; timed_out = True
     finally:
-        subprocess.run(['docker', 'rm', '--force', name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=20)
+        cleanup = _remove_owned(container_id or _container_id(cidfile, None), name, labels)
+        # An unresolved cleanup stays tracked so cancellation and restart recovery repeat the same checks.
+        if cleanup in ('removed', 'gone') or cleanup.startswith('preserved'):
+            _untrack('container', name)
+        shutil.rmtree(cid_folder, ignore_errors=True)
         if process.poll() is None:
             process.kill(); process.wait()
         reader.join(timeout=5)
         process.stdout.close()
     output = captured.decode('utf-8', errors='replace')
     return {'exit_code': code, 'timed_out': timed_out, 'duration_ms': round((time.monotonic()-started)*1000),
-            'output': output, 'output_truncated': discarded[0], 'image_id': image_id, 'network': 'none'}
+            'output': output, 'output_truncated': discarded[0], 'image_id': image_id, 'network': 'none',
+            'container_id': container_id, 'container_cleanup': cleanup}
 
 
 def review_policy(root):
@@ -791,11 +883,19 @@ def cancel(root, plan, fingerprint, reason='operator request'):
                 'instruction':'Cancellation preserves files and failure history; use a new workflow ID for new work.'}
 
 
-def run(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None):
+def run(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None, owner=None,
+        plan_file=None):
     """Reserve the root, execute under the shared project lock, then finalize recorded evidence."""
+    import admission
+    if admission.current() is None:
+        folder = safe_path(root, '.crewloom/workflows/' + plan['id'] + '/admission', internal=True)
+        admission.configure(folder, plan['id'], {})
+        with admission.context(folder, plan['id']):
+            return run(root, plan, fingerprint, image, accept, reviewer, allow_host_cli, review_token, owner, plan_file)
     with project_lock(safe_path(root, '.crewloom', internal=True), reentrant=True):
         try:
-            result = _execute(root, plan, fingerprint, image, accept, reviewer, allow_host_cli, review_token)
+            result = _execute(root, plan, fingerprint, image, accept, reviewer, allow_host_cli, review_token, owner,
+                              plan_file)
         except BaseException:
             _settle(root, plan, fingerprint, enforce=False)
             raise
@@ -936,7 +1036,8 @@ def project_context_cancel(root, task_id, reason):
     return None
 
 
-def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None):
+def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_host_cli=False, review_token=None, owner=None,
+             plan_file=None):
     with project_lock(safe_path(root, '.crewloom', internal=True), reentrant=True):
         # An interrupted grouped publication is reconciled before this run reads any workflow
         # state, builds a frozen context, evaluates a publish gate or records acceptance, so a
@@ -947,6 +1048,9 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
         folder, state = state_for(root, plan, fingerprint)
         if state['status'] == 'cancelled':
             raise ValueError('Cancelled workflow cannot resume; use a new workflow ID')
+        # Ownership is verified before this run reserves anything, dispatches or publishes. Held for
+        # the whole run by the project lock, so an owner change can only happen between runs.
+        _fence(root, plan, owner)
         reserve_workflow(root, plan, fingerprint)
         verify_completed(root, state)
         if accept:
@@ -960,6 +1064,9 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
         image_id = None
         lifecycle = project_context_enter(root, plan, state) if lifecycle_mode(root) else None
         if lifecycle: state = state_for(root, plan, fingerprint)[1]
+        if plan_file is not None and state.get('plan_file') != plan_file:
+            plan_source(root, plan_file)  # public source or narrowly scoped controller-owned pilot plan
+            state['plan_file'] = plan_file; save(folder, state)
         for step in plan['steps']:
             record = state['steps'].setdefault(step['id'], {'status': 'pending', 'role': step['role'], 'summary': step['summary'], 'kind': step.get('kind', 'command'), 'argv': list(step.get('argv') or []), 'attempts': []})
             if record['status'] == 'complete':
@@ -981,7 +1088,9 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
                         raise ValueError('Recorded reviewer proof for ' + step['id'] + ' is ' + recorded
                                          + '; start a new workflow ID rather than reusing this state')
                 continue
+            _fence(root, plan, owner)
             if lifecycle_mode(root): project_context_checkpoint(root, plan, state, step)
+            _boundary_checkpoint(root, plan, state, ledger, 'before_dispatch', step['id'])
             try:
                 inputs = hashes(root, step['inputs'])
             except ValueError as exc:
@@ -1002,7 +1111,8 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
             if accept:
                 raise ValueError('Accept only the next task step; commands must run to produce evidence')
             if step.get('kind') == 'model':
-                run_model_step(root, plan, step, inputs, record, state, folder, ledger, allow_host_cli)
+                run_model_step(root, plan, step, inputs, record, state, folder, ledger, allow_host_cli, owner)
+                _boundary_checkpoint(root, plan, state, ledger, 'after_step', step['id'])
                 if record['status'] != 'complete':
                     return handoff(root, plan, state)
                 continue
@@ -1022,6 +1132,18 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
             ledger['attempts'].append(project_attempt)
             save_ledger(root, ledger)
             record['status'] = 'running'; state['status'] = 'running'; save(folder, state)
+            try:
+                _required_checkpoint(root, plan, state, ledger, 'dispatched', step['id'])
+            except OSError as exc:
+                # Nothing was dispatched, so no output could have been produced. The attempt still counts
+                # (conservative) and is recorded as never dispatched rather than as an uncertain run.
+                attempt.update(status='finished', exit_code=2, dispatched=False, output=str(exc))
+                project_attempt.update(status='failed', dispatched=False)
+                record['status'] = 'failed'; state['status'] = 'failed'
+                record['error'] = str(exc); state['error'] = str(exc)
+                save_ledger(root, ledger); save(folder, state)
+                return handoff(root, plan, state)
+            _fence(root, plan, owner)
             from execution_policy import execute as isolated_execute
             try:
                 result = isolated_execute(root, step, image_id, step.get('timeout_seconds', 60))
@@ -1044,21 +1166,93 @@ def _execute(root, plan, fingerprint, image, accept=None, reviewer=None, allow_h
                 # `failed` status with no recorded cause next to it.
                 record['status'] = 'failed'; state['status'] = 'failed'
                 record['error'] = str(exc); state['error'] = str(exc)
-                save(folder, state); return handoff(root, plan, state)
+                save(folder, state); _boundary_checkpoint(root, plan, state, ledger, 'after_step', step['id']); return handoff(root, plan, state)
             project_attempt['status'] = 'succeeded'; save_ledger(root, ledger)
             record['status'] = 'complete'; record.pop('error', None); save(folder, state)
+            _boundary_checkpoint(root, plan, state, ledger, 'after_step', step['id'])
         state['status'] = 'complete'; save(folder, state)
+        _boundary_checkpoint(root, plan, state, ledger, 'complete', None)
         return handoff(root, plan, state)
 
 
-def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allow_host_cli):
+def _fence(root, plan, owner):
+    """Refuse when this caller is not the continuation owner of the workflow (no-op for ordinary runs)."""
+    try:
+        import continuation
+    except ImportError:
+        return None
+    return continuation.fence(root, plan['id'], owner)
+
+
+def _required_checkpoint(root, plan, state, ledger, boundary, step_id):
+    """A checkpoint that must be durable before the side effect it precedes; failure raises OSError."""
+    try:
+        import continuation
+    except ImportError as exc:
+        raise OSError('Continuation module is unavailable; a required checkpoint cannot be committed') from exc
+    return continuation.required_checkpoint(root, plan, state, ledger, boundary, step_id)
+
+
+def _boundary_checkpoint(root, plan, state, ledger, boundary, step_id):
+    """Optional controller-owned checkpoint (display/telemetry boundary); a failure is recorded, never fatal."""
+    try:
+        import continuation
+    except ImportError:
+        return None
+    return continuation.best_effort_checkpoint(root, plan, state, ledger, boundary, step_id)
+
+
+def _admit_model_request(request_id, input_bytes, profile, timeout):
+    """Reserve the batch budget before dispatch; outside a batch there is nothing to reserve.
+
+    A queued request waits (bounded by its own timeout) and is refused if the batch is cancelled;
+    an existing reservation from an earlier run is never charged again and never replayed."""
+    import admission
+    active = admission.current()
+    if not active:
+        return None, None
+    folder = Path(active['folder'])
+    adapter_ceiling = (profile['limits'].get('output_tokens') or {}).get('value')
+    ceiling = admission.output_ceiling(folder, adapter_ceiling)  # the bound the adapter is actually told
+    estimate = {'input_bytes': input_bytes, 'output_tokens': ceiling, 'timeout_seconds': timeout}
+    deadline = time.monotonic() + max(1, timeout)
+    while True:
+        decision = admission.admit(folder, request_id, estimate, {'task': active.get('task')})
+        if decision['decision'] == 'admitted':
+            return active, ceiling
+        if decision['decision'] == 'refused':
+            raise ValueError('Batch admission refused: ' + decision['reason'])
+        if decision['decision'] == 'existing':
+            raise ValueError('Request already reserved in state ' + decision['state'] +
+                             '; its outcome is not replayed automatically')
+        if (folder / 'cancel.request').exists():
+            admission.cancel_queued(folder)
+            raise ValueError('Batch cancelled while the request was queued')
+        if time.monotonic() > deadline:
+            raise ValueError('Request stayed queued past its time budget: ' + decision['reason'])
+        time.sleep(0.05)
+
+
+def _finish_model_request(active, request_id, status, usage):
+    if active:
+        import admission
+        admission.finish(Path(active['folder']), request_id, status, usage)
+
+
+def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allow_host_cli, owner=None):
     import model_host as host_module
     from model_host import build_prompt, generate
     try:
+        accepted = _fence(root, plan, owner)
+        use_receiver = bool(owner and owner.get('use_receiver_host'))
+        if use_receiver and (not accepted or accepted.get('state') != 'active'):
+            raise ValueError('Receiver dispatch requires a live accepted continuation owner')
+        dispatch_host = accepted['host'] if use_receiver else step['host']
+        dispatch_model = accepted.get('model') if use_receiver else step.get('model')
         # Every installed-CLI host, not a hardcoded pair, needs the explicit operator opt-in.
         # The list is owned by the adapter, so a host added there is guarded here too instead of
         # becoming a CLI-execution path the gate does not know about.
-        if step['host'] in host_module.CLI_HOSTS and not allow_host_cli:
+        if dispatch_host in host_module.CLI_HOSTS and not allow_host_cli:
             raise ValueError('Host CLI execution is disabled in enforced mode; use openai/anthropic or explicit operator --allow-host-cli')
         from provider_gateway import MAX_PROJECT_MODEL_REQUESTS
         if sum(a.get('kind')=='model' for a in ledger['attempts']) >= MAX_PROJECT_MODEL_REQUESTS:
@@ -1068,6 +1262,15 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
         prompt=build_prompt(root,step,plan.get('language','en'),plan['id'],consumed)
         record['context_sha256']=digest(prompt.encode())
         record['context_bytes']=len(prompt.encode())
+        # Capability preflight before any attempt, ledger entry or side effect: managed generation
+        # is tool-free text, and the prompt must fit the adapter's documented bound.
+        profile=host_module.capability_profile(dispatch_host,dispatch_model)
+        if use_receiver and profile['fingerprint'] != accepted['receiver_profile_fingerprint']:
+            raise ValueError('Receiver capability profile changed since acceptance; accept again')
+        host_module.check_prompt_fits(profile,record['context_bytes'])
+        record['capability_profile']={'fingerprint':profile['fingerprint'],'launch_mode':profile['launch_mode'],
+                                      'host':dispatch_host,'model_requested':dispatch_model,
+                                      'tools':'none (managed text generation)','schema_version':profile['schema_version']}
         if consumed:
             # Bind this step to the generation it actually read; a later reuse resolves the
             # same immutable evidence instead of inferring it from matching declared sources.
@@ -1077,22 +1280,41 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
             record.pop('context_generation',None)
             record.pop('context_semantic_sha256',None)
         record['memory_mode']=step.get('memory_mode','focused')
-        signature=digest(json.dumps({'prompt':prompt,'host':step['host'],'model':step.get('model'),
+        signature=digest(json.dumps({'prompt':prompt,'host':dispatch_host,'model':dispatch_model,
                                     'timeout':step.get('timeout_seconds',180),
                                     'adapter_sha256':digest(Path(host_module.__file__).read_bytes()),
                                     'gateway_sha256':digest(resources.module_file('provider_gateway.py').read_bytes()),
                                     'broker_sha256':digest(resources.module_file('execution_policy.py').read_bytes())},sort_keys=True).encode())
         if sum(a['signature']==signature and a['status']!='succeeded' for a in ledger['attempts'])>=2:
             raise ValueError('Two attempts exhausted for unchanged model task and inputs')
+        request_id=digest((plan['id']+'/'+step['id']+'/'+signature+'/'+str(sum(a['signature']==signature for a in ledger['attempts']))).encode())
+        admitted_context,ceiling=_admit_model_request(request_id,len(prompt.encode()),profile,step.get('timeout_seconds',180))
         attempt={'signature':signature,'status':'running','started_at':time.time()}
         record['attempts'].append(attempt)
         entry={'signature':signature,'status':'running','workflow':plan['id'],'step':step['id'],'kind':'model'}
         ledger['attempts'].append(entry);save_ledger(root,ledger)
         record['status']='running';state['status']='running';save(folder,state)
-        artifacts,evidence=generate(step['host'],prompt,step['outputs'],step.get('timeout_seconds',180),step.get('model'))
+        try:
+            _required_checkpoint(root,plan,state,ledger,'dispatched',step['id'])
+            _fence(root,plan,owner)
+        except (OSError,RuntimeError) as exc:
+            # Not dispatched: release the admitted slot as failed (never refunded or re-granted).
+            _finish_model_request(admitted_context,request_id,'failed',None)
+            if isinstance(exc,RuntimeError):  # lost ownership is not caught below; keep the ledger truthful
+                entry['status']='failed';save_ledger(root,ledger)
+            raise
+        try:
+            generation_dispatched = True
+            artifacts,evidence=generate(dispatch_host,prompt,step['outputs'],step.get('timeout_seconds',180),dispatch_model,
+                                        **({'max_output_tokens':ceiling} if ceiling else {}))
+        except BaseException:
+            _finish_model_request(admitted_context,request_id,'failed',None)
+            raise
+        _finish_model_request(admitted_context,request_id,'succeeded',evidence.get('usage') if isinstance(evidence,dict) else None)
         if hashes(root,step['inputs']) != inputs:
             raise ValueError('Inputs changed during model generation; outputs rejected')
         project_context_publish_gate(root, plan, step)
+        _fence(root,plan,owner)
         from execution_policy import publish
         publish(root,{path:text.encode() for path,text in artifacts.items()},inputs)
         attempt.update(evidence,status='finished',exit_code=0)
@@ -1103,13 +1325,29 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
         if isinstance(usage,dict):
             record['provider_usage']={key:usage[key] for key in ('input_tokens','cached_input_tokens','output_tokens','total_tokens') if isinstance(usage.get(key),int)}
             record['provider_usage_available']=bool(record['provider_usage'])
+        record.pop('failure', None)
         record.pop('error',None);save(folder,state)
     except (ValueError,OSError,subprocess.SubprocessError) as exc:
         if 'entry' in locals():
             entry['status']='failed';save_ledger(root,ledger)
             attempt.update(status='finished',exit_code=2)
         record['status']='failed';record['error']=str(exc)
+        classification = getattr(exc, 'classification', None)
+        record['failure'] = classification if isinstance(classification, dict) else host_module.classify_failure()
+        if 'entry' in locals() and locals().get('generation_dispatched') and (
+                record['failure'].get('side_effects') == 'uncertain' or dispatch_host in host_module.CLI_HOSTS):
+            entry['uncertain_side_effects'] = True
+            save_ledger(root, ledger)
         state['status']='failed';state['error']=str(exc);save(folder,state)
+
+
+def _continuation_claim(owner_id, epoch, use_receiver_host=False):
+    import continuation
+    claim = continuation.claim_from(owner_id, epoch)
+    if use_receiver_host:
+        if claim is None: raise ValueError("Receiver dispatch needs an accepted owner id, epoch and token")
+        claim["use_receiver_host"] = True
+    return claim
 
 
 def doctor(image, root=None, host=None, model_host=None):
@@ -1140,6 +1378,9 @@ def main(argv=None):
     parser.add_argument('--image', default=DEFAULT_IMAGE)
     parser.add_argument('--host', choices=('agents', 'claude'))
     parser.add_argument('--step'); parser.add_argument('--reviewer'); parser.add_argument('--reason')
+    parser.add_argument('--owner-id', help='Continuation owner id returned by accept; its token is read from CREWLOOM_OWNER_TOKEN')
+    parser.add_argument('--use-receiver-host', action='store_true', help='Dispatch pending model steps using the fenced accepted receiver host/model; the immutable plan stays unchanged')
+    parser.add_argument('--owner-epoch', help='Continuation owner epoch returned by accept')
     parser.add_argument('--reviewer-token-stdin', action='store_true',
                         help='Read the reviewer credential from standard input; it is never a command argument')
     parser.add_argument('--allow-host-cli', action='store_true', help='Operator opt-in to legacy CLI hosts outside the enforced boundary')
@@ -1166,10 +1407,11 @@ def main(argv=None):
                 import reviewer_credentials
                 token = reviewer_credentials.credential_from_environment(sys.stdin if args.reviewer_token_stdin else None)
                 result = run(root, plan, fingerprint, args.image, args.step if args.action == 'accept' else None,
-                             args.reviewer, args.allow_host_cli, token)
+                             args.reviewer, args.allow_host_cli, token,
+                             _continuation_claim(args.owner_id, args.owner_epoch, args.use_receiver_host), args.plan)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0 if args.action in ('status', 'handoff', 'accept', 'cancel') or result.get('status') == 'complete' or result.get('isolated_execution_ready') else 2
-    except (ValueError, OSError, subprocess.SubprocessError) as exc:
+    except (ValueError, OSError, RuntimeError, subprocess.SubprocessError) as exc:
         print(json.dumps({'status': 'blocked', 'error': str(exc)}, ensure_ascii=False))
         return 2
 

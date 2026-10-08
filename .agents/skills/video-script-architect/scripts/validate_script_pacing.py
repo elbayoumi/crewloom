@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Validate video script word count and speaking pacing against target duration."""
 import argparse
+import math
 import re
 import sys
 from pathlib import Path
@@ -29,6 +30,9 @@ def main() -> int:
     parser.add_argument("--text", help="Direct text of the script")
     parser.add_argument("--duration", type=float, default=30.0, help="Target duration in seconds (default: 30)")
     args = parser.parse_args()
+    if not math.isfinite(args.duration) or args.duration <= 0:
+        print('Error: duration must be finite and greater than zero', file=sys.stderr)
+        return 2
 
     content = ""
     if args.file:
@@ -36,7 +40,11 @@ def main() -> int:
         if not p.exists():
             print(f"Error: File {args.file} not found")
             return 1
-        content = p.read_text(encoding="utf-8")
+        try:
+            content = p.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as exc:
+            print('Error: script file cannot be read: ' + str(exc), file=sys.stderr)
+            return 1
     elif args.text:
         content = args.text
     else:

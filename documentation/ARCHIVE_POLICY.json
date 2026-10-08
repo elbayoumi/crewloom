@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "purpose": "Reviewed public exceptions to the all-depth private/generated archive exclusions in setup.py. A path listed here is shipped even though its name looks private; each entry needs a review note in documentation/PROJECT_PRIVACY.md.",
+  "approved_public_paths": []
+}

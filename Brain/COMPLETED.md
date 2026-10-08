@@ -1,5 +1,65 @@
 # Completed work
 
+### 2026-10-07 — PR8 remaining-defect repair: snapshot gate, provenance 2, tri-state process observation, plan and host bounds (W03/N04/W04/W09)
+- Artifact: `scripts/tool_catalog.py`, `scripts/admission.py`, `scripts/continuation.py`, `scripts/workflow.py`, `scripts/model_host.py`, `scripts/check_repository.py`, `documentation/TOOLS.json`, their tests and `documentation/{CONTINUATION,ENFORCEMENT,INTELLIGENCE_ROADMAP,PROJECT_REVIEW}.md`
+- Impact: the commit/CI gate judges the staged index or committed tree only; unguarded/alternative entrypoints and disguised tests/fixtures are rejected; a changed legacy tool needs contract v1 or an exact-bytes exception; evidence binds implementation, import closure, contract, acceptance bytes and structured counts (empty/skipped acceptance cannot promote on 3.9 or 3.14); an unreadable `ps` no longer reads as `gone`; `validate/accept` check the recorded plan by default; OpenCode's bound is its 131,072-byte argv transport
+- Evidence: every review counterexample re-run on Python 3.9.6 and 3.14.7 with identical results (`.crewloom/pr8-repair-20261007b/probe-after-repair-*.json`); 313 targeted cases pass on both; real-container ownership cases pass; frozen recovery-ownership suite unchanged. Open: 15 legacy tools, older unregistered CLIs, coordinator/pilot checkpoints record no plan path, real cross-host pilot.
+
+### 2026-10-07 — PR8 repair: source identity, atomic ownership, durable checkpoints (W01/W02/W04)
+- Artifact: `scripts/test_source_identity.py`, `scripts/continuation.py`, `scripts/workflow.py`, `scripts/test_continuation.py`, `documentation/CONTINUATION.md`
+- Impact: fixtures are hermetic about bytecode/metadata (`-S`, no bytecode; ambient and stale metadata tested explicitly); `accept` validates and claims the owner slot under the project lock; resume needs the owner id, epoch and one-time token and is fenced before reserve, dispatch and publish; the `dispatched` checkpoint is committed (fsync, rename commit point) before any side effect
+- Evidence: 44 continuation cases incl. a controlled two-receiver race (exactly one wins) with an unlocked negative control that accepts both; the audit counterexamples re-run in `.crewloom/pr8-repair-20261007/probe_repair.py`. Open: a real Claude-to-other-host pilot.
+
+### 2026-10-07 — PR8 repair: aggregate output reservation and honest usage (W09)
+- Artifact: `scripts/admission.py`, `scripts/workflow.py`, `scripts/model_host.py`, `scripts/provider_gateway.py`, `documentation/COORDINATOR.md`, `scripts/test_admission.py`
+- Impact: `max_output_tokens` is an atomic aggregate reservation, `max_output_tokens_per_request` a separate ceiling the API adapters really send; unknown/unenforceable bounds are refused; invalid usage is rejected and named; totals carry coverage; no cost cap exists and the docs say so
+- Evidence: 35 admission cases incl. 8 concurrent reservations admitting exactly 2, payload capture for both providers, an aggregate-accounting negative control. Open: native CLI activity is not counted.
+
+### 2026-10-07 — PR8 repair: owned process trees and immutable container identity (W09)
+- Artifact: `scripts/admission.py`, `scripts/workflow.py` (`docker_execute`), `scripts/model_host.py`, `scripts/test_owned_resources.py`
+- Impact: cancel/timeout/crash recovery stop group members plus descendants with per-process identity checks; tracking inside a batch fails closed; containers are labelled, tracked by the ID from `--cidfile` and removed by ID only after inspect matches
+- Evidence: real parent/child/grandchild trees, parent-exits-first, SIGTERM-ignoring escalation, group-id reuse refusal; 23 cases incl. a real-Docker run (OrbStack 29.4.0, python:3.14-slim) that removed its owned container and preserved a same-name stranger. Open: crash between launch and tracking.
+
+### 2026-10-07 — N04: living tool catalog and incremental gate
+- Artifact: `scripts/tool_catalog.py`, `documentation/TOOLS.json`/`TOOLS.md`, `scripts/check_repository.py`, `scripts/crewloom.py`, `scripts/test_tool_catalog.py`, `scripts/test_shipped_catalog.py`
+- Impact: one catalog (contract v1, lifecycle, evidence bound to source+contract hashes, generated human view); the gate rejects unregistered entrypoints, spoofed tests, duplicates/parallel names, undeclared dependencies, stale evidence, new tools without contract/acceptance, removed tools or changed commands; `crewloom run` refuses draft/retired/stale tools
+- Evidence: 21+2 cases, each rule rejected and accepted in real temp Git repos; reader `delivery-evidence`, writer `context`, plus `continuation` and `tool-catalog` migrated to verified; 16 tools remain `legacy-unverified`. Open: more migrations, activation records, W08 usefulness.
+
+### 2026-10-06 — W09 candidate: aggregate admission and owned-process cancellation
+- Artifact: `scripts/admission.py`, coordinator `budget` manifest field, model-step reservation, `scripts/test_admission.py`, `scripts/test_admission_coordinator.py` (PR 8 branch)
+- Impact: batch-wide request/concurrency/time/byte limits are atomic across worktrees and processes; resumes never double-charge; dead-owner dispatches are orphaned, charged and not replayed; cancel stops only recorded owned processes/containers and queued requests.
+- Evidence: 23 tests plus 10/10 mutation checks; gate exit 0. Open: priority/fairness, native CLI activity cannot be capped, real container cancel not exercised.
+
+### 2026-10-06 — W10 candidate: honest dashboard status and exact arguments
+- Artifact: `dashboard/lib/repo.ts`, `dashboard/lib/argv.ts`, `dashboard/app/page.tsx`, `dashboard/test/evidence.test.ts` (worktree `unified-candidate`, uncommitted)
+- Impact: no role is "healthy" from documentation alone; unknown challenge status is visible; folded YAML descriptions parse; quoted/Arabic/spaced paths are one argument and the exact argv is shown before launch.
+- Evidence: 43 dashboard tests, typecheck and production build pass; gate exit 0. Open: browser/RTL interaction test, producers of acceptance records; not closed until published.
+
+### 2026-10-06 — W04 candidate: durable manual continuation
+- Artifact: `scripts/continuation.py`, workflow boundary hooks, `crewloom continuation`, `documentation/CONTINUATION.md`, `scripts/test_continuation.py` (worktree `unified-candidate`, uncommitted)
+- Impact: a controller-written checkpoint exists before and after every dispatch; a receiver validates identity, drift, ownership and its own capabilities before taking the single writable slot; in-flight work is reconciled as uncertain, never replayed; counters and budgets are untouched.
+- Evidence: 17 tests, mutation checks on each safety rule, gate exit 0. Open: automatic continuation (W09), real host pilot, coordinator worktree integration; not closed until published.
+
+### 2026-10-06 — W03 candidate: capability profile and dispatch preflight
+- Artifact: `scripts/model_host.py` (capability_profile, effective_execution, classify_failure, verify_claims), `scripts/workflow.py` preflight, `crewloom capabilities`, `scripts/test_capability_profile.py` (worktree `unified-candidate`, uncommitted)
+- Impact: every capability fact is labelled with its basis; unknown tools are unavailable; execution = host ∩ policy ∩ task ∩ authorization; oversized prompts refused before any ledger entry; quota/rate-limit/auth/timeout are distinct classes.
+- Evidence: 15 tests incl. a discriminating preflight test; gate exit 0; frozen 45 unchanged. Open: native coverage versioning, reviewer evidence modes (R11), wiring of classification into handoff; not closed until published.
+
+### 2026-10-06 — W05 candidate: lesson conditions and map budgets (R36–R39)
+- Artifact: `scripts/project_lessons.py`, `scripts/repo_map.py`, `scripts/test_lesson_conditions.py`, `scripts/test_map_budget_boundaries.py` in worktree `unified-candidate` (uncommitted)
+- Impact: dependency conditions are evaluated (typed, manifest-fingerprinted), regex patterns replaced by literal/glob so selection cannot crash, absent-seed notice counted in final bytes, every reached closure module is present, partial or named omitted.
+- Evidence: old code fails 15 + 10 new tests, new code passes; context/study/lesson suites unchanged; gate exit 0; frozen 45 unchanged. Not closed until published.
+
+### 2026-10-06 — Correction: W01 attempt 2 closes the independently reproduced R33/R34 boundaries
+- Artifact: `setup.py` (manifest, wheel package-data and sdist hooks), `documentation/ARCHIVE_POLICY.json`, `scripts/project_binding.py` (`staged_ignore_policy`), `crewloom source`, tests `test_packaging`, `test_project_privacy_boundaries`, `test_source_identity`
+- Impact: attempt 1 left nested node_modules/build/dist/.next/.venv/caches, external symlinks, metadata path hits and unmerged/nested-negation ignore indexes undetected; all are now rejected with clean public files accepted.
+- Evidence: `.crewloom/implementation/receipts.json` (setuptools 80.10.2 builder; negative control 42 failures; gate exit 0). R01 merge with origin/main and W02 clean install remain open.
+
+### 2026-10-06 — W01 partial (attempt 1, superseded): archive privacy, staged ignore policy, root separation
+- Artifact: `setup.py` (sdist hook), `MANIFEST.in`, `scripts/project_binding.py` (`staged_ignore_gaps`), `scripts/test_packaging.py`, `scripts/test_project_privacy_boundaries.py`, `scripts/test_toolkit_root_separation.py`
+- Impact: partial R33 repair for the tested nested `.crewloom`, `.env*` and run/event payloads; R34 now ignores host-only/unstaged exclusions in its tested probes. Wider archive and readiness acceptance remains open in the unified plan. N01 has additional existing-guard acceptance coverage; R13/R14 layout is selected as 3 wheel SVGs + sdist-only motion media.
+- Evidence: implementation report records pre/post canaries, a guard mutation and gate exit0 with the real archive test skipped. Independent follow-up passes20 packaging cases on the existing pinned-range80.10.2 builder and5 root-separation cases; R33/R34 wider counterexamples still apply to unchanged source. R01/R08 remain open.
+
 ### 2026-10-01 — Initial public toolkit
 - Artifact: 42 English public role guides, clean memory, core CLI and checks.
 - Impact: Independently usable repository edition without client history or external account configuration.
@@ -225,3 +285,96 @@
 - الملف: `scripts/model_host.py`, `scripts/test_opencode_schema_prompt_boundaries.py`, `scripts/test_host_prompt_budget.py`
 - الأثر: cause verified from stored outputs (13 flat maps + 1 `{"files":…}`, shape never stated to OpenCode); schema now stated in the agent's system prompt, study prompt untouched, invented shapes still refused.
 - ملاحظة: 16 frozen cases pass; first design (append to the prompt) was rejected by the existing frozen isolation test and replaced; real-model check pending, the 4 ~300 s timeouts are a separate open cause.
+### 2026-10-05 — Editable CLI setup in both READMEs
+- Artifact: README.md and README.ar.md installation sections.
+- Impact: documents user-wide pipx command exposure, editable clone lifetime, virtual-environment alternative and separate application selection.
+- Evidence: existing external-directory CLI checks; ensurepath help verified; public structure/link check and README whitespace check pass.
+
+### 2026-10-05 — README and logo review
+- Artifact: English/Arabic READMEs, three SVG brand assets and BRANDING.md.
+- Impact: installation first, explicit application roots, visible failed study results, accessible reusable logo and readable mobile banner.
+- Evidence: 12 GitHub-rendered local previews at 1440/768/390 in two languages and themes, zero outer overflow; original palette contrast passes; two tool examples, reference Docker workflow/handoff and existing-target role install pass; 45 frozen test files unchanged.
+
+### 2026-10-05 — Logo motion deliverables
+- Artifact: landscape/portrait logo MP4s and silent GIF in assets/; motion usage in BRANDING.md.
+- Impact: existing loom geometry animates into the English wordmark with original quiet synthesized audio; project runtime unchanged.
+- Evidence: both eight-second H.264/Rec.709 exports decode cleanly, 480 frames at60fps; 16/12 encoded timeline samples reviewed, portrait primary pixels remain inside the supplied safe zone across all480 frames at half resolution. Private rendering/source/hash evidence stays project-local.
+
+### 2026-10-06 — Version-scoped project review
+- Artifact: documentation/PROJECT_REVIEW.md, 32 prioritized findings with status, proposed change and acceptance.
+- Impact: distinguishes published main, open study-v2 runner and older editable CLI; identifies reproduced dashboard status/parser defects without changing runtime.
+- Evidence: main e4c06c83 has eight successful hosted jobs; 23 fresh offline boundary cases pass; 36/42 local roles classified healthy with no runs; published dashboard data code matches. Raw source snapshots and reproduction receipts remain project-local. No provider calls or complete runtime rerun.
+
+### 2026-10-06 — Project data privacy and isolated worktree memory
+- Artifact: project_binding privacy/ignore preflight, install guard, mandatory index check, coordinator private-memory seeding, 28 independent privacy cases and PROJECT_PRIVACY.md.
+- Impact: private runtime/role memory/local host controls ignored automatically; forced or stale ignored Git entries refused without deleting records; task memory is copied from the same project and stays independently writable. Declarative policy remains source.
+- Evidence: 77/77 privacy/coordinator cases pass with real Docker enabled and no skips; actual gate rejects a forced private addition and accepts safe untracking while preserving the local file. Current toolkit privacy report ready, no detected tracked private data, 45 frozen acceptance files unchanged. No client writes or remote publication.
+
+### 2026-10-06 — Repeated audit with archive/index counterexamples
+- Artifact: documentation/PROJECT_REVIEW.md; project-private review-20261006-repeat verification and synthetic fixtures.
+- Impact: two new publication/privacy blockers reproduced; v2 public rows recompute 18.3867% lower input tokens with equal 99/99 task checks, limited to three tasks.
+- Evidence: published offline gate 951/1044 pass with 93 explicit skips; real Docker study 50/50 in213.292s, mandatory60s invocation times out. Local privacy28, dashboard32/build, distribution11 pass; packaging15/17. Forty-five frozen files unchanged; no provider calls, client writes, runtime repairs or publication.
+
+### 2026-10-06 — Intelligence review and implementation contracts
+- Artifact: documentation/INTELLIGENCE_ROADMAP.md and R36–R39 in PROJECT_REVIEW.md.
+- Impact: dependency/pattern lesson defects, missing-seed budget overflow and silent closure omission reproduced; proposed features have source owners, boundaries and acceptance.
+- Evidence: fresh lessons23/map30 pass; direct counterexamples reproduce in published/local scope as labelled. Existing source-scoped evidence reused; no provider calls, runtime repairs, client changes or publication.
+
+### 2026-10-06 — Add owner continuation/isolation/capability requirements
+- Artifact: documentation/INTELLIGENCE_ROADMAP.md required operating contracts and revised delivery order.
+- Impact: separate project roots, quota-resilient handoffs and evidence-backed capability preflight now have owners, failure handling and acceptance cases.
+- Evidence: documentation-only update; structure/link and whitespace checks, immutable-contract verification. No runtime implementation, provider calls or publication.
+
+### 2026-10-06 — Consolidate all work into one plan
+- Artifact: unified INTELLIGENCE_ROADMAP.md, README entrypoint, historical notices and roadmap pointer.
+- Impact: all39 findings and three owner contracts map to12 packages with dependencies and acceptance; earlier backlog preserved as history.
+- Evidence: exact review-ID coverage, link/structure and whitespace checks,45 frozen files unchanged. No runtime implementation or publication.
+
+### 2026-10-06 — Deeper next-stage review
+- Artifact: unified plan next-stage assessment and PROJECT_REVIEW follow-up; private synthetic build/index receipts.
+- Impact: partial packaging/staged-policy improvements distinguished from remaining cache/symlink/metadata and nested-negation/unmerged-readiness gaps; tool comparisons and useful-task promotion criteria added.
+- Evidence: 80 existing cases passed, one skipped; three actual archive builds and five independent policy scenarios;45 frozen contracts unchanged. No runtime repair, consumer mutation, provider generation or publication by this review.
+
+### 2026-10-06 — Reusable-tool standard discussion
+- Artifact: IDEAS_VAULT proposal grounded in the current18-entry catalog, dispatcher and reuse protocol.
+- Impact: defines candidate contracts, reusable cores, lazy discovery, scoped promotion and proportional quality gates; owner confirmed Crewloom tools only.
+- Evidence: inspected existing metadata/dispatch source; conceptual proposal only, no implementation, migration or saving measurement.
+
+### 2026-10-07 — Independent review of repaired PR8 head
+- Artifact: repaired-head review and current unified-register override; ignored head-review probes and receipts.
+- Impact: confirmed e77dbeb/9 successful CI checks and original boundary repairs in tested cases; reproduced staged-gate/classification, evidence-freshness/no-test-promotion, process-inspection, default plan-drift and OpenCode-bound gaps; four PR discussions remain unresolved under required conversation resolution.
+- Evidence:135 targeted passes including real Docker ownership;45 frozen hashes unchanged; Python3.9 empty acceptance promoted verified. Review/memory updates only, no runtime repair, provider pilot, consumer change or merge.
+
+### 2026-10-07 — Independent verification of second PR8 repair
+- Artifact: source-scoped PROJECT_REVIEW and unified-register delta; private replay/evidence probes.
+- Impact: earlier counterexamples confirmed repaired; three additional N04 evidence defects remain open.
+- Evidence: Python3.9.6/3.14.7 fresh replay and clean/adverse controls;45 frozen hashes unchanged; current3f28df8 has9 green CI checks/CLEAN PR and4 resolved threads. Local review/memory only; no full313-case rerun, runtime repair, provider pilot, merge or release.
+
+### 2026-10-07 — Catalog evidence boundary repairs
+- Artifact: existing tool_catalog/test_tool_catalog, current catalog evidence, usage guide and unified review/plan.
+- Impact: concurrent catalog edits survive refusal; cooperating recorders are serialized; all-expected-failure acceptance cannot promote; static package initializer drift invalidates evidence.
+- Evidence:70 catalog cases pass on3.9.6/3.14.7 after9 pre-repair failures; independent adverse/clean probes pass on both, shipped catalog2 passes, five migrated tools current,45 frozen files unchanged. Hook/remote CI recorded in final private checkpoint; no provider pilot, merge or release.
+
+### 2026-10-07 — Integrated tools, continuation and project UX candidate
+- Artifact: existing continuation/workflow/admission/catalog/context/lesson modules; request-scoped dashboard; native process backend.
+- Impact: bounded approved quota fallback, preserved private source plans, required tool receipts/limits, static acceptance-helper freshness, ranked conditional guidance and current scoped acceptance.
+- Evidence: local continuation67, owned resources37 real Docker, coordinator49 real Docker, catalog73, lessons28, map32/context19 and tool bounds7 pass; production dashboard build passes. Exact-head CI/package/final gate recorded in final task checkpoint. No paid generation, merge or release.
+
+### 2026-10-08 — Linux CI repair and native Windows proof
+- Artifact: existing admission recovery, owned-resource acceptance and conditional catalog dependency declaration.
+- Impact: demonstrably pre-existing protected processes no longer block unrelated owned cleanup; unknown ownership remains refused. Python3.9 can validate the optional tomllib dependency contract.
+- Evidence: Linux40 owned cases with2 optional Docker skips,7 managed-tool and30 model-host cases pass; real adverse/clean bystander controls executed. At0575ab8 both Windows CI versions passed; its Linux failures triggered this repair. Final hook, artifacts and repaired-head CI are recorded separately.
+- Final local delivery at3058289: mandatory hook105 modules/1387 cases with101 optional skips; all26 catalog records current;785 source-manifest hashes match and45 frozen contracts unchanged. Pinned setuptools80.10.2 wheel622/sdist1009 members pass privacy/link checks; outside-checkout installation verifies required receipts and consumer catalog-mutation refusal. Exact-head remote outcome is recorded in PR8 and the final ignored task checkpoint.
+- Final README inspection removed duplicate Self-Editing/concurrent-task sections while retaining the complete earlier instructions and project guide link; one occurrence of each remains.
+
+### 2026-10-08 — Deep review repairs in existing tools
+- Artifact: runner/catalog, continuation, skill validator and existing acceptance; corrected v1.0.1 path contracts and constitution status.
+- Impact: foreign result destinations/role-directory paths refuse; malformed handoffs/receivers cannot claim ownership; unknown cleanup returns failed/unsettled instead of blocking on a descendant pipe or claiming success. Resource receipts remain for explicit recovery.
+- Evidence: actual safe fixtures reproduce earlier failures;165 targeted cases and Linux3.9 runner11 pass before final integration; staged-vocabulary bad/clean controls pass. Final source/package/hook/remote proof is in PR8 and ignored .crewloom/deep-review-20261008/checkpoint.json. No provider call, consumer enrollment, merge or release.
+
+Latest deep-review acceptance:166 targeted cases pass on Python3.14; Linux3.9 continuation71 and managed runner11 pass. Same-snapshot path vocabulary rejects mislabeled/invalid/working-tree-masked cases and accepts clean staged contracts. Final exact source and delivery results remain in PR8/the selected ignored checkpoint.
+
+### 2026-10-08 — Limited live acceptance (W04/W08/W12)
+- Artifact: sanitized examples/evaluation/live-smoke-20261008.json and linked context/continuation/review documentation; raw records/application remain in the independent pilot.
+- Evidence: real Codex pair11/11 in both arms, input16,261/12,991 (20.1095% fewer); wrong control1/11. Same-host fenced handoff/app8/core9 checks; core/plan unchanged; six charged requests and seventh refusal;19 frozen inputs/ready privacy/no owned resources.
+- Limits: Claude login absent; cross-host/quota acceptance incomplete. Unreported model/cost and auth-failure usage stay unknown. Single public task is no general benefit claim. Final docs hook/exact-head CI is recorded in PR8. No merge/release.

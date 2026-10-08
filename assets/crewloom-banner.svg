@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420"><rect width="1280" height="420" rx="24" fill="#101827"/><g fill="none" stroke="#40ddbc" stroke-width="12" stroke-linecap="round"><path d="M90 130H240M90 180H240M90 230H240M90 280H240"/><path d="M115 105V305M165 105V305M215 105V305" stroke="#8ca9ff"/></g><text x="305" y="192" fill="#f7f9fc" font-family="Arial,sans-serif" font-size="88" font-weight="700">Crewloom</text><text x="310" y="250" fill="#b8c5d8" font-family="Arial,sans-serif" font-size="28">Give agent work a role, memory, and evidence.</text><text x="310" y="320" fill="#40ddbc" font-family="Arial,sans-serif" font-size="20">42 SPECIALIST ROLES  /  14 LOCAL TOOLS  /  EN + AR</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-labelledby="title desc">
+  <title id="title">Crewloom</title>
+  <desc id="desc">A woven mint and blue loom mark. Give agent work a role, memory, and evidence.</desc>
+  <rect width="1280" height="320" rx="24" fill="#101827"/>
+  <g transform="translate(52 52)" fill="none" stroke-width="16" stroke-linecap="round">
+    <path d="M48 68H208M48 108H208M48 148H208M48 188H208" stroke="#40ddbc"/>
+    <path d="M78 44V212M128 44V212M178 44V212" stroke="#8ca9ff"/>
+    <path d="M62 68H94M162 68H194M112 108H144M62 148H94M162 148H194M112 188H144" stroke="#40ddbc"/>
+  </g>
+  <text x="336" y="159" fill="#f7f9fc" font-family="Arial,Helvetica,sans-serif" font-size="92" font-weight="700">Crewloom</text>
+  <text x="340" y="224" fill="#b8c5d8" font-family="Arial,Helvetica,sans-serif" font-size="34">Give agent work a role, memory, and evidence.</text>
+</svg>

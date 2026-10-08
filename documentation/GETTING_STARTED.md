@@ -10,6 +10,8 @@ The `.agents/skills` layout contains ordinary Markdown role instructions. Hosts 
 
 ## Local commands
 
+For an editable CLI available from any directory, follow the [README installation steps](../README.md#install-and-run-your-first-checks). Use the Crewloom clone as the installation source; pass a separate application root through `--target` or `--project` when working on that application. Editable installation follows changes in the clone, so reinstall if its path moves.
+
 From the checkout root:
 
 ```bash

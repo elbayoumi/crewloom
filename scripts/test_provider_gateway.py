@@ -1,5 +1,7 @@
 """Tool-free RPC contracts and failure-before-write enforcement."""
 import json
+import io
+import multiprocessing
 import os
 from pathlib import Path
 import tempfile
@@ -10,8 +12,60 @@ import provider_gateway as g
 import workflow as w
 
 
+def gated_fixture(connection, release, marker):
+    def local_request(*args):
+        Path(marker).write_text('dispatched')
+        return {'status': 'completed'}
+    with patch.object(g, '_request', side_effect=local_request):
+        g._worker('openai', 'fixture', 'prompt', 5, connection, release=release)
+
+
 class GatewayTests(unittest.TestCase):
     def artifacts(self):return json.dumps({'artifacts':[{'path':'a','content':'verified'}]})
+
+    def test_spawn_worker_requires_release_and_eof_prevents_dispatch(self):
+        for release_it in (False, True):
+            with self.subTest(release=release_it), tempfile.TemporaryDirectory() as directory:
+                marker = str(Path(directory) / 'dispatch')
+                context = multiprocessing.get_context('spawn')
+                receive, send = context.Pipe(duplex=False)
+                gate_receive, gate_send = context.Pipe(duplex=False)
+                process = context.Process(target=gated_fixture, args=(send, gate_receive, marker))
+                process.start(); send.close(); gate_receive.close()
+                try:
+                    self.assertFalse(receive.poll(0.2)); self.assertFalse(Path(marker).exists())
+                    if release_it: gate_send.send(True)
+                    gate_send.close(); process.join(10)
+                    self.assertFalse(process.is_alive()); self.assertEqual(process.exitcode, 0)
+                    self.assertEqual(Path(marker).exists(), release_it)
+                    if release_it:
+                        self.assertEqual(json.loads(receive.recv_bytes())['response']['status'], 'completed')
+                    else:
+                        with self.assertRaises(EOFError): receive.recv_bytes()
+                finally:
+                    gate_send.close(); receive.close()
+                    if process.is_alive(): process.kill(); process.join(5)
+
+    def test_http_quota_classification_preserves_code_without_secret_body(self):
+        error = g.urllib.error.HTTPError('https://fixture.invalid', 429, 'failure', {},
+            io.BytesIO(b'{"error":{"code":"insufficient_quota","message":"private-secret"}}'))
+        with patch.dict(os.environ, {'OPENAI_API_KEY': 'synthetic'}), patch.object(g.urllib.request, 'build_opener') as opener:
+            opener.return_value.open.side_effect = error
+            with self.assertRaises(h.GenerationFailure) as raised: g._request('openai', 'fixture', 'prompt', 5)
+        self.assertEqual(raised.exception.classification['kind'], 'quota_exhausted')
+        self.assertEqual(raised.exception.classification['confidence'], 'confirmed')
+        self.assertNotIn('private-secret', str(raised.exception))
+
+    def test_arbitrary_exception_subclass_message_is_withheld(self):
+        class PrivateError(ValueError): pass
+        class Connection:
+            payload = None
+            def send_bytes(self, data): self.payload = json.loads(data)
+            def close(self): pass
+        connection = Connection()
+        with patch.object(g, '_request', side_effect=PrivateError('private-secret')):
+            g._worker('openai', 'fixture', 'prompt', 5, connection)
+        self.assertNotIn('private-secret', connection.payload['error'])
 
     def test_openai_completed_artifacts(self):
         value={'status':'completed','model':'explicit-model','output':[{'type':'message','content':[{'type':'output_text','text':self.artifacts()}]}]}

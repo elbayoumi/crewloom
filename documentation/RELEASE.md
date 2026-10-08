@@ -57,3 +57,11 @@ Workflow task actions require an explicit project root. Project ownership persis
 - Dashboard authentication is required on every API read, write and the event stream. The generated token is written to an owner-only runtime file and only its path is printed.
 
 `CREWLOOM_DISTRIBUTION_TESTS=1` builds and installs both artifacts and exercises them outside the checkout. It is opt-in and never part of the commit gate.
+
+## 0.6.0.dev0 integration candidate (2026-10-07)
+
+The current candidate adds 26 v1 tool contracts, provenance 3 static acceptance-helper closure, managed execution receipts/limits, acknowledged process/RPC launch, bounded approved quota fallback, conditional retrieval/lessons and a request-scoped multi-project dashboard. This is an open-PR development candidate, not a release tag or a published PyPI distribution.
+
+Build acceptance uses setuptools 80.10.2. Wheel/sdist inspection excludes reserved state/cache namespaces, and isolated installation exercises the actual managed tool command outside the source checkout. Tests omitted from the installed wheel retain explicit build-time acceptance provenance; installation is not a local acceptance rerun. The source inventory is [MANIFEST.json](MANIFEST.json), excluding itself; archive hashes and private test receipts remain ignored project evidence.
+
+Read the latest [unified register](INTELLIGENCE_ROADMAP.md) and [source-scoped review](PROJECT_REVIEW.md) for exact current acceptance. Native Windows requires actual Windows CI. A chosen, authorized live provider/application pilot and broader role usefulness remain pending. No merge or release is inferred from passing checks.

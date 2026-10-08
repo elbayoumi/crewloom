@@ -3,6 +3,7 @@
 import argparse
 import ast
 import json
+import os
 import re
 import subprocess
 import sys
@@ -178,6 +179,13 @@ def scope_errors(root):
 
 def inspect(root):
     errors = scope_errors(root)
+    # .gitignore cannot protect previously tracked files or a forced git add.
+    import project_binding
+    try:
+        errors.extend('Private/generated data may not be tracked: ' + path
+                      for path in project_binding.tracked_private_paths(root))
+    except (ValueError, OSError, subprocess.SubprocessError) as exc:
+        errors.append('Cannot verify project publication privacy: ' + str(exc))
     files = [p for p in root.rglob('*') if not SKIPPED & set(p.relative_to(root).parts) and p.is_file()]
     for path in files:
         if path.is_symlink():
@@ -289,11 +297,32 @@ def run_suites(root=ROOT, python=None, timeout=SUITE_TIMEOUT, runner=subprocess.
     return 0
 
 
+def tool_gate(root):
+    """N04 gate: catalog validity, the generated human view and the incremental new/changed-tool rules.
+
+    The base revision comes from CREWLOOM_TOOL_GATE_BASE (CI) and defaults to HEAD. The judged artifacts are
+    the staged index in a commit hook and the committed tree in CI (CREWLOOM_TOOL_GATE_SNAPSHOT overrides), never
+    the working tree, so the gate judges exactly what the commit or the pushed head contains. A base that cannot be resolved (a shallow clone) is reported
+    as a note, never as a silent pass of the incremental rules."""
+    if not (root / 'documentation' / 'TOOLS.json').is_file():
+        return []  # a checkout with no catalog has nothing to gate; a catalog without its gate module fails closed below
+    sys.path.insert(0, str(root / 'scripts'))
+    try:
+        import tool_catalog
+    finally:
+        sys.path.pop(0)
+    errors, notes = tool_catalog.check_all(root, os.environ.get('CREWLOOM_TOOL_GATE_BASE') or 'HEAD')
+    for note in notes:
+        print('note: ' + note, file=sys.stderr)
+    return errors
+
+
 def main(argv=None, root=ROOT):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--skip-tests', action='store_true')
     args = parser.parse_args(argv)
     errors = inspect(root)
+    errors.extend(tool_gate(root))
     for error in errors:
         print(error, file=sys.stderr)
     if errors:

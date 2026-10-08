@@ -30,6 +30,22 @@ Search the registry before adding scripts and improve an existing implementation
 
 Evaluate existing skill evidence and owner feedback before retiring or replacing a role. Record decisions and verification; do not create duplicate versioned skills to avoid addressing a failure.
 
+## Current and future Crewloom tools
+
+Every new or changed Crewloom tool follows the [living tool-library contract](documentation/INTELLIGENCE_ROADMAP.md#living-tool-library-current-and-future-tools-n04). This scope covers toolkit tools and their supporting code; consumer application code/scripts are outside it.
+
+Before writing a script, search the existing code/tool registries and record the reuse decision in the selected task's private evidence. Reuse a compatible tool or extend the existing implementation in place. A new tool requires a distinct purpose and a recorded reason existing tools cannot meet it. Do not create `_v2` copies or a parallel registry.
+
+Classify each executable asset as an operational tool, internal module, test, build/migration utility or private verification fixture. Classification does not excuse quality, ownership or project isolation, and an operational tool must not be disguised as a test/fixture to bypass registration. Public tools need a registered stable ID, owner, versioned input/output and error contract, dependencies, effects, required capabilities, supported limits and verification references. Record richer contracts in the unified design/documentation until the runtime catalog supports their version; never claim a validator or runner capability exists merely because metadata describes it.
+
+Keep reusable logic separate from process/filesystem/network adapters and thin CLI/UI/agent interfaces. Preserve established commands and semantics or provide an explicit reviewed compatibility transition. Avoid import-time execution, hardcoded project roots/secrets, undeclared dependencies and shared mutable project state. Prefer small cohesive functions and composition; add abstraction when concrete use justifies it.
+
+New or changed behavior requires meaningful positive and negative acceptance, including malformed input and affected path/permission boundaries. Run appropriate existing regressions, retain failed attempts and verify the actual artifact/task result. A new tool remains draft until its declared behavior and compatibility are demonstrated; do not present unchecked generated code as a trusted installed tool. Promote only reviewed reusable code without private project facts.
+
+Register changes and update usage contracts, examples and evidence together. Discover compact metadata before loading a selected contract or implementation. Improve tools from reproduced failures and measured outcomes, not an obligation to generate new tools daily. Deprecation keeps migration/compatibility information; retirement requires recorded impact on callers and evidence.
+
+These instructions apply now. The catalog, managed execution and commit/CI gates enforce their documented contracts; wider acceptance work remains in the unified plan. Known path flags require path contracts, and selected-project paths are checked before managed dispatch. This section does not claim to sandbox arbitrary host tools.
+
 ## Commit checks
 
 Activate hooks with `git config core.hooksPath .githooks`. Never disable hooks or use `--no-verify` without an explicit owner instruction in the same conversation. Fix failed checks or document genuine scope exceptions; do not fabricate evidence.
@@ -37,6 +53,10 @@ Activate hooks with `git config core.hooksPath .githooks`. Never disable hooks o
 A new gate requires a demonstrated rejection of a known bad commit and acceptance of a clean commit. The repository gate validates public guides, links, tools, and relevant tests; it is not a sandbox for agent actions.
 
 ## Project isolation
+
+Keep private project payloads, run history, context snapshots, caches, exports and backup copies inside that project's ignored `.crewloom/` namespace. Installed consumer-role `brain/` folders and machine-local host controls remain private; portable declarative policy, reusable instructions and approved public fixtures/assets remain source. Do not collect another project's operational records in shared library memory.
+
+Run `crewloom project privacy --project <canonical-root>` before publishing the selected project's work. Its local CI/hook must invoke the check to block direct commits there; the toolkit's own mandatory gate already checks its selected index. Ignore rules do not remove tracked data or historical commits. Preserve local records and review exact untracking paths instead of broad deletion or index resets.
 
 Bind one canonical project root before work and preserve it through handoffs. Library code is reusable; project memory, inputs, outputs, and run history belong to the selected project. Run tools with `run --project <root>` and generate project context with `context --project <root>` after installing the role. Never use another project's memory or infer a project from a previous task. Resolve symlinks before validating paths. Reject missing or ambiguous project identity before writes. CLI checks are input guards, not a sandbox for arbitrary agent-host actions.
 

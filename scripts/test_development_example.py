@@ -80,7 +80,7 @@ def stand_in_provider(requests):
     through the adapter's own `validate_artifacts`, and an undeclared path is refused rather
     than invented. No network, CLI or credential is involved.
     """
-    def generate(host, prompt, outputs, timeout=180, model=None):
+    def generate(host, prompt, outputs, timeout=180, model=None, max_output_tokens=None):  # W09: batch ceiling is now passed to the adapter
         payload = json.loads(prompt.split('\n', 1)[1])
         requests.append({'host': host, 'model': model, 'task': payload['task'],
                          'outputs': list(payload['outputs']),

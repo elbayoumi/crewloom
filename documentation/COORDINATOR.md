@@ -246,3 +246,23 @@ is a separate, credentialed operator action and is never part of CI.
 python3 -m unittest discover -s scripts -p test_task_coordinator.py
 CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p test_task_coordinator.py
 ```
+
+## Aggregate budget, queueing and cancellation
+
+A manifest may declare an optional `budget`: `max_model_requests`, `max_concurrent_requests`, `max_elapsed_seconds`, `max_input_bytes`, `max_output_tokens`, `max_output_tokens_per_request`. Each is a positive integer or `null`; a field left out is reported as unbounded. The limits apply to the whole batch across every task worktree, not to one checkout ledger. They are separate promises:
+
+| Limit | Contract |
+| --- | --- |
+| `max_output_tokens_per_request` | The output ceiling each request is **told** to honor. An API adapter sends `min(adapter maximum, this value)` as the provider's own bound; an installed CLI host exposes no such bound, so a request to it under a ceiling is refused instead of advertised. |
+| `max_output_tokens` | An **aggregate reservation**. Before dispatch a request reserves its ceiling atomically; the sum of reservations never exceeds this value, so two individually legal requests cannot over-reserve. A settled request holds the provider-reported output (never less, and an overrun is counted, not hidden); a failed or orphaned one keeps its full reserve. A request with no enforceable ceiling is refused while this is set. |
+| `max_elapsed_seconds` | An **admission deadline**: new requests are refused once it elapses. It does not stop work already in flight. |
+| `max_input_bytes` | An estimate of prompt bytes, not provider-billed tokens. |
+
+There is no cost cap. `cost_usd` is provider-reported accounting only, Crewloom holds no price table, and it is never enforced. Provider-reported usage is validated: booleans, negatives, NaN/infinity, non-numbers and fractional token counts are rejected and named in `usage_rejected`, never summed. Usage totals carry per-field coverage (`reporting_requests` of `settled_requests`, `complete`), so a partial total says it is partial.
+
+Every managed model request is reserved in `admission.json` in the batch's coordinator folder before any attempt, ledger entry or provider call. Reservations are atomic across processes and idempotent by request id, so a resume neither charges again nor receives a replacement slot. A request over a limit is refused; one that only exceeds the concurrency limit is `queued` (it holds no budget) and waits within its own timeout. A resume may keep or tighten the limits, never loosen or reset them.
+
+A request whose owner process ended before its outcome was recorded becomes `orphaned`: it stays charged, its side effects are treated as unknown, and it is never replayed automatically. Token and cost figures appear only when a provider reported them; estimates are reported separately and everything else stays `null`.
+
+The batch records every process and container it starts, and recording is required: a failure to record raises instead of running the resource untracked. A process is recorded with its start time and process group; cancellation, timeout reaping and restart recovery stop it as a verified tree (the group's members and every descendant, SIGTERM then bounded SIGKILL), checking each process's start identity first, so a reused pid, a group id that now belongs to another process, an unrelated process or another project is never signalled. A parent that exits first does not hide its descendants: they stay in the recorded group and are reaped. A container is recorded by its immutable ID and ownership labels (`crewloom.owner`, `crewloom.run`, project, task and batch hashes) and removed **by ID** only after `docker container inspect` returns the same ID and run label; a reused name, a changed label, a missing record or an unreachable daemon is preserved or reported as `unverifiable` and stays tracked. Remaining gaps: a crash between starting a process and recording it leaves it untracked, and a descendant that deliberately leaves its group after its leader exits cannot be found. Activity outside the managed controller (a native CLI used by hand) cannot be counted or capped by this ledger. Priority and fairness scheduling are not implemented.
+

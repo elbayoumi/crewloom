@@ -11,8 +11,13 @@ jobs:
     strategy:
       matrix:
         python: ['3.9', '3.14']
+    env:
+      # The tool gate judges what this change adds or modifies, so it needs the base revision.
+      CREWLOOM_TOOL_GATE_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
@@ -22,6 +27,18 @@ jobs:
       - run: docker pull python:3.14-slim
       - run: python3 -m pip install '.[syntax]'
       - run: python3 scripts/check_repository.py
+  windows-ownership:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python: ['3.9', '3.14']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m unittest discover -s scripts -p test_process_backend.py -v
+      - run: python -m unittest discover -s scripts -p test_tool_execution.py -v
   dashboard:
     runs-on: ubuntu-latest
     defaults:
@@ -52,6 +69,7 @@ jobs:
       - run: docker pull python:3.14-slim
       - run: CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p test_workflow.py
       - run: CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p test_execution_policy.py
+      - run: CREWLOOM_DOCKER_TESTS=1 CREWLOOM_DOCKER_IMAGE=python:3.14-slim python3 -m unittest discover -s scripts -p test_owned_resources.py
       - run: python3 scripts/context_pilot.py --out /tmp/crewloom-pilot.json
       - run: |
           mkdir -p /tmp/crewloom-submission/src

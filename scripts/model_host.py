@@ -10,6 +10,8 @@ configuration home, a deny-all agent profile and no project discovery, because
 the CLI merges global configuration into every run and `--pure` alone only
 suppresses external plugins.
 """
+import calendar
+import hashlib
 import json
 import math
 import os
@@ -28,10 +30,31 @@ MAX_ARTIFACT_BYTES = 1024 * 1024
 # The prompt travels as one argv element for hosts without verified stdin support,
 # so an oversized prompt is refused instead of silently truncated.
 MAX_ARGV_TEXT = 128 * 1024
+# How each adapter hands the prompt to its host. Only the argv transport has the smaller bound.
+INPUT_TRANSPORT = {'codex': 'stdin', 'claude': 'stdin', 'opencode': 'argv',
+                   'openai': 'api-request', 'anthropic': 'api-request'}
 SCHEMA = {'type':'object','properties':{'artifacts':{'type':'array','items':{'type':'object',
     'properties':{'path':{'type':'string'},'content':{'type':'string'}},
     'required':['path','content'],'additionalProperties':False}}},
     'required':['artifacts'],'additionalProperties':False}
+def input_bound(host):
+    """Largest prompt, in UTF-8 bytes, the selected adapter can deliver (not the model's context window).
+
+    OpenCode receives the prompt as one argv element and nothing is added around it by this adapter (its schema
+    instruction travels in its agent configuration file), so its bound is exactly the argv budget. The other
+    hosts read the prompt from stdin or an API request body and keep the general bound."""
+    if host not in INPUT_TRANSPORT:raise ValueError('Host must be one of: '+', '.join(HOSTS))
+    return MAX_ARGV_TEXT if INPUT_TRANSPORT[host]=='argv' else MAX_TEXT
+
+
+def _refuse_oversized_prompt(host,prompt):
+    """Refuse before a probe, an attempt, a reservation or a launch; size is the encoded byte length."""
+    bound=input_bound(host);size=len(prompt.encode())
+    if size>bound:
+        raise ValueError('Host prompt exceeds the %s budget of %d bytes for %s (%d bytes)'
+                         % ('argv' if INPUT_TRANSPORT[host]=='argv' else 'input',bound,host,size))
+
+
 USAGE_KEYS = ('input_tokens','uncached_input_tokens','cached_input_tokens','cache_write_tokens',
               'output_tokens','reasoning_tokens','total_tokens')
 CODEX_TOKEN_FIELDS = ('input_tokens','cached_input_tokens','output_tokens','reasoning_tokens','total_tokens')
@@ -160,7 +183,7 @@ def command(host, executable, scratch, model=None, prompt=None, outputs=None):
               '--dir',str(scratch)]
         if model:argv.extend(['--model',model])
         if prompt is not None:
-            if len(prompt.encode())>MAX_ARGV_TEXT:raise ValueError('Host prompt exceeds the argv budget')
+            _refuse_oversized_prompt(host,prompt)
             argv.append(prompt)
         return argv
     if host=='codex':
@@ -431,7 +454,52 @@ def _retain(evidence, name, path):
     target.write_bytes(data)
 
 
-def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
+def _track_owned(kind,ident,pid):
+    """Record a batch-owned process; inside a batch a failure raises (an untracked process cannot be cancelled)."""
+    import admission
+    return admission.track_current(kind,ident,pid)
+
+
+def _untrack_owned(kind,ident):
+    try:
+        import admission
+        admission.untrack_current(kind,ident)
+    except Exception:pass
+
+
+def _reap_descendants(pgid,launched):
+    import admission
+    outcome = admission.settle_current_process(pgid)
+    if outcome is not None:
+        return [] if outcome in ('gone', 'terminated', 'killed') else [outcome]
+    return admission.reap_group(pgid,launched)
+
+
+
+class GenerationFailure(ValueError):
+    """Sanitized transport failure with classification; provider text and credentials stay private."""
+    def __init__(self, message, classification):
+        super().__init__(message)
+        self.classification = classification
+
+
+def transport_failure(stdout, stderr):
+    """Only structured provider error codes confirm quota; bounded prose remains probable."""
+    for raw in (stderr, stdout):
+        candidates = [raw] + raw.splitlines()[-32:]
+        for candidate in candidates:
+            try:
+                value = json.loads(candidate)
+                error = value.get('error') if isinstance(value, dict) else None
+                if isinstance(error, dict):
+                    result = classify_failure(error_code=error.get('code') or error.get('type'))
+                    if result['kind'] != 'unknown': return dict(result, side_effects='uncertain')
+            except (ValueError, TypeError, AttributeError):
+                continue
+    return dict(classify_failure(text=(stderr + '\n' + stdout)[-65536:]), side_effects='uncertain')
+
+
+def generate(host, prompt, outputs, timeout=180, model=None, evidence=None, max_output_tokens=None):
     """One adapter entry point for every generation host.
 
     API providers keep their own tool-free RPC boundary and their own explicit model and
@@ -442,9 +510,13 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
     from provider_gateway import PROVIDERS
     if host in PROVIDERS:
         from provider_gateway import generate as provider_generate
-        return provider_generate(host, prompt, outputs, timeout, model)
+        return provider_generate(host, prompt, outputs, timeout, model, max_output_tokens)
+    if max_output_tokens is not None:
+        # An installed CLI exposes no output-token bound this adapter can set, so a guaranteed ceiling
+        # is refused instead of being advertised and silently ignored.
+        raise ValueError('Host %s cannot enforce an output-token ceiling' % host)
+    _refuse_oversized_prompt(host,prompt)
     info=probe(host)
-    if len(prompt.encode())>MAX_TEXT:raise ValueError('Host prompt exceeds 256 KiB')
     started=time.monotonic()
     if evidence is not None:
         folder=Path(evidence).resolve();folder.mkdir(parents=True,exist_ok=True)
@@ -464,13 +536,19 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
             env.update(opencode_environment(scratch,scratch/'opencode.json'))
         stdout_path=scratch/'stdout';stderr_path=scratch/'stderr'
         with stdout_path.open('w') as out,stderr_path.open('w') as err:
-            process=subprocess.Popen(argv,cwd=scratch,stdin=subprocess.PIPE,stdout=out,stderr=err,
+            launched=time.time()
+            import admission
+            # Standalone POSIX CLI evaluation has no bound project/admission ledger and
+            # keeps its original Popen adapter. Managed workflows always establish a
+            # scope first and therefore use acknowledged ownership before dispatch.
+            launcher = admission.launch_owned if admission.current() is not None or os.name == 'nt' else subprocess.Popen
+            process=launcher(argv,cwd=scratch,stdin=subprocess.PIPE,stdout=out,stderr=err,
                                      text=True,env=env,start_new_session=True)
             try:
                 pending=prompt if host in ('codex','claude') else None
                 while True:
                     if time.monotonic()-started>timeout:
-                        raise ValueError('Host generation timed out; process group terminated')
+                        raise GenerationFailure('Host generation timed out; managed process terminated', classify_failure(timed_out=True))
                     if stdout_path.stat().st_size>2*MAX_ARTIFACT_BYTES or stderr_path.stat().st_size>MAX_ARTIFACT_BYTES:
                         raise ValueError('Host output exceeds size limit; process group terminated')
                     try:
@@ -478,12 +556,24 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
                     except subprocess.TimeoutExpired:
                         pending=None
             except (ValueError,KeyboardInterrupt):
-                os.killpg(process.pid,signal.SIGKILL);process.communicate()
+                if os.name == 'posix':
+                    os.killpg(process.pid,signal.SIGKILL)
+                else:
+                    admission.settle_current_process(process.pid)
+                process.communicate()
                 _retain(evidence,'stdout',stdout_path);_retain(evidence,'stderr',stderr_path)
+                if not _reap_descendants(process.pid,launched):_untrack_owned('process',process.pid)
                 raise
+        # The parent may exit before its children. Whatever it left in its own group is stopped now, and
+        # the tracking entry is kept (visible to cancellation and recovery) if anything survives.
+        survivors=_reap_descendants(process.pid,launched)
+        if survivors:raise ValueError('Host generation left descendant processes that could not be stopped: '+', '.join(map(str,survivors)))
+        _untrack_owned('process',process.pid)
         _retain(evidence,'stdout',stdout_path);_retain(evidence,'stderr',stderr_path)
         # Do not copy host error output into project/public records: may contain credentials.
-        if process.returncode:raise ValueError('Host generation failed (exit '+str(process.returncode)+'); check local authentication and provider limits')
+        if process.returncode:
+            failure = transport_failure(stdout_path.read_text(errors='replace'), stderr_path.read_text(errors='replace'))
+            raise GenerationFailure('Host generation failed (exit '+str(process.returncode)+'); provider output withheld', failure)
         if stdout_path.stat().st_size>2*MAX_ARTIFACT_BYTES:raise ValueError('Host response exceeds size limit')
         value,usage,cost=parse_response(host,stdout_path.read_text(),scratch)
         artifacts=validate_artifacts(value,outputs)
@@ -707,3 +797,187 @@ def build_prompt(root, step, language, task_id=None, context=None):
 
     if len(prompt.encode())>MAX_TEXT:raise ValueError('Combined prompt exceeds 256 KiB; narrow declared inputs')
     return prompt
+
+
+# --- Verified capability profile (W03 / N03) -------------------------------------------------
+# Model identity, host identity and tool access are separate facts. Each fact is labelled with
+# how it is known; a model's description of itself is never accepted as evidence, and an
+# unknown fact is unavailable for dispatch rather than assumed.
+PROFILE_VERSION=2
+PROFILE_TTL_SECONDS=3600
+FACT_BASES=('documented','observed','requested','unavailable','unknown')
+ACTIONS=('read_files','write_files','run_commands','network','browser','image_input','delegate_agents')
+# Execution boundary this module's own adapters create: text generation in a temporary directory.
+# Every direct tool is disabled by the commands built above, so these are documented as
+# unavailable to the model; writes and execution happen only in the trusted controller.
+MANAGED_TOOLS={action:False for action in ACTIONS}
+STRUCTURED_OUTPUT={'codex':'schema-enforced','claude':'schema-enforced','openai':'schema-enforced',
+                   'opencode':'prompt-instructed','anthropic':'prompt-instructed'}
+CONTROLLER_ACTIONS={'write_files':'declared output paths only, after artifact validation',
+                    'run_commands':'declared acceptance commands only, in the isolated executor'}
+
+
+def _fact(value,basis,source,at=None):
+    if basis not in FACT_BASES:raise ValueError('Unknown fact basis: '+str(basis))
+    return {'value':value,'basis':basis,'source':source,'at':at}
+
+
+def capability_profile(host,model=None,launch_mode=None,probe_info=None,reported=None,now=None):
+    """Effective capability facts for one host/model/launch mode, each with its evidence basis.
+
+    `probe_info` is the result of `probe()` for an installed CLI (version observed from the binary);
+    `reported` is the usage record of an earlier generation (the model the host reported). Anything
+    not supplied is `unknown`. Nothing here asks the model about itself.
+    """
+    if host not in HOSTS:raise ValueError('Host must be one of: '+', '.join(HOSTS))
+    if model is not None and (not isinstance(model,str) or not model.strip() or len(model)>200 or '\0' in model):
+        raise ValueError('Model must be a nonempty identifier')
+    at=now or time.strftime('%Y-%m-%dT%H:%M:%S',time.gmtime())
+    managed=launch_mode in (None,'managed-generation')
+    if launch_mode not in (None,'managed-generation','native-interactive'):
+        raise ValueError('Launch mode must be managed-generation or native-interactive')
+    cli=host in CLI_HOSTS
+    version=(probe_info or {}).get('version') if probe_info else None
+    reported_model=(reported or {}).get('model_reported') if isinstance(reported,dict) else None
+    tools={}
+    for action in ACTIONS:
+        if managed:
+            tools[action]=_fact(False,'documented','adapter command disables every tool for managed generation',at)
+        else:
+            tools[action]=_fact(None,'unknown','native interactive tools are not observed by this adapter',at)
+    profile={'schema_version':PROFILE_VERSION,'observed_at':at,'launch_mode':launch_mode or 'managed-generation',
+        'host':{'name':host,'kind':'native-cli' if cli else 'api-provider',
+                'version':_fact(version or None,'observed' if version else 'unknown',
+                                'binary --version' if version else 'not probed',at)},
+        'model':{'requested':_fact(model,'requested' if model else 'unknown','caller',at),
+                 'reported':_fact(reported_model,'observed' if reported_model else 'unknown',
+                                  'host response' if reported_model else 'no generation observed',at)},
+        'tools':tools,
+        'structured_output':_fact(STRUCTURED_OUTPUT[host],'documented','adapter request construction',at),
+        'limits':{'input_bytes':_fact(input_bound(host),'documented',
+                                      'adapter prompt bound for the %s transport (not the model context window)'
+                                      % INPUT_TRANSPORT[host],at),
+                  'output_bytes':_fact(MAX_ARTIFACT_BYTES,'documented','adapter artifact bound',at),
+                  'context_window_tokens':_fact(None,'unknown','not reported by the host',at),
+                  'knowledge_cutoff':_fact(None,'unknown','never inferred from a model name',at)},
+        'quota':{'remaining':_fact(None,'unknown','no quota telemetry from this host',at),
+                 'reset_at':_fact(None,'unknown','no quota telemetry from this host',at)},
+        'image_input':_fact(None,'unknown','not observed',at),
+        'controller_processes': {'platform':os.name,
+            'ownership':_fact('Windows job + creation FILETIME' if os.name=='nt' else 'POSIX acknowledged exec + process identity + inherited marker',
+                              'documented','managed controller implementation; current host version/help is not live task acceptance',at),
+            'native_cli_sandbox':_fact(False,'documented','native host exception; no filesystem/network sandbox',at)}}
+    if host in ('openai','anthropic'):
+        profile['limits']['output_tokens']=_fact(MAX_OUTPUT_TOKENS_API,'documented','provider gateway request',at)
+    profile['fingerprint']=_profile_fingerprint(profile)
+    return profile
+
+
+MAX_OUTPUT_TOKENS_API=4096  # mirrors provider_gateway.MAX_OUTPUT_TOKENS (not imported: it imports this module)
+
+
+def _profile_fingerprint(profile):
+    identity={'adapter_schema':PROFILE_VERSION,'platform':os.name,'host':profile['host']['name'],'version':profile['host']['version']['value'],
+              'model':profile['model']['requested']['value'],'mode':profile['launch_mode']}
+    return hashlib.sha256(json.dumps(identity,sort_keys=True).encode()).hexdigest()
+
+
+def profile_conflicts(profile):
+    """Disagreements between what was requested and what the host reported; reported never overrides."""
+    requested=profile['model']['requested']['value'];reported=profile['model']['reported']['value']
+    found=[]
+    if requested and reported and not (reported==requested or reported.startswith(requested+'-')
+                                       or requested.endswith('/'+reported)):
+        found.append('reported model "'+reported+'" differs from requested "'+requested+'"')
+    return found
+
+
+def profile_is_current(profile,host,model=None,launch_mode=None,probe_info=None,now_epoch=None):
+    """False when the host, model, version or launch mode changed, or the observation is stale."""
+    candidate=capability_profile(host,model,launch_mode,probe_info)
+    if candidate['fingerprint']!=profile.get('fingerprint'):return False
+    try:
+        observed=calendar.timegm(time.strptime(profile['observed_at'],'%Y-%m-%dT%H:%M:%S'))
+    except (KeyError,ValueError,TypeError):return False
+    current=time.time() if now_epoch is None else now_epoch
+    return 0<=current-observed<=PROFILE_TTL_SECONDS
+
+
+def effective_execution(profile,policy_allows=(),task_declares=(),authorized=(),requested=()):
+    """The intersection of host capability, project policy, the task declaration and authorization.
+
+    Each requested action is `direct` (the host itself has the tool: never true for managed
+    generation), `controller` (the trusted controller performs it for declared outputs/acceptance)
+    or `refused` with the reasons. A refusal happens before any side effect; unknown host
+    capability is unavailable, never presumed.
+    """
+    decisions={}
+    for action in requested:
+        if action not in ACTIONS:
+            decisions[action]={'decision':'refused','reasons':['unknown action']};continue
+        reasons=[]
+        for label,allowed in (('project policy',policy_allows),('task declaration',task_declares),
+                              ('user authorization',authorized)):
+            if action not in allowed:reasons.append('not permitted by '+label)
+        tool=profile['tools'][action]
+        if tool['value'] is True and tool['basis'] in ('documented','observed'):route='direct'
+        elif action in CONTROLLER_ACTIONS:route='controller'
+        else:
+            route=None
+            reasons.append('host capability '+('unavailable' if tool['value'] is False else 'unknown')+' for '+action)
+        decisions[action]={'decision':'refused','reasons':reasons} if reasons else \
+            {'decision':route,'reasons':[],'scope':CONTROLLER_ACTIONS.get(action) if route=='controller' else None}
+    return decisions
+
+
+def check_prompt_fits(profile,prompt_bytes,configured_bound=None):
+    """Refuse a prompt beyond the known bound; an unknown bound needs an explicit conservative one."""
+    limit=profile['limits']['input_bytes']
+    bound=limit['value'] if limit['basis'] in ('documented','observed') and limit['value'] else configured_bound
+    if not bound:raise ValueError('Input limit is unknown; configure a conservative bound before dispatch')
+    if type(prompt_bytes) is not int or prompt_bytes<0:raise ValueError('Prompt size must be a non-negative integer')
+    if prompt_bytes>bound:raise ValueError('Prompt of %d bytes exceeds the %d byte bound' % (prompt_bytes,bound))
+    return bound
+
+
+def classify_failure(http_status=None,error_code=None,retry_after_seconds=None,timed_out=False,
+                     authenticated=None,text=''):
+    """Quota exhaustion, rate limit, authentication, timeout or unknown: never merged into one.
+
+    Only structured signals confirm exhaustion; host prose is reported as `probable`. A rate limit
+    with a retry time is not exhausted quota. Missing telemetry stays unknown.
+    """
+    code=(error_code or '').lower();body=(text or '').lower()
+    if timed_out:return {'kind':'timeout','confidence':'confirmed','side_effects':'uncertain'}
+    if code in ('insufficient_quota','billing_hard_limit_reached','credit_balance_too_low','quota_exceeded'):
+        return {'kind':'quota_exhausted','confidence':'confirmed','retry_after_seconds':None}
+    if http_status in (401,) or code in ('invalid_api_key','authentication_error','unauthorized') or authenticated is False:
+        return {'kind':'authentication','confidence':'confirmed'}
+    if http_status==429 or code in ('rate_limit_exceeded','rate_limit_error','overloaded_error'):
+        return {'kind':'rate_limited','confidence':'confirmed','retry_after_seconds':retry_after_seconds,
+                'quota_exhausted':False if retry_after_seconds is not None else None}
+    if any(phrase in body for phrase in ('usage limit reached','usage limit has been reached','out of credits')):
+        return {'kind':'quota_exhausted','confidence':'probable','source':'host text, not a structured signal'}
+    return {'kind':'unknown','confidence':'unknown'}
+
+
+def verify_claims(claims,evidence):
+    """Each completion claim needs current evidence of its own kind; model prose is never evidence.
+
+    claims: [{'kind': 'edit'|'executed'|'accepted', 'subject': str}].
+    evidence: {'artifacts': {path: sha}, 'commands': [{'argv': [...], 'exit_code': int}],
+               'acceptance': {'configured': bool, 'passed': bool}}.
+    """
+    results=[]
+    for claim in claims:
+        kind=claim.get('kind');subject=claim.get('subject')
+        if kind=='edit':supported=subject in (evidence.get('artifacts') or {})
+        elif kind=='executed':
+            supported=any(isinstance(item.get('argv'),list) and ' '.join(item['argv'])==subject
+                          and item.get('exit_code')==0 for item in evidence.get('commands') or [])
+        elif kind=='accepted':
+            record=evidence.get('acceptance') or {}
+            supported=bool(record.get('configured')) and record.get('passed') is True
+        else:supported=False
+        results.append({'claim':claim,'supported':supported})
+    return {'results':results,'all_supported':all(item['supported'] for item in results) if results else True}

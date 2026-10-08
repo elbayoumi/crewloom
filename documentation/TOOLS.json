@@ -1,4 +1,6 @@
 {
+  "catalog_version": 2,
+  "gate_baseline": "31ac8d3a4176c43323ec808a7de4ccac8bfe5563",
   "tools": [
     {
       "id": "workflow-contract",
@@ -9,7 +11,69 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "automation-ops-engineer",
+      "status": "verified",
+      "inputs": {
+        "workflow": {
+          "type": "path",
+          "required": true,
+          "description": "n8n workflow JSON file"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_tool_migration.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_tool_migration.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_tool_migration.py",
+          "exit_code": 0,
+          "source_sha256": "51909826a3606a6d574cf71a1c73438fb45bad78b0fa02423ea6cbe3215cfe94",
+          "contract_sha256": "9c2c4b6544a9e5c1d6761033b8893967db9c326988392e458375d6589e447047",
+          "support_sha256": {},
+          "acceptance_sha256": "c4947c2b15087c90d39fb0671e7b67b72d5ff9eeb8260ae5974ff7a20e3f8eb7",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 9,
+            "run": 9,
+            "executed": 9,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:15Z"
+        }
+      ]
     },
     {
       "id": "seo-packet",
@@ -20,7 +84,69 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "seo-growth-engineer",
+      "status": "verified",
+      "inputs": {
+        "--packet": {
+          "type": "path",
+          "required": true,
+          "description": "path to article packet JSON"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_tool_migration.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_tool_migration.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_tool_migration.py",
+          "exit_code": 0,
+          "source_sha256": "05ffd5be3d0b1d321f59ab70ffa826490905a49198773785b7ce45a7afc517f9",
+          "contract_sha256": "4d7568af77969fa29113f188c6c8d4dbe3505029fab7ab09d56cf6ce7b7ad034",
+          "support_sha256": {},
+          "acceptance_sha256": "c4947c2b15087c90d39fb0671e7b67b72d5ff9eeb8260ae5974ff7a20e3f8eb7",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 9,
+            "run": 9,
+            "executed": 9,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:15Z"
+        }
+      ]
     },
     {
       "id": "mcp-config",
@@ -31,7 +157,69 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "mcp-integration-builder",
+      "status": "verified",
+      "inputs": {
+        "--config": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --config"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_tool_migration.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_tool_migration.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_tool_migration.py",
+          "exit_code": 0,
+          "source_sha256": "6e02d1d475b86963b8dd7fabff5206f295aa0a84109953feaf3c301ab899dda9",
+          "contract_sha256": "a483aa8dad3ccde3686088ce9fee92c5f5d59aeaf01a234c9fff0517b279fefb",
+          "support_sha256": {},
+          "acceptance_sha256": "c4947c2b15087c90d39fb0671e7b67b72d5ff9eeb8260ae5974ff7a20e3f8eb7",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 9,
+            "run": 9,
+            "executed": 9,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:16Z"
+        }
+      ]
     },
     {
       "id": "script-pacing",
@@ -42,7 +230,80 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "video-script-architect",
+      "status": "verified",
+      "inputs": {
+        "--file": {
+          "type": "path",
+          "required": false,
+          "description": "Path to script markdown file"
+        },
+        "--text": {
+          "type": "string",
+          "required": false,
+          "description": "Direct text of the script"
+        },
+        "--duration": {
+          "type": "number",
+          "required": false,
+          "description": "Target duration in seconds (default: 30)"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_tool_migration.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_tool_migration.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_tool_migration.py",
+          "exit_code": 0,
+          "source_sha256": "1e5a3187361090b7af3ee2bdb78d4a094f865af403e9dc177dd12a3e26589b99",
+          "contract_sha256": "da036eab1692bbd9dd659b8896fe336f48ba8d32126b5ebba9d80c6a0b77cf14",
+          "support_sha256": {},
+          "acceptance_sha256": "c4947c2b15087c90d39fb0671e7b67b72d5ff9eeb8260ae5974ff7a20e3f8eb7",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 9,
+            "run": 9,
+            "executed": 9,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:17Z"
+        }
+      ],
+      "compat_note": "Valid commands and advisory warnings keep their exit semantics; malformed/non-finite input now refuses explicitly instead of producing a misleading result or traceback."
     },
     {
       "id": "budget-pacing",
@@ -53,7 +314,80 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "paid-media-buyer",
+      "status": "verified",
+      "inputs": {
+        "--daily-budget": {
+          "type": "number",
+          "required": true,
+          "description": "الميزانية اليومية المعتمدة في Campaign Brief"
+        },
+        "--days-elapsed": {
+          "type": "integer",
+          "required": true,
+          "description": "عدد أيام الحملة حتى الآن"
+        },
+        "--actual-spend": {
+          "type": "number",
+          "required": true,
+          "description": "الإنفاق الفعلي الظاهر في لوحة الإعلانات"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_tool_migration.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_tool_migration.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_tool_migration.py",
+          "exit_code": 0,
+          "source_sha256": "88499adf141ddaec800c27925e88fb8d05db6eeedc0f2ce6f4d35da937797503",
+          "contract_sha256": "6e003510368870a73e47af719e3bb6fe236ff6ebcc24ba57ef8da6db8da7ca63",
+          "support_sha256": {},
+          "acceptance_sha256": "c4947c2b15087c90d39fb0671e7b67b72d5ff9eeb8260ae5974ff7a20e3f8eb7",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 9,
+            "run": 9,
+            "executed": 9,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:17Z"
+        }
+      ],
+      "compat_note": "Valid commands and advisory warnings keep their exit semantics; malformed/non-finite input now refuses explicitly instead of producing a misleading result or traceback."
     },
     {
       "id": "ui-hints",
@@ -64,7 +398,74 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "frontend-ux-auditor",
+      "status": "verified",
+      "inputs": {
+        "--project-dir": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --project-dir"
+        },
+        "--json": {
+          "type": "boolean",
+          "required": false,
+          "description": "CLI argument --json"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        ".agents/skills/frontend-ux-auditor/scripts/test_ui_quality.py"
+      ],
+      "evidence": [
+        {
+          "test": ".agents/skills/frontend-ux-auditor/scripts/test_ui_quality.py",
+          "command": "tool_catalog.py acceptance-worker .agents/skills/frontend-ux-auditor/scripts test_ui_quality.py",
+          "exit_code": 0,
+          "source_sha256": "280f213ca79477f45901a3fb6a74a06caa04daf5c41d6e4d9834c18b3fe04c75",
+          "contract_sha256": "d4027ff69681c99a51765d8bd3b9104b57f62921577b1f94e661ddc172f3e9e0",
+          "support_sha256": {},
+          "acceptance_sha256": "4ff085c7dd3cc2742bf7c7214272beb01d750e9e4690b759876e221236141522",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 12,
+            "run": 12,
+            "executed": 12,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:17Z"
+        }
+      ]
     },
     {
       "id": "grid-safety",
@@ -75,7 +476,74 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "frontend-ux-auditor",
+      "status": "verified",
+      "inputs": {
+        "--project-dir": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --project-dir"
+        },
+        "--json": {
+          "type": "boolean",
+          "required": false,
+          "description": "CLI argument --json"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        ".agents/skills/frontend-ux-auditor/scripts/test_responsive_grid_safety.py"
+      ],
+      "evidence": [
+        {
+          "test": ".agents/skills/frontend-ux-auditor/scripts/test_responsive_grid_safety.py",
+          "command": "tool_catalog.py acceptance-worker .agents/skills/frontend-ux-auditor/scripts test_responsive_grid_safety.py",
+          "exit_code": 0,
+          "source_sha256": "2b6ab568db3bf6710b3bdf0c5b9aba334755919300af75244238c945caf564e8",
+          "contract_sha256": "5261aa37ba36161607a552430ac1285f0a629fb6b9bff0fd8d2925ed93d8acd0",
+          "support_sha256": {},
+          "acceptance_sha256": "0c41b98fdd7608241402b2a8aa0bec4bb72ceb81ff9b74b8a261a222822a9f41",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 10,
+            "run": 10,
+            "executed": 10,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:18Z"
+        }
+      ]
     },
     {
       "id": "palette-drift",
@@ -86,7 +554,84 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "frontend-ux-auditor",
+      "status": "verified",
+      "inputs": {
+        "--project-dir": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --project-dir"
+        },
+        "--tokens": {
+          "type": "path",
+          "required": true,
+          "description": "approved design tokens JSON"
+        },
+        "--allow": {
+          "type": "string",
+          "required": false,
+          "description": "comma-separated extra colors to accept, e.g. '#fff,#000'"
+        },
+        "--json": {
+          "type": "boolean",
+          "required": false,
+          "description": "CLI argument --json"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        ".agents/skills/frontend-ux-auditor/scripts/test_palette_drift.py"
+      ],
+      "evidence": [
+        {
+          "test": ".agents/skills/frontend-ux-auditor/scripts/test_palette_drift.py",
+          "command": "tool_catalog.py acceptance-worker .agents/skills/frontend-ux-auditor/scripts test_palette_drift.py",
+          "exit_code": 0,
+          "source_sha256": "2a1fb830458e5a4521200f2e01ec76eee6f21857531efcb76539764cc5096f7e",
+          "contract_sha256": "67cb4ed8049934c58eef42cae3a459fe50a8ac94cdf10290a46d8212cacb5eba",
+          "support_sha256": {},
+          "acceptance_sha256": "bdc484d0485d5e27027999e32e7015cb2fd30ad88775208aafe8d4f5146ba77b",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 11,
+            "run": 11,
+            "executed": 11,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:18Z"
+        }
+      ]
     },
     {
       "id": "layout-overlap",
@@ -97,7 +642,80 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "frontend-ux-auditor",
+      "status": "verified",
+      "inputs": {
+        "--snapshot": {
+          "type": "path",
+          "required": true,
+          "description": "Path to a JSON file produced by layout_overlap_snapshot.js. Repeat once per viewport."
+        },
+        "--viewport-label": {
+          "type": "string",
+          "required": false,
+          "description": "Label for each --snapshot in the same order (default: the snapshot's own recorded width)."
+        },
+        "--json": {
+          "type": "boolean",
+          "required": false,
+          "description": "CLI argument --json"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_tool_migration.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_tool_migration.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_tool_migration.py",
+          "exit_code": 0,
+          "source_sha256": "a6636ed539038c7e11773b4075cc6411c8b423530be6145711b0cb9107f7274e",
+          "contract_sha256": "31853fb2c148e723de428dcfc099af56ae91c911f9846e4f08139b1e8f5d9357",
+          "support_sha256": {},
+          "acceptance_sha256": "c4947c2b15087c90d39fb0671e7b67b72d5ff9eeb8260ae5974ff7a20e3f8eb7",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 9,
+            "run": 9,
+            "executed": 9,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:19Z"
+        }
+      ],
+      "compat_note": "Valid commands and advisory warnings keep their exit semantics; malformed/non-finite input now refuses explicitly instead of producing a misleading result or traceback."
     },
     {
       "id": "delivery-evidence",
@@ -108,7 +726,75 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "qa-test-automation-engineer",
+      "status": "verified",
+      "inputs": {
+        "packet": {
+          "type": "path",
+          "required": true,
+          "description": "Delivery packet JSON file; its directory is the evidence base"
+        },
+        "--expected-revision": {
+          "type": "string",
+          "required": true,
+          "description": "Current commit or snapshot ID obtained independently of the packet"
+        }
+      },
+      "outputs": {
+        "report": {
+          "type": "json",
+          "required": true,
+          "description": "state, open_defects, escalation_required, problems and the limits statement on stdout"
+        }
+      },
+      "errors": {
+        "problems-found": {
+          "exit_code": 1,
+          "meaning": "The packet is structurally blocked; see problems"
+        },
+        "unverified": {
+          "exit_code": 2,
+          "meaning": "The packet could not be read or parsed; nothing is approved"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 60,
+        "output_bytes": 65536
+      },
+      "idempotent": true,
+      "acceptance": [
+        ".agents/skills/qa-test-automation-engineer/scripts/test_delivery_packet.py"
+      ],
+      "evidence": [
+        {
+          "test": ".agents/skills/qa-test-automation-engineer/scripts/test_delivery_packet.py",
+          "command": "tool_catalog.py acceptance-worker .agents/skills/qa-test-automation-engineer/scripts test_delivery_packet.py",
+          "exit_code": 0,
+          "source_sha256": "ffc1ce1fb92b04444ed4a7c072c0272c3ce34fcddf733fb86af6f1d0b7db6c8c",
+          "contract_sha256": "0d264ced40762c4e95f4a5fbc4e4a12f9d40acbf0b0f2e4d2d7e093676846e2b",
+          "support_sha256": {},
+          "acceptance_sha256": "ff8e7dbc2a4936d0af50b513b907b50108794321736bbc75350d7c59c68798db",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 12,
+            "run": 12,
+            "executed": 12,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-07T17:39:46Z"
+        }
+      ]
     },
     {
       "id": "context",
@@ -119,7 +805,87 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "writes-context-file"
+      "effect": "writes-context-file",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "context-guardian",
+      "status": "verified",
+      "inputs": {
+        "--skill": {
+          "type": "string",
+          "required": true,
+          "description": "Role ID whose bounded context pack is built"
+        },
+        "--out": {
+          "type": "path",
+          "required": true,
+          "description": "Output file; must stay outside skill sources (inside the project when --project is given)"
+        },
+        "--language": {
+          "type": "string",
+          "required": false,
+          "description": "en or ar"
+        },
+        "--project": {
+          "type": "path",
+          "required": false,
+          "description": "Project whose installed role and memory are read exclusively"
+        }
+      },
+      "outputs": {
+        "pack": {
+          "type": "text",
+          "required": true,
+          "description": "Context pack written atomically to --out"
+        },
+        "summary": {
+          "type": "text",
+          "required": true,
+          "description": "One stdout line naming the pack size and path"
+        }
+      },
+      "errors": {
+        "refused": {
+          "exit_code": 1,
+          "meaning": "The pack was not written; a previous output must not be used as a success"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 60,
+        "output_bytes": 1048576
+      },
+      "idempotent": true,
+      "acceptance": [
+        ".agents/skills/context-guardian/scripts/test_context_pack.py"
+      ],
+      "evidence": [
+        {
+          "test": ".agents/skills/context-guardian/scripts/test_context_pack.py",
+          "command": "tool_catalog.py acceptance-worker .agents/skills/context-guardian/scripts test_context_pack.py",
+          "exit_code": 0,
+          "source_sha256": "05003cfa644c1fb48e876818f4be1d84de7916af9f39e7ddb2565bbfb698dd06",
+          "contract_sha256": "b927fc2acd66fc2664b65c085b514ab332af45b8427420d919bd38ff975b758d",
+          "support_sha256": {},
+          "acceptance_sha256": "d4f60bde0526926409b6148dc4005be4ff8830cc204139a0dad2ea7069b4d9a8",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 8,
+            "run": 8,
+            "executed": 8,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-07T17:39:46Z"
+        }
+      ]
     },
     {
       "id": "validate-skill",
@@ -130,7 +896,69 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "skill-forge-recruiter",
+      "status": "verified",
+      "inputs": {
+        "--skill": {
+          "type": "string",
+          "required": true,
+          "description": "Stable lowercase hyphenated skill ID; filesystem paths are refused"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        ".agents/skills/skill-forge-recruiter/scripts/test_validate_skill.py"
+      ],
+      "evidence": [
+        {
+          "test": ".agents/skills/skill-forge-recruiter/scripts/test_validate_skill.py",
+          "command": "tool_catalog.py acceptance-worker .agents/skills/skill-forge-recruiter/scripts test_validate_skill.py",
+          "exit_code": 0,
+          "source_sha256": "b169b648b85a1b2d44c9f212305b2d42e601d9faece4db16076928de943c41c4",
+          "contract_sha256": "0f9fbde577473e0ca699619bf273594241be4146182a751884f32cd876d6451d",
+          "support_sha256": {},
+          "acceptance_sha256": "7f5d69f78ed56a665032b4ac691a69677a2c605e702986515c8e597a4ee6553c",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 7,
+            "run": 7,
+            "executed": 7,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:19Z"
+        }
+      ]
     },
     {
       "id": "resource-budget",
@@ -141,7 +969,74 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "read-only"
+      "effect": "read-only",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "ultra-light-optimizer",
+      "status": "verified",
+      "inputs": {
+        "--project-dir": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --project-dir"
+        },
+        "--exceptions": {
+          "type": "path",
+          "required": false,
+          "description": "exception file: RULE|path-substring|reason per line"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_tool_migration.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_tool_migration.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_tool_migration.py",
+          "exit_code": 0,
+          "source_sha256": "06247df7ae4755d7bd736baa2776942bcb8cbe07dc17a77d25f1cb1e474f5494",
+          "contract_sha256": "aa227ab160fb3313ead4d8da4f003ec681a04c4f867e0332818bca96b3e1165c",
+          "support_sha256": {},
+          "acceptance_sha256": "c4947c2b15087c90d39fb0671e7b67b72d5ff9eeb8260ae5974ff7a20e3f8eb7",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 9,
+            "run": 9,
+            "executed": 9,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:20Z"
+        }
+      ]
     },
     {
       "id": "workflow",
@@ -154,7 +1049,321 @@
         "Docker daemon and prepared image",
         "Authenticated Codex/Claude CLI only for model steps"
       ],
-      "effect": "writes-project-artifacts-and-runtime-state"
+      "effect": "writes-project-artifacts-and-runtime-state",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "context-guardian",
+      "status": "verified",
+      "inputs": {
+        "action": {
+          "type": "string",
+          "required": true,
+          "description": "run, status, handoff, accept, cancel or doctor"
+        },
+        "--project": {
+          "type": "path",
+          "required": false,
+          "description": "Explicit canonical project root; required for every task action"
+        },
+        "--plan": {
+          "type": "path",
+          "required": false,
+          "description": "Project-relative workflow plan file (default workflow.json); recorded in the run state so checkpoints can be validated against it"
+        },
+        "--image": {
+          "type": "string",
+          "required": false,
+          "description": "Prepared isolation image for command steps"
+        },
+        "--step": {
+          "type": "string",
+          "required": false,
+          "description": "Task step to accept (accept action)"
+        },
+        "--reviewer": {
+          "type": "string",
+          "required": false,
+          "description": "Reviewer identity for accept"
+        },
+        "--owner-id": {
+          "type": "string",
+          "required": false,
+          "description": "Continuation owner id; its token is read from CREWLOOM_OWNER_TOKEN"
+        },
+        "--owner-epoch": {
+          "type": "string",
+          "required": false,
+          "description": "Continuation owner epoch"
+        },
+        "--use-receiver-host": {
+          "type": "boolean",
+          "required": false,
+          "description": "Dispatch pending model steps using the accepted receiver host/model with id, epoch and token fencing"
+        }
+      },
+      "outputs": {
+        "result": {
+          "type": "json",
+          "required": true,
+          "description": "Handoff or status report with per-step state, attempts and evidence hashes"
+        }
+      },
+      "errors": {
+        "blocked": {
+          "exit_code": 2,
+          "meaning": "The plan, project binding, ownership, budget or a step failed; recorded state and verified outputs are preserved"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-project-files",
+        "write-runtime-state",
+        "process-spawn",
+        "docker",
+        "model-provider"
+      ],
+      "limits": {
+        "timeout_seconds": 3600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_workflow.py",
+        "scripts/test_owned_resources.py",
+        "scripts/test_process_backend.py",
+        "scripts/test_provider_gateway.py",
+        "scripts/test_host_isolation_boundaries.py",
+        "scripts/test_model_host.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_workflow.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_workflow.py",
+          "exit_code": 0,
+          "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
+          "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e"
+          },
+          "acceptance_sha256": "a2f0cfcf07478b803735c354278e43b0dff47d52d617e6d29c3190589e7f99a4",
+          "acceptance_support_sha256": {
+            "scripts/test_transport_acceptance_boundaries.py": "460689673458c4ebe16248642822e9bd2d0f3a49a9465ec9d73a02f11756aa3b"
+          },
+          "counts": {
+            "discovered": 28,
+            "run": 28,
+            "executed": 23,
+            "skipped": 5,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:31Z"
+        },
+        {
+          "test": "scripts/test_owned_resources.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_owned_resources.py",
+          "exit_code": 0,
+          "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
+          "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e"
+          },
+          "acceptance_sha256": "3827a51dce4a814b4df8b4197f1806a6e17abd1a6e2389f2e15bf6b52f2ec591",
+          "acceptance_support_sha256": {
+            "scripts/test_transport_acceptance_boundaries.py": "460689673458c4ebe16248642822e9bd2d0f3a49a9465ec9d73a02f11756aa3b"
+          },
+          "counts": {
+            "discovered": 40,
+            "run": 40,
+            "executed": 37,
+            "skipped": 3,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:31Z"
+        },
+        {
+          "test": "scripts/test_process_backend.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_process_backend.py",
+          "exit_code": 0,
+          "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
+          "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e"
+          },
+          "acceptance_sha256": "7c6aaf39de321e7a5de46138be3cb09afc31bc7905b5cde29599ba8848f51a68",
+          "acceptance_support_sha256": {
+            "scripts/test_transport_acceptance_boundaries.py": "460689673458c4ebe16248642822e9bd2d0f3a49a9465ec9d73a02f11756aa3b"
+          },
+          "counts": {
+            "discovered": 6,
+            "run": 6,
+            "executed": 1,
+            "skipped": 5,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:31Z"
+        },
+        {
+          "test": "scripts/test_provider_gateway.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_provider_gateway.py",
+          "exit_code": 0,
+          "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
+          "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e"
+          },
+          "acceptance_sha256": "39738faaecf691ccee7ad43c3c794b896ff458b64ef853d42860bc2d8ac74e91",
+          "acceptance_support_sha256": {
+            "scripts/test_transport_acceptance_boundaries.py": "460689673458c4ebe16248642822e9bd2d0f3a49a9465ec9d73a02f11756aa3b"
+          },
+          "counts": {
+            "discovered": 11,
+            "run": 11,
+            "executed": 11,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:31Z"
+        },
+        {
+          "test": "scripts/test_host_isolation_boundaries.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_host_isolation_boundaries.py",
+          "exit_code": 0,
+          "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
+          "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e"
+          },
+          "acceptance_sha256": "daec1d315e9c465df66630337920da17d7d6f34cead3868331c23eb5125713ad",
+          "acceptance_support_sha256": {
+            "scripts/test_transport_acceptance_boundaries.py": "460689673458c4ebe16248642822e9bd2d0f3a49a9465ec9d73a02f11756aa3b"
+          },
+          "counts": {
+            "discovered": 4,
+            "run": 4,
+            "executed": 4,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:31Z"
+        },
+        {
+          "test": "scripts/test_model_host.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_model_host.py",
+          "exit_code": 0,
+          "source_sha256": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81",
+          "contract_sha256": "d9192558305f05344cfc53a55cad1469d63aa520321d1aa9556feb495565ca1b",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e"
+          },
+          "acceptance_sha256": "b4de1a424f6fe48bfa4b54ce5ebb548f9e1769227c5774ba77f7aa7b09929da3",
+          "acceptance_support_sha256": {
+            "scripts/test_transport_acceptance_boundaries.py": "460689673458c4ebe16248642822e9bd2d0f3a49a9465ec9d73a02f11756aa3b"
+          },
+          "counts": {
+            "discovered": 30,
+            "run": 30,
+            "executed": 30,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:31Z"
+        }
+      ]
     },
     {
       "id": "project-context",
@@ -166,7 +1375,178 @@
         "Python standard library",
         "Git project for navigation indexing"
       ],
-      "effect": "writes-project-configuration-and-runtime-state"
+      "effect": "writes-project-configuration-and-runtime-state",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "context-guardian",
+      "status": "verified",
+      "inputs": {
+        "action": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument action"
+        },
+        "--project": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --project"
+        },
+        "--project-id": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --project-id"
+        },
+        "--task-id": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --task-id"
+        },
+        "--role": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --role"
+        },
+        "--config": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --config"
+        },
+        "--agency-registry": {
+          "type": "path",
+          "required": false,
+          "description": "Explicit agency project-control ledger path"
+        },
+        "--agency-root": {
+          "type": "path",
+          "required": false,
+          "description": "Agency workspace root that ledger paths are relative to"
+        },
+        "--agency-validator": {
+          "type": "path",
+          "required": false,
+          "description": "Explicitly selected agency validator script to run first"
+        },
+        "--criteria": {
+          "type": "path",
+          "required": false,
+          "description": "Project-relative acceptance criteria file"
+        },
+        "--seed": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --seed"
+        },
+        "--source": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --source"
+        },
+        "--language": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --language"
+        },
+        "--changed": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --changed"
+        },
+        "--verification": {
+          "type": "json",
+          "required": false,
+          "description": "JSON list of operator attestations {command, exit_code, scope}"
+        },
+        "--evidence": {
+          "type": "json",
+          "required": false,
+          "description": "JSON list of executor evidence references {workflow, step, scope}"
+        },
+        "--lesson": {
+          "type": "string",
+          "required": false,
+          "description": "JSON object {issue, remedy, conditions} recorded as a candidate lesson"
+        },
+        "--reason": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --reason"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-runtime-state",
+        "write-project-files",
+        "git-read",
+        "process-spawn"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_project_binding.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_project_binding.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_project_binding.py",
+          "exit_code": 0,
+          "source_sha256": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+          "contract_sha256": "46bbaa2dc42dc7ab056a4275b5e1b2b22ac7c41a2d43ed1ad867692c803f0b98",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "6ff53c869cc91d3c1d10707b2ddfb662c2087054d7db6f05e00429c9889cf459",
+          "acceptance_support_sha256": {
+            "scripts/crewloom.py": "cf693216a6ba722a9271b2bb91c54e103f76acf8f4e2bfe1efa7e4b6da87b42b",
+            "scripts/evaluate_feature.py": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+            "scripts/evaluate_hosts.py": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+            "scripts/task_coordinator.py": "c0249302665a2de10209234270e90417954285b923546364a642b4246682e539",
+            "scripts/tool_catalog.py": "b0dc3d22c22930785e03e4f5c466d85be932df1339edf38b1dee7bdf28316f46"
+          },
+          "counts": {
+            "discovered": 38,
+            "run": 38,
+            "executed": 38,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:40Z"
+        }
+      ]
     },
     {
       "id": "project-lessons",
@@ -176,9 +1556,176 @@
       "example_args": "list --project /path/to/project",
       "dependencies": [
         "Python standard library",
-        "Recorded workflow evidence for promotion"
+        "Recorded workflow evidence for promotion",
+        "tomllib (Python 3.11+ standard library; optional, dependency-array fallback on Python 3.9/3.10)"
       ],
-      "effect": "writes-project-runtime-state"
+      "effect": "writes-project-runtime-state",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "qa-test-automation-engineer",
+      "status": "verified",
+      "inputs": {
+        "action": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument action"
+        },
+        "--project": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --project"
+        },
+        "--lesson-id": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --lesson-id"
+        },
+        "--issue": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --issue"
+        },
+        "--remedy": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --remedy"
+        },
+        "--conditions": {
+          "type": "json",
+          "required": false,
+          "description": "CLI argument --conditions"
+        },
+        "--task-id": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --task-id"
+        },
+        "--role": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --role"
+        },
+        "--negative": {
+          "type": "boolean",
+          "required": false,
+          "description": "CLI argument --negative"
+        },
+        "--evidence": {
+          "type": "json",
+          "required": false,
+          "description": "JSON list of {workflow, step, scope} executor evidence references"
+        },
+        "--attestation": {
+          "type": "json",
+          "required": false,
+          "description": "JSON object naming an external source and its claim"
+        },
+        "--reviewer": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --reviewer"
+        },
+        "--reason": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --reason"
+        },
+        "--by": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --by"
+        },
+        "--out": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --out"
+        },
+        "--packet": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --packet"
+        },
+        "--seed": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --seed"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-runtime-state",
+        "write-project-files",
+        "git-read",
+        "process-spawn"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_project_lessons.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_project_lessons.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_project_lessons.py",
+          "exit_code": 0,
+          "source_sha256": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+          "contract_sha256": "dedefbedb7138f4351975c1135054cc6b53e529725df5cb7e8a5ab6c40f0b4e5",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "65d1008b9e8d89a3f69f1b78bfe0f86c9d20c6cfdbef651c7ef009cd1b785674",
+          "acceptance_support_sha256": {
+            "scripts/crewloom.py": "cf693216a6ba722a9271b2bb91c54e103f76acf8f4e2bfe1efa7e4b6da87b42b",
+            "scripts/evaluate_feature.py": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+            "scripts/evaluate_hosts.py": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+            "scripts/task_coordinator.py": "c0249302665a2de10209234270e90417954285b923546364a642b4246682e539",
+            "scripts/tool_catalog.py": "b0dc3d22c22930785e03e4f5c466d85be932df1339edf38b1dee7bdf28316f46"
+          },
+          "counts": {
+            "discovered": 28,
+            "run": 28,
+            "executed": 28,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:49Z"
+        }
+      ]
     },
     {
       "id": "context-pilot",
@@ -189,7 +1736,149 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "reads-project-and-writes-report"
+      "effect": "reads-project-and-writes-report",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "context-guardian",
+      "status": "verified",
+      "inputs": {
+        "--project": {
+          "type": "path",
+          "required": false,
+          "description": "Existing bound project root; synthetic sizes are measured when omitted"
+        },
+        "--project-id": {
+          "type": "string",
+          "required": false,
+          "description": "Portable project ID; defaults to the synthetic pilot fixture"
+        },
+        "--task-id": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --task-id"
+        },
+        "--role": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --role"
+        },
+        "--seed": {
+          "type": "path",
+          "required": false,
+          "description": "Project-relative seed path; defaults to the synthetic fixture seed"
+        },
+        "--source": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --source"
+        },
+        "--criteria": {
+          "type": "path",
+          "required": false,
+          "description": "Project-relative acceptance criteria file"
+        },
+        "--language": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --language"
+        },
+        "--image": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --image"
+        },
+        "--acceptance-input": {
+          "type": "path",
+          "required": false,
+          "description": "Project-relative file the acceptance check reads; repeat for each real dependency"
+        },
+        "--dry-run": {
+          "type": "boolean",
+          "required": false,
+          "description": "Measure without entering the project, running acceptance or finalizing"
+        },
+        "--out": {
+          "type": "path",
+          "required": false,
+          "description": "Write the pilot report to this path instead of stdout"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-runtime-state",
+        "write-project-files",
+        "git-read",
+        "process-spawn",
+        "docker"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_context_pilot.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_context_pilot.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_context_pilot.py",
+          "exit_code": 0,
+          "source_sha256": "ac50f55473e0de18900b58e7d05935f7a527f83d362011f2b6b4c528962f9abe",
+          "contract_sha256": "55d969def39dd563c80e8ecda37dc3bc805bf54b578b5a24969aefe840f56cf2",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom.py": "cf693216a6ba722a9271b2bb91c54e103f76acf8f4e2bfe1efa7e4b6da87b42b",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/evaluate_feature.py": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+            "scripts/evaluate_hosts.py": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/task_coordinator.py": "c0249302665a2de10209234270e90417954285b923546364a642b4246682e539",
+            "scripts/tool_catalog.py": "b0dc3d22c22930785e03e4f5c466d85be932df1339edf38b1dee7bdf28316f46",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "60f3d3ae38232a799e9f508b044e5346584e6e99d75911626bc74df7139f6dae",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 8,
+            "run": 8,
+            "executed": 8,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:58Z"
+        }
+      ]
     },
     {
       "id": "agency-readiness",
@@ -200,7 +1889,1305 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "reads-project-and-agency-registry"
+      "effect": "reads-project-and-agency-registry",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "context-guardian",
+      "status": "verified",
+      "inputs": {
+        "--project-id": {
+          "type": "string",
+          "required": true,
+          "description": "Exact registered project ID recorded in the ledger"
+        },
+        "--project-root": {
+          "type": "path",
+          "required": true,
+          "description": "Existing canonical project root of that registration"
+        },
+        "--agency-root": {
+          "type": "path",
+          "required": true,
+          "description": "Explicit agency workspace root that holds the ledger"
+        },
+        "--registry": {
+          "type": "path",
+          "required": true,
+          "description": "Explicit agency project-control registry file"
+        },
+        "--max-evidence-age-seconds": {
+          "type": "integer",
+          "required": false,
+          "description": "CLI argument --max-evidence-age-seconds"
+        },
+        "--report-out": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --report-out"
+        },
+        "--language": {
+          "type": "string",
+          "required": false,
+          "description": "Human labels in the report; machine keys never change"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_agency_readiness.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_agency_readiness.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_agency_readiness.py",
+          "exit_code": 0,
+          "source_sha256": "b059432724a7f9d2fe1744393a0e11d7d9ec89a8542f05b27c72670e92813331",
+          "contract_sha256": "506607ca772831d151e4bc190cd3a38b70d6024c397bd79635909cda48a199b3",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "8894820eacb922bedf9cefbdf4086b35a7387b0b68d3d880efc028c0d55956ec",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 22,
+            "run": 22,
+            "executed": 22,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:13:59Z"
+        }
+      ]
+    },
+    {
+      "id": "continuation",
+      "skill": "context-guardian",
+      "path": "scripts/continuation.py",
+      "description": "Durable controller-owned checkpoints and the atomic single-owner handoff between agents",
+      "example_args": "validate --project /path/to/project --workflow task-id --packet latest.json --receiver-id agent-b --receiver-host codex",
+      "dependencies": [
+        "Python standard library",
+        "Git project bound with crewloom project enter"
+      ],
+      "effect": "writes-project-runtime-state",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "context-guardian",
+      "status": "verified",
+      "inputs": {
+        "action": {
+          "type": "string",
+          "required": true,
+          "description": "create, show, validate, accept, interrupt, reconcile, release or explicit bounded quota resume"
+        },
+        "--project": {
+          "type": "path",
+          "required": true,
+          "description": "Explicit canonical project root"
+        },
+        "--workflow": {
+          "type": "string",
+          "required": false,
+          "description": "Workflow ID"
+        },
+        "--packet": {
+          "type": "path",
+          "required": false,
+          "description": "Checkpoint packet (defaults to the latest committed one)"
+        },
+        "--receiver-id": {
+          "type": "string",
+          "required": false,
+          "description": "Receiving agent identity for validate/accept"
+        },
+        "--plan": {
+          "type": "path",
+          "required": false,
+          "description": "Project-relative persisted plan; resume defaults to workflow.json"
+        },
+        "--receiver-host": {
+          "type": "string",
+          "required": false,
+          "description": "Explicit accepted receiving host"
+        },
+        "--receiver-model": {
+          "type": "string",
+          "required": false,
+          "description": "Explicit receiving model; required for API providers"
+        },
+        "--owner-epoch": {
+          "type": "string",
+          "required": false,
+          "description": "Accepted owner epoch; token is read from CREWLOOM_OWNER_TOKEN"
+        },
+        "--receivers": {
+          "type": "string",
+          "required": false,
+          "description": "Ordered JSON receiver list for opt-in quota resume"
+        },
+        "--max-switches": {
+          "type": "integer",
+          "required": false,
+          "description": "Required persistent switch ceiling 1..8 for resume"
+        },
+        "--max-model-requests": {
+          "type": "integer",
+          "required": false,
+          "description": "Required aggregate request ceiling 1..32; never resets consumed requests"
+        },
+        "--allow-host-cli": {
+          "type": "boolean",
+          "required": false,
+          "description": "Explicit opt-in for native CLI receivers outside the provider boundary"
+        }
+      },
+      "outputs": {
+        "result": {
+          "type": "json",
+          "required": true,
+          "description": "Packet, validation decision or owner record; accept also returns a one-time owner_token"
+        }
+      },
+      "errors": {
+        "refused": {
+          "exit_code": 2,
+          "meaning": "Validation failed, the project lock is held or the owner slot is taken; nothing was claimed"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-runtime-state",
+        "git-read"
+      ],
+      "limits": {
+        "timeout_seconds": 3600,
+        "output_bytes": 262144
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_continuation.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_continuation.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_continuation.py",
+          "exit_code": 0,
+          "source_sha256": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+          "contract_sha256": "c27ac2380f6d8233796e6fd19f191ac147116d05022137ffcaba925b57fd463a",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "85decf638f543f17a85ff13f8a70e1f9c9f0f7ba4acb80b635183e73da6b5445",
+          "acceptance_support_sha256": {
+            "scripts/crewloom.py": "cf693216a6ba722a9271b2bb91c54e103f76acf8f4e2bfe1efa7e4b6da87b42b",
+            "scripts/evaluate_feature.py": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+            "scripts/evaluate_hosts.py": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+            "scripts/task_coordinator.py": "c0249302665a2de10209234270e90417954285b923546364a642b4246682e539",
+            "scripts/tool_catalog.py": "b0dc3d22c22930785e03e4f5c466d85be932df1339edf38b1dee7bdf28316f46"
+          },
+          "counts": {
+            "discovered": 71,
+            "run": 71,
+            "executed": 71,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:14:22Z"
+        }
+      ]
+    },
+    {
+      "id": "tool-catalog",
+      "skill": "skill-forge-recruiter",
+      "path": "scripts/tool_catalog.py",
+      "description": "Discover, describe, validate and gate the tool catalog; record acceptance evidence for a contract",
+      "example_args": "discover",
+      "dependencies": [
+        "Python standard library",
+        "Git for the incremental gate",
+        "Toolkit workflow project lock and path guard"
+      ],
+      "effect": "reads-toolkit-and-writes-catalog-evidence",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "skill-forge-recruiter",
+      "status": "verified",
+      "inputs": {
+        "command": {
+          "type": "string",
+          "required": true,
+          "description": "discover, describe, validate, gate, render, render-check or record-evidence"
+        },
+        "tool": {
+          "type": "string",
+          "required": false,
+          "description": "Tool ID for describe and record-evidence"
+        },
+        "--base": {
+          "type": "string",
+          "required": false,
+          "description": "Base revision for the incremental gate"
+        },
+        "--root": {
+          "type": "path",
+          "required": false,
+          "description": "Explicit catalog root; catalog mutation through crewloom run must target the selected project/toolkit root"
+        },
+        "--index-file": {
+          "type": "path",
+          "required": false,
+          "description": "Explicit index file inside the selected project for gate validation"
+        }
+      },
+      "outputs": {
+        "result": {
+          "type": "json",
+          "required": false,
+          "description": "Compact metadata, one contract, or evidence written for a passing acceptance"
+        }
+      },
+      "errors": {
+        "violations": {
+          "exit_code": 1,
+          "meaning": "validate, gate or render-check found violations"
+        },
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "The command could not run or acceptance failed; nothing was recorded"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-project-files",
+        "git-read",
+        "process-spawn",
+        "write-runtime-state"
+      ],
+      "limits": {
+        "timeout_seconds": 600,
+        "output_bytes": 262144
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_tool_catalog.py",
+        "scripts/test_tool_execution.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_tool_catalog.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_tool_catalog.py",
+          "exit_code": 0,
+          "source_sha256": "b0dc3d22c22930785e03e4f5c466d85be932df1339edf38b1dee7bdf28316f46",
+          "contract_sha256": "595688348d8f4e88f0a8d8fb03b973dae215d311fd851b78d5bf299033e34b65",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom.py": "cf693216a6ba722a9271b2bb91c54e103f76acf8f4e2bfe1efa7e4b6da87b42b",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/evaluate_feature.py": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+            "scripts/evaluate_hosts.py": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/task_coordinator.py": "c0249302665a2de10209234270e90417954285b923546364a642b4246682e539",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "3529fa821f22d5a9db2e4cee853b1a7f028782fc4428cb0e38cf4c2b42a6e3d9",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 75,
+            "run": 75,
+            "executed": 75,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:14:45Z"
+        },
+        {
+          "test": "scripts/test_tool_execution.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_tool_execution.py",
+          "exit_code": 0,
+          "source_sha256": "b0dc3d22c22930785e03e4f5c466d85be932df1339edf38b1dee7bdf28316f46",
+          "contract_sha256": "595688348d8f4e88f0a8d8fb03b973dae215d311fd851b78d5bf299033e34b65",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom.py": "cf693216a6ba722a9271b2bb91c54e103f76acf8f4e2bfe1efa7e4b6da87b42b",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/evaluate_feature.py": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+            "scripts/evaluate_hosts.py": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/task_coordinator.py": "c0249302665a2de10209234270e90417954285b923546364a642b4246682e539",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "63a53df76678209445411693a0d0a5c068abc19e27d8adcdaabbdf2f52ec5caa",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 11,
+            "run": 11,
+            "executed": 11,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:14:45Z"
+        }
+      ]
+    },
+    {
+      "id": "task-coordinator",
+      "skill": "delivery-director",
+      "path": "scripts/task_coordinator.py",
+      "description": "Project-bound concurrent task worktrees, verification and reviewed publication",
+      "example_args": "--help",
+      "dependencies": [
+        "Python standard library",
+        "Git for project-bound operations"
+      ],
+      "effect": "project-bound controller operation",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "delivery-director",
+      "status": "verified",
+      "inputs": {
+        "action": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument action"
+        },
+        "--project": {
+          "type": "path",
+          "required": true,
+          "description": "Explicit canonical project root"
+        },
+        "--project-id": {
+          "type": "string",
+          "required": true,
+          "description": "Explicit portable project identity; never inferred"
+        },
+        "--manifest": {
+          "type": "path",
+          "required": true,
+          "description": "Coordinator manifest, relative to --project"
+        },
+        "--workers": {
+          "type": "integer",
+          "required": false,
+          "description": "Concurrent tasks, 1 to 4"
+        },
+        "--image": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --image"
+        },
+        "--reason": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --reason"
+        },
+        "--allow-host-cli": {
+          "type": "boolean",
+          "required": false,
+          "description": "This run's explicit operator opt-in for installed CLI model hosts; the manifest task must also declare native_host_cli true"
+        },
+        "--principal": {
+          "type": "string",
+          "required": false,
+          "description": "Declared reviewer identifier (label mode)"
+        },
+        "--role": {
+          "type": "string",
+          "required": false,
+          "description": "Owning role for the integration decision; default is the integration workflow final step role"
+        },
+        "--expected-base": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --expected-base"
+        },
+        "--candidate-head": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --candidate-head"
+        },
+        "--diff-sha256": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --diff-sha256"
+        },
+        "--reviewer-token-stdin": {
+          "type": "boolean",
+          "required": false,
+          "description": "Read the reviewer credential from standard input, never an argument"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-runtime-state",
+        "write-project-files",
+        "git-read",
+        "process-spawn",
+        "docker"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_task_coordinator.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_task_coordinator.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_task_coordinator.py",
+          "exit_code": 0,
+          "source_sha256": "c0249302665a2de10209234270e90417954285b923546364a642b4246682e539",
+          "contract_sha256": "c5ab566550ea84ad1d5005eda4ce53333a91e87cd5f26402c074c1dc70b1e76b",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "a3536e6ce174b8f92222795c641c6201384257853d2c4fba1a8da6e671f2b952",
+          "acceptance_support_sha256": {
+            "scripts/crewloom.py": "cf693216a6ba722a9271b2bb91c54e103f76acf8f4e2bfe1efa7e4b6da87b42b",
+            "scripts/evaluate_feature.py": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+            "scripts/evaluate_hosts.py": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+            "scripts/tool_catalog.py": "b0dc3d22c22930785e03e4f5c466d85be932df1339edf38b1dee7bdf28316f46"
+          },
+          "counts": {
+            "discovered": 49,
+            "run": 49,
+            "executed": 32,
+            "skipped": 17,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:14:58Z"
+        }
+      ]
+    },
+    {
+      "id": "repository-map",
+      "skill": "context-guardian",
+      "path": "scripts/repo_map.py",
+      "description": "Hash-validated project navigation and dependency selection",
+      "example_args": "--help",
+      "dependencies": [
+        "Python standard library",
+        "Git for project-bound operations"
+      ],
+      "effect": "project-bound controller operation",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "context-guardian",
+      "status": "verified",
+      "inputs": {
+        "--project": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --project"
+        },
+        "--query": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --query"
+        },
+        "--budget": {
+          "type": "integer",
+          "required": false,
+          "description": "CLI argument --budget"
+        },
+        "--seed": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --seed"
+        },
+        "--rebuild": {
+          "type": "boolean",
+          "required": false,
+          "description": "Discard cached parses and re-index every candidate"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-runtime-state",
+        "write-project-files",
+        "git-read",
+        "process-spawn"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_repo_map.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_repo_map.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_repo_map.py",
+          "exit_code": 0,
+          "source_sha256": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+          "contract_sha256": "686a9bbde3a3f57e5ea6f4984218d17a6cf0e36fc3396e41f962f1ae78433a93",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "1840b712865fe4d78bd668addc47e839358a6986d703f3c842e37fb09c503fbd",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 32,
+            "run": 32,
+            "executed": 32,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:15:03Z"
+        }
+      ]
+    },
+    {
+      "id": "host-lifecycle",
+      "skill": "context-guardian",
+      "path": "scripts/host_lifecycle.py",
+      "description": "Install, observe and diagnose explicitly selected native host bindings",
+      "example_args": "--help",
+      "dependencies": [
+        "Python standard library",
+        "Git for project-bound operations"
+      ],
+      "effect": "project-bound controller operation",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "context-guardian",
+      "status": "verified",
+      "inputs": {
+        "--project": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --project"
+        },
+        "--project-id": {
+          "type": "string",
+          "required": true,
+          "description": "CLI argument --project-id"
+        },
+        "--host": {
+          "type": "string",
+          "required": true,
+          "description": "CLI argument --host"
+        },
+        "--role": {
+          "type": "string",
+          "required": true,
+          "description": "CLI argument --role"
+        },
+        "--criteria": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --criteria"
+        },
+        "--seed": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --seed"
+        },
+        "--source": {
+          "type": "path",
+          "required": false,
+          "description": "CLI argument --source"
+        },
+        "--output": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --output"
+        },
+        "--managed-command": {
+          "type": "string",
+          "required": false,
+          "description": "Exact allowed argv, split on spaces by the shell caller"
+        },
+        "--acceptance": {
+          "type": "path",
+          "required": false,
+          "description": "Project-relative managed workflow plan"
+        },
+        "--acceptance-step": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --acceptance-step"
+        },
+        "--image": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --image"
+        },
+        "--context-limit": {
+          "type": "integer",
+          "required": false,
+          "description": "CLI argument --context-limit"
+        },
+        "--event": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --event"
+        },
+        "--stage": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --stage"
+        },
+        "--config-sha": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --config-sha"
+        },
+        "--model": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --model"
+        },
+        "--prompt": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --prompt"
+        },
+        "--executable": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --executable"
+        },
+        "--one-shot-trust": {
+          "type": "boolean",
+          "required": false,
+          "description": "CLI argument --one-shot-trust"
+        },
+        "--bypass-hook-trust": {
+          "type": "boolean",
+          "required": false,
+          "description": "Vetted disposable fixtures only; refused while unvetted hook sources exist"
+        },
+        "--execute": {
+          "type": "boolean",
+          "required": false,
+          "description": "Actually start the host session"
+        },
+        "--timeout": {
+          "type": "integer",
+          "required": false,
+          "description": "CLI argument --timeout"
+        },
+        "--probe": {
+          "type": "boolean",
+          "required": false,
+          "description": "Read each host --version string; no authentication is read"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-runtime-state",
+        "write-project-files",
+        "git-read",
+        "process-spawn"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_host_lifecycle.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_host_lifecycle.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_host_lifecycle.py",
+          "exit_code": 0,
+          "source_sha256": "734cb10c19e43532e846195f4571f9e212567779aa96d488a042760ccff7e07f",
+          "contract_sha256": "f9a926ee00a090db840c4723d7ed83af69670a2a746cae4cfc3c437b1fccc685",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "498adfafb49988986c3c64933cadfc358ad6dd32873f681413fd20f372eb0288",
+          "acceptance_support_sha256": {
+            "scripts/crewloom.py": "cf693216a6ba722a9271b2bb91c54e103f76acf8f4e2bfe1efa7e4b6da87b42b",
+            "scripts/evaluate_feature.py": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+            "scripts/evaluate_hosts.py": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+            "scripts/task_coordinator.py": "c0249302665a2de10209234270e90417954285b923546364a642b4246682e539",
+            "scripts/tool_catalog.py": "b0dc3d22c22930785e03e4f5c466d85be932df1339edf38b1dee7bdf28316f46"
+          },
+          "counts": {
+            "discovered": 75,
+            "run": 75,
+            "executed": 73,
+            "skipped": 2,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:15:28Z"
+        }
+      ]
+    },
+    {
+      "id": "evaluate-feature",
+      "skill": "qa-test-automation-engineer",
+      "path": "scripts/evaluate_feature.py",
+      "description": "Isolated held-out application acceptance and result scoring",
+      "example_args": "--help",
+      "dependencies": [
+        "Python standard library",
+        "Git for project-bound operations"
+      ],
+      "effect": "project-bound controller operation",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "qa-test-automation-engineer",
+      "status": "verified",
+      "inputs": {
+        "--project": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --project"
+        },
+        "--image": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --image"
+        },
+        "--repeats": {
+          "type": "integer",
+          "required": false,
+          "description": "CLI argument --repeats"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-runtime-state",
+        "write-project-files",
+        "git-read",
+        "process-spawn",
+        "docker"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_evaluate_feature.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_evaluate_feature.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_evaluate_feature.py",
+          "exit_code": 0,
+          "source_sha256": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+          "contract_sha256": "6f4914a572976246b78101c73653cda7f79fcd09dfc51d0fc517b2b346034040",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "e852e75422cadfc2c1e1156301e3de83e3291e94fe955ff545aefc63a7d3d967",
+          "acceptance_support_sha256": {},
+          "counts": {
+            "discovered": 5,
+            "run": 5,
+            "executed": 5,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:15:29Z"
+        }
+      ]
+    },
+    {
+      "id": "evaluate-hosts",
+      "skill": "qa-test-automation-engineer",
+      "path": "scripts/evaluate_hosts.py",
+      "description": "Frozen workload collection and evidence-based host comparison",
+      "example_args": "--help",
+      "dependencies": [
+        "Python standard library",
+        "Git for project-bound operations"
+      ],
+      "effect": "project-bound controller operation",
+      "contract_version": 1,
+      "interface_version": "1.0.1",
+      "owner": "qa-test-automation-engineer",
+      "status": "verified",
+      "inputs": {
+        "--output": {
+          "type": "path",
+          "required": true,
+          "description": "CLI argument --output"
+        },
+        "--study-host": {
+          "type": "string",
+          "required": false,
+          "description": "Required for --study or --study-v2; use --host for standard trials"
+        },
+        "--repeats": {
+          "type": "integer",
+          "required": false,
+          "description": "CLI argument --repeats"
+        },
+        "--seed": {
+          "type": "integer",
+          "required": false,
+          "description": "CLI argument --seed"
+        },
+        "--image": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --image"
+        },
+        "--timeout": {
+          "type": "integer",
+          "required": false,
+          "description": "CLI argument --timeout"
+        },
+        "--case-runs": {
+          "type": "integer",
+          "required": false,
+          "description": "CLI argument --case-runs"
+        },
+        "--host": {
+          "type": "string",
+          "required": false,
+          "description": "Required for standard trials; use --study-host in a study mode"
+        },
+        "--codex-model": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --codex-model"
+        },
+        "--claude-model": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --claude-model"
+        },
+        "--study": {
+          "type": "boolean",
+          "required": false,
+          "description": "Select the documented context-study protocol instead of standard host trials"
+        },
+        "--study-v2": {
+          "type": "boolean",
+          "required": false,
+          "description": "Select the documented context-study protocol instead of standard host trials"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-runtime-state",
+        "write-project-files",
+        "git-read",
+        "process-spawn",
+        "docker",
+        "model-provider",
+        "network"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_evaluate_hosts.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_evaluate_hosts.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_evaluate_hosts.py",
+          "exit_code": 0,
+          "source_sha256": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+          "contract_sha256": "0550fcdf1bf8af28278d25cae3161e349d68e4c4bac54886df5f659c214e93f0",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/evaluate_feature.py": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/reviewer_credentials.py": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "8bf58d076448be33b9314274c6f0dba8893c940b94706973add1dfc26244c4d5",
+          "acceptance_support_sha256": {
+            "scripts/crewloom.py": "cf693216a6ba722a9271b2bb91c54e103f76acf8f4e2bfe1efa7e4b6da87b42b",
+            "scripts/task_coordinator.py": "c0249302665a2de10209234270e90417954285b923546364a642b4246682e539",
+            "scripts/tool_catalog.py": "b0dc3d22c22930785e03e4f5c466d85be932df1339edf38b1dee7bdf28316f46"
+          },
+          "counts": {
+            "discovered": 6,
+            "run": 6,
+            "executed": 6,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:15:30Z"
+        }
+      ]
+    },
+    {
+      "id": "reviewer-credentials",
+      "skill": "qa-test-automation-engineer",
+      "path": "scripts/reviewer_credentials.py",
+      "description": "Scoped reviewer issuance and receipt verification",
+      "example_args": "--help",
+      "dependencies": [
+        "Python standard library",
+        "Git for project-bound operations"
+      ],
+      "effect": "project-bound controller operation",
+      "contract_version": 1,
+      "interface_version": "1.0.0",
+      "owner": "qa-test-automation-engineer",
+      "status": "verified",
+      "inputs": {
+        "--project": {
+          "type": "path",
+          "required": false,
+          "description": "Bound project root (default: current directory)"
+        },
+        "--principal": {
+          "type": "string",
+          "required": true,
+          "description": "CLI argument --principal"
+        },
+        "--label": {
+          "type": "string",
+          "required": false,
+          "description": "CLI argument --label"
+        },
+        "--show-token": {
+          "type": "boolean",
+          "required": false,
+          "description": "Also print the issued token on stdout; off by default so it cannot reach a log"
+        }
+      },
+      "outputs": {
+        "stdout": {
+          "type": "text",
+          "required": false,
+          "description": "Actual CLI report; warnings or heuristics do not establish application acceptance"
+        }
+      },
+      "errors": {
+        "rejected": {
+          "exit_code": 2,
+          "meaning": "Invalid arguments, unsupported scope or refused operation; inspect the CLI report"
+        },
+        "failure": {
+          "exit_code": 1,
+          "meaning": "Input, execution or acceptance failed where the command defines exit 1"
+        }
+      },
+      "capabilities": [
+        "read-project-files",
+        "write-runtime-state",
+        "write-project-files",
+        "git-read",
+        "process-spawn"
+      ],
+      "limits": {
+        "timeout_seconds": 600
+      },
+      "idempotent": false,
+      "acceptance": [
+        "scripts/test_task_coordinator.py"
+      ],
+      "evidence": [
+        {
+          "test": "scripts/test_task_coordinator.py",
+          "command": "tool_catalog.py acceptance-worker scripts test_task_coordinator.py",
+          "exit_code": 0,
+          "source_sha256": "75fc81302b912795bc2525ec63abc2ccf97b837e46bcfb7b231e9a4fde6d996e",
+          "contract_sha256": "555e92e79044359bc3150449ffd13384f76218c098b3208acc5b1257821a3693",
+          "support_sha256": {
+            "scripts/admission.py": "0e8ddf753c094a59bd7f83098dd8af11052bb7be3e205ee4d145bfe9f80b9968",
+            "scripts/continuation.py": "28fdaeadf08009ecd0931e41245732f9eeff79318d1f3ecb6455ca9234594c84",
+            "scripts/crewloom_resources.py": "14879cfbef9129e3bfd2e57e30e72da41110b6c081f72c0e785a423e1aa0780f",
+            "scripts/execution_policy.py": "2249afe39e2a72ee4078f258bd19e6e5f581766d2ff6ae36e9f6ebeefd50b616",
+            "scripts/js_syntax.py": "cfc9674f0b1eab8648e2d9c599285d85a518ef97cb687f8862347e56184882ca",
+            "scripts/model_host.py": "44973df6116d42be722119188e58f75ca8d9bbd026d80900a03a3feb9ddf4c22",
+            "scripts/process_backend.py": "629f3cbe937a6681e7a66af64f965bd925718192e57c711fa5f5e4a1b43e9677",
+            "scripts/project_binding.py": "337083abf05b9757a99c733f996b5ed8d7a829195dc008626ca5320678fb1434",
+            "scripts/project_context.py": "6ad69c1abb8f0da0aecc994c16ca0ecc0982236437f9bece9323d96bb31da9a7",
+            "scripts/project_lessons.py": "a2103a00867a21413854eabc01970ad9672aea0c57c10a7fc1d95f05d4e19166",
+            "scripts/provider_gateway.py": "e4c529024540c5c05821e8c60d59f8b60ec7a2433c0bd187856673c07361bb28",
+            "scripts/repo_map.py": "6452b321b6d8ab048ca52a3e2f8cea1d70781b80fc3d2d575324f6ffc12da504",
+            "scripts/workflow.py": "46b050f110d52efb4dd00e824957f9e69c64d8b47fd979512a602f1a31af5d81"
+          },
+          "acceptance_sha256": "a3536e6ce174b8f92222795c641c6201384257853d2c4fba1a8da6e671f2b952",
+          "acceptance_support_sha256": {
+            "scripts/crewloom.py": "cf693216a6ba722a9271b2bb91c54e103f76acf8f4e2bfe1efa7e4b6da87b42b",
+            "scripts/evaluate_feature.py": "39f21a2bc8cf96843e6cfef5e01a5b2055de8dc65ead6ad9b7892818027eac92",
+            "scripts/evaluate_hosts.py": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+            "scripts/task_coordinator.py": "c0249302665a2de10209234270e90417954285b923546364a642b4246682e539",
+            "scripts/tool_catalog.py": "b0dc3d22c22930785e03e4f5c466d85be932df1339edf38b1dee7bdf28316f46"
+          },
+          "counts": {
+            "discovered": 49,
+            "run": 49,
+            "executed": 32,
+            "skipped": 17,
+            "failures": 0,
+            "errors": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0
+          },
+          "provenance": 3,
+          "recorded_at": "2026-10-08T09:15:44Z"
+        }
+      ]
     }
-  ]
+  ],
+  "assets": {
+    "build": [
+      {
+        "path": "scripts/check_repository.py",
+        "reason": "Repository gate run by the commit hook and CI; not a user-facing tool"
+      }
+    ],
+    "internal": [
+      {
+        "path": "scripts/crewloom.py",
+        "reason": "Primary CLI dispatcher: its subcommands are the public interface and `run` dispatches the registered tools"
+      }
+    ]
+  }
 }

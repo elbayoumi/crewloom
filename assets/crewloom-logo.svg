@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Crewloom logo</title>
+  <desc id="desc">A woven mint and blue loom mark. Give agent work a role, memory, and evidence.</desc>
+  <rect width="256" height="256" rx="48" fill="#101827"/>
+  <g fill="none" stroke-width="16" stroke-linecap="round">
+    <path d="M48 68H208M48 108H208M48 148H208M48 188H208" stroke="#40ddbc"/>
+    <path d="M78 44V212M128 44V212M178 44V212" stroke="#8ca9ff"/>
+    <path d="M62 68H94M162 68H194M112 108H144M62 148H94M162 148H194M112 188H144" stroke="#40ddbc"/>
+  </g>
+</svg>

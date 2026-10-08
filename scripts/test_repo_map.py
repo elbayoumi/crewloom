@@ -28,6 +28,28 @@ class MapTests(unittest.TestCase):
         (self.root/'auth.py').write_text('import os\ndef login(user):\n    return user\n')
         (self.root/'other.ts').write_text('export function checkout() { return 1; }\n')
 
+    def test_arabic_query_expands_visible_technical_terms_and_ranks_matching_source(self):
+        value, _ = m.build(self.root)
+        text, receipt = m.render(value, 'مصادقة', 1024)
+        self.assertLess(text.index('auth.py'), text.index('other.ts'))
+        self.assertIn('auth', receipt['query_expansions'])
+        self.assertIn('query:auth', receipt['selection_reasons']['auth.py'])
+        self.assertEqual(m.query_terms('untranslated_identifier')[0], {'untranslated_identifier'})
+        with self.assertRaises(ValueError): m.query_terms('x' * 8193)
+
+    def test_transitive_dependencies_are_ranked_and_missing_closure_is_visible(self):
+        value = {'files': {}, 'graph_complete': True}
+        for name, dependencies in [('entry.py', ['one.py']), ('one.py', ['two.py']), ('two.py', []), ('other.py', [])]:
+            value['files'][name] = {'parser': 'fixture', 'parser_version': 1, 'symbols': [], 'neighbours': dependencies}
+        text, receipt = m.render(value, '', 1024, ['entry.py'])
+        self.assertLess(text.index('two.py'), text.index('other.py'))
+        self.assertEqual(receipt['dependency_omission_count'], 0)
+        self.assertTrue(receipt['navigation_sufficient'])
+        value['files']['one.py']['neighbours'].append('missing.py')
+        _, receipt = m.render(value, '', 1024, ['entry.py'])
+        self.assertFalse(receipt['navigation_sufficient'])
+        self.assertIn('missing.py', receipt['dependency_omissions'])
+
     def test_public_cli_works_with_project_flags(self):
         executable=Path(m.__file__).parent/'crewloom.py'
         result=subprocess.run(['python3',str(executable),'map','--project',str(self.root),'--query','login'],capture_output=True,text=True)

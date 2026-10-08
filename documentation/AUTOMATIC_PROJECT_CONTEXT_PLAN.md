@@ -1,5 +1,7 @@
 # Automatic project context: implementation plan
 
+Historical design and implementation record. The [unified implementation plan](INTELLIGENCE_ROADMAP.md) is the single active delivery plan; the gaps, states and delivery order below describe the earlier context implementation checkpoint and must not be read as current project-wide readiness.
+
 Status: implemented for opted-in projects, measured locally, and documented in [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md). The lifecycle labels, deferred adapters and remaining evidence gaps below are unchanged by that implementation. Two authorized public-project English/Arabic navigation and lifecycle pilots are complete; client delivery, host folder-open callbacks and general provider billing effects are not claimed.
 
 ## Objective

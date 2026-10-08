@@ -1,5 +1,35 @@
 # Challenges
 
+### 2026-10-07 — Gate judged files the commit would not contain
+- Root cause: `tool_catalog.gate` read the working tree and ran `git diff <base>` plus untracked files, so an unstaged edit could hide a staged violation.
+- Fix: one `GitView` over the staged index (hook) or committed tree (CI) for catalog, code, closure, acceptance and evidence; foreign `GIT_*` ignored, custom index explicit, unknown state is an error; tests in `scripts/test_tool_catalog.py` (`SnapshotRules`).
+- State: resolved 2026-10-07.
+
+### 2026-10-07 — Operational code escaped classification and evidence ignored what it depended on
+- Root cause: "entrypoint" meant main-guard plus a CLI import; evidence hashed only the entrypoint and selected fields; acceptance trusted a subprocess exit code (3.9 exits 0 for zero tests, 3.14 exits 5).
+- Fix: reviewed operational-reason rules (guards in any spelling, import-time effects, exec bit, console scripts), label checks for assets, `legacy_exceptions` bound to exact bytes, provenance 2 (closure + acceptance bytes + structured unittest counts), TOCTOU refusal while tests run.
+- State: resolved 2026-10-07; heuristics are static (dynamic imports, non-Python resources and acceptance helper modules are not followed).
+
+### 2026-10-07 — Process inspection failure became proof of absence
+- Root cause: `process_start`/`_process_table` returned None/{} on any `ps` failure, so cancel reported `gone` and deleted tracking.
+- Fix: present/absent/unknown observation, complete-table check (own pid listed, rows parse), `unverifiable:` results keep tracking, tracking refuses unreadable identity, recovery never orphans or stops on unknown.
+- State: resolved 2026-10-07 for POSIX `ps`; Windows is unexercised.
+
+### 2026-10-07 — Scripts that coordinate other tools forced a registration decision
+- Root cause: editing an unregistered CLI (`task_coordinator.py`) or legacy tool (`context_pilot.py`) is now gated; threading `plan_file` through them would have required contracts for each.
+- Fix: left them unchanged and defined the explicit plan-object contract for checkpoints with no recorded path.
+- State: open — register or retire those CLIs, then record their plan path.
+
+### 2026-10-06 — Depth-limited sdist globs leak nested private state
+- Root cause: distutils globs cannot match a directory name at every depth; egg_info builds the final sdist list after `prune_file_list`.
+- Fix: filter in `sdist.make_release_tree` (`setup.py`) plus real-archive canary test (canary built at runtime so the test file is not itself a canary).
+- State: narrow payload cases repaired, R33 remains open for wider archive content/metadata/symlink acceptance. The original implementation used82.0.1 outside the build range; independent follow-up passes its20 cases with the already-installed80.10.2 builder, so no download/approval was needed to verify that range.
+
+### 2026-10-06 — Stale fixtures hid gate failures
+- Root cause: `test_project_binding`, `test_repository_scope` and `test_packaging` encoded older contracts (ignore-file shape, gate module list, banner-only assets); the suite stops at its first failing module.
+- Fix: updated fixtures to the current reviewed contracts without weakening assertions; gate run exit 0.
+- State: resolved 2026-10-06.
+
 ### 2026-10-01 — Separate public tooling from private operations
 - Cause: The upstream workspace mixes reusable roles with client data and agency-specific contracts.
 - Solution: Publish English public adaptations, clean memory, and selected inspected tools in a new repository without upstream Git history.
@@ -238,3 +268,78 @@
 - السبب الجذري: verified from stored outputs — `opencode run` has no schema flag and nothing stated the shape; 13 flat path→source maps and 1 `{"files":…}`.
 - الحل المعتمد: `opencode_schema_instruction` in the agent system prompt (`scripts/model_host.py`); an earlier append-to-prompt design broke the frozen "prompt exactly once" test and was dropped.
 - الحالة: محلول في الكود (2026-10-06); real-model confirmation and the 4 ~300 s timeouts remain open
+
+### 2026-10-07 — A required checkpoint broke ordinary unbound workflows
+- السبب الجذري: making `dispatched` mandatory failed every project without a binding, because no packet can be built there
+- الحل المعتمد: `required_checkpoint` returns None only when no binding exists; a present but invalid binding fails closed (found by existing admission fixtures)
+- الحالة: محلول (2026-10-07)
+
+### 2026-10-07 — Frozen host fixture exposed an unconditional process-table call
+- السبب الجذري: reaping a finished host's group ran `ps` through the fixture's fake `Popen` (fake pid 123456)
+- الحل المعتمد: `reap_group` probes `killpg(pgid, 0)` first, only touches members started after the caller's launch time; frozen test untouched
+- الحالة: محلول (2026-10-07)
+
+### 2026-10-07 — Acceptance that depends on its own evidence cannot record it
+- السبب الجذري: the shipped-catalog test needed current evidence while being the acceptance that produces it
+- الحل المعتمد: split into `test_shipped_catalog.py`; the declared acceptance is only `test_tool_catalog.py`
+- الحالة: محلول (2026-10-07)
+
+### 2026-10-07 — Local Python 3.9 image has no `ps`
+- السبب الجذري: `crewloom-python39-test` lacks procps, so identity-by-start-time tests cannot run there (pre-existing admission tests fail too)
+- الحل المعتمد: process-tree tests skip without `ps`; Python 3.9 CI on ubuntu is the authority for them
+- الحالة: مفتوح — verify on the exact pushed head
+
+### 2026-10-07 — The new tool gate read the wrong repository inside the commit hook
+- السبب الجذري: the hook exports GIT_DIR/GIT_INDEX_FILE; the gate's `git -C <fixture>` calls inherited them, so fixture catalogs were compared with the real repository's (found only by committing; direct test runs passed)
+- الحل المعتمد: `tool_catalog._git` drops GIT_* variables; regression test sets GIT_DIR to another repository
+- الحالة: محلول (2026-10-07)
+
+### 2026-10-07 — Docker-gated coordinator suites broke on the new adapter keyword
+- السبب الجذري: the batch now passes `max_output_tokens` to `generate`; two stand-in providers in Docker-gated suites did not accept it, and my local gate runs skip those suites (CI `coordinator` job caught it)
+- الحل المعتمد: stand-ins accept and record the ceiling; run `CREWLOOM_DOCKER_TESTS=1` for test_task_coordinator and test_development_example before pushing changes to adapter signatures
+- الحالة: محلول (2026-10-07)
+
+### 2026-10-07 — New tool gate and evidence have incomplete boundaries
+- Root causes: gate reads working-tree blobs; main-guard heuristic misses executable scripts; changed legacy tools need no contract; evidence omits acceptance/test and dependency closure; recorder trusts exit0; failed process observation becomes absence.
+- Evidence: staged CLI masked by a helper passes; unguarded CLI/changed legacy pass; replacement acceptance/helper change stays current; actual Python3.9 empty test promotes verified; unavailable ps erases tracking while a real child lives. Python3.14 correctly rejects the empty test, and the corrected first probe assumption is retained.
+- Required solution: current W03/N04 and W09 deltas in INTELLIGENCE_ROADMAP; preserve unknown resources and current source-scoped handoffs. Status: open;135 positives and9 green CI checks do not close these counterexamples.
+
+### 2026-10-07 — Two existing PR observations still reproduce
+- Root causes: continuation checks plan drift only with an explicit override; capability profiles use a generic prompt bound while OpenCode has a smaller argv limit.
+- Evidence: recorded workflow.json changed after checkpoint still accepts by default but refuses with the explicit plan;153,600 bytes pass preflight then fail command construction against131,072 bytes. No provider executed.
+- Required solution: recorded-plan validation and effective adapter-specific byte bounds in W04/W03. Four unresolved review conversations remain under mandatory conversation resolution; approval count is0. No thread was resolved or external reply sent by this review.
+
+### 2026-10-07 — Evidence recorder and static closure still have false-current paths
+- Root causes: catalog item is not reread during recording; expected failures count as executed success; dotted imports omit parent package initializers.
+- Evidence: on3.9.6/3.14.7, timeout123 is overwritten with30; all-xfail required acceptance promotes verified; changing imported __init__.py leaves evidence current although rerecording fails. Clean controls promote correctly.
+- Required solution: consistent catalog snapshot and serialized atomic update preserving concurrent edits; at least one actual passing test per required module; initializer-aware static import closure. Status: open W03/N04; private independent-review-3f28df8 receipts, PROJECT_REVIEW details.
+
+### 2026-10-07 — Evidence-boundary defects resolved in place
+- Root causes: in-memory-only catalog comparison, expected failures counted as passing acceptance, omitted static package initializers.
+- Solution: reuse project_lock/safe_path; bind exact initial catalog bytes and refuse detected drift before atomic replacement; require actual passing outcomes and consistent counts; bind existing nested/relative package initializers.
+- Evidence:70 passing cases on3.9.6/3.14.7 and independently replayed counterexamples; real contender, drift/rename/symlink failures and compatible mixed/namespace clean cases. Status: the three second-review findings resolved in tested cases; arbitrary noncooperating host writes and dynamic/resource/test-helper imports are outside this guarantee.
+
+### 2026-10-07 — Integrated acceptance defects and conservative recovery
+- Root causes: launch preceded tracking; RPC cleanup could discard uncertain ownership; schema1 acceptance trusted a passed flag; acceptance-helper changes were unbound; late dashboard responses crossed selection.
+- Solution: acknowledgement/release gates, retain uncertain resources and refuse response, current scoped executor proof, separate helper provenance, request roots and response fencing.
+- Verification: real process/Docker and scoped stale/foreign-proof controls pass. Fixture failures exposed signed macOS UID parsing, a newly visible container-intent phase and shared unchanged-attempt limits; corrected fixtures preserve these boundaries. Native Windows and live providers require actual-platform/account evidence.
+- Further controls: persisted timeout uncertainty blocks restart replay; fallback records bind project/checkout/root and reject corrupt counters. The transport fixture is frozen and was restored byte-for-byte. Standalone POSIX CLI evaluation retains its original adapter outside project admission; managed workflows always use the acknowledged launcher.45 frozen tests are unchanged. Initial installed smoke failures were invalid CLI argument order and an empty-nodes fixture, corrected without weakening the validator.
+- Root selector counterexamples: containment accepted nested independent roots, and consumer-scoped catalog recording defaulted to the toolkit. Exact selector equality, declared-path validation, abbreviation refusal and explicit catalog-mutation scope now reject both before receipts/dispatch; clean relative file inputs remain accepted.
+
+### 2026-10-08 — Linux runner observation and Python 3.9 declaration
+- Root causes: inherited-marker recovery inspected same-UID environments of processes demonstrably older than launch; protected unrelated runner processes blocked cleanup. The catalog did not declare optional tomllib, unavailable to Python3.9 standard-library discovery. A partial-ps fixture used PID1, which is the test controller in a minimal container.
+- Solution: exclude only proven older process start times with a conservative two-second precision margin; unreadable current/unknown candidates still refuse cleanup. Kernel ESRCH/ENOENT is absence. Explicitly declare conditional stdlib tomllib/fallback; make the partial fixture omit the real controller on every host.
+- Evidence: real nondumpable Linux bystander reproduces unbounded refusal, survives bounded owned cleanup; owned40 cases pass with2 Docker skips, managed tools7/model adapter30 pass on Linux3.9. Native Windows3.9/3.14 passed at0575ab8. Final repaired-head CI remains pending; no paid provider, merge or release.
+- Documentation cleanup: prior appended README sections duplicated existing Self-Editing/context/concurrency instructions. Retained the complete existing sections; checked one canonical occurrence per heading and preserved commands/links.
+
+### 2026-10-08 — Deep review: path contracts and unresolved cleanup
+- Root causes: output/seed/source file arguments were typed as text; the registered evaluator guard accepted a foreign output directory. The role validator treated its ID as a filesystem path. Hash-valid malformed handoff objects and receiver fields caused programmatic exceptions. Buffered output close waited on an unresolved descendant after failed ownership observation.
+- Repairs: known path vocabulary and corrected contracts checked before receipts/dispatch; gate vocabulary uses the same staged/committed snapshot. Stable skill IDs refuse path traversal. Incoming operational packet/receiver shapes reject before ownership claim. Raw reader-owned pipes and cancellation return named unsettled receipts while retaining unknown resources.
+- Evidence: source-c18 adverse/clean collector fixture (no provider); malformed bound packets; actual descendant pipe blocked beyond7s until explicit fixture-owned recovery.165 targeted cases pass before the extra snapshot control; Linux3.9 runner11 and snapshot gate controls pass. Final gate/package/exact-head CI remain separately recorded;45 frozen files unchanged.
+
+Latest deep-review acceptance:166 targeted cases pass on Python3.14; Linux3.9 continuation71 and managed runner11 pass. Same-snapshot path vocabulary rejects mislabeled/invalid/working-tree-masked cases and accepts clean staged contracts. Final exact source and delivery results remain in PR8/the selected ignored checkpoint.
+
+### 2026-10-08 — Available CLI is not an authenticated receiver
+- Root cause: generation flags/version were supported while Claude local auth was loggedOut; OpenCode had0 registered credentials. Native failures remained uncertain, not confirmed quota.
+- Response: retain failures/skip remaining failed-host trial; do not replay or fabricate exhaustion. Spend only remaining reservations on a separately declared same-host manual pilot. Keep observed identity/cost unknown.
+- Evidence: sanitized live-smoke record, same-host app8/core9 and scoped comparison11/11; six managed reservations/seventh refusal. Cross-host remains pending local login and a new explicit budget. Future versioned authentication preflight is an idea, not implemented runtime behavior.

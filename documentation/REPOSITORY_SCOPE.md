@@ -1,5 +1,7 @@
 # Repository scope
 
+The mandatory gate also rejects tracked private/generated paths and any file ignored by the selected project's current Git rules, including forced additions. See [project publication privacy](PROJECT_PRIVACY.md). This adds an index boundary to the existing directory-scope boundary.
+
 `REPOSITORY_SCOPE.json` declares the only top-level directories and files that belong to this
 toolkit checkout. `scripts/check_repository.py` and the pre-commit hook refuse anything else:
 an unregistered directory or file, a foreign `project_id`, an absent or malformed contract,

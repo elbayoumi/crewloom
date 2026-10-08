@@ -347,3 +347,16 @@ byte for byte and appears once in argv, so a frozen study prompt is unaffected. 
 unchanged and every invented shape is still refused. The change is verified against a stand-in
 executable that answers by what it was shown; whether a real model now follows the stated shape is
 checked separately.
+
+## New limited live smoke — 2026-10-08
+
+A separate six-request smoke protocol reused the closure prompt and frozen grader on one invoice task; it did not repeat or replace the preregistered study v2 above. [Sanitized observations](../examples/evaluation/live-smoke-20261008.json) preserve scored, failed and not-dispatched conditions.
+
+| Available Codex arm | Held-out checks | Reported input tokens | Reported output tokens | Prompt bytes | Generation ms |
+|---|---|---:|---:|---:|---:|
+| Full source | 11/11 | 16,261 | 938 | 23,471 | 91,485 |
+| Closure map | 11/11 | 12,991 | 934 | 12,449 | 67,005 |
+
+This single successful pair used3,270 fewer input tokens (20.1095%) with equal task acceptance. The known incorrect candidate passed1/11. No cost was reported; model identity remains unknown, and requested defaults are not reported identity. One pair and a public fixture do not establish statistical significance, quality superiority, general speed or billed savings. Failed authentication records have unknown usage, so total-run token/cost savings are not calculable.
+
+Claude local authentication was absent: its attempts failed, and the remaining Claude condition was not dispatched after failure. There is no complete cross-provider comparison. A distinct before-call addendum used the two remaining requests for a real same-host manual handoff/application acceptance; it did not replace failed trials. The shared controller ledger charged6/6 reservations and refused a seventh. This ceiling counts managed requests, not undocumented internal native CLI steps or money spending. Raw prompts, payloads, generated application and run history remain solely in the independent project's ignored state.

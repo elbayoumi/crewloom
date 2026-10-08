@@ -122,9 +122,10 @@ def _stand_in_provider(requests):
     network, CLI or credential is involved: the point is the orchestration around generation, not
     a model. Every claim about what was generated stays checkable from the recorded requests.
     """
-    def generate(host, prompt, outputs, timeout=180, model=None):
+    def generate(host, prompt, outputs, timeout=180, model=None, max_output_tokens=None):
+        # W09: inside a batch the adapter is now told its output ceiling; the stand-in records it.
         payload = json.loads(prompt.split('\n', 1)[1])
-        requests.append({'host': host, 'model': model, 'task': payload['task'],
+        requests.append({'host': host, 'model': model, 'ceiling': max_output_tokens, 'task': payload['task'],
                          'inputs': [item['path'] for item in payload['inputs']],
                          'outputs': list(payload['outputs'])})
         function = 'double' if 'left' in payload['task'] else 'triple'
@@ -785,6 +786,9 @@ class DockerCoordinatorTests(CoordinatorFixture):
         self.assertIsNone(states['right']['commit'])
         recorded = json.loads((self.worktree('right') / '.crewloom/workflows/right-workflow'
                                / 'state.json').read_text())['error']
+        run_state = json.loads((self.worktree('right') / '.crewloom/workflows/right-workflow'
+                               / 'state.json').read_text())
+        self.assertEqual(run_state['plan_file'], 'workflows/right.json')
         self.assertEqual(recorded, 'Command failed: build',
                          'the managed run must carry the failing stage\'s own cause')
         self.assertEqual(states['combine']['status'], 'blocked')

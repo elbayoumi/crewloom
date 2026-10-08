@@ -32,7 +32,8 @@ ROOT = SOURCE.parent
 # hook runs the same code this repository runs rather than a re-implementation of it. `crewloom`
 # resolves the real role validator out of the checkout, and `workflow` supplies the one name
 # comparison both the gate and the managed boundary use.
-GATE_MODULES = ('check_repository.py', 'crewloom.py', 'crewloom_resources.py', 'workflow.py')
+GATE_MODULES = ('check_repository.py', 'crewloom.py', 'crewloom_resources.py', 'workflow.py', 'project_binding.py',
+                'repo_map.py', 'js_syntax.py')
 VALIDATOR = '.agents/skills/skill-forge-recruiter/scripts/validate_skill.py'
 HOOK = '.githooks/pre-commit'
 
@@ -308,7 +309,10 @@ class ForeignEntryBoundaries(ScopeFixture):
         (self.root / 'scripts').mkdir()
         (self.root / 'scripts' / 'good.py').write_text('value = 1\n', encoding='utf-8')
         self.assertEqual(check.scope_errors(self.root), [])
-        self.assertEqual(self.inspect(), [])
+        # The fixture's empty `.git` directory is not a repository: privacy verification fails
+        # closed, and nothing else (no scope, syntax or link error) is reported.
+        self.assertEqual(self.inspect(), ['Cannot verify project publication privacy: '
+                                          'Cannot verify the selected project Git index'])
 
     def test_a_symlinked_top_level_entry_is_named_not_followed(self):
         outside = Path(tempfile.mkdtemp(prefix='crewloom-scope-outside-'))

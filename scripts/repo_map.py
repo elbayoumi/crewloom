@@ -496,23 +496,76 @@ def build(root,rebuild=False,config=None):
                   'duration_ms':round((time.monotonic()-started)*1000)}
 
 
+def _missing_notice(names,limit):
+    """The absent-seed line within `limit` bytes: the names that fit, then a count of the rest."""
+    prefix='Seed files absent from this index: '
+    full=prefix+', '.join(names)+'\n'
+    if len(full.encode())<=limit:return full
+    def line(count):
+        return prefix+', '.join(names[:count])+(' ' if count else '')+'(+'+str(len(names)-count)+' more; see missing_seed_files)\n'
+    count=len(names)
+    while count>0 and len(line(count).encode())>limit:count-=1
+    text=line(count)
+    return text if len(text.encode())<=limit else '(+'+str(len(names))+' absent seed files; see missing_seed_files)\n'
+
+
+
+# Bounded technical terminology expansion, not semantic/LLM translation. Literal
+# identifiers remain present, and the expansions are visible in the selection receipt.
+_QUERY_ALIASES = {
+    'مصادقة': ('auth', 'authentication', 'login'), 'تسجيل': ('login', 'session'),
+    'جلسة': ('session',), 'صلاحيات': ('permission', 'authorization'),
+    'اختبار': ('test',), 'اختبارات': ('test',), 'كاش': ('cache',),
+    'ذاكرة': ('memory',), 'قاعدة': ('database',), 'بيانات': ('data',),
+    'خطأ': ('error',), 'اخطاء': ('error',), 'أخطاء': ('error',),
+    'مهمة': ('task',), 'مهام': ('task',), 'مشروع': ('project',),
+    'مشاريع': ('project',), 'دفع': ('payment',), 'فاتورة': ('invoice',),
+    'عميل': ('client',), 'استمرارية': ('continuation',), 'ميزانية': ('budget',),
+}
+
+
+def query_terms(query):
+    if not isinstance(query, str) or len(query) > 8192:
+        raise ValueError('Navigation query must be text within 8192 characters')
+    words = set(re.findall(r'\w{3,}', query.casefold()))
+    expanded = {alias for word in words for alias in _QUERY_ALIASES.get(word, ())}
+    return words | expanded, sorted(expanded)
+
+
 def render(value,query,budget=8192,seeds=()):
     """Rank files, but always represent a seed path even when its symbol block is oversized."""
     if type(budget) is not int or not 1024<=budget<=65536:raise ValueError('Map budget must be 1024..65536 bytes')
     if isinstance(seeds,str):raise ValueError('Seeds must be a sequence of project-relative paths')
     seeds=list(seeds)
     if len(seeds)>MAX_SEEDS:raise ValueError('Too many seed files for one bounded map')
-    words=set(re.findall(r'\w{3,}',query.casefold()));files=value['files']
+    words,expansions=query_terms(query);files=value['files']
     neighbours=set()
     for seed in seeds:
         neighbours.update(files.get(seed,{}).get('neighbours',()))
+    dependencies=set(neighbours)
+    frontier=list(neighbours)
+    while frontier:
+        name=frontier.pop()
+        for target in files.get(name,{}).get('neighbours',()):
+            if target not in dependencies and target not in seeds:
+                dependencies.add(target);frontier.append(target)
     missing=[seed for seed in seeds if seed not in files]
     def score(name):
         text=name+' '+' '.join(symbol['name'] for symbol in files[name]['symbols'])
-        return (name in seeds,name in neighbours,len(words & set(re.findall(r'\w{3,}',text.casefold()))))
+        return (name in seeds,name in dependencies,len(words & set(re.findall(r'\w{3,}',text.casefold()))))
     ordered=sorted(files,key=lambda name:(tuple(-int(part) for part in score(name)),name))
-    result=HEADER;included=0;truncated_seeds=[];missing_seeds=[]
-    emitted=set()
+    result=HEADER;included=0;truncated_seeds=[];missing_seeds=list(missing)
+    # The absent-seed notice is part of the serialized map, so its room is reserved before any
+    # file is packed. It lists as many names as fit and states how many it leaves out; the
+    # complete list stays in the returned receipt (`missing_seed_files`).
+    notice='';reserve=0
+    if missing_seeds:
+        full='Seed files absent from this index: '+', '.join(missing_seeds)+'\n'
+        reserve=min(len(full.encode()),max(96,budget//8))
+        notice=_missing_notice(missing_seeds,reserve)
+        reserve=len(notice.encode())
+    room=budget-reserve
+    emitted=set();included_names=[];reasons={}
     for name in [seed for seed in seeds if seed in files]+ordered:
         if name in emitted:continue
         emitted.add(name)
@@ -523,20 +576,28 @@ def render(value,query,budget=8192,seeds=()):
             span=':'+str(symbol['line'])+('-'+str(symbol['end']) if symbol['end'] else '')
             lines.append('  '+symbol['kind']+' '+symbol['name']+span+'\n')
         block=header+''.join(lines)
-        if len((result+block).encode())>budget:
+        if len((result+block).encode())>room:
             if name not in seeds:continue
             keep=lines[:MAX_SEED_SYMBOLS]
-            while keep and len((result+header+''.join(keep)).encode())>budget:keep.pop()
+            while keep and len((result+header+''.join(keep)).encode())>room:keep.pop()
             block=header+''.join(keep)+('  symbols omitted by budget; read the file\n' if entry['symbols'] else '')
-            if len((result+block).encode())>budget:raise ValueError('Map budget too small for required seed paths')
+            if len((result+block).encode())>room:raise ValueError('Map budget too small for required seed paths')
             truncated_seeds.append(name)
-        result+=block;included+=1
-    missing_seeds=missing
-    if missing_seeds:
-        result+='Seed files absent from this index: '+', '.join(missing_seeds)+'\n'
+        result+=block;included+=1;included_names.append(name)
+        if len(reasons)<8:
+            matched=sorted(words & set(re.findall(r'\w{3,}',(name+' '+' '.join(symbol['name'] for symbol in entry['symbols'])).casefold())))[:4]
+            labels=(['seed'] if name in seeds else [])+(['dependency'] if name in dependencies else [])+(['query:'+word for word in matched])
+            if labels:reasons[name]=labels
+    result+=notice
+    if len(result.encode())>budget:raise ValueError('Map budget too small for the map and its required notices')
     return result,{'included_files':included,'omitted_files':len(files)-included,'map_bytes':len(result.encode()),
                    'seed_files':len(seeds),'missing_seed_files':missing_seeds,
-                   'truncated_seed_files':sorted(truncated_seeds),'graph_complete':value.get('graph_complete',False)}
+                   'truncated_seed_files':sorted(truncated_seeds),'graph_complete':value.get('graph_complete',False),
+                   'query_expansions':expansions,'selection_reasons':reasons,
+                   'dependency_omissions':sorted(dependencies-set(included_names))[:32],
+                   'dependency_omission_count':len(dependencies-set(included_names)),
+                   'navigation_sufficient':not (missing_seeds or truncated_seeds or dependencies-set(included_names)) and value.get('graph_complete',False),
+                   'sufficiency_scope':'indexed navigation only; source bodies and task acceptance must still be checked'}
 
 
 # The five keys a closure map is measured by, in the order they are serialised and counted.
@@ -713,8 +774,9 @@ def _pack(budget,treatment,candidates):
     while pending:
         path,text,signatures=pending.pop(0);reserve-=_name_cost(path)
         if text is not None and _fit(treatment,'closure',[{'path':path,'text':text}],budget-reserve):continue
-        if not signatures:continue
-        if _fit(treatment,'signatures',signatures,budget-reserve):continue
+        if signatures and _fit(treatment,'signatures',signatures,budget-reserve):continue
+        # A reached module without a placeable body or definitions (constants, initialisation, an
+        # empty or unparsable file) is still named: every reached module is represented or omitted.
         _fit(treatment,'omitted',[path],budget)
     treatment['omitted'].sort()
 

@@ -1,0 +1,124 @@
+{
+  "protocol": "crewloom-live-smoke-20261008",
+  "library_commit": "e3451943e363ad7d77aaf8a61a229ddbeb249365",
+  "date": "2026-10-08",
+  "kind": "New limited live smoke, not a repeat or replacement of context-study-v2",
+  "comparison": [
+    {
+      "host": "codex",
+      "arm": "full-source",
+      "status": "scored",
+      "prompt_bytes": 23471,
+      "checks_passed": 11,
+      "checks_total": 11,
+      "generation_ms": 91485,
+      "usage": {
+        "input_tokens": 16261,
+        "uncached_input_tokens": 16261,
+        "cached_input_tokens": 0,
+        "cache_write_tokens": null,
+        "output_tokens": 938,
+        "reasoning_tokens": null,
+        "total_tokens": 17199
+      },
+      "cost_usd": null,
+      "model_requested": null,
+      "model_reported": null,
+      "host_version": "codex-cli 0.155.1"
+    },
+    {
+      "host": "claude",
+      "arm": "closure-map",
+      "status": "failed",
+      "prompt_bytes": 12449,
+      "checks_passed": null,
+      "checks_total": null,
+      "generation_ms": 1358,
+      "usage": null,
+      "cost_usd": null,
+      "model_requested": null,
+      "model_reported": null,
+      "host_version": null
+    },
+    {
+      "host": "claude",
+      "arm": "full-source",
+      "status": "not-dispatched",
+      "prompt_bytes": null,
+      "checks_passed": null,
+      "checks_total": null,
+      "generation_ms": null,
+      "usage": null,
+      "cost_usd": null,
+      "model_requested": null,
+      "model_reported": null,
+      "host_version": null
+    },
+    {
+      "host": "codex",
+      "arm": "closure-map",
+      "status": "scored",
+      "prompt_bytes": 12449,
+      "checks_passed": 11,
+      "checks_total": 11,
+      "generation_ms": 67005,
+      "usage": {
+        "input_tokens": 12991,
+        "uncached_input_tokens": 12991,
+        "cached_input_tokens": 0,
+        "cache_write_tokens": null,
+        "output_tokens": 934,
+        "reasoning_tokens": null,
+        "total_tokens": 13925
+      },
+      "cost_usd": null,
+      "model_requested": null,
+      "model_reported": null,
+      "host_version": "codex-cli 0.155.1"
+    }
+  ],
+  "input_token_reduction_percent": 20.109464362585328,
+  "negative_grader": {
+    "checks_passed": 1,
+    "checks_total": 11
+  },
+  "cross_host_handoff": {
+    "status": "not-completed",
+    "reason": "Claude local auth status loggedIn=false/authMethod=none; native failure retained without automatic replay",
+    "quota_exhaustion_observed": false
+  },
+  "same_host_handoff": {
+    "status": "complete",
+    "host": "codex",
+    "distinct_receiver": "codex-receiver",
+    "owner_epoch": 1,
+    "core_preserved": true,
+    "plan_unchanged": true,
+    "app_tests_passed": 8,
+    "independent_core_checks_passed": 9,
+    "independent_core_checks_total": 9
+  },
+  "controller_budget": {
+    "maximum_managed_requests": 6,
+    "charged_managed_requests": 6,
+    "known_seventh_request": "refused before dispatch",
+    "original_auth_failed_attempts": 2,
+    "scored_comparison_calls": 2,
+    "same_host_generation_calls": 2
+  },
+  "privacy": {
+    "independent_project_root": true,
+    "project_state_ignored": true,
+    "tracked_private_paths": 0,
+    "frozen_original_inputs_unchanged": 19,
+    "raw_prompts_logs_receipts_location": "selected independent project only; not copied into toolkit"
+  },
+  "limitations": [
+    "One pair on one public example task per available host; no statistical or general quality/speed/savings claim",
+    "Both successful arms score11/11; this does not prove a quality improvement",
+    "Codex reported no cost and no model identity; configured defaults were requested without inferring identity",
+    "Claude comparison is incomplete; no valid cross-provider ranking or quota-fallback claim",
+    "Request cap controls Crewloom reservations, not undocumented internal CLI retries/turns or a currency cap",
+    "Six charged reservations include authentication failures; complete run token/cost totals are unknown"
+  ]
+}
