@@ -37,3 +37,7 @@ Use your actual project directory. This is a heuristic source scanner, not a dat
 ## Isolated feature execution
 
 Start with [the six-stage feature example](../examples/software-workflow/README.md). Use [execution](EXECUTION.md) for readiness, task acceptance, Docker boundaries and resume; use [host setup](HOSTS.md) for project-local agent handoffs.
+
+## Prepare and monitor multiple projects
+
+Use [the project catalog guide](PROJECT_CATALOG.md) for project setup, disjoint-root registration, dashboard monitoring and preserved task cancellation. Use [the coordinator](COORDINATOR.md) for parallel tasks within one Git project.

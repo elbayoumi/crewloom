@@ -36,3 +36,7 @@ The repeated-trial coordinator (`scripts/evaluate_hosts.py`) freezes task/scorer
 A task commit carries only its verified declared outputs, which is what lets the integration worktree combine task commits once and carry artifact diffs. The checked-out root is unchanged until an explicit reviewed decision, revalidated against the manifest, every task, the integration head, the recomputed diff digest and the reviewer credential, moves it by one recorded `--ff-only` fast-forward. Conflicts, failures and cancellations keep every branch, worktree and evidence file rather than resetting or cleaning anything. This is concurrency with reviewed integration, not a task scheduler: there is no provider client, no priority queue, and no way to publish a batch whose combined acceptance did not actually run. See [the coordinator](COORDINATOR.md).
 
 Managed execution now rejects native model CLI steps by default. See [enforcement and compatibility](ENFORCEMENT.md) before running an existing model plan.
+
+## Machine-local catalog
+
+The existing project-binding module owns explicit catalog registration and overlap validation; portable project/checkout identities remain authoritative. The authenticated dashboard reads the selected catalog through the CLI and resolves cancellation from registered IDs. [The catalog guide](PROJECT_CATALOG.md) describes limits and runtime selection.

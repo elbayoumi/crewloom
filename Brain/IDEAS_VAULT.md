@@ -62,3 +62,6 @@ Use a dedicated pipx environment for a globally discoverable development CLI; re
 
 ### 2026-10-05 — Dependency-closure maps
 A map that always includes the bodies of every symbol the selected module imports could keep the token cut without the quality collapse seen in the first study; test it as a new preregistered arm, not a retrofit.
+
+### 2026-10-09 — Separate monitoring from execution selection
+A dashboard can monitor multiple registered roots without changing its writable project. Resolve mutations from server-side IDs and let existing locked lifecycle actions handle them; do not trust roots supplied by the browser.

@@ -238,3 +238,8 @@
 - السبب الجذري: verified from stored outputs — `opencode run` has no schema flag and nothing stated the shape; 13 flat path→source maps and 1 `{"files":…}`.
 - الحل المعتمد: `opencode_schema_instruction` in the agent system prompt (`scripts/model_host.py`); an earlier append-to-prompt design broke the frozen "prompt exactly once" test and was dropped.
 - الحالة: محلول في الكود (2026-10-06); real-model confirmation and the 4 ~300 s timeouts remain open
+
+### 2026-10-09 — Catalog and dashboard boundaries
+- Cause: project-local bindings did not provide a checked cross-project list; independent auth module copies could lose the process session list, and mobile grid min-content could overflow the viewport.
+- Fix: explicit catalog with disjoint canonical roots, shared process session state, and zero-minimum mobile grid tracks.
+- Check: redirected/moved identity, nested roots, concurrent registration and selected cancellation regressions; actual browser verification. Account-wide dollar limits and cross-provider quality remain unverified.

@@ -298,6 +298,8 @@ def main():
     mapping.add_argument('--budget',type=int,default=8192)
     mapping.add_argument('--seed',action='append',default=[])
     mapping.add_argument('--rebuild',action='store_true',help='Discard cached parses and re-index every candidate')
+    catalog = commands.add_parser('projects', help='Register and inspect disjoint project roots')
+    catalog.add_argument('catalog_arguments', nargs=argparse.REMAINDER)
     project = commands.add_parser('project', help='Enter, inspect, finish, cancel or relink a bound project context')
     project.add_argument('project_arguments', nargs=argparse.REMAINDER)
     lesson = commands.add_parser('lesson', help='Record, verify, retrieve or review project lessons')
@@ -350,6 +352,9 @@ def main():
             model = getattr(args, host + '_model')
             if model: forwarded.extend(['--' + host + '-model', model])
         return trials_main(forwarded)
+    if args.command == 'projects':
+        from project_binding import catalog_main
+        return catalog_main(args.catalog_arguments)
     if args.command == 'map':
         from repo_map import main as map_main
         return map_main(['--project',args.project,'--query',args.query,'--budget',str(args.budget)]

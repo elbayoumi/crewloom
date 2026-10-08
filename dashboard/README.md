@@ -51,3 +51,7 @@ Server-side session revocation is per process: restarting the dashboard invalida
 The API runs only tools registered in `TOOLS.json`, rejects absolute or `..` path arguments, caps output at 20 KB and run time at 60 s. Binding to a non-loopback interface still requires an explicitly configured credential. Authentication is an integrity boundary, not a sandbox: any process running as the operator can read the dashboard's environment.
 
 Project selection and isolation: [project guide](../documentation/PROJECTS.md).
+
+## Multiple-project monitoring
+
+Set `CREWLOOM_CATALOG` to an absolute local catalog before launching. The authenticated projects panel displays registered roots and task ownership; context cancellation resolves identity on the server and retains artifacts. The tool execution panel stays bound to `--project`. See [the catalog guide](../documentation/PROJECT_CATALOG.md).
