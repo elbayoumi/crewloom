@@ -11,6 +11,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parent.parent
 TOOLS = {
+    'skill': 'skill-forge-recruiter/scripts/validate_skill.py',
     'workflow': 'automation-ops-engineer/scripts/check_workflow_contract.py',
     'seo': 'seo-growth-engineer/scripts/check_seo_content_packet.py',
     'mcp': 'mcp-integration-builder/scripts/validate_mcp_config.py',
@@ -95,6 +96,17 @@ class DirectToolAcceptance(unittest.TestCase):
         self.assertResult(self.run_tool('resource', '--project-dir', self.root), 0)
         file.write_text('const result = "SELECT id FROM users";\n')
         self.assertResult(self.run_tool('resource', '--project-dir', self.root), 1, 'R-HARD-03')
+
+    def test_skill_identifiers_cannot_select_a_foreign_role_directory(self):
+        foreign = self.root / 'foreign-role'; foreign.mkdir()
+        (foreign / 'SKILL.md').write_text('---\nname: foreign\ndescription: fixture\n---\n'
+            'When to use: working memory. ' + 'Reviewed fixture guidance. ' * 12)
+        (foreign / 'brain').mkdir()
+        for name in ('ARCHITECTURE', 'COMPLETED', 'ROADMAP_TODO', 'CHALLENGES', 'IDEAS_VAULT'):
+            (foreign / 'brain' / (name + '.md')).write_text('fixture')
+        self.assertResult(self.run_tool('skill', '--skill', foreign), 1, 'stable skill ID')
+        self.assertResult(self.run_tool('skill', '--skill', '../foreign-role'), 1, 'stable skill ID')
+        self.assertResult(self.run_tool('skill', '--skill', 'context-guardian'), 0, 'PASS')
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 """N02: durable, validated continuation between agents without losing work or weakening scope."""
 import hashlib
+import copy
 import json
 import os
 from pathlib import Path
@@ -224,6 +225,38 @@ class ContinuationBoundaries(unittest.TestCase):
                 self.assertIn('receiver must name an id and a supported host', result['reasons'])
         self.assertIsNone(cont.read_owner(self.root, PLAN_ID))
         self.assertTrue(Path(self.latest_path()).is_file())
+
+    def test_hash_valid_malformed_packets_are_named_refusals_without_mutation(self):
+        original = self.interrupted_mid_task()
+        before = (self.attempts_bytes(), Path(self.latest_path()).read_bytes())
+        mutations = [('identity', None), ('identity', []), ('workflow', []), ('source', {}),
+                     ('completed_steps', []), ('completed_steps', {'build': {'outputs': ['not-a-map']}}),
+                     ('producer', ['not-a-profile'])]
+        for field, value in mutations:
+            with self.subTest(field=field, value=value):
+                packet = copy.deepcopy(original)
+                if value is None: packet.pop(field)
+                else: packet[field] = value
+                packet.pop('packet_sha256'); packet['packet_sha256'] = cont.sha(packet)
+                path = self.base / 'malformed-packet.json'; path.write_text(json.dumps(packet))
+                result = cont.validate(self.root, path, RECEIVER)
+                self.assertFalse(result['accepted'])
+                self.assertTrue(any('malformed continuation packet' in r for r in result['reasons']), result)
+                with self.assertRaises(ValueError): cont.accept(self.root, path, RECEIVER)
+                self.assertIsNone(cont.read_owner(self.root, PLAN_ID))
+                self.assertEqual(before, (self.attempts_bytes(), Path(self.latest_path()).read_bytes()))
+        self.assertTrue(cont.validate(self.root, self.latest_path(), RECEIVER)['accepted'])
+
+    def test_malformed_receiver_identity_or_model_never_claims_ownership(self):
+        self.interrupted_mid_task()
+        for receiver in (dict(RECEIVER, id={'label': 'receiver'}), dict(RECEIVER, id='../foreign'),
+                         dict(RECEIVER, model={'requested': 'model'}), dict(RECEIVER, model=' ')):
+            with self.subTest(receiver=receiver):
+                result = cont.validate(self.root, self.latest_path(), receiver)
+                self.assertFalse(result['accepted'])
+                with self.assertRaises(ValueError): cont.accept(self.root, self.latest_path(), receiver)
+                self.assertIsNone(cont.read_owner(self.root, PLAN_ID))
+        self.assertTrue(cont.validate(self.root, self.latest_path(), RECEIVER)['accepted'])
 
     # changed source / policy
     def test_changed_outputs_are_scoped_stale_while_valid_work_is_preserved(self):

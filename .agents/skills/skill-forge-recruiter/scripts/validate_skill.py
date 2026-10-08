@@ -13,6 +13,8 @@ BRAIN_FILES = ["ARCHITECTURE.md", "COMPLETED.md", "ROADMAP_TODO.md",
 
 def check(skill: str) -> list:
     errors = []
+    if not isinstance(skill, str) or not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', skill):
+        return ['expected a stable skill ID, not a filesystem path']
     base = REPO / ".agents" / "skills" / skill
     sk = base / "SKILL.md"
     if not sk.exists():

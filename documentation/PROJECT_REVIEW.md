@@ -6,6 +6,17 @@ The repeated audit identifies two additional publication/privacy defects: nested
 
 This task reviews and records findings. Runtime repairs, release publication and consumer-project enrollment are separate acceptance work.
 
+## Deep operational review — 2026-10-08
+
+Reviewed source `c18a6d5` with11 successful CI checks. Four additional boundary defects reproduced in safe independent fixtures:
+
+- P1: registered `evaluate-hosts` accepted a foreign `--output` because its contract called a path text; the actual CLI routed its controlled collector outside the selected root. Corrected path contracts/guards refuse before receipt/dispatch. Known path fields cannot be relabeled; gate policy follows its selected snapshot, with bad/clean controls.
+- P2: the role validator accepted an absolute directory as a skill ID and read its fixture role. Stable identifiers now refuse directory traversal while real installed role validation stays compatible.
+- P2: checksum-valid malformed handoff objects raised exceptions, and malformed receiver fields could reach profile/ownership code. Operational shapes and stable receiver/model types now give named refusals before an owner claim; valid packets remain compatible.
+- P1: unknown resource observation left output cleanup blocked on a real descendant pipe beyond7s, retaining an intent-only receipt until explicit owned recovery. Reader-owned raw pipes/cancellation now return an unsettled failure while preserving resource identity and incomplete-output status.
+
+Initial repaired acceptance:165 targeted cases, Linux3.9 runner11 and snapshot gate bad/clean controls pass; final integration and exact-head evidence are recorded in PR8/the ignored task checkpoint.45 frozen files remain unchanged. These repairs establish scoped reliability, not model quality, paid token savings, universal host confinement or safe replay of unknown effects.
+
 ## Evidence-boundary repair acceptance — 2026-10-07
 
 The three counterexamples above the previous baseline are repaired in the existing catalog tool. Recording reuses workflow.project_lock in the selected root's ignored .crewloom/tool-catalog directory, validates catalog/runtime paths, snapshots exact catalog bytes before acceptance and refuses detected drift, including unrelated edits. An atomic temporary-file replacement preserves permissions and cleans failed preparation. Cooperating recorders cannot publish concurrently; arbitrary host editors remain outside the lock protocol and this is not an OS-level compare-and-swap guarantee.
@@ -291,3 +302,5 @@ PR8 head0575ab8 passed native Windows3.9/3.14, coordinator and held-out checks, 
 Recovery now excludes only demonstrably older start identities before environment inspection, with a conservative two-second ps precision margin. Missing/unknown bounds and unreadable current candidates remain unresolved; kernel ENOENT/ESRCH is disappearance. The real Linux nondumpable-process control reproduces the old unbounded refusal and verifies the corrected managed cleanup while the unrelated process survives.40 owned cases (2 optional Docker skips),7 managed-tool cases and30 model-host cases pass on Linux3.9. The partial-table fixture now avoids assuming the controller is not PID1. The catalog explicitly declares conditional standard-library tomllib and the existing3.9/3.10 fallback. Exact repaired-head CI is still required; no provider pilot, merge or release occurred.
 
 Final local delivery at3058289: the mandatory hook passes105 modules/1387 cases with101 optional skips, all26 tools have current evidence,785 manifest hashes match and45 frozen contracts remain unchanged. The pinned build produces622-member wheel/1009-member sdist without private/cache/link content; an isolated installed command writes its mandatory receipt and refuses consumer-scoped catalog mutation. Exact pushed-head CI status is reported in PR8 and the final task checkpoint; local acceptance does not substitute for remote or paid-provider evidence.
+
+Latest deep-review acceptance:166 targeted cases pass on Python3.14; Linux3.9 continuation71 and managed runner11 pass. Same-snapshot path vocabulary rejects mislabeled/invalid/working-tree-masked cases and accepts clean staged contracts. Final exact source and delivery results remain in PR8/the selected ignored checkpoint.

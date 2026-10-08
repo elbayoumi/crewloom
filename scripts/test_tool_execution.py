@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import sys
 import subprocess
+import threading
 import repo_map
 import tempfile
 import unittest
@@ -96,6 +97,62 @@ class ToolExecution(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Abbreviated'):
             crewloom.validate_project_paths('future-tool', ['--dest', 'output.json'], self.root, declaration)
         crewloom.validate_project_paths('future-tool', ['--destination', 'output.json'], self.root, declaration)
+
+    def test_output_and_custom_index_paths_refuse_foreign_targets_before_any_receipt(self):
+        self.script.write_text('raise RuntimeError("must not dispatch")')
+        for args in (['--output', '../foreign'], ['--output=../foreign'], ['--outp', '../foreign'],
+                     ['--output', 'local', '--output', '../foreign'], ['--index-file', '../foreign/index']):
+            with self.subTest(args=args), patch.object(admission, 'launch_owned', side_effect=AssertionError('must not launch')):
+                with self.assertRaises(ValueError):
+                    crewloom.run_registered(self.item, self.script, args, self.root)
+        self.assertFalse((self.root / '.crewloom').exists())
+        self.assertFalse((self.root / '.gitignore').exists())
+        crewloom.validate_project_paths('evaluate-hosts', ['--output', 'local'], self.root)
+        crewloom.validate_project_paths('tool-catalog', ['gate', '--index-file', 'local-index'], self.root)
+
+    def test_all_declared_known_path_flags_have_path_contracts(self):
+        import tool_catalog
+        for tool in tool_catalog.load_catalog(crewloom.resources.distribution_root())['tools']:
+            for name, spec in tool.get('inputs', {}).items():
+                if name in crewloom.PATH_FLAGS:
+                    with self.subTest(tool=tool['id'], flag=name): self.assertEqual(spec['type'], 'path')
+
+    def test_unverified_cleanup_returns_without_blocking_on_a_descendant_output_pipe(self):
+        self.script.write_text('import subprocess,sys\nsubprocess.Popen([sys.executable,"-c",'
+            '"import time;time.sleep(120)"])\nprint("accepted",flush=True)\n')
+        outcome = {}; output = io.StringIO()
+        def execute():
+            try: outcome['code'] = crewloom.run_registered(self.item, self.script, [], self.root)
+            except Exception as exc: outcome['error'] = repr(exc)
+        worker = threading.Thread(target=execute, daemon=True)
+        try:
+            with patch('tool_catalog.provenance', return_value=self.provenance), \
+                    patch.object(admission, 'settle_current_process', return_value='unverifiable: fixture observation failure'), \
+                    contextlib.redirect_stdout(output):
+                worker.start(); worker.join(timeout=3)
+                self.assertFalse(worker.is_alive(), 'the wrapper must not wait for an unresolved descendant pipe')
+            self.assertEqual(outcome, {'code': 2})
+            folder = next((self.root / '.crewloom/tools/fixture-tool').iterdir())
+            record = json.loads((folder / 'execution.json').read_text())
+            self.assertEqual(record['state'], 'unsettled')
+            self.assertEqual(record['reason'], 'cleanup-unverified')
+            self.assertFalse(record['output_complete'])
+            self.assertTrue(admission.summary(folder)['tracked_processes'], 'unknown resources stay tracked')
+        finally:
+            for folder in (self.root / '.crewloom/tools/fixture-tool').glob('*'):
+                admission.terminate_owned(folder)  # explicit healthy recovery of only this fixture's owned resources
+            worker.join(timeout=5)
+
+    def test_cleanup_io_failure_is_a_named_unsettled_receipt_not_a_success(self):
+        with patch.object(admission, 'settle_current_process', side_effect=OSError('fixture inaccessible ledger')):
+            status, _, record = self.run_target('print("accepted")')
+        self.assertEqual(status, 2)
+        self.assertEqual(record['state'], 'unsettled')
+        self.assertEqual(record['reason'], 'cleanup-unverified')
+        self.assertEqual(record['cleanup'], 'unverifiable: cleanup raised OSError')
+        folder = next((self.root / '.crewloom/tools/fixture-tool').iterdir())
+        self.assertTrue(admission.summary(folder)['tracked_processes'])
+        admission.terminate_owned(folder)
 
     def test_linked_runtime_cannot_write_into_another_project(self):
         other = tempfile.TemporaryDirectory(); self.addCleanup(other.cleanup)

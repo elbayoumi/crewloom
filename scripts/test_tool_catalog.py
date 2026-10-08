@@ -135,6 +135,32 @@ class CatalogRules(Repository):
         self.save()
         self.assertRejected('is not a regular file')
 
+    def test_known_path_flags_cannot_be_disguised_as_text_in_a_contract(self):
+        self.catalog['tools'][0] = legacy('alpha', 'scripts/alpha.py', **contract())
+        self.catalog['tools'][0]['inputs']['--output'] = {'type': 'string', 'description': 'destination'}
+        self.save()
+        self.assertRejected('known path flag --output must declare type path')
+        self.catalog['tools'][0]['inputs']['--output']['type'] = 'path'
+        self.save()
+        self.assertClean()
+
+    def test_path_vocabulary_uses_the_selected_snapshot_and_refuses_unreadable_shape(self):
+        self.write('scripts/crewloom.py', "PATH_FLAGS = {'--output'}\n")
+        self.catalog['tools'][0] = legacy('alpha', 'scripts/alpha.py', **contract())
+        self.catalog['tools'][0]['inputs']['--output'] = {'type': 'string', 'description': 'destination'}
+        self.save(); self.git('add', '-A')
+        self.write('scripts/crewloom.py', "PATH_FLAGS = {'--other'}\n")
+        errors, _ = self.gate(stage=False)
+        self.assertTrue(any('known path flag --output' in e for e in errors), errors)
+        self.catalog['tools'][0]['inputs']['--output']['type'] = 'path'; self.save()
+        self.git('add', 'documentation/TOOLS.json')
+        errors, _ = self.gate(stage=False); self.assertEqual(errors, [])
+        for invalid in ("PATH_FLAGS = ['--output']\n", "PATH_FLAGS = {'--'}\n"):
+            self.write('scripts/crewloom.py', invalid)
+            self.assertRejected('managed path flag vocabulary must be a literal set')
+        self.write('scripts/crewloom.py', "PATH_FLAGS = {'--output'}\n")
+        self.assertClean()
+
 
 class IncrementalRules(Repository):
     def test_an_unregistered_operational_entrypoint_is_rejected_then_accepted_once_registered(self):

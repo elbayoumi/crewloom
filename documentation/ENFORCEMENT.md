@@ -63,3 +63,7 @@ Observed local version/help probes were Codex CLI 0.155.1, Claude Code 2.1.150 a
 ### Linux candidate observation scope
 
 Inherited-marker recovery excludes processes proven to predate launch, allowing a conservative two-second margin for ps timestamps. An unknown start/bound or unreadable current candidate remains unresolved. Kernel ENOENT/ESRCH proves disappearance; permission denial does not. Real protected unrelated-process and owned-target acceptance exercises this boundary. Both native Windows3.9/3.14 checks passed at0575ab8; this proves the tested ownership/tool paths, not all Windows workflows.
+
+### Uncertain managed-tool cleanup
+
+Output is collected through raw reader-owned pipes. If ownership observation or cleanup fails, the wrapper requests capture cancellation and returns a failed/unsettled receipt without waiting indefinitely for a descendant's inherited pipe. The pending reader may remain until that pipe settles; it closes its own descriptor. Unknown resources stay tracked for explicit scoped recovery, and current output is marked incomplete. The runner does not signal an unverified process or grant permission to repeat uncertain side effects.

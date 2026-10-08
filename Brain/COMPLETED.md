@@ -366,3 +366,10 @@
 - Evidence: Linux40 owned cases with2 optional Docker skips,7 managed-tool and30 model-host cases pass; real adverse/clean bystander controls executed. At0575ab8 both Windows CI versions passed; its Linux failures triggered this repair. Final hook, artifacts and repaired-head CI are recorded separately.
 - Final local delivery at3058289: mandatory hook105 modules/1387 cases with101 optional skips; all26 catalog records current;785 source-manifest hashes match and45 frozen contracts unchanged. Pinned setuptools80.10.2 wheel622/sdist1009 members pass privacy/link checks; outside-checkout installation verifies required receipts and consumer catalog-mutation refusal. Exact-head remote outcome is recorded in PR8 and the final ignored task checkpoint.
 - Final README inspection removed duplicate Self-Editing/concurrent-task sections while retaining the complete earlier instructions and project guide link; one occurrence of each remains.
+
+### 2026-10-08 — Deep review repairs in existing tools
+- Artifact: runner/catalog, continuation, skill validator and existing acceptance; corrected v1.0.1 path contracts and constitution status.
+- Impact: foreign result destinations/role-directory paths refuse; malformed handoffs/receivers cannot claim ownership; unknown cleanup returns failed/unsettled instead of blocking on a descendant pipe or claiming success. Resource receipts remain for explicit recovery.
+- Evidence: actual safe fixtures reproduce earlier failures;165 targeted cases and Linux3.9 runner11 pass before final integration; staged-vocabulary bad/clean controls pass. Final source/package/hook/remote proof is in PR8 and ignored .crewloom/deep-review-20261008/checkpoint.json. No provider call, consumer enrollment, merge or release.
+
+Latest deep-review acceptance:166 targeted cases pass on Python3.14; Linux3.9 continuation71 and managed runner11 pass. Same-snapshot path vocabulary rejects mislabeled/invalid/working-tree-masked cases and accepts clean staged contracts. Final exact source and delivery results remain in PR8/the selected ignored checkpoint.

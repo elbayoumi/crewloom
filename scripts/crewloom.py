@@ -87,21 +87,24 @@ def run_registered(item, path, arguments, project):
     save()  # Required before target side effects; never fall back to silent best effort.
     with admission.context(folder, item['id']):
         process = admission.launch_owned([sys.executable, str(path), *arguments], cwd=project,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True, bufsize=0)
         process.stdin.close()
-        count = [0]; exceeded = threading.Event(); read_error = threading.Event()
+        count = [0]; exceeded = threading.Event(); read_error = threading.Event(); stop_reading = threading.Event()
         def collect():
             try:
-                while True:
+                while not stop_reading.is_set():
                     chunk = process.stdout.read(8192)
-                    if not chunk: break
+                    if not chunk or stop_reading.is_set(): break
                     allowed = max(0, output_limit - count[0]); count[0] += len(chunk)
                     if len(chunk) > allowed: exceeded.set()
                     if allowed:
                         sink = getattr(sys.stdout, 'buffer', None)
                         if sink is not None: sink.write(chunk[:allowed]); sink.flush()
                         else: sys.stdout.write(chunk[:allowed].decode('utf-8', 'replace')); sys.stdout.flush()
-            except (OSError, ValueError): read_error.set()
+            except (OSError, ValueError):
+                if not stop_reading.is_set(): read_error.set()
+            finally:
+                process.stdout.close()
         reader = threading.Thread(target=collect, daemon=True); reader.start()
         started = time.monotonic(); reason = None
         try:
@@ -111,15 +114,25 @@ def run_registered(item, path, arguments, project):
                 if time.monotonic() - started >= timeout: reason = 'timeout'; break
                 time.sleep(0.02)
         finally:
-            cleanup = admission.settle_current_process(process.pid)
-            if process.poll() is None:
-                process.wait(timeout=5)
-            reader.join(timeout=5); process.stdout.close()
+            try: cleanup = admission.settle_current_process(process.pid)
+            except (OSError, ValueError, admission.AdmissionError) as exc:
+                cleanup = 'unverifiable: cleanup raised ' + type(exc).__name__
+            if cleanup in ('gone', 'terminated', 'killed'):
+                if process.poll() is None:
+                    try: process.wait(timeout=5)
+                    except subprocess.TimeoutExpired: cleanup = 'unverifiable: process did not settle'
+                reader.join(timeout=5)
+            # The reader closes its own raw pipe after its pending read settles.
+            # Closing a pipe from another thread can wait on platform I/O locks.
+            # Request cancellation; retain unknown ownership for explicit recovery.
+            stop_reading.set()
+            if not reader.is_alive(): process.stdout.close()
         if exceeded.is_set(): reason = 'output-limit'
         if read_error.is_set() or reader.is_alive(): reason = 'output-reader-failed'
         if cleanup not in ('gone', 'terminated', 'killed'): reason = 'cleanup-unverified'
         code = 124 if reason == 'timeout' else 2 if reason else process.returncode
-        record.update(state='finished', exit_code=code, reason=reason, cleanup=cleanup,
+        record.update(state='unsettled' if cleanup not in ('gone', 'terminated', 'killed') else 'finished',
+                      exit_code=code, reason=reason, cleanup=cleanup, process_exit_code=process.poll(),
                       output_bytes_observed=count[0], output_complete=not bool(reason),
                       duration_ms=round((time.monotonic()-started)*1000))
         save()
@@ -301,7 +314,7 @@ def tool_path(item):
 
 
 PATH_FLAGS = {'--project-dir', '--file', '--config', '--packet', '--snapshot', '--tokens', '--out', '--exceptions',
-              '--project', '--project-root', '--root', '--plan', '--manifest'}
+              '--project', '--project-root', '--root', '--plan', '--manifest', '--output', '--index-file'}
 POSITIONAL_PATH_TOOLS = {'workflow-contract', 'delivery-evidence'}
 
 # Commands whose parser, defaults and exit codes live in another module. They declare no arguments

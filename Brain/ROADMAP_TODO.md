@@ -217,3 +217,9 @@ All earlier entries below retain their original snapshot status. Pending work is
 - [x] Declare optional tomllib availability/fallback for Python3.9 catalog validation; correct PID1 partial-table fixture.
 - [x] Final local delivery: hook105 modules/1387 cases (101 optional skips),26 current contracts,785 manifest hashes,45 frozen files and clean installed archives verified at3058289. Exact pushed-head CI is recorded in PR8/final task checkpoint.
 - [ ] Live cross-host/application pilot needs explicit selected host/budget; usefulness, broad role activation/composition and optional integration acceptance remain in the unified plan. No merge or release.
+
+### 2026-10-08 — Deep review increment
+- [x] Correct current file/output/seed/source/acceptance contracts; known path flags cannot be mislabeled, and policy vocabulary follows the selected staged/committed snapshot.
+- [x] Restrict role selection to stable IDs; reject malformed operational handoff/receiver fields without ownership mutation.
+- [x] Bound unresolved output cleanup and retain named unsettled receipts/owned resources instead of hanging or reporting success.
+- Final local package/hook and exact-head remote outcome: PR8/final ignored checkpoint. Live cross-host application usefulness still needs explicit host/budget; arbitrary native host activity is outside sandbox enforcement.

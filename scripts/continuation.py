@@ -457,6 +457,57 @@ def _plan_problem(root, packet, plan_file, plan):
     return None
 
 
+def _packet_shape_problem(packet):
+    """Validate fields consumed by continuation before dereferencing an incoming packet.
+
+    The checksum proves byte integrity, not schema validity or provenance. Keep
+    optional telemetry extensible; malformed operational references fail closed.
+    """
+    if type(packet.get('schema_version')) is not int:
+        return 'schema_version must be an integer'
+    for name in ('identity', 'workflow', 'source', 'completed_steps'):
+        if not isinstance(packet.get(name), dict): return name + ' must be an object'
+    identity = packet['identity']
+    for name in ('project_id', 'checkout_id', 'project_root', 'task_id'):
+        if not isinstance(identity.get(name), str) or not identity[name]:
+            return 'identity.' + name + ' must be a nonempty string'
+    if not w.ID.fullmatch(identity['task_id']): return 'identity.task_id is invalid'
+    workflow = packet['workflow']
+    if not isinstance(workflow.get('plan_sha256'), str) or not re.fullmatch(r'[a-f0-9]{64}', workflow['plan_sha256']):
+        return 'workflow.plan_sha256 must be a SHA256 digest'
+    if workflow.get('plan_file') is not None and not isinstance(workflow['plan_file'], str):
+        return 'workflow.plan_file must be a string or null'
+    if not isinstance(packet.get('policy_sha256'), str) or not re.fullmatch(r'[a-f0-9]{64}', packet['policy_sha256']):
+        return 'policy_sha256 must be a SHA256 digest'
+    source = packet['source']
+    if 'base_revision' not in source or source['base_revision'] is not None and not isinstance(source['base_revision'], str):
+        return 'source.base_revision must be a string or null'
+    if not isinstance(source.get('dirty'), dict) or not isinstance(source['dirty'].get('entries'), dict):
+        return 'source.dirty.entries must be an object'
+    for step, record in packet['completed_steps'].items():
+        if not isinstance(step, str) or not w.ID.fullmatch(step) or not isinstance(record, dict):
+            return 'completed_steps must map step IDs to records'
+        for name in ('inputs', 'outputs'):
+            hashes = record.get(name)
+            if not isinstance(hashes, dict) or any(not isinstance(path, str) or digest is not None and not isinstance(digest, str)
+                                                  for path, digest in hashes.items()):
+                return 'completed_steps.' + step + '.' + name + ' must be a path/hash object'
+    if packet.get('producer') is not None and not isinstance(packet['producer'], dict):
+        return 'producer must be an object or null'
+    return None
+
+
+def _receiver_problem(receiver):
+    import model_host
+    if not isinstance(receiver, dict) or not isinstance(receiver.get('id'), str) \
+            or not w.ID.fullmatch(receiver['id']) or receiver.get('host') not in model_host.HOSTS:
+        return 'receiver must name an id and a supported host'
+    model = receiver.get('model')
+    if model is not None and (not isinstance(model, str) or not model.strip()):
+        return 'receiver model must be a nonempty string or null'
+    return None
+
+
 def _validate(root, packet_path, receiver, plan_file=None, plan=None):
     """Everything a receiver must hold before it may continue. Returns {accepted, reasons, ...}."""
     import model_host
@@ -476,6 +527,10 @@ def _validate(root, packet_path, receiver, plan_file=None, plan=None):
     body = {k: v for k, v in packet.items() if k != 'packet_sha256'}
     if packet.get('packet_sha256') != sha(body):
         reasons.append('packet hash mismatch: corrupt or edited')
+        return result
+    problem = _packet_shape_problem(packet)
+    if problem:
+        reasons.append('malformed continuation packet: ' + problem)
         return result
     identity = packet['identity']
     try:
@@ -510,8 +565,9 @@ def _validate(root, packet_path, receiver, plan_file=None, plan=None):
     if owner and owner['state'] == 'active':
         reasons.append('live owner %s holds the writable slot; it must be interrupted or released first'
                        % owner.get('owner'))
-    if not isinstance(receiver, dict) or not receiver.get('id') or receiver.get('host') not in model_host.HOSTS:
-        reasons.append('receiver must name an id and a supported host')
+    problem = _receiver_problem(receiver)
+    if problem:
+        reasons.append(problem)
     else:
         result['receiver_profile'] = model_host.capability_profile(receiver['host'], receiver.get('model'))
         producer = packet.get('producer') or {}
@@ -593,6 +649,8 @@ def resume(root, plan_file, receivers, max_switches, max_model_requests, image=w
     if not isinstance(receivers, list) or not 1 <= len(receivers) <= 8:
         raise ValueError('Receivers must be a bounded ordered list of 1..8 explicit hosts')
     for receiver in receivers:
+        problem = _receiver_problem(receiver)
+        if problem: raise ValueError(problem)
         if not isinstance(receiver, dict) or set(receiver) - {'id', 'host', 'model'} or not isinstance(receiver.get('id'), str) \
                 or not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', receiver['id']) or receiver.get('host') not in model_host.HOSTS:
             raise ValueError('Each receiver needs a stable id and supported host')

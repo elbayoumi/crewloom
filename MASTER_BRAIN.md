@@ -99,3 +99,6 @@ Crewloom keeps independent project roots and one tool catalog. The current incre
 
 ### 2026-10-08 — Platform-scoped acceptance
 Native Windows3.9/3.14 ownership and tool tests passed at0575ab8. Linux CI exposed protected pre-existing environments and a conditional dependency declaration; bounded recovery now passes actual Linux adverse/clean controls. Final repaired-head acceptance and account-specific usefulness remain separate evidence requirements.
+
+### 2026-10-08 — Review operational failure paths
+Deep review repaired declared-path truth, role-ID traversal, malformed handoff shape and unresolved output cleanup in the existing library. Promotion remains source/acceptance-scoped; uncertainty is retained explicitly rather than converted into success. Source-matched final evidence belongs in PR8 and the selected project's private checkpoint.

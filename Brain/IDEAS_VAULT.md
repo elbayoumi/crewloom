@@ -133,3 +133,6 @@ Next evidence target: the same real accepted application task across approved ho
 
 ### 2026-10-08 — Cross-platform observations need real adverse preconditions
 Keep platform acceptance paired with a real protected unrelated process and a real owned target. A mock-only cleanup proof misses runner/kernel permissions; assert the negative precondition before claiming a repair and retain skipped cases separately.
+
+### 2026-10-08 — Surface uncertainty before retry
+A later task could expose unsettled tool receipts and explicit scoped resource recovery in the dashboard. Keep that distinct from automatic replay or automatic deletion; ownership observation failure is not absence. Current repair makes uncertainty durable and returns promptly, but adds no universal project sandbox or autonomous recovery permission.

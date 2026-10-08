@@ -468,6 +468,30 @@ def _bounded_shape(name, value, errors, label, keys):
             errors.append('%s: %s.%s.required must be boolean' % (name, label, key))
 
 
+def _managed_path_flags(root, view=None):
+    """Read the runner vocabulary from the same artifact snapshot as its contracts.
+
+    Installed data packages and small standalone catalog fixtures have no runner
+    source; their caller's installed runner remains the policy authority.
+    """
+    source = view or WorkingView(root)
+    relative = 'scripts/crewloom.py'
+    if not source.exists(relative):
+        from crewloom import PATH_FLAGS
+        return PATH_FLAGS
+    if source.is_symlink(relative): raise ValueError('managed path flag vocabulary cannot be linked')
+    try:
+        tree = ast.parse(source.read(relative))
+        definitions = [n for n in tree.body if isinstance(n, ast.Assign)
+                       and any(isinstance(t, ast.Name) and t.id == 'PATH_FLAGS' for t in n.targets)]
+        flags = ast.literal_eval(definitions[0].value) if len(definitions) == 1 else None
+        if not isinstance(flags, set) or not flags or any(not isinstance(f, str) or not re.fullmatch(r'--[a-z][a-z0-9]*(?:-[a-z0-9]+)*', f) for f in flags):
+            raise ValueError('invalid vocabulary')
+        return flags
+    except (ValueError, TypeError, SyntaxError) as exc:
+        raise ValueError('managed path flag vocabulary must be a literal set of complete flags') from exc
+
+
 def validate_tool(item, root, files=True, view=None):
     name = str(item.get('id'))
     errors = []
@@ -507,6 +531,13 @@ def validate_tool(item, root, files=True, view=None):
     if not isinstance(item['interface_version'], str) or not VERSION.match(item['interface_version']):
         errors.append('%s: interface_version must be MAJOR.MINOR.PATCH' % name)
     _bounded_shape(name, item['inputs'], errors, 'inputs', ('type', 'required', 'description'))
+    # The runner owns this flag vocabulary; contracts cannot relabel a known path as text.
+    try: path_flags = _managed_path_flags(root, view)
+    except ValueError as exc: errors.append('%s: %s' % (name, exc)); path_flags = set()
+    if isinstance(item['inputs'], dict):
+        for flag, spec in item['inputs'].items():
+            if flag in path_flags and isinstance(spec, dict) and spec.get('type') != 'path':
+                errors.append('%s: known path flag %s must declare type path' % (name, flag))
     _bounded_shape(name, item['outputs'], errors, 'outputs', ('type', 'required', 'description'))
     _bounded_shape(name, item['errors'], errors, 'errors', ('exit_code', 'meaning'))
     caps = item['capabilities']

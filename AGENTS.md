@@ -44,7 +44,7 @@ New or changed behavior requires meaningful positive and negative acceptance, in
 
 Register changes and update usage contracts, examples and evidence together. Discover compact metadata before loading a selected contract or implementation. Improve tools from reproduced failures and measured outcomes, not an obligation to generate new tools daily. Deprecation keeps migration/compatibility information; retirement requires recorded impact on callers and evidence.
 
-These instructions apply now. The additional machine-enforced catalog, execution and commit/CI gates are open implementation work in the unified plan; this section does not claim to sandbox arbitrary host tools.
+These instructions apply now. The catalog, managed execution and commit/CI gates enforce their documented contracts; wider acceptance work remains in the unified plan. Known path flags require path contracts, and selected-project paths are checked before managed dispatch. This section does not claim to sandbox arbitrary host tools.
 
 ## Commit checks
 

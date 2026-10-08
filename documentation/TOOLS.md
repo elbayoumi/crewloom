@@ -90,3 +90,9 @@ Use `crewloom run --project /canonical/project <tool-id> -- <arguments>`; projec
 [process_backend.py](../scripts/process_backend.py) is an internal stdlib Windows identity/Job Object adapter, not a new operational tool. Its real platform acceptance runs in the dedicated Windows CI jobs; a non-Windows skip proves nothing about Windows.
 
 Project/root selectors must equal the selected canonical root; choosing a nested independent project is refused. Declared path inputs are resolved inside that root, including future catalog path flags. Abbreviated path flags are refused to prevent argparse aliases bypassing checks. The readiness tool's explicit agency/registry inputs remain read-only external references. Catalog mutation from a consumer run cannot silently target the installed toolkit; select the toolkit root or an explicit matching `--root`. These are argument guards, not a native filesystem sandbox.
+
+## Path contracts and unsettled execution
+
+Known path flags must declare `type: path`; the catalog gate reads the runner vocabulary from the same staged or committed snapshot. Per-tool repeated source/seed/acceptance paths extend this check; the evaluator's numeric seed remains an integer. Root containment, symlink resolution, full flag names and repeated output arguments are validated before private receipts or dispatch. Explicit read-only agency references retain the documented readiness exception. Role selection uses a stable skill ID, never a directory path.
+
+A managed tool whose cleanup cannot be verified returns exit2 with an `unsettled` private execution receipt and `output_complete: false`. Unknown resources remain tracked for explicit scoped recovery. Output capture cancellation does not wait for an unresolved descendant to close its inherited pipe; the reader closes its own pipe when its pending read settles. This provides a failure boundary, not a filesystem/network sandbox or permission to replay uncertain effects.
