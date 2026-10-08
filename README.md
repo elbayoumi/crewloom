@@ -183,35 +183,3 @@ Derived from RUMUZE Agency's first-party procedures, with filtered public refere
 [Apache-2.0](LICENSE) · Copyright 2026 RUMUZE Agency · [Attribution](NOTICE).
 
 Project selection and isolation: [project guide](documentation/PROJECTS.md).
-
-## Self-Editing Mode
-
-Use [Self-Editing Mode](documentation/SELF_EDITING.md) to repair an existing role, tool or document from an observed problem. The workflow binds a project, makes an in-place change, verifies acceptance and records the result. Arabic activation name: **التعديل الذاتي**.
-
-Managed execution now rejects native model CLI steps by default. See [enforcement and compatibility](documentation/ENFORCEMENT.md) before running an existing model plan.
-
-[Context efficiency](documentation/CONTEXT_EFFICIENCY.md) selects relevant historical records while keeping rules and inputs complete, and verifies context hashes before reusing completed model work.
-
-[Project repository maps](documentation/REPOSITORY_MAP.md) provide a bounded file/symbol index with project-local parsing reuse: `crewloom map --project /path/to/git-project --query login`.
-
-[Project context](documentation/PROJECT_CONTEXT.md) is opt-in per project and adds a portable project ID, a local checkout binding, a frozen per-task context with hash-validated code ranges, and lessons that only recorded executor evidence can promote.
-
-```bash
-crewloom project enter  --project /path/to/your/project --project-id sample-project --task-id login-fix --role context-guardian --seed src/auth.py
-crewloom project status --project /path/to/your/project --project-id sample-project
-crewloom project finish --project /path/to/your/project --project-id sample-project --task-id login-fix --evidence '[{"workflow": "login-flow", "step": "acceptance", "scope": "unit tests"}]'
-```
-
-Entry creates missing metadata and refreshes existing ones without rewriting your constitution or role memory. `status` reports whether the lifecycle is managed by the Crewloom runner, instruction-assisted or manual; opening a folder never triggers it by itself. `finish` completes a task only from recorded executor evidence; `--verification` records an operator attestation and keeps the task awaiting verification. See [the pilot](documentation/PROJECT_CONTEXT.md#measurements) for measured cold/warm behaviour.
-
-## Run independent tasks concurrently
-
-Independent tasks in one project run as a batch instead of one after another. Each task gets its own Git worktree under the project's `.crewloom`, runs the same isolated Docker executor, and a dependent task reads its ancestors' committed output:
-
-```bash
-crewloom coordinator validate --project /path/to/your/project --project-id sample-project --manifest coordinator.json
-crewloom coordinator run      --project /path/to/your/project --project-id sample-project --manifest coordinator.json
-crewloom coordinator prepare  --project /path/to/your/project --project-id sample-project --manifest coordinator.json
-```
-
-The checked-out tree changes only after an explicit reviewed decision moves it by one recorded fast-forward. See [the coordinator](documentation/COORDINATOR.md) and its [Arabic guide](documentation/COORDINATOR.ar.md).
