@@ -81,7 +81,7 @@ crewloom dashboard          # needs Node 20+; opens on http://localhost:4317
 
 ![Dashboard demo: role status, tool runs, and live updates](assets/dashboard-demo.gif)
 
-Monitor roles, memory, and tool runs live with the optional [web dashboard](dashboard/README.md) ([MP4 version](assets/dashboard-demo.mp4)). Every dashboard API route and the event stream require authentication: `crewloom dashboard` writes a generated token to an owner-only file and prints its path, and `CREWLOOM_DASHBOARD_TOKEN` sets it explicitly. Keep the default `127.0.0.1` bind unless you configured a credential.
+Monitor roles, memory, and tool runs live with the optional [web dashboard](dashboard/README.md) ([MP4 version](assets/dashboard-demo.mp4)). `crewloom dashboard` opens on `127.0.0.1` without a password. Local request and Origin checks remain active; non-loopback hosting requires an explicitly configured `CREWLOOM_DASHBOARD_TOKEN`.
 
 See [evidence from real projects](documentation/EVIDENCE.md), including a false positive.
 

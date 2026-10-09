@@ -51,3 +51,7 @@
 ## Project catalog and monitoring
 
 Adds `project setup`, `projects add/list/remove/cancel-task`, catalog overlap guards and authenticated multi-project monitoring. Existing coordinator, packaging and executor limits are reused. Provider comparisons remain scoped to their recorded evidence.
+
+## Password-free local dashboard
+
+`crewloom dashboard` now opens on loopback without sign-in or generated credentials. Local request URLs and mutation Origins are checked; non-loopback hosting retains explicit token authentication.

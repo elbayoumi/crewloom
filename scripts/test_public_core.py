@@ -104,5 +104,34 @@ class PublicCoreTests(unittest.TestCase):
             self.assertEqual(result.returncode, 2)
 
 
+class PasswordFreeDashboardTests(unittest.TestCase):
+    def test_local_launcher_never_generates_a_secret_and_enables_local_access(self):
+        import contextlib, io
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve(); (root / 'node_modules').mkdir()
+            output = io.StringIO()
+            with patch.dict(os.environ, {}, clear=True), patch.object(crewloom.resources, 'dashboard_dir', return_value=root), \
+                 patch.object(crewloom.shutil, 'which', return_value='/usr/bin/npm'), \
+                 patch.object(crewloom.subprocess, 'run') as launched, contextlib.redirect_stdout(output):
+                launched.return_value.returncode = 0
+                self.assertEqual(crewloom.run_dashboard(4317, root, '127.0.0.1'),0)
+                self.assertEqual(launched.call_args.kwargs['env']['CREWLOOM_DASHBOARD_LOCAL'],'1')
+                self.assertEqual(launched.call_args.kwargs['env']['CREWLOOM_DASHBOARD_TOKEN'],'')
+            self.assertFalse((root / '.crewloom/dashboard-token').exists())
+            self.assertIn('no password needed', output.getvalue())
+
+    def test_remote_launcher_does_not_inherit_password_free_mode(self):
+        import contextlib, io
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve(); (root / 'node_modules').mkdir()
+            with patch.dict(os.environ, {'CREWLOOM_DASHBOARD_TOKEN':'t'*40,'CREWLOOM_DASHBOARD_LOCAL':'1'},clear=True), \
+                 patch.object(crewloom.resources,'dashboard_dir',return_value=root), \
+                 patch.object(crewloom.shutil,'which',return_value='/usr/bin/npm'), \
+                 patch.object(crewloom.subprocess,'run') as launched, contextlib.redirect_stdout(io.StringIO()):
+                launched.return_value.returncode=0
+                self.assertEqual(crewloom.run_dashboard(4317,root,'0.0.0.0'),0)
+                self.assertEqual(launched.call_args.kwargs['env']['CREWLOOM_DASHBOARD_LOCAL'],'0')
+
+
 if __name__ == '__main__':
     unittest.main()

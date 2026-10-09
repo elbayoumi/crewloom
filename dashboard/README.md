@@ -5,7 +5,7 @@ A standalone Next.js web app that monitors a Crewloom checkout live. The Python 
 ```bash
 cd dashboard
 npm install
-npm run dev        # http://localhost:4317
+CREWLOOM_DASHBOARD_LOCAL=1 npm run dev -- --hostname 127.0.0.1  # no password
 npm test           # parser and validation tests
 ```
 
@@ -31,11 +31,14 @@ Updates arrive through Server-Sent Events (`/api/events`): editing a memory file
 
 ## Authentication
 
-Every API read, every API write, and the event stream require authentication. There is no anonymous mode: a server started without a configured credential answers `503` rather than serving project data.
+`crewloom dashboard --project /absolute/project` opens locally without a password or sign-in screen. The launcher binds to `127.0.0.1` and explicitly enables local access. Reads require a loopback request URL; mutations require an exact local Origin. Foreign origins and remote bind configurations cannot use this mode.
+
+Non-loopback hosting retains token authentication. A remote server without a configured credential answers `503` rather than serving project data.
 
 | Variable | Meaning |
 | --- | --- |
-| `CREWLOOM_DASHBOARD_TOKEN` | The single access secret. Server-only: never declare it as `NEXT_PUBLIC_*`, or it ships in the browser bundle. `crewloom dashboard` generates one and writes it to `<project>/.crewloom/dashboard-token` with mode `0600`, printing only the path. |
+| `CREWLOOM_DASHBOARD_LOCAL` | `1` enables password-free access only when the actual listener and configured bind host are loopback; set automatically by the CLI. |
+| `CREWLOOM_DASHBOARD_TOKEN` | The single access secret. Server-only: never declare it as `NEXT_PUBLIC_*`, or it ships in the browser bundle. Required only for explicitly selected non-loopback hosting. Local launches do not generate or write a token. |
 | `CREWLOOM_DASHBOARD_HOST` / `CREWLOOM_DASHBOARD_PORT` | The bind address, which also defines the trusted origins. |
 | `CREWLOOM_DASHBOARD_SCHEME` | `https` marks the session cookie `Secure`. |
 | `CREWLOOM_DASHBOARD_ORIGINS` | Extra exact origins, comma separated, for a reverse proxy. |
@@ -55,3 +58,5 @@ Project selection and isolation: [project guide](../documentation/PROJECTS.md).
 ## Multiple-project monitoring
 
 Set `CREWLOOM_CATALOG` to an absolute local catalog before launching. The authenticated projects panel displays registered roots and task ownership; context cancellation resolves identity on the server and retains artifacts. The tool execution panel stays bound to `--project`. See [the catalog guide](../documentation/PROJECT_CATALOG.md).
+
+The npm launcher owns the HTTP listener. Local authentication checks its actual bound address and port; direct `next dev` cannot enable password-free access with an environment flag alone. Invalid arguments or bind errors stop startup.

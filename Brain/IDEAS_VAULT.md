@@ -65,3 +65,8 @@ A map that always includes the bodies of every symbol the selected module import
 
 ### 2026-10-09 — Separate monitoring from execution selection
 A dashboard can monitor multiple registered roots without changing its writable project. Resolve mutations from server-side IDs and let existing locked lifecycle actions handle them; do not trust roots supplied by the browser.
+
+### 2026-10-09 — Scope password-free access to the launch boundary
+Choose local access on the server, rather than passing a hidden shared password into the browser. Keep remote hosting an explicit authenticated choice.
+
+- 2026-10-09: Bind authentication policy to the live socket rather than independent configuration.

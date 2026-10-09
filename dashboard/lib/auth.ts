@@ -2,7 +2,8 @@
  * Server-only dashboard authentication.
  *
  * The dashboard reads one bound project and can execute registered tools inside it, so
- * every API read, every API write, and the event stream are authenticated before any
+ * local access is explicitly restricted to loopback and same-origin mutations. Remote
+ * API reads, API writes, and the event stream are authenticated before any
  * project file is touched. Three rules shape this module:
  *
  * 1. The secret arrives only through the server environment. `CREWLOOM_DASHBOARD_TOKEN`
@@ -46,7 +47,7 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 const NO_STORE = { 'Cache-Control': 'no-store', Vary: 'Cookie' };
 
 export type Decision =
-  | { ok: true; method: 'bearer' | 'session'; expiresAt: number | null }
+  | { ok: true; method: 'bearer' | 'session' | 'local'; expiresAt: number | null }
   | { ok: false; status: number; error: string };
 
 /** Compare two secrets in constant time without leaking length through an early return. */
@@ -209,7 +210,7 @@ function normalizeOrigin(value: string | null | undefined): string | null {
  * header can never add, remove, or rewrite an entry.
  */
 export function expectedOrigins(): string[] {
-  const host = (process.env[HOST_ENV] ?? '127.0.0.1').trim() || '127.0.0.1';
+  const host = ((process.env[HOST_ENV] ?? '127.0.0.1').trim() || '127.0.0.1').replace(/^::1$/, '[::1]');
   const port = (process.env[PORT_ENV] ?? '4317').trim() || '4317';
   const scheme = process.env[SCHEME_ENV] === 'https' ? 'https' : 'http';
   const configured = (process.env[ORIGINS_ENV] ?? '')
@@ -233,8 +234,33 @@ function bearerCredential(req: Request): string | null {
   return match ? match[1].trim() : null;
 }
 
+/** The launcher explicitly chooses password-free local access; remote binds cannot opt in. */
+export function localAccess(): boolean {
+  const runtime = globalThis as typeof globalThis & { __crewloomDashboardListener?: { address(): string | { address: string; port: number } | null } };
+  const bound = runtime.__crewloomDashboardListener?.address();
+  return process.env.CREWLOOM_DASHBOARD_LOCAL === '1'
+    && typeof bound === 'object' && bound !== null
+    && LOOPBACK.includes(bound.address.replace(/^::1$/, '[::1]'))
+    && bound.port === Number(process.env[PORT_ENV] ?? '4317')
+    && LOOPBACK.includes((process.env[HOST_ENV] ?? '127.0.0.1').replace(/^::1$/, '[::1]'));
+}
+
+function localDecision(req: Request): Decision {
+  const port = process.env[PORT_ENV] ?? '4317';
+  const allowed = LOOPBACK.map((host) => `http://${host}:${port}`);
+  let origin: string;
+  try { origin = new URL(req.url).origin; } catch { return { ok: false, status: 403, error: 'Invalid local request' }; }
+  const supplied = req.headers.get('origin');
+  if (!allowed.includes(origin) || (supplied !== null && !allowed.includes(supplied))
+      || (!SAFE_METHODS.has(req.method.toUpperCase()) && supplied === null)) {
+    return { ok: false, status: 403, error: 'Cross-origin local request refused' };
+  }
+  return { ok: true, method: 'local', expiresAt: null };
+}
+
 /** Decide one request. Every failure mode is closed, and none reveals which part was wrong. */
 export function authorize(req: Request): Decision {
+  if (localAccess()) return localDecision(req);
   const token = accessToken();
   if (!token) return { ok: false, status: 503, error: credentialRefusal() ?? 'Dashboard authentication is not configured' };
   const presented = bearerCredential(req);

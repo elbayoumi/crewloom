@@ -161,3 +161,5 @@ The public context acceptance checker consumes `crewloom-hook-pilot/{context.jso
 | [scripts/test_host_prompt_budget.py](../scripts/test_host_prompt_budget.py) | Only OpenCode is bound by the argv budget; stdin hosts keep their larger prompts | `python3 -m unittest discover -s scripts -p test_host_prompt_budget.py` |
 
 | [scripts/test_project_catalog.py](../scripts/test_project_catalog.py) | Catalog roots, identity, atomic registration, selected cancellation and setup memory preservation; context-guardian / QA | `python3 -m unittest discover -s scripts -p test_project_catalog.py` |
+
+| [dashboard/server.mjs](../dashboard/server.mjs) | Dashboard HTTP launcher; inputs: --dev, -H/--hostname, -p/--port and dashboard environment; output: bound Next server; rejects invalid arguments/bind failures; owns verified loopback listener; owner: Crewloom dashboard | `cd dashboard && npm run dev -- --hostname 127.0.0.1` |
