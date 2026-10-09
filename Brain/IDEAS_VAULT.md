@@ -68,3 +68,5 @@ A dashboard can monitor multiple registered roots without changing its writable 
 
 ### 2026-10-09 — Scope password-free access to the launch boundary
 Choose local access on the server, rather than passing a hidden shared password into the browser. Keep remote hosting an explicit authenticated choice.
+
+- 2026-10-09: Bind authentication policy to the live socket rather than independent configuration.

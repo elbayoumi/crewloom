@@ -236,3 +236,5 @@
 - Artifact: local launcher/access mode and direct-opening dashboard.
 - Impact: no sign-in field, no generated token and no logout control in local mode.
 - Evidence: 38 dashboard cases and 10 public-core cases pass; new browser reports zero password fields/sign-in buttons, session method local; foreign-Origin mutation returns 403.
+
+- 2026-10-09: Fixed PR #10 listener-coupling review: actual loopback listener required. Dashboard tests (38), TypeScript and live /api/auth/session verified local authentication.

@@ -248,3 +248,5 @@
 - Cause: the launcher required a generated access secret even on loopback.
 - Fix: explicit password-free local mode with URL/Origin guards; never inherited for remote binds.
 - Check: launcher and authorization regressions plus cookie-free browser/API smoke.
+
+- 2026-10-09: Independent host environment could misrepresent a wildcard listener. Centralized npm launch and verify server.address() before local access; direct Next startup fails closed.

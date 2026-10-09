@@ -32,3 +32,5 @@ The existing project binding module owns catalog registration, overlap guards an
 
 ### 2026-10-09 — Password-free local dashboard
 The launcher explicitly enables loopback-only local access. Local URLs and exact local mutation Origins are checked before project access; non-loopback deployments retain configured-token authentication. No generated token or cookie is required locally.
+
+- 2026-10-09: Password-free local access now reads the real HTTP listener address/port from the npm custom server; an environment flag alone fails closed.

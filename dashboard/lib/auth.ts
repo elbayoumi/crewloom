@@ -236,7 +236,12 @@ function bearerCredential(req: Request): string | null {
 
 /** The launcher explicitly chooses password-free local access; remote binds cannot opt in. */
 export function localAccess(): boolean {
+  const runtime = globalThis as typeof globalThis & { __crewloomDashboardListener?: { address(): string | { address: string; port: number } | null } };
+  const bound = runtime.__crewloomDashboardListener?.address();
   return process.env.CREWLOOM_DASHBOARD_LOCAL === '1'
+    && typeof bound === 'object' && bound !== null
+    && LOOPBACK.includes(bound.address.replace(/^::1$/, '[::1]'))
+    && bound.port === Number(process.env[PORT_ENV] ?? '4317')
     && LOOPBACK.includes((process.env[HOST_ENV] ?? '127.0.0.1').replace(/^::1$/, '[::1]'));
 }
 

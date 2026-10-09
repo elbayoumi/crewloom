@@ -139,3 +139,5 @@
 - [ ] Aggregate multi-checkout request admission and account spending controls; checkout ceilings are not account caps.
 
 - [x] Remove password requirement for local dashboard launch; retain project isolation and same-origin mutation checks.
+
+- 2026-10-09: [x] Couple password-free mode to the actual loopback listener.

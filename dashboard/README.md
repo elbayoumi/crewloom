@@ -37,7 +37,7 @@ Non-loopback hosting retains token authentication. A remote server without a con
 
 | Variable | Meaning |
 | --- | --- |
-| `CREWLOOM_DASHBOARD_LOCAL` | `1` enables password-free access only when the configured bind host is loopback; set automatically by the CLI. |
+| `CREWLOOM_DASHBOARD_LOCAL` | `1` enables password-free access only when the actual listener and configured bind host are loopback; set automatically by the CLI. |
 | `CREWLOOM_DASHBOARD_TOKEN` | The single access secret. Server-only: never declare it as `NEXT_PUBLIC_*`, or it ships in the browser bundle. Required only for explicitly selected non-loopback hosting. Local launches do not generate or write a token. |
 | `CREWLOOM_DASHBOARD_HOST` / `CREWLOOM_DASHBOARD_PORT` | The bind address, which also defines the trusted origins. |
 | `CREWLOOM_DASHBOARD_SCHEME` | `https` marks the session cookie `Secure`. |
@@ -58,3 +58,5 @@ Project selection and isolation: [project guide](../documentation/PROJECTS.md).
 ## Multiple-project monitoring
 
 Set `CREWLOOM_CATALOG` to an absolute local catalog before launching. The authenticated projects panel displays registered roots and task ownership; context cancellation resolves identity on the server and retains artifacts. The tool execution panel stays bound to `--project`. See [the catalog guide](../documentation/PROJECT_CATALOG.md).
+
+The npm launcher owns the HTTP listener. Local authentication checks its actual bound address and port; direct `next dev` cannot enable password-free access with an environment flag alone. Invalid arguments or bind errors stop startup.

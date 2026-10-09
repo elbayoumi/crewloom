@@ -129,6 +129,11 @@ test('password-free local mode allows direct access but refuses foreign origins 
   const oldPort = process.env.CREWLOOM_DASHBOARD_PORT;
   process.env.CREWLOOM_DASHBOARD_LOCAL = '1'; process.env.CREWLOOM_DASHBOARD_HOST = '127.0.0.1';
   process.env.CREWLOOM_DASHBOARD_PORT = '4317';
+  const runtime = globalThis as typeof globalThis & { __crewloomDashboardListener?: { address(): { address: string; port: number } } };
+  assert.equal(auth.localAccess(), false);
+  runtime.__crewloomDashboardListener = { address: () => ({address:'0.0.0.0', port:4317}) };
+  assert.equal(auth.localAccess(), false);
+  runtime.__crewloomDashboardListener = { address: () => ({address:'127.0.0.1', port:4317}) };
   try {
     const url = 'http://127.0.0.1:4317/api/overview';
     const direct = auth.authorize(new Request(url));
@@ -144,6 +149,7 @@ test('password-free local mode allows direct access but refuses foreign origins 
     process.env.CREWLOOM_DASHBOARD_HOST = '0.0.0.0';
     assert.equal(auth.localAccess(),false);
   } finally {
+    delete runtime.__crewloomDashboardListener;
     for (const [key, value] of Object.entries({ CREWLOOM_DASHBOARD_LOCAL:oldLocal, CREWLOOM_DASHBOARD_HOST:oldHost, CREWLOOM_DASHBOARD_PORT:oldPort })) {
       if (value === undefined) delete process.env[key]; else process.env[key] = value;
     }

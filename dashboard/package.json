@@ -3,9 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "dev": "next dev -p 4317",
+    "dev": "node server.mjs --dev",
     "build": "next build",
-    "start": "next start -p 4317",
+    "start": "node server.mjs",
     "test": "node --experimental-strip-types --test test/*.test.ts"
   },
   "dependencies": {
