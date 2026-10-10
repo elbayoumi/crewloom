@@ -37,3 +37,6 @@ The launcher explicitly enables loopback-only local access. Local URLs and exact
 
 ### 2026-10-10 — Scheduling, shared admission and measured activity
 - An explicit machine-local queue schedules registered canonical roots by priority, with one active batch per root and unchanged coordinator worktree/review boundaries. The managed model step reserves shared request/dollar admission atomically before creating a provider attempt; unknown cost retains allowance. Dollar admission is not a vendor account billing cap.
+
+### 2026-10-11 — Source-linked user understanding
+The existing frozen context owns delivery of optional project-local user statements, labelled assumptions and explicit task interpretations. `user_context.py` records exact source quotes and hashes under the selected project/checkout, uses the existing lock and reservation protocol, retains correction history and fails on unresolved questions or stale sources. Provenance is not speaker authentication, factual truth, user confirmation or execution authority. No external memory runtime is required.

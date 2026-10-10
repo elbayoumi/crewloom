@@ -7,6 +7,7 @@ reference. Managed model calls cannot fetch code, so only explicitly declared
 source bodies are embedded here, and required content is never silently dropped.
 """
 import json
+import os
 import re
 import subprocess
 from datetime import datetime, timezone
@@ -299,6 +300,8 @@ def snapshot(root, binding, task_id, role, config, criteria, seeds, language=Non
     if omitted_lessons:
         omitted.append({'kind': 'lessons', 'count': omitted_lessons,
                         'detail': 'verified lessons outside the byte budget were omitted'})
+    import user_context
+    understanding = user_context.select(root, task_id)
     context = {'schema_version': SCHEMA_VERSION, 'generation': 1, 'created_at': now(),
                'scope': {'project_id': binding['project_id'], 'checkout_id': binding['checkout_id'],
                          'project_root': str(root), 'task_id': task_id, 'role': role, 'language': language},
@@ -320,6 +323,7 @@ def snapshot(root, binding, task_id, role, config, criteria, seeds, language=Non
                              'duration_ms': stats['duration_ms'], 'generated_at': now()},
                'ranges': [], 'tests': [], 'neighbours': [], 'lessons': kept_lessons,
                'negative_evidence': lessons['negative_evidence_count'], 'bodies': bodies, 'omissions': omitted,
+               'user_context': understanding,
                'provider': {'usage_available': False, 'cached_tokens_available': False,
                             'note': 'provider usage is recorded only when the provider reports it'}}
     # Required content is sealed first; optional hints then take only the room that is left.
@@ -381,13 +385,26 @@ def history_path(root, task_id, generation):
                        internal=True)
 
 
+def private_context_write(path, context):
+    """Reuse the native lifecycle's atomic owner-only writer for every context copy."""
+    import host_lifecycle
+    data = canonical(context) + '\n'
+    return host_lifecycle._write_private(path, data, limit=len(data.encode('utf-8')))
+
+
+def protect_context(path):
+    if not path.is_file() or path.stat().st_nlink != 1:
+        raise ValueError('Frozen context must be a regular single-link file')
+    os.chmod(path, 0o600)
+
+
 def keep_history(root, task_id, generation, context):
     """Archive one immutable generation once; an existing copy is never overwritten."""
     keep = history_path(root, task_id, generation)
     if keep.is_file():
+        protect_context(keep)
         return keep
-    keep.parent.mkdir(parents=True, exist_ok=True)
-    keep.write_text(canonical(context) + '\n', encoding='utf-8')
+    private_context_write(keep, context)
     return keep
 
 
@@ -402,13 +419,11 @@ def freeze(root, context):
             if stored.get(field) != context['scope'][field]:
                 raise ValueError('Frozen context for this task belongs to another project or checkout: ' + field)
         if not existing.get('invalidated') and existing.get('semantic_sha256') == context['semantic_sha256']:
+            protect_context(path)
             return existing, False
         keep_history(root, task_id, existing.get('generation', 1), existing)
         context = seal(dict(context, generation=existing.get('generation', 1) + 1))
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix('.json.tmp')
-    temporary.write_text(canonical(context) + '\n', encoding='utf-8')
-    temporary.replace(path)
+    private_context_write(path, context)
     return context, True
 
 
@@ -501,6 +516,13 @@ def changed_files(root, context):
         path = w.safe_path(root, name)
         if not path.is_file() or w.digest(path.read_bytes()) != item['sha256']:
             changed.append(name)
+    import user_context
+    try:
+        current = user_context.select(root, context['scope']['task_id'])
+        if current != context.get('user_context'):
+            changed.append('user-context: interpretation or memory changed')
+    except (ValueError, OSError, KeyError, TypeError):
+        changed.append('user-context: source or scope is no longer valid')
     changed.extend(configuration_drift(root, context))
     changed.extend(index_drift(root, context))
     return sorted({item for item in changed if item})
@@ -623,5 +645,5 @@ def invalidate(root, task_id, reason):
     keep_history(root, task_id, context.get('generation', 1), context)
     context['invalidated'] = {'at': now(), 'reason': str(reason)[:200]}
     context = seal(context)
-    path.write_text(canonical(context) + '\n', encoding='utf-8')
+    private_context_write(path, context)
     return context['invalidated']

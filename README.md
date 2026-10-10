@@ -174,3 +174,5 @@ Queue explicit registered projects by priority, keep one batch per root, and sha
 See [scheduling and shared budgets](documentation/SCHEDULING_AND_BUDGETS.md) for setup, crash recovery, and the distinction between admission allowances and vendor billing limits. The queue preserves the existing review step before publication.
 
 See the [Arabic/English developer pilot](examples/bilingual-evaluation/README.md) for the actual generated code, 40 held-out cases, passing Codex trials, and preserved provider failures. Cross-provider evaluation remains incomplete.
+
+[Source-linked user context](documentation/USER_CONTEXT.md) adds project-local quoted statements, labelled assumptions and explicit task interpretations to frozen model context. Corrections retain history; changed sources invalidate reuse. This is provenance checking, not proof of speaker identity or model accuracy.
