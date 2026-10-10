@@ -253,3 +253,8 @@
 
 ### 2026-10-10 — Scheduling, shared admission and measured activity
 - Shared ceilings were previously per-checkout and queue startup could collide with active project reservations. Added locked shared admission, priority queue, identity/intent revalidation and queued waiting_for state. Unknown or failed billing retains allowances. Claude has no local login; OpenCode advertised the configured model but generation still exited 1 after explicit-model diagnostic; provider evaluation remains incomplete.
+
+### 2026-10-11 — Operational features do not establish better user understanding
+- Cause: Coordination and passing synthetic acceptance checks do not measure whether an agent understood the owner.
+- Solution: Add source-linked statements and labelled interpretations to existing context; retain corrections and block explicitly unresolved questions.
+- State: Mechanism tested; automatic ambiguity detection and controlled real-task quality measurement remain open.

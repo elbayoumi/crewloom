@@ -57,3 +57,6 @@ Adds `project setup`, `projects add/list/remove/cancel-task`, catalog overlap gu
 ## Password-free local dashboard
 
 `crewloom dashboard` now opens on loopback without sign-in or generated credentials. Local request URLs and mutation Origins are checked; non-loopback hosting retains explicit token authentication.
+
+### 2026-10-11 — Source-linked user context
+Added `crewloom user-context` for project-local quoted statements, assumptions, retained corrections and task interpretations. Frozen managed prompts carry selected records and reject stale sources or explicitly unresolved questions. No mandatory external dependency or model-quality gain is claimed.

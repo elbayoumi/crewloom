@@ -156,3 +156,8 @@
 - [x] Remove password requirement for local dashboard launch; retain project isolation and same-origin mutation checks.
 
 - 2026-10-09: [x] Couple password-free mode to the actual loopback listener.
+
+### 2026-10-11 — User understanding
+- [x] Source-linked project/user memory, correction history, explicit task interpretation and prompt delivery.
+- [ ] Measure real model misunderstanding and correction rates on a frozen bilingual conversation benchmark.
+- [ ] Evaluate optional extraction adapters after provenance/isolation checks; automatic chat capture is not implemented.

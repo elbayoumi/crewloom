@@ -241,3 +241,8 @@
 
 ### 2026-10-10 — Scheduling, shared admission and measured activity
 - Artifacts: task_queue.py, usage_budget.py, bilingual_evaluation.py and activity panel. Evidence: 14 shared-admission cases including real Docker across two worktrees; two independent queued projects verified in real Docker; 39 dashboard cases and TypeScript pass; real grader accepted 40 reference cases and rejected incorrect/mutating candidates. Live multi-host pilot scored 3/12 planned trials (Codex 61/61 held-out cases); unavailable hosts and one Codex transport failure retained.
+
+### 2026-10-11 — Source-linked user context
+- Artifact: `scripts/user_context.py`, frozen-context/model-prompt integration and `documentation/USER_CONTEXT.md`.
+- Impact: Explicit user/task selection, preserved corrections, quoted statements versus assumptions, stale-source and ambiguity rejection.
+- Evidence: 12 regressions pass, including Arabic prompt delivery, copied-project rejection and source changes. General model-quality improvement remains unmeasured.

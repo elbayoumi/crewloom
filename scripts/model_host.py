@@ -610,6 +610,7 @@ def project_context_payload(root, task_id, step, context=None):
         'policy': context['policy'],
         'criteria': context['criteria'],
         'criteria_file': context.get('criteria_file'),
+        'user_context': context.get('user_context'),
         'navigation': {'text': context['navigation']['text'], 'stats': context['navigation']['stats']},
         'rules': [{'path': item['path'], 'sha256': item['sha256'], 'bytes': item['bytes'],
                   'text': item['text']} for item in context['rules']],

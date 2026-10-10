@@ -299,6 +299,8 @@ def snapshot(root, binding, task_id, role, config, criteria, seeds, language=Non
     if omitted_lessons:
         omitted.append({'kind': 'lessons', 'count': omitted_lessons,
                         'detail': 'verified lessons outside the byte budget were omitted'})
+    import user_context
+    understanding = user_context.select(root, task_id)
     context = {'schema_version': SCHEMA_VERSION, 'generation': 1, 'created_at': now(),
                'scope': {'project_id': binding['project_id'], 'checkout_id': binding['checkout_id'],
                          'project_root': str(root), 'task_id': task_id, 'role': role, 'language': language},
@@ -320,6 +322,7 @@ def snapshot(root, binding, task_id, role, config, criteria, seeds, language=Non
                              'duration_ms': stats['duration_ms'], 'generated_at': now()},
                'ranges': [], 'tests': [], 'neighbours': [], 'lessons': kept_lessons,
                'negative_evidence': lessons['negative_evidence_count'], 'bodies': bodies, 'omissions': omitted,
+               'user_context': understanding,
                'provider': {'usage_available': False, 'cached_tokens_available': False,
                             'note': 'provider usage is recorded only when the provider reports it'}}
     # Required content is sealed first; optional hints then take only the room that is left.
@@ -501,6 +504,13 @@ def changed_files(root, context):
         path = w.safe_path(root, name)
         if not path.is_file() or w.digest(path.read_bytes()) != item['sha256']:
             changed.append(name)
+    import user_context
+    try:
+        current = user_context.select(root, context['scope']['task_id'])
+        if current != context.get('user_context'):
+            changed.append('user-context: interpretation or memory changed')
+    except (ValueError, OSError, KeyError, TypeError):
+        changed.append('user-context: source or scope is no longer valid')
     changed.extend(configuration_drift(root, context))
     changed.extend(index_drift(root, context))
     return sorted({item for item in changed if item})

@@ -73,3 +73,6 @@ Choose local access on the server, rather than passing a hidden shared password 
 
 ### 2026-10-10 — Scheduling, shared admission and measured activity
 - Separate durable queue intent from project execution authority. Persist dispatch before calling providers, preserve interrupted jobs for explicit review/retry, and keep unknown spend conservative. Broaden evaluation only after host availability is demonstrated.
+
+### 2026-10-11 — Evaluate understanding before automatic extraction
+Compare the same model on frozen Arabic/English correction and ambiguous-request conversations, with and without source-linked context. Score wrong-project selection, invented preferences, missed corrections and unnecessary questions separately. Do not promote extracted preferences to facts merely because an LLM produced them.

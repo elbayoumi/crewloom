@@ -291,6 +291,8 @@ def main():
     catalog.add_argument('catalog_arguments', nargs=argparse.REMAINDER)
     project = commands.add_parser('project', help='Enter, inspect, finish, cancel or relink a bound project context')
     project.add_argument('project_arguments', nargs=argparse.REMAINDER)
+    user_context = commands.add_parser('user-context', help='Source-linked user memory and task interpretation')
+    user_context.add_argument('user_context_arguments', nargs=argparse.REMAINDER)
     lesson = commands.add_parser('lesson', help='Record, verify, retrieve or review project lessons')
     lesson.add_argument('lesson_arguments', nargs=argparse.REMAINDER)
     workflow = commands.add_parser('workflow', help='Run an isolated, resumable project workflow')
@@ -355,6 +357,9 @@ def main():
     if args.command == 'project':
         from project_binding import main as project_main
         return project_main(args.project_arguments)
+    if args.command == 'user-context':
+        from user_context import main as user_context_main
+        return user_context_main(args.user_context_arguments)
     if args.command == 'lesson':
         from project_lessons import main as lesson_main
         return lesson_main(args.lesson_arguments)
