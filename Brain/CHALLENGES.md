@@ -258,3 +258,5 @@
 - Cause: Coordination and passing synthetic acceptance checks do not measure whether an agent understood the owner.
 - Solution: Add source-linked statements and labelled interpretations to existing context; retain corrections and block explicitly unresolved questions.
 - State: Mechanism tested; automatic ambiguity detection and controlled real-task quality measurement remain open.
+
+- 2026-10-11 compatibility: Python 3.9 CI rejected the new hardlink test fixture because `Path.hardlink_to` is newer. Use `os.link` in the fixture; the runtime hardlink guard is unchanged.

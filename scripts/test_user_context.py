@@ -1,5 +1,6 @@
 """Source integrity, correction history and scoped prompt-delivery regressions."""
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -130,7 +131,7 @@ class UserContextTests(unittest.TestCase):
             uc.select(self.root, 'understand-task')
         path.unlink()
         self.record(); self.contract()
-        (self.root / 'linked-store').hardlink_to(path)
+        os.link(path, self.root / 'linked-store')
         with self.assertRaisesRegex(ValueError, 'without hardlinks'):
             uc.select(self.root, 'understand-task')
 
