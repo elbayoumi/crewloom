@@ -79,6 +79,10 @@ jobs:
         env:
           CREWLOOM_DOCKER_TESTS: '1'
         run: python3 -m unittest discover -s scripts -p test_task_coordinator.py
+      - name: Shared request admission across real worktrees
+        env:
+          CREWLOOM_DOCKER_TESTS: '1'
+        run: python3 -m unittest discover -s scripts -p test_shared_admission.py
       - name: Complete development example with isolated acceptance and credential review
         env:
           CREWLOOM_DOCKER_TESTS: '1'
@@ -116,6 +120,7 @@ jobs:
         run: |
             python3 -m unittest discover -s scripts -p test_host_lifecycle.py
             python3 -m unittest discover -s scripts -p test_context_study.py
+            python3 -m unittest discover -s scripts -p test_bilingual_evaluation.py
             python3 -m unittest discover -s scripts -p 'test_study_*boundaries.py'
 
   distribution:

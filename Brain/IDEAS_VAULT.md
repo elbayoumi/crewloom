@@ -70,3 +70,6 @@ A dashboard can monitor multiple registered roots without changing its writable 
 Choose local access on the server, rather than passing a hidden shared password into the browser. Keep remote hosting an explicit authenticated choice.
 
 - 2026-10-09: Bind authentication policy to the live socket rather than independent configuration.
+
+### 2026-10-10 — Scheduling, shared admission and measured activity
+- Separate durable queue intent from project execution authority. Persist dispatch before calling providers, preserve interrupted jobs for explicit review/retry, and keep unknown spend conservative. Broaden evaluation only after host availability is demonstrated.

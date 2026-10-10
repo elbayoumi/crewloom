@@ -64,7 +64,18 @@ function assertProjectLog() {
 
 export async function readRuns(limit = 200): Promise<Run[]> {
   assertProjectLog();
-  try { return parseRuns(await fs.readFile(RUN_LOG, 'utf8')).slice(-limit).reverse(); } catch { return []; }
+  try {
+    const file = await fs.open(RUN_LOG, 'r');
+    try {
+      const info = await file.stat();
+      const bytes = Math.min(info.size, 1024 * 1024);
+      const buffer = Buffer.alloc(bytes);
+      const { bytesRead } = await file.read(buffer, 0, bytes, info.size - bytes);
+      let text = buffer.subarray(0, bytesRead).toString('utf8');
+      if (info.size > bytes) text = text.slice(text.indexOf('\n') + 1);
+      return parseRuns(text).filter((r) => !r.project_root || r.project_root === PROJECT).slice(-limit).reverse();
+    } finally { await file.close(); }
+  } catch { return []; }
 }
 
 export async function appendRun(run: Run) {

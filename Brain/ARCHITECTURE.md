@@ -34,3 +34,6 @@ The existing project binding module owns catalog registration, overlap guards an
 The launcher explicitly enables loopback-only local access. Local URLs and exact local mutation Origins are checked before project access; non-loopback deployments retain configured-token authentication. No generated token or cookie is required locally.
 
 - 2026-10-09: Password-free local access now reads the real HTTP listener address/port from the npm custom server; an environment flag alone fails closed.
+
+### 2026-10-10 — Scheduling, shared admission and measured activity
+- An explicit machine-local queue schedules registered canonical roots by priority, with one active batch per root and unchanged coordinator worktree/review boundaries. The managed model step reserves shared request/dollar admission atomically before creating a provider attempt; unknown cost retains allowance. Dollar admission is not a vendor account billing cap.

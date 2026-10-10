@@ -1,11 +1,12 @@
 'use client';
+import ActivityPanel, { type Activity, type Controls } from './activity-panel';
 import ProjectsPanel from './projects-panel';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type Skill = { id: string; description: string; lastActivity: string | null; openTasks: number; doneEntries: number; openChallenges: number; ideas: number; tools: string[]; runs: number; failedRuns: number; status: 'healthy' | 'attention' | 'idle' };
 type Tool = { id: string; skill: string; description: string; example_args: string; effect: string };
 type Run = { ts: string; tool: string; skill: string; exit_code: number; duration_ms: number; source: string; output?: string };
-type Overview = { projectRoot: string; generatedAt: string; totals: Record<string, number>; skills: Skill[]; tools: Tool[]; runs: Run[] };
+type Overview = { activity?: Activity; controls?: Controls; projectRoot: string; generatedAt: string; totals: Record<string, number>; skills: Skill[]; tools: Tool[]; runs: Run[] };
 type Detail = { id: string; skill: string; brain: Record<string, string> };
 
 const T = {
@@ -82,7 +83,7 @@ export default function Dashboard() {
     source.onerror = () => setLive(false);
     return () => source.close();
   }, [auth, load, loadDetail]);
-  useEffect(() => { const id = setInterval(() => setData((d) => d && { ...d }), 30000); return () => clearInterval(id); }, []);
+  useEffect(() => { if (auth !== 'in') return; const id = setInterval(() => { void load(); }, 15000); return () => clearInterval(id); }, [auth, load]);
   useEffect(() => { if (data && !toolId && data.tools[0]) { setToolId(data.tools[0].id); setArgs(data.tools[0].example_args.replace('{input}', '')); } }, [data, toolId]);
 
   const skills = useMemo(() => (data?.skills ?? []).filter((s) => (filter === 'all' || s.status === filter) && (`${s.id} ${s.description}`.toLowerCase().includes(query.toLowerCase()))), [data, filter, query]);
@@ -141,6 +142,7 @@ export default function Dashboard() {
       <p>{lang === "ar" ? "المشروع الحالي" : "Current project"}: <code dir="ltr">{data?.projectRoot ?? "…"}</code></p>
       {error && <div className="card" role="alert">API: {error}</div>}
       <ProjectsPanel language={lang} />
+      <ActivityPanel activity={data?.activity} controls={data?.controls} language={lang} />
       <section className="tiles" aria-label="Totals">
         <div className="tile"><b>{totals.skills ?? '—'}</b><span>{t.skills}</span></div>
         <div className="tile"><b>{totals.tools ?? '—'}</b><span>{t.tools}</span></div>

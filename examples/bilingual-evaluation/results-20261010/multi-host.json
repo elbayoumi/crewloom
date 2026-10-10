@@ -1,0 +1,1616 @@
+{
+  "protocol": "crewloom-bilingual-feature-pilot-v1",
+  "seed": 20261010,
+  "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+  "frozen_inputs": {
+    "examples/bilingual-evaluation/tasks.json": "9780a54a021786809e75b83a3c23b4603080465acfec4cd02828cb79ff701ff0",
+    ".agents/skills/fullstack-mvp-engineer/SKILL.md": "39d51def7c39725eece0dc2f355ea2c58e63225ffd694586dfefe2004738b8f2",
+    "scripts/bilingual_evaluation.py": "1a705a1345e02657f87ff2cdaac4509a11a43019be82382d5ac016cdba9cb7bb",
+    "scripts/model_host.py": "dfe01c0a3358be8da3dd45d2087284d2e0a89b1ff361396f8e6b20e5034ee158",
+    "scripts/evaluate_hosts.py": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+    "scripts/workflow.py": "30504e47783f13609f80ded637b7fa1f5a7c0f384f6a6e8ae277ff091f0da0df"
+  },
+  "planned_trials": [
+    {
+      "host": "codex",
+      "task": "quote",
+      "language": "ar"
+    },
+    {
+      "host": "claude",
+      "task": "quote",
+      "language": "ar"
+    },
+    {
+      "host": "opencode",
+      "task": "reconcile",
+      "language": "en"
+    },
+    {
+      "host": "claude",
+      "task": "quote",
+      "language": "en"
+    },
+    {
+      "host": "opencode",
+      "task": "reconcile",
+      "language": "ar"
+    },
+    {
+      "host": "codex",
+      "task": "reconcile",
+      "language": "en"
+    },
+    {
+      "host": "claude",
+      "task": "reconcile",
+      "language": "en"
+    },
+    {
+      "host": "claude",
+      "task": "reconcile",
+      "language": "ar"
+    },
+    {
+      "host": "opencode",
+      "task": "quote",
+      "language": "en"
+    },
+    {
+      "host": "codex",
+      "task": "quote",
+      "language": "en"
+    },
+    {
+      "host": "codex",
+      "task": "reconcile",
+      "language": "ar"
+    },
+    {
+      "host": "opencode",
+      "task": "quote",
+      "language": "ar"
+    }
+  ],
+  "trials": [
+    {
+      "host": "codex",
+      "task": "quote",
+      "language": "ar",
+      "status": "scored",
+      "evidence": {
+        "host": "codex",
+        "host_version": "codex-cli 0.155.1",
+        "model_requested": null,
+        "model_reported": null,
+        "prompt_bytes": 3654,
+        "duration_ms": 17566,
+        "usage": {
+          "input_tokens": 10453,
+          "cached_input_tokens": 0,
+          "output_tokens": 588,
+          "cache_write_input_tokens": 0,
+          "reasoning_output_tokens": 53,
+          "host_diagnostic_items": 2,
+          "observed_model_steps": 1
+        },
+        "cost_usd": null,
+        "execution_boundary": "text-generation in temporary directory; artifacts validated by Crewloom; installed CLI, native host exception, not an OS sandbox",
+        "usage_metrics": {
+          "input_tokens": 10453,
+          "uncached_input_tokens": 10453,
+          "cached_input_tokens": 0,
+          "cache_write_tokens": null,
+          "output_tokens": 588,
+          "reasoning_tokens": null,
+          "total_tokens": 11041
+        },
+        "native_host_exception": true
+      },
+      "source_sha256": "51f5fe8837d4d55e1dac2d5f2914b309b535f173bb6b7890006cbb7f94dfae61",
+      "passed": 21,
+      "total": 21,
+      "cases": [
+        {
+          "case": "ordinary",
+          "attempt": 1,
+          "duration_ms": 490,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 200,
+            "discount_cents": 0,
+            "tax_cents": 0,
+            "total_cents": 200
+          },
+          "duration_ms_total": 493
+        },
+        {
+          "case": "half-up",
+          "attempt": 1,
+          "duration_ms": 436,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 1,
+            "discount_cents": 0,
+            "tax_cents": 1,
+            "total_cents": 2
+          },
+          "duration_ms_total": 438
+        },
+        {
+          "case": "discount-before-tax",
+          "attempt": 1,
+          "duration_ms": 441,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 105,
+            "discount_cents": 11,
+            "tax_cents": 9,
+            "total_cents": 110
+          },
+          "duration_ms_total": 443
+        },
+        {
+          "case": "full-discount",
+          "attempt": 1,
+          "duration_ms": 433,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 199,
+            "discount_cents": 199,
+            "tax_cents": 0,
+            "total_cents": 9
+          },
+          "duration_ms_total": 435
+        },
+        {
+          "case": "zero",
+          "attempt": 1,
+          "duration_ms": 430,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 0,
+            "discount_cents": 0,
+            "tax_cents": 0,
+            "total_cents": 0
+          },
+          "duration_ms_total": 432
+        },
+        {
+          "case": "large",
+          "attempt": 1,
+          "duration_ms": 434,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 300000000000000000000,
+            "discount_cents": 0,
+            "tax_cents": 0,
+            "total_cents": 300000000000000000000
+          },
+          "duration_ms_total": 436
+        },
+        {
+          "case": "invalid-0",
+          "attempt": 1,
+          "duration_ms": 432,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 433
+        },
+        {
+          "case": "invalid-1",
+          "attempt": 1,
+          "duration_ms": 431,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 433
+        },
+        {
+          "case": "invalid-2",
+          "attempt": 1,
+          "duration_ms": 426,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 428
+        },
+        {
+          "case": "invalid-3",
+          "attempt": 1,
+          "duration_ms": 428,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 430
+        },
+        {
+          "case": "invalid-4",
+          "attempt": 1,
+          "duration_ms": 437,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 439
+        },
+        {
+          "case": "invalid-5",
+          "attempt": 1,
+          "duration_ms": 427,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 428
+        },
+        {
+          "case": "invalid-6",
+          "attempt": 1,
+          "duration_ms": 427,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 429
+        },
+        {
+          "case": "invalid-7",
+          "attempt": 1,
+          "duration_ms": 427,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 429
+        },
+        {
+          "case": "invalid-8",
+          "attempt": 1,
+          "duration_ms": 437,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 439
+        },
+        {
+          "case": "invalid-9",
+          "attempt": 1,
+          "duration_ms": 534,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 536
+        },
+        {
+          "case": "invalid-10",
+          "attempt": 1,
+          "duration_ms": 433,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 435
+        },
+        {
+          "case": "invalid-11",
+          "attempt": 1,
+          "duration_ms": 434,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 436
+        },
+        {
+          "case": "invalid-12",
+          "attempt": 1,
+          "duration_ms": 433,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 435
+        },
+        {
+          "case": "invalid-13",
+          "attempt": 1,
+          "duration_ms": 431,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 433
+        },
+        {
+          "case": "invalid-14",
+          "attempt": 1,
+          "duration_ms": 434,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 436
+        }
+      ]
+    },
+    {
+      "host": "claude",
+      "task": "quote",
+      "language": "ar",
+      "status": "failed",
+      "error": "Host generation failed (exit 1); check local authentication and provider limits"
+    },
+    {
+      "host": "opencode",
+      "task": "reconcile",
+      "language": "en",
+      "status": "failed",
+      "error": "Host generation failed (exit 1); check local authentication and provider limits"
+    },
+    {
+      "host": "claude",
+      "task": "quote",
+      "language": "en",
+      "status": "failed",
+      "error": "Host generation failed (exit 1); check local authentication and provider limits"
+    },
+    {
+      "host": "opencode",
+      "task": "reconcile",
+      "language": "ar",
+      "status": "failed",
+      "error": "Host generation failed (exit 1); check local authentication and provider limits"
+    },
+    {
+      "host": "codex",
+      "task": "reconcile",
+      "language": "en",
+      "status": "scored",
+      "evidence": {
+        "host": "codex",
+        "host_version": "codex-cli 0.155.1",
+        "model_requested": null,
+        "model_reported": null,
+        "prompt_bytes": 3051,
+        "duration_ms": 18880,
+        "usage": {
+          "input_tokens": 10359,
+          "cached_input_tokens": 0,
+          "output_tokens": 596,
+          "cache_write_input_tokens": 0,
+          "reasoning_output_tokens": 69,
+          "host_diagnostic_items": 2,
+          "observed_model_steps": 1
+        },
+        "cost_usd": null,
+        "execution_boundary": "text-generation in temporary directory; artifacts validated by Crewloom; installed CLI, native host exception, not an OS sandbox",
+        "usage_metrics": {
+          "input_tokens": 10359,
+          "uncached_input_tokens": 10359,
+          "cached_input_tokens": 0,
+          "cache_write_tokens": null,
+          "output_tokens": 596,
+          "reasoning_tokens": null,
+          "total_tokens": 10955
+        },
+        "native_host_exception": true
+      },
+      "source_sha256": "c7254a6cdb857adf222b5136986fd2effec9d74d73a98b54addcb721cf14385f",
+      "passed": 19,
+      "total": 19,
+      "cases": [
+        {
+          "case": "empty",
+          "attempt": 1,
+          "duration_ms": 439,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": [],
+          "duration_ms_total": 441
+        },
+        {
+          "case": "separate-projects",
+          "attempt": 1,
+          "duration_ms": 436,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            },
+            {
+              "project_id": "b",
+              "task_id": "build",
+              "seq": 1,
+              "state": "running"
+            }
+          ],
+          "duration_ms_total": 438
+        },
+        {
+          "case": "duplicates",
+          "attempt": 1,
+          "duration_ms": 432,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            }
+          ],
+          "duration_ms_total": 434
+        },
+        {
+          "case": "out-of-order",
+          "attempt": 1,
+          "duration_ms": 372,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            }
+          ],
+          "duration_ms_total": 373
+        },
+        {
+          "case": "task-order",
+          "attempt": 1,
+          "duration_ms": 372,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": [
+            {
+              "project_id": "a",
+              "task_id": "a",
+              "seq": 0,
+              "state": "cancelled"
+            },
+            {
+              "project_id": "a",
+              "task_id": "z",
+              "seq": 0,
+              "state": "failed"
+            }
+          ],
+          "duration_ms_total": 374
+        },
+        {
+          "case": "hidden-old-conflict",
+          "attempt": 1,
+          "duration_ms": 357,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 359
+        },
+        {
+          "case": "large-sequence",
+          "attempt": 1,
+          "duration_ms": 383,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": [
+            {
+              "project_id": "a",
+              "task_id": "t",
+              "seq": 1000000000000000000000000000000,
+              "state": "running"
+            }
+          ],
+          "duration_ms_total": 384
+        },
+        {
+          "case": "invalid-0",
+          "attempt": 1,
+          "duration_ms": 427,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 429
+        },
+        {
+          "case": "invalid-1",
+          "attempt": 1,
+          "duration_ms": 425,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 427
+        },
+        {
+          "case": "invalid-2",
+          "attempt": 1,
+          "duration_ms": 427,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 430
+        },
+        {
+          "case": "invalid-3",
+          "attempt": 1,
+          "duration_ms": 430,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 432
+        },
+        {
+          "case": "invalid-4",
+          "attempt": 1,
+          "duration_ms": 468,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 470
+        },
+        {
+          "case": "invalid-5",
+          "attempt": 1,
+          "duration_ms": 432,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 434
+        },
+        {
+          "case": "invalid-6",
+          "attempt": 1,
+          "duration_ms": 362,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 364
+        },
+        {
+          "case": "invalid-7",
+          "attempt": 1,
+          "duration_ms": 372,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 374
+        },
+        {
+          "case": "invalid-8",
+          "attempt": 1,
+          "duration_ms": 379,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 381
+        },
+        {
+          "case": "invalid-9",
+          "attempt": 1,
+          "duration_ms": 382,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 384
+        },
+        {
+          "case": "invalid-10",
+          "attempt": 1,
+          "duration_ms": 377,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 379
+        },
+        {
+          "case": "invalid-11",
+          "attempt": 1,
+          "duration_ms": 434,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 436
+        }
+      ]
+    },
+    {
+      "host": "claude",
+      "task": "reconcile",
+      "language": "en",
+      "status": "blocked",
+      "error": "Host stopped after two identical transport failures"
+    },
+    {
+      "host": "claude",
+      "task": "reconcile",
+      "language": "ar",
+      "status": "blocked",
+      "error": "Host stopped after two identical transport failures"
+    },
+    {
+      "host": "opencode",
+      "task": "quote",
+      "language": "en",
+      "status": "blocked",
+      "error": "Host stopped after two identical transport failures"
+    },
+    {
+      "host": "codex",
+      "task": "quote",
+      "language": "en",
+      "status": "scored",
+      "evidence": {
+        "host": "codex",
+        "host_version": "codex-cli 0.155.1",
+        "model_requested": null,
+        "model_reported": null,
+        "prompt_bytes": 3138,
+        "duration_ms": 18312,
+        "usage": {
+          "input_tokens": 10385,
+          "cached_input_tokens": 0,
+          "output_tokens": 593,
+          "cache_write_input_tokens": 0,
+          "reasoning_output_tokens": 68,
+          "host_diagnostic_items": 2,
+          "observed_model_steps": 1
+        },
+        "cost_usd": null,
+        "execution_boundary": "text-generation in temporary directory; artifacts validated by Crewloom; installed CLI, native host exception, not an OS sandbox",
+        "usage_metrics": {
+          "input_tokens": 10385,
+          "uncached_input_tokens": 10385,
+          "cached_input_tokens": 0,
+          "cache_write_tokens": null,
+          "output_tokens": 593,
+          "reasoning_tokens": null,
+          "total_tokens": 10978
+        },
+        "native_host_exception": true
+      },
+      "source_sha256": "e2bd02b0d7efb9a2879b02ebc89884a52fc015513f6ed44a50a24b23739130b5",
+      "passed": 21,
+      "total": 21,
+      "cases": [
+        {
+          "case": "ordinary",
+          "attempt": 1,
+          "duration_ms": 487,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 200,
+            "discount_cents": 0,
+            "tax_cents": 0,
+            "total_cents": 200
+          },
+          "duration_ms_total": 490
+        },
+        {
+          "case": "half-up",
+          "attempt": 1,
+          "duration_ms": 403,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 1,
+            "discount_cents": 0,
+            "tax_cents": 1,
+            "total_cents": 2
+          },
+          "duration_ms_total": 405
+        },
+        {
+          "case": "discount-before-tax",
+          "attempt": 1,
+          "duration_ms": 413,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 105,
+            "discount_cents": 11,
+            "tax_cents": 9,
+            "total_cents": 110
+          },
+          "duration_ms_total": 415
+        },
+        {
+          "case": "full-discount",
+          "attempt": 1,
+          "duration_ms": 381,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 199,
+            "discount_cents": 199,
+            "tax_cents": 0,
+            "total_cents": 9
+          },
+          "duration_ms_total": 382
+        },
+        {
+          "case": "zero",
+          "attempt": 1,
+          "duration_ms": 377,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 0,
+            "discount_cents": 0,
+            "tax_cents": 0,
+            "total_cents": 0
+          },
+          "duration_ms_total": 379
+        },
+        {
+          "case": "large",
+          "attempt": 1,
+          "duration_ms": 433,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "value",
+          "passed": 1,
+          "actual": {
+            "subtotal_cents": 300000000000000000000,
+            "discount_cents": 0,
+            "tax_cents": 0,
+            "total_cents": 300000000000000000000
+          },
+          "duration_ms_total": 435
+        },
+        {
+          "case": "invalid-0",
+          "attempt": 1,
+          "duration_ms": 429,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 431
+        },
+        {
+          "case": "invalid-1",
+          "attempt": 1,
+          "duration_ms": 378,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 380
+        },
+        {
+          "case": "invalid-2",
+          "attempt": 1,
+          "duration_ms": 370,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 372
+        },
+        {
+          "case": "invalid-3",
+          "attempt": 1,
+          "duration_ms": 374,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 376
+        },
+        {
+          "case": "invalid-4",
+          "attempt": 1,
+          "duration_ms": 389,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 391
+        },
+        {
+          "case": "invalid-5",
+          "attempt": 1,
+          "duration_ms": 371,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 373
+        },
+        {
+          "case": "invalid-6",
+          "attempt": 1,
+          "duration_ms": 375,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 377
+        },
+        {
+          "case": "invalid-7",
+          "attempt": 1,
+          "duration_ms": 373,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 375
+        },
+        {
+          "case": "invalid-8",
+          "attempt": 1,
+          "duration_ms": 433,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 435
+        },
+        {
+          "case": "invalid-9",
+          "attempt": 1,
+          "duration_ms": 429,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 431
+        },
+        {
+          "case": "invalid-10",
+          "attempt": 1,
+          "duration_ms": 380,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 381
+        },
+        {
+          "case": "invalid-11",
+          "attempt": 1,
+          "duration_ms": 378,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 380
+        },
+        {
+          "case": "invalid-12",
+          "attempt": 1,
+          "duration_ms": 427,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 429
+        },
+        {
+          "case": "invalid-13",
+          "attempt": 1,
+          "duration_ms": 433,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 435
+        },
+        {
+          "case": "invalid-14",
+          "attempt": 1,
+          "duration_ms": 428,
+          "exit_code": 0,
+          "timed_out": false,
+          "network": "none",
+          "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+          "supplied_files": 5,
+          "mutated_files": [],
+          "supplied_files_read_only": true,
+          "stage_mount": "read-only",
+          "writable_mounts": 0,
+          "result_channel": "dedicated descriptor from an isolated child process",
+          "outcome": "raised",
+          "passed": 1,
+          "actual": {
+            "error": "ValueError"
+          },
+          "duration_ms_total": 430
+        }
+      ]
+    },
+    {
+      "host": "codex",
+      "task": "reconcile",
+      "language": "ar",
+      "status": "failed",
+      "error": "Host generation failed (exit 1); check local authentication and provider limits"
+    },
+    {
+      "host": "opencode",
+      "task": "quote",
+      "language": "ar",
+      "status": "blocked",
+      "error": "Host stopped after two identical transport failures"
+    }
+  ],
+  "limits": "One developer role, two synthetic contracts, one trial per language/host/task. No comparative quality or billing claim. CLI generation is an explicit native host exception.",
+  "inputs_unchanged": true,
+  "scored_trials": 3,
+  "complete": false
+}

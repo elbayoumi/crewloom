@@ -55,3 +55,6 @@ Crewloom now has a machine-local disjoint-root catalog, memory-preserving setup 
 
 ### 2026-10-09 — Dashboard usability
 Local Crewloom dashboard opens directly without passwords. Remote hosting remains a separate authenticated configuration; local guards do not sandbox arbitrary host processes.
+
+### 2026-10-10 — Scheduled project batches and shared admission
+Crewloom now has an explicit-catalog priority queue, shared managed-generation admission, bounded project-local role charts and honest cost status. Project reservations and reviewed publication remain authoritative. Synthetic bilingual developer evidence includes three successful Codex trials and preserved transport failures; broad provider/role quality and vendor billing caps are not demonstrated.

@@ -1,5 +1,7 @@
 # Changelog
 
+- 2026-10-10: Add explicit-project priority scheduling, shared managed-generation admission, bounded role activity charts, and a frozen bilingual developer pilot with preserved provider failures.
+
 ## 0.4.0 — 2026-10-01
 
 - Add project-bound Docker workflow execution with ordered commands/tasks, persistent attempts, locks, fingerprint verification, and handoff JSON.

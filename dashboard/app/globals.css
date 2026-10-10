@@ -33,3 +33,7 @@ pre { background:var(--bg); border:1px solid var(--line); border-radius:8px; pad
 .grid > * { min-width: 0; }
 .toolbar input, .toolbar select { max-width: 100%; }
 .wrap > p code { overflow-wrap: anywhere; }
+
+.activity-bars { display: grid; gap: .5rem; margin-block: 1rem; }
+.activity-bars > div { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; gap: .75rem; align-items: center; }
+.activity-bars meter { width: 100%; height: 1.2rem; }
