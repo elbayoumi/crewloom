@@ -260,3 +260,5 @@
 - State: Mechanism tested; automatic ambiguity detection and controlled real-task quality measurement remain open.
 
 - 2026-10-11 compatibility: Python 3.9 CI rejected the new hardlink test fixture because `Path.hardlink_to` is newer. Use `os.link` in the fixture; the runtime hardlink guard is unchanged.
+
+- 2026-10-11 review: Native lifecycle serialization initially omitted selected user context, and frozen/history copies inherited permissive file modes. Include the block as mandatory native payload and reuse the existing atomic owner-only writer for current, archived and invalidated contexts; 14 regressions pass.

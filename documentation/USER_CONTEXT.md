@@ -1,6 +1,6 @@
 # Source-linked user context
 
-Crewloom can carry project-local user statements, labelled assumptions and an explicit task interpretation into the existing frozen context and managed model prompt. This implements a structured-memory pattern inspired by [LangMem](https://github.com/langchain-ai/langmem), without copying its code or requiring its runtime. No third-party memory service is installed or called.
+Crewloom can carry project-local user statements, labelled assumptions and an explicit task interpretation into the existing frozen context and managed model prompt. Native lifecycle payloads also include the selected block as mandatory context; overflow rejects delivery. Current and archived frozen context files are owner-readable only. This implements a structured-memory pattern inspired by [LangMem](https://github.com/langchain-ai/langmem), without copying its code or requiring its runtime. No third-party memory service is installed or called.
 
 ## Usage contract
 

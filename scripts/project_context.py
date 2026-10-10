@@ -7,6 +7,7 @@ reference. Managed model calls cannot fetch code, so only explicitly declared
 source bodies are embedded here, and required content is never silently dropped.
 """
 import json
+import os
 import re
 import subprocess
 from datetime import datetime, timezone
@@ -384,13 +385,26 @@ def history_path(root, task_id, generation):
                        internal=True)
 
 
+def private_context_write(path, context):
+    """Reuse the native lifecycle's atomic owner-only writer for every context copy."""
+    import host_lifecycle
+    data = canonical(context) + '\n'
+    return host_lifecycle._write_private(path, data, limit=len(data.encode('utf-8')))
+
+
+def protect_context(path):
+    if not path.is_file() or path.stat().st_nlink != 1:
+        raise ValueError('Frozen context must be a regular single-link file')
+    os.chmod(path, 0o600)
+
+
 def keep_history(root, task_id, generation, context):
     """Archive one immutable generation once; an existing copy is never overwritten."""
     keep = history_path(root, task_id, generation)
     if keep.is_file():
+        protect_context(keep)
         return keep
-    keep.parent.mkdir(parents=True, exist_ok=True)
-    keep.write_text(canonical(context) + '\n', encoding='utf-8')
+    private_context_write(keep, context)
     return keep
 
 
@@ -405,13 +419,11 @@ def freeze(root, context):
             if stored.get(field) != context['scope'][field]:
                 raise ValueError('Frozen context for this task belongs to another project or checkout: ' + field)
         if not existing.get('invalidated') and existing.get('semantic_sha256') == context['semantic_sha256']:
+            protect_context(path)
             return existing, False
         keep_history(root, task_id, existing.get('generation', 1), existing)
         context = seal(dict(context, generation=existing.get('generation', 1) + 1))
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix('.json.tmp')
-    temporary.write_text(canonical(context) + '\n', encoding='utf-8')
-    temporary.replace(path)
+    private_context_write(path, context)
     return context, True
 
 
@@ -633,5 +645,5 @@ def invalidate(root, task_id, reason):
     keep_history(root, task_id, context.get('generation', 1), context)
     context['invalidated'] = {'at': now(), 'reason': str(reason)[:200]}
     context = seal(context)
-    path.write_text(canonical(context) + '\n', encoding='utf-8')
+    private_context_write(path, context)
     return context['invalidated']

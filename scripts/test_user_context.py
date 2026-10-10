@@ -8,6 +8,7 @@ import tempfile
 import unittest
 
 import crewloom
+import host_lifecycle as hl
 import model_host
 import project_binding as pb
 import project_context as pc
@@ -134,6 +135,40 @@ class UserContextTests(unittest.TestCase):
         os.link(path, self.root / 'linked-store')
         with self.assertRaisesRegex(ValueError, 'without hardlinks'):
             uc.select(self.root, 'understand-task')
+
+    def test_native_delivery_keeps_user_context_mandatory_for_all_hosts(self):
+        self.record(); self.contract()
+        pb.enter(self.root, 'sample-project', 'understand-task', ROLE, seeds=['request.txt'])
+        frozen = pc.load(self.root, {'task_id': 'understand-task'})
+        for host in ('codex', 'claude', 'opencode'):
+            record = {'host': host, 'host_version': 'fixture', 'project_id': 'sample-project',
+                      'role': ROLE, 'declared_outputs': [], 'marker': 'test-receipt',
+                      'additional_context_limit': 65536}
+            payload = hl.injected_context(self.root, pb.load_binding(self.root), record, frozen)
+            self.assertIn('الرد بالعربي.', payload['additionalContext'])
+            self.assertIn('Reduce output errors', payload['additionalContext'])
+            self.assertEqual(payload['bytes'], len(payload['additionalContext'].encode('utf-8')))
+            record['additional_context_limit'] = payload['bytes'] - 1
+            with self.assertRaisesRegex(hl.LifecycleError, 'exceed'):
+                hl.injected_context(self.root, pb.load_binding(self.root), record, frozen)
+
+    def test_current_reused_archived_and_invalidated_contexts_are_owner_only(self):
+        previous_umask = os.umask(0o022)
+        try:
+            self.record(); self.contract()
+            pb.enter(self.root, 'sample-project', 'understand-task', ROLE, seeds=['request.txt'])
+            path = pc.context_path(self.root, 'understand-task')
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            os.chmod(path, 0o644)
+            pb.enter(self.root, 'sample-project', 'understand-task', ROLE, seeds=['request.txt'])
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            self.record('Keep the foundation English.')
+            pb.enter(self.root, 'sample-project', 'understand-task', ROLE, seeds=['request.txt'])
+            pc.invalidate(self.root, 'understand-task', 'fixture')
+            for copy in (self.root / '.crewloom/context').rglob('*.json'):
+                self.assertEqual(copy.stat().st_mode & 0o777, 0o600, str(copy))
+        finally:
+            os.umask(previous_umask)
 
 
 if __name__ == '__main__':

@@ -245,4 +245,4 @@
 ### 2026-10-11 — Source-linked user context
 - Artifact: `scripts/user_context.py`, frozen-context/model-prompt integration and `documentation/USER_CONTEXT.md`.
 - Impact: Explicit user/task selection, preserved corrections, quoted statements versus assumptions, stale-source and ambiguity rejection.
-- Evidence: 12 regressions pass, including Arabic prompt delivery, copied-project rejection and source changes. General model-quality improvement remains unmeasured.
+- Evidence: 14 regressions pass, including Arabic managed/native payload delivery and owner-only frozen copies, copied-project rejection and source changes. General model-quality improvement remains unmeasured.
