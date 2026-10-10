@@ -1,0 +1,645 @@
+{
+  "protocol": "crewloom-bilingual-feature-pilot-v1",
+  "tasks": [
+    {
+      "id": "quote",
+      "api": "quote(value)",
+      "output": "src/quote.py",
+      "prompts": {
+        "en": "Implement quote(order) in src/quote.py using only the Python standard library. order must be a dict with only lines, discount_bps, tax_bps, shipping_cents. lines is required: a nonempty list of dicts containing exactly price_cents and quantity. price_cents and shipping_cents are nonnegative integers; quantity is a positive integer; discount_bps and tax_bps are integers from 0 to 10000. Booleans and numeric strings are invalid. Optional fields default to zero. Every malformed input raises ValueError, never TypeError or KeyError. subtotal is sum(price_cents * quantity); discount is round half up(subtotal * discount_bps / 10000); tax is round half up((subtotal-discount) * tax_bps / 10000). Shipping is not taxed. Return exactly a dict with subtotal_cents, discount_cents, tax_cents, total_cents (subtotal-discount+tax+shipping). Use integer arithmetic with arbitrary-size values, no float. Never mutate the input. Unknown fields are invalid.",
+        "ar": "نفّذ quote(order) في src/quote.py بمكتبة بايثون القياسية فقط. order قاموس لا يقبل إلا lines وdiscount_bps وtax_bps وshipping_cents. lines مطلوب: قائمة غير فارغة من قواميس تحتوي بالضبط price_cents وquantity. price_cents وshipping_cents أعداد صحيحة غير سالبة؛ quantity عدد صحيح موجب؛ discount_bps وtax_bps أعداد صحيحة من صفر إلى 10000. القيم المنطقية والأرقام النصية غير صالحة. الحقول الاختيارية قيمتها الافتراضية صفر. أي مدخل غير صالح يرفع ValueError وليس TypeError أو KeyError. subtotal هو مجموع price_cents مضروبًا في quantity؛ discount هو subtotal مضروبًا في discount_bps مقسومًا على 10000 مع التقريب إلى أقرب عدد صحيح ورفع النصف؛ tax يُحسب بنفس التقريب على subtotal ناقص discount مضروبًا في tax_bps مقسومًا على 10000. الشحن لا يخضع للضريبة. أرجع قاموسًا بالضبط مفاتيحه subtotal_cents وdiscount_cents وtax_cents وtotal_cents حيث الإجمالي subtotal ناقص discount زائد tax زائد shipping. استخدم الحساب الصحيح لأي حجم من الأعداد دون float. لا تعدّل المدخل. الحقول غير المعروفة مرفوضة."
+      },
+      "cases": [
+        {
+          "id": "ordinary",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 100,
+                "quantity": 2
+              }
+            ]
+          },
+          "expected": {
+            "subtotal_cents": 200,
+            "discount_cents": 0,
+            "tax_cents": 0,
+            "total_cents": 200
+          }
+        },
+        {
+          "id": "half-up",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 1,
+                "quantity": 1
+              }
+            ],
+            "tax_bps": 5000
+          },
+          "expected": {
+            "subtotal_cents": 1,
+            "discount_cents": 0,
+            "tax_cents": 1,
+            "total_cents": 2
+          }
+        },
+        {
+          "id": "discount-before-tax",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 105,
+                "quantity": 1
+              }
+            ],
+            "discount_bps": 1000,
+            "tax_bps": 1000,
+            "shipping_cents": 7
+          },
+          "expected": {
+            "subtotal_cents": 105,
+            "discount_cents": 11,
+            "tax_cents": 9,
+            "total_cents": 110
+          }
+        },
+        {
+          "id": "full-discount",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 199,
+                "quantity": 1
+              }
+            ],
+            "discount_bps": 10000,
+            "tax_bps": 10000,
+            "shipping_cents": 9
+          },
+          "expected": {
+            "subtotal_cents": 199,
+            "discount_cents": 199,
+            "tax_cents": 0,
+            "total_cents": 9
+          }
+        },
+        {
+          "id": "zero",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 0,
+                "quantity": 1
+              }
+            ]
+          },
+          "expected": {
+            "subtotal_cents": 0,
+            "discount_cents": 0,
+            "tax_cents": 0,
+            "total_cents": 0
+          }
+        },
+        {
+          "id": "large",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 100000000000000000000,
+                "quantity": 3
+              }
+            ]
+          },
+          "expected": {
+            "subtotal_cents": 300000000000000000000,
+            "discount_cents": 0,
+            "tax_cents": 0,
+            "total_cents": 300000000000000000000
+          }
+        },
+        {
+          "id": "invalid-0",
+          "input": null,
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-1",
+          "input": [],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-2",
+          "input": {},
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-3",
+          "input": {
+            "lines": []
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-4",
+          "input": {
+            "lines": [
+              {
+                "price_cents": true,
+                "quantity": 1
+              }
+            ]
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-5",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 1,
+                "quantity": false
+              }
+            ]
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-6",
+          "input": {
+            "lines": [
+              {
+                "price_cents": -1,
+                "quantity": 1
+              }
+            ]
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-7",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 1,
+                "quantity": 0
+              }
+            ]
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-8",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 1,
+                "quantity": "2"
+              }
+            ]
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-9",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 1,
+                "quantity": 1
+              }
+            ],
+            "tax_bps": 10001
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-10",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 1,
+                "quantity": 1
+              }
+            ],
+            "discount_bps": -1
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-11",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 1,
+                "quantity": 1
+              }
+            ],
+            "shipping_cents": true
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-12",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 1,
+                "quantity": 1
+              }
+            ],
+            "unknown": 0
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-13",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 1
+              }
+            ]
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-14",
+          "input": {
+            "lines": [
+              {
+                "price_cents": 1,
+                "quantity": 1,
+                "extra": 2
+              }
+            ]
+          },
+          "expected": {
+            "error": "ValueError"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reconcile",
+      "api": "reconcile(value)",
+      "output": "src/reconcile.py",
+      "prompts": {
+        "en": "Implement reconcile(events) in src/reconcile.py using only the Python standard library. events is a list (empty allowed), each item a dict with exactly project_id, task_id, seq, state. Both IDs must match ASCII regex [a-z0-9][a-z0-9._-]{0,63}; seq is a nonnegative integer and never bool; state is one of queued, running, verified, failed, cancelled. Every malformed input raises ValueError. Events may arrive in any order. For each (project_id, task_id), return the event with greatest seq. Duplicate events with identical IDs, seq and state are allowed; differing states for the same IDs and seq always raise ValueError, even when that seq is older than the final event. Return a list of dicts with exactly project_id, task_id, seq, state, sorted lexicographically by project_id then task_id. Never merge tasks from different projects and never mutate input.",
+        "ar": "نفّذ reconcile(events) في src/reconcile.py بمكتبة بايثون القياسية فقط. events قائمة يمكن أن تكون فارغة، وكل عنصر قاموس يحتوي بالضبط project_id وtask_id وseq وstate. المعرّفان يطابقان نمط ASCII التالي: [a-z0-9][a-z0-9._-]{0,63}. seq عدد صحيح غير سالب وليس قيمة منطقية. state إحدى queued أوrunning أوverified أوfailed أوcancelled. أي مدخل غير صالح يرفع ValueError. قد تصل الأحداث بأي ترتيب. لكل زوج project_id وtask_id أرجع الحدث صاحب أكبر seq. تكرار نفس المعرّفين وseq وstate مسموح؛ اختلاف state لنفس المعرّفين وseq يرفع ValueError دائمًا حتى لو كان seq أقدم من الحدث النهائي. أرجع قائمة قواميس مفاتيح كل منها بالضبط project_id وtask_id وseq وstate، مرتبة معجميًا حسب project_id ثم task_id. لا تدمج تاسكات مشاريع مختلفة ولا تعدّل المدخل."
+      },
+      "cases": [
+        {
+          "id": "empty",
+          "input": [],
+          "expected": []
+        },
+        {
+          "id": "separate-projects",
+          "input": [
+            {
+              "project_id": "b",
+              "task_id": "build",
+              "seq": 1,
+              "state": "running"
+            },
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            },
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 0,
+              "state": "queued"
+            }
+          ],
+          "expected": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            },
+            {
+              "project_id": "b",
+              "task_id": "build",
+              "seq": 1,
+              "state": "running"
+            }
+          ]
+        },
+        {
+          "id": "duplicates",
+          "input": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            },
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            },
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 0,
+              "state": "queued"
+            }
+          ],
+          "expected": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            }
+          ]
+        },
+        {
+          "id": "out-of-order",
+          "input": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            },
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 0,
+              "state": "queued"
+            }
+          ],
+          "expected": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            }
+          ]
+        },
+        {
+          "id": "task-order",
+          "input": [
+            {
+              "project_id": "a",
+              "task_id": "z",
+              "seq": 0,
+              "state": "failed"
+            },
+            {
+              "project_id": "a",
+              "task_id": "a",
+              "seq": 0,
+              "state": "cancelled"
+            }
+          ],
+          "expected": [
+            {
+              "project_id": "a",
+              "task_id": "a",
+              "seq": 0,
+              "state": "cancelled"
+            },
+            {
+              "project_id": "a",
+              "task_id": "z",
+              "seq": 0,
+              "state": "failed"
+            }
+          ]
+        },
+        {
+          "id": "hidden-old-conflict",
+          "input": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            },
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 0,
+              "state": "queued"
+            },
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 0,
+              "state": "running"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "large-sequence",
+          "input": [
+            {
+              "project_id": "a",
+              "task_id": "t",
+              "seq": 1000000000000000000000000000000,
+              "state": "running"
+            }
+          ],
+          "expected": [
+            {
+              "project_id": "a",
+              "task_id": "t",
+              "seq": 1000000000000000000000000000000,
+              "state": "running"
+            }
+          ]
+        },
+        {
+          "id": "invalid-0",
+          "input": null,
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-1",
+          "input": {},
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-2",
+          "input": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": true,
+              "state": "verified"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-3",
+          "input": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": -1,
+              "state": "verified"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-4",
+          "input": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": "2",
+              "state": "verified"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-5",
+          "input": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "complete"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-6",
+          "input": [
+            {
+              "project_id": "a/b",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-7",
+          "input": [
+            {
+              "project_id": "a",
+              "task_id": "تاسك",
+              "seq": 2,
+              "state": "verified"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-8",
+          "input": [
+            {
+              "project_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-9",
+          "input": [
+            {
+              "project_id": "a",
+              "task_id": "build",
+              "seq": 2,
+              "state": "verified",
+              "extra": 1
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-10",
+          "input": [
+            {
+              "project_id": "a"
+            }
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        },
+        {
+          "id": "invalid-11",
+          "input": [
+            1
+          ],
+          "expected": {
+            "error": "ValueError"
+          }
+        }
+      ]
+    }
+  ]
+}

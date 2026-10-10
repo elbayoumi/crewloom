@@ -51,7 +51,10 @@ test('dashboard project memory, relative tool inputs, and run history stay isola
     const result = await modules[0].runTool('workflow-contract', ['workflow.json']);
     assert.equal(result.exit_code, 0, result.output);
     await modules[0].appendRun({ ts: 'now', tool: 'workflow-contract', skill: 'automation-ops-engineer', exit_code: 0, duration_ms: 1, source: 'dashboard' });
-    assert.equal((await modules[0].readRuns()).length, 1);
+    await modules[0].appendRun({ ts: 'now', tool: 'check', skill: 'context-guardian', exit_code: 2, duration_ms: 3, source: 'dashboard' });
+    writeFileSync(modules[0].RUN_LOG, readFileSync(modules[0].RUN_LOG, 'utf8') + JSON.stringify({ project_root: modules[1].PROJECT, skill: 'foreign', exit_code: 0 }) + '\n');
+    assert.equal((await modules[0].readRuns()).length, 2);
+    assert.equal((await modules[0].readRuns()).some((r: { skill: string }) => r.skill === 'foreign'), false);
     assert.equal((await modules[1].readRuns()).length, 0);
     const escape = await modules[0].runTool('seo-packet', ['--packet=../two/workflow.json']);
     assert.notEqual(escape.exit_code, 0);

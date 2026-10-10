@@ -1,0 +1,72 @@
+{
+  "protocol": "crewloom-bilingual-feature-pilot-v1",
+  "seed": 20261010,
+  "image_id": "sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+  "frozen_inputs": {
+    "examples/bilingual-evaluation/tasks.json": "9780a54a021786809e75b83a3c23b4603080465acfec4cd02828cb79ff701ff0",
+    ".agents/skills/fullstack-mvp-engineer/SKILL.md": "39d51def7c39725eece0dc2f355ea2c58e63225ffd694586dfefe2004738b8f2",
+    "scripts/bilingual_evaluation.py": "2829600b1ed38eba14a76a82ab3ed89ae9847ab982b64da64cdc78eb97f66e58",
+    "scripts/model_host.py": "dfe01c0a3358be8da3dd45d2087284d2e0a89b1ff361396f8e6b20e5034ee158",
+    "scripts/evaluate_hosts.py": "84a4fcfdf90f7ec14f3912b9a450460813b19890356ec0ab4a217f857cb12f17",
+    "scripts/workflow.py": "30504e47783f13609f80ded637b7fa1f5a7c0f384f6a6e8ae277ff091f0da0df"
+  },
+  "models_requested": {
+    "opencode": "opencode/muse-spark-1.3-contributor-free"
+  },
+  "planned_trials": [
+    {
+      "host": "opencode",
+      "task": "quote",
+      "language": "ar"
+    },
+    {
+      "host": "opencode",
+      "task": "reconcile",
+      "language": "ar"
+    },
+    {
+      "host": "opencode",
+      "task": "quote",
+      "language": "en"
+    },
+    {
+      "host": "opencode",
+      "task": "reconcile",
+      "language": "en"
+    }
+  ],
+  "trials": [
+    {
+      "host": "opencode",
+      "task": "quote",
+      "language": "ar",
+      "status": "failed",
+      "error": "Host generation failed (exit 1); check local authentication and provider limits"
+    },
+    {
+      "host": "opencode",
+      "task": "reconcile",
+      "language": "ar",
+      "status": "failed",
+      "error": "Host generation failed (exit 1); check local authentication and provider limits"
+    },
+    {
+      "host": "opencode",
+      "task": "quote",
+      "language": "en",
+      "status": "blocked",
+      "error": "Host stopped after two identical transport failures"
+    },
+    {
+      "host": "opencode",
+      "task": "reconcile",
+      "language": "en",
+      "status": "blocked",
+      "error": "Host stopped after two identical transport failures"
+    }
+  ],
+  "limits": "One developer role, two synthetic contracts, one trial per language/host/task. No comparative quality or billing claim. CLI generation is an explicit native host exception.",
+  "inputs_unchanged": true,
+  "scored_trials": 0,
+  "complete": false
+}

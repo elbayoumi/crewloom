@@ -1086,12 +1086,30 @@ def run_model_step(root, plan, step, inputs, record, state, folder, ledger, allo
                                     'broker_sha256':digest(resources.module_file('execution_policy.py').read_bytes())},sort_keys=True).encode())
         if sum(a['signature']==signature and a['status']!='succeeded' for a in ledger['attempts'])>=2:
             raise ValueError('Two attempts exhausted for unchanged model task and inputs')
+        shared_budget = os.environ.get('CREWLOOM_USAGE_BUDGET')
+        reservation = None
+        if shared_budget:
+            import usage_budget
+            import project_binding
+            binding = project_binding.load_binding(root)
+            reservation = usage_budget.reserve(shared_budget, {
+                'project_root': str(root), 'project_id': binding['project_id'],
+                'checkout_id': binding['checkout_id'], 'workflow': plan['id'], 'step': step['id']})
         attempt={'signature':signature,'status':'running','started_at':time.time()}
         record['attempts'].append(attempt)
         entry={'signature':signature,'status':'running','workflow':plan['id'],'step':step['id'],'kind':'model'}
+        if reservation:
+            entry['shared_budget_reservation'] = reservation
         ledger['attempts'].append(entry);save_ledger(root,ledger)
         record['status']='running';state['status']='running';save(folder,state)
-        artifacts,evidence=generate(step['host'],prompt,step['outputs'],step.get('timeout_seconds',180),step.get('model'))
+        try:
+            artifacts,evidence=generate(step['host'],prompt,step['outputs'],step.get('timeout_seconds',180),step.get('model'))
+        except BaseException:
+            if reservation:
+                usage_budget.settle(shared_budget, reservation)
+            raise
+        if reservation:
+            usage_budget.settle(shared_budget, reservation, evidence.get('cost_usd'))
         if hashes(root,step['inputs']) != inputs:
             raise ValueError('Inputs changed during model generation; outputs rejected')
         project_context_publish_gate(root, plan, step)

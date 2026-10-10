@@ -203,7 +203,7 @@ POSITIONAL_PATH_TOOLS = {'workflow-contract', 'delivery-evidence'}
 # Commands whose parser, defaults and exit codes live in another module. They declare no arguments
 # here on purpose: the caller's argv is forwarded untouched, so a new flag on the child needs no
 # change here and cannot be silently dropped by an intermediate list of arguments to keep in step.
-DELEGATED = {'host': 'host_lifecycle', 'readiness': 'agency_readiness'}
+DELEGATED = {'host': 'host_lifecycle', 'readiness': 'agency_readiness', 'queue': 'task_queue', 'budget': 'usage_budget', 'evaluate-bilingual': 'bilingual_evaluation'}
 STUDY_ARGUMENTS = ('context', 'study')
 
 
@@ -312,6 +312,9 @@ def main():
     # `host` and `readiness` are registered so `crewloom --help` and the usage line list them.
     # They take no arguments here: `delegated_command` hands their whole argv to the owning module
     # before this parser runs, which is the only way a flag can survive the hand-over.
+    commands.add_parser('evaluate-bilingual', help='Frozen Arabic/English developer feature pilot')
+    commands.add_parser('queue', help='Durable priority scheduling across registered projects')
+    commands.add_parser('budget', help='Shared managed model request and dollar admission controls')
     commands.add_parser('host', help='Install, observe, guard and verify native host callbacks')
     commands.add_parser('readiness', help='Read-only rollout readiness for one registered project')
     install = commands.add_parser('install', help='Copy roles into a project for your agent host')

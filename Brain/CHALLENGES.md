@@ -250,3 +250,6 @@
 - Check: launcher and authorization regressions plus cookie-free browser/API smoke.
 
 - 2026-10-09: Independent host environment could misrepresent a wildcard listener. Centralized npm launch and verify server.address() before local access; direct Next startup fails closed.
+
+### 2026-10-10 — Scheduling, shared admission and measured activity
+- Shared ceilings were previously per-checkout and queue startup could collide with active project reservations. Added locked shared admission, priority queue, identity/intent revalidation and queued waiting_for state. Unknown or failed billing retains allowances. Claude has no local login; OpenCode advertised the configured model but generation still exited 1 after explicit-model diagnostic; provider evaluation remains incomplete.

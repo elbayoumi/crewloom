@@ -61,7 +61,7 @@ INTEGRATION_TASK = 'integration'
 
 PLAN_KEYS = frozenset({'schema_version', 'id', 'language', 'project_id', 'base', 'workers',
                        'tasks', 'integration'})
-TASK_KEYS = frozenset({'id', 'workflow', 'depends_on', 'native_host_cli'})
+TASK_KEYS = frozenset({'id', 'workflow', 'depends_on', 'native_host_cli', 'priority'})
 INTEGRATION_KEYS = frozenset({'workflow', 'native_host_cli'})
 CONTROL_FILES = frozenset(['.gitignore', 'crewloom.project.json', *pb.INSTRUCTION_FILES])
 CONTROL_KEYS = frozenset(w.folded(name) for name in CONTROL_FILES)
@@ -556,6 +556,8 @@ def _check_structure(plan, root, project_id):
         unknown = set(task) - TASK_KEYS
         if unknown:
             raise CoordinatorError('Unknown task fields: ' + ', '.join(sorted(unknown)))
+        if type(task.get('priority', 0)) is not int or not -100 <= task.get('priority', 0) <= 100:
+            raise CoordinatorError('Task priority must be an integer from -100 to 100')
         ident = task.get('id')
         if not w.ID.fullmatch(str(ident or '')):
             raise CoordinatorError('Each task needs a stable kebab-case id')
@@ -1228,7 +1230,7 @@ def _execute(root, meta, state, folder, image, log, allow_host_cli=False):
         futures = {}
         while True:
             if not _cancel_requested(root, state['batch']):
-                for ident in list(pending):
+                for ident in sorted(pending, key=lambda item: -tasks[item].get('priority', 0)):
                     if len(futures) >= workers:
                         break
                     blockers = [item for item in tasks[ident]['depends_on']

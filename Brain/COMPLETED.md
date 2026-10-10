@@ -238,3 +238,6 @@
 - Evidence: 38 dashboard cases and 10 public-core cases pass; new browser reports zero password fields/sign-in buttons, session method local; foreign-Origin mutation returns 403.
 
 - 2026-10-09: Fixed PR #10 listener-coupling review: actual loopback listener required. Dashboard tests (38), TypeScript and live /api/auth/session verified local authentication.
+
+### 2026-10-10 — Scheduling, shared admission and measured activity
+- Artifacts: task_queue.py, usage_budget.py, bilingual_evaluation.py and activity panel. Evidence: 14 shared-admission cases including real Docker across two worktrees; two independent queued projects verified in real Docker; 39 dashboard cases and TypeScript pass; real grader accepted 40 reference cases and rejected incorrect/mutating candidates. Live multi-host pilot scored 3/12 planned trials (Codex 61/61 held-out cases); unavailable hosts and one Codex transport failure retained.

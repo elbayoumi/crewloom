@@ -1,9 +1,24 @@
-# Backlog
+# Current backlog — 2026-10-10
+
+- [x] Durable explicit-catalog priority queue; root reservations, interruption records, and reviewed publication preserved.
+- [x] Shared managed-generation admission across processes/projects/worktrees; conservative unknown-cost accounting.
+- [x] Bounded project-local dashboard charts, role history, queue and admission status.
+- [x] Harder bilingual developer contracts, real grader acceptance/rejection, preserved live attempt evidence.
+- [x] Reconcile old roadmap checkpoints with completed evidence; history below is not the active backlog.
+- [ ] Complete provider evaluation after local Claude login and a working OpenCode invocation; latest multi-host pilot scored 3/12 planned trials.
+- [ ] Evaluate additional specialist roles and harder multi-file real project tasks; current pilot covers one role and two synthetic contracts.
+- [ ] Measure billed cost and quality across providers where complete usage evidence is available; dollar admission allowances are not vendor account caps.
+- [ ] Reconcile explicitly selected private-client records before rollout; no client identity or rollout is inferred.
+- [ ] Optional external integrations and an installed background scheduling service require separate operational acceptance.
+
+## Historical checkpoints
+
+# Backlog history
 
 - [x] Provide English public role procedures and Arabic / English context labels.
 - [x] Separate public memory from upstream operational history.
-- [ ] Evaluate representative specialist tasks across supported agent hosts.
-- [ ] Package selected external-tool integrations with clean setup and acceptance evidence.
+- Historical checkpoint: Evaluate representative specialist tasks across supported agent hosts.
+- Historical checkpoint: Package selected external-tool integrations with clean setup and acceptance evidence.
 - [x] Consider a distributable Python package after repository-native interfaces stabilize.
 
 ### 2026-10-01 — Toolkit depth refresh ✅
@@ -11,17 +26,17 @@
 - Status: Implemented and locally validated.
 - Next: Provider-specific end-to-end evaluations remain future work.
 
-- [ ] Add role-level run history charts to the dashboard — priority: medium
+- Historical checkpoint: Add role-level run history charts to the dashboard — priority: medium
 - [x] Add optional auth before any non-localhost dashboard use — priority: high
 
-- [ ] Publish before/after evidence for 2-3 real tasks with full outputs — priority: high
-- [ ] Set GitHub social preview image (manual in repo settings) and add good-first-issue tasks — priority: medium
+- Historical checkpoint: Publish before/after evidence for 2-3 real tasks with full outputs — priority: high
+- Historical checkpoint: Set GitHub social preview image (manual in repo settings) and add good-first-issue tasks — priority: medium
 - [x] Add dashboard token authentication — priority: high
 
 - [x] Make grid-safety skip pixel floors behind a breakpoint prefix that already fits them (2 false positives, see documentation/EVIDENCE.md) — priority: medium
 
 - [x] Ship a real token-drift check (palette vs design-tokens.json); the playbook's check_palette_drift.py is not included — priority: high
-- [ ] Third evaluation: defects a generic review tends to miss (non-obvious drift, cross-file issues), blind grading by a separate agent, 5+ runs — priority: medium
+- Historical checkpoint: Third evaluation: defects a generic review tends to miss (non-obvious drift, cross-file issues), blind grading by a separate agent, 5+ runs — priority: medium
 
 ### 2026-10-01 — Project path isolation
 - Artifact: Project isolation fix ✅.
@@ -43,8 +58,8 @@
 - [x] Real Codex generation followed by isolated acceptance and resume.
 - [x] Repeated provider-trial harness with frozen protocol and anonymous grading.
 - [x] English specialist execution procedures for all 42 roles.
-- [ ] Authenticate Claude locally and complete cross-host runs; current Claude results are failed/blocked.
-- [ ] Freeze harder private cases with an independent coordinator; current public slug task ties at full acceptance.
+- Historical checkpoint: Authenticate Claude locally and complete cross-host runs; current Claude results are failed/blocked.
+- Historical checkpoint: Freeze harder private cases with an independent coordinator; current public slug task ties at full acceptance.
 - [x] Authenticate reviewer identities for task acceptance; declared IDs remain unauthenticated by default.
 
 - [x] Adopt Self-Editing Mode / التعديل الذاتي for the existing maintenance workflow and document activation/scope.
@@ -85,7 +100,7 @@
 
 - [x] Require explicit workflow project root and retain ownership across paused manual tasks.
 - [x] Verify separate-project parallel execution and same-project conflict rejection.
-- [ ] Automatic scheduling remains unimplemented; parallel worktrees are explicit setup and reviewed merges. A concurrent worktree coordinator now performs that setup and reviewed merge; it is still not a priority scheduler, and it runs command steps only.
+- Historical checkpoint: Automatic scheduling remains unimplemented; parallel worktrees are explicit setup and reviewed merges. A concurrent worktree coordinator now performs that setup and reviewed merge; it is still not a priority scheduler, and it runs command steps only.
 
 ### 2026-10-03 — Integration verification
 - Done: Main reconciliation preserves declared input/output enforcement and per-root reservations; actual commit gate, live Docker, Python 3.9 and clean archive checks passed. Public English/Arabic pilot contracts and measurements are published as source fixtures.
@@ -120,23 +135,23 @@
 - Ship and verify the full concurrent development example, final wheel-from-sdist, supported Python versions, dashboard and hosted checks before publication.
 - Read-only private registry audit records four projects needing reconciliation; no client rollout or reconciled status asserted.
 
-- [ ] 2026-10-04: Close native authority/inline/delivery boundaries, prove production callback + real executor on available hosts, run frozen 36-trial provider study, finish installed concurrent development example, rerun complete gates and publish verified integration.
+- Historical checkpoint: 2026-10-04: Close native authority/inline/delivery boundaries, prove production callback + real executor on available hosts, run frozen 36-trial provider study, finish installed concurrent development example, rerun complete gates and publish verified integration.
 
-- [ ] Finish native allowed-edit/denied-edit/context-refresh pilots, frozen 36-trial study, actual provider application, isolated final wheel, supported-runtime gates and hosted publication — priority: high.
-- [ ] Reconcile any selected private client only after its registered identity and current evidence are available; four audited records remain unreconciled — priority: medium.
+- Historical checkpoint: Finish native allowed-edit/denied-edit/context-refresh pilots, frozen 36-trial study, actual provider application, isolated final wheel, supported-runtime gates and hosted publication — priority: high.
+- Historical checkpoint: Reconcile any selected private client only after its registered identity and current evidence are available; four audited records remain unreconciled — priority: medium.
 
 - [x] 2026-10-05: Expose the editable Crewloom CLI on the user shell PATH and verify help/tool discovery outside its checkout. Remaining foundation acceptance and publication are unchanged.
 - [x] 2026-10-05: Dependency-closure map and offline sufficiency gate implemented behind frozen tests (documentation/CONTEXT_STUDY_V2_DESIGN.md)
 - [x] 2026-10-06: Study v2 frozen and run once (18 Codex calls, 18 scored, no retries)
-- [ ] Design harder held-out tasks so the arms can differ on quality (v2 hit the ceiling) — أولوية: متوسطة
-- [ ] Diagnose OpenCode structured-response failures before any OpenCode study — أولوية: متوسطة
-- [ ] Re-run OpenCode study only after structured-response failures (14/18) are diagnosed — أولوية: متوسطة
+- Historical checkpoint: Design harder held-out tasks so the arms can differ on quality (v2 hit the ceiling) — أولوية: متوسطة
+- Historical checkpoint: Diagnose OpenCode structured-response failures before any OpenCode study — أولوية: متوسطة
+- Historical checkpoint: Re-run OpenCode study only after structured-response failures (14/18) are diagnosed — أولوية: متوسطة
 
 ### 2026-10-09 — Project management completion
 - [x] Explicit project catalog, overlap guards, preserved setup and authenticated task monitoring/cancellation.
 - [x] Reuse and verify existing worktree coordinator, package installation and executor limits.
-- [ ] Live bilingual multi-provider role evaluation with authenticated accounts and frozen acceptance.
-- [ ] Aggregate multi-checkout request admission and account spending controls; checkout ceilings are not account caps.
+- Historical checkpoint: Live bilingual multi-provider role evaluation with authenticated accounts and frozen acceptance.
+- Historical checkpoint: Aggregate multi-checkout request admission and account spending controls; checkout ceilings are not account caps.
 
 - [x] Remove password requirement for local dashboard launch; retain project isolation and same-origin mutation checks.
 

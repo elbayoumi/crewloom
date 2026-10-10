@@ -333,5 +333,31 @@
     "browser_sign_in_buttons": 0,
     "session_method": "local",
     "foreign_origin_mutation_status": 403
+  },
+  "scheduling_20261010": {
+    "shared_admission_cases": 14,
+    "actual_docker_shared_worktrees": "passed_one_admitted_one_blocked",
+    "actual_docker_queued_projects": [
+      "queue-project-a:verified",
+      "queue-project-b:verified"
+    ],
+    "dashboard_cases": 39,
+    "typescript": "passed",
+    "wheel_from_sdist_install": "passed_11_distribution_cases",
+    "grader_contract_cases": 40,
+    "grader_bad_and_mutating_candidates": "rejected_in_real_docker",
+    "multi_host_pilot": {
+      "planned": 12,
+      "scored": 3,
+      "held_out_passed": 61,
+      "held_out_total": 61,
+      "cross_host_complete": false
+    },
+    "mobile_rtl": {
+      "viewport": 390,
+      "document_width": 390,
+      "password_fields": 0
+    },
+    "limits": "Managed generation admission is opt-in and is not a vendor account cap; evaluator covers one role/two synthetic features, provider transport/authentication gaps preserved."
   }
 }

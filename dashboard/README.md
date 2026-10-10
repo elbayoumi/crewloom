@@ -60,3 +60,7 @@ Project selection and isolation: [project guide](../documentation/PROJECTS.md).
 Set `CREWLOOM_CATALOG` to an absolute local catalog before launching. The authenticated projects panel displays registered roots and task ownership; context cancellation resolves identity on the server and retains artifacts. The tool execution panel stays bound to `--project`. See [the catalog guide](../documentation/PROJECT_CATALOG.md).
 
 The npm launcher owns the HTTP listener. Local authentication checks its actual bound address and port; direct `next dev` cannot enable password-free access with an environment flag alone. Invalid arguments or bind errors stop startup.
+
+## Scheduling and admission status
+
+The activity panel shows bounded tool history for the selected project and read-only queue/budget status from server-selected `CREWLOOM_QUEUE` and `CREWLOOM_USAGE_BUDGET`. See [setup and boundaries](../documentation/SCHEDULING_AND_BUDGETS.md). Costs that a provider did not report stay unknown; reservations are not actual vendor invoices.

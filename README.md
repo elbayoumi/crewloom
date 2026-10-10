@@ -166,3 +166,11 @@ crewloom coordinator prepare  --project /path/to/your/project --project-id sampl
 ```
 
 The checked-out tree changes only after an explicit reviewed decision moves it by one recorded fast-forward. See [the coordinator](documentation/COORDINATOR.md) and its [Arabic guide](documentation/COORDINATOR.ar.md).
+
+## Schedule projects and monitor admission
+
+Queue explicit registered projects by priority, keep one batch per root, and share managed-generation allowances across worktrees. The dashboard shows project-local tool activity, role failures, queue status, and unknown cost without treating it as zero.
+
+See [scheduling and shared budgets](documentation/SCHEDULING_AND_BUDGETS.md) for setup, crash recovery, and the distinction between admission allowances and vendor billing limits. The queue preserves the existing review step before publication.
+
+See the [Arabic/English developer pilot](examples/bilingual-evaluation/README.md) for the actual generated code, 40 held-out cases, passing Codex trials, and preserved provider failures. Cross-provider evaluation remains incomplete.
