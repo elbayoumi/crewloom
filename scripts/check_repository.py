@@ -2,6 +2,7 @@
 """Validate the exact public checkout and its core regression suites."""
 import argparse
 import ast
+import hashlib
 import json
 import re
 import subprocess
@@ -10,6 +11,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from crewloom import load_validator
+from repo_map import git_environment
 from workflow import folded
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -176,8 +178,66 @@ def scope_errors(root):
     return _scope_entries(root, registered)
 
 
+MANIFEST = Path('documentation') / 'MANIFEST.json'
+MANIFEST_LIMIT = 20
+
+
+def _manifest_files(root):
+    """Return the Git-tracked files the manifest must list, or None outside a Git checkout."""
+    if not (root / '.git').exists():
+        return None
+    # A commit hook exports GIT_DIR and friends, which would override -C and read another repository.
+    result = subprocess.run(['git', '-C', str(root), 'ls-files', '-z'], capture_output=True, check=False,
+                            env=git_environment())
+    if result.returncode:
+        return None
+    names = [n for n in result.stdout.decode('utf-8').split('\0') if n and n != MANIFEST.as_posix()]
+    return sorted(n for n in names if (root / n).is_file() and not (root / n).is_symlink())
+
+
+def _digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def manifest_errors(root):
+    """Fail when documentation/MANIFEST.json omits, invents or mis-hashes a tracked file.
+
+    Skipped without a manifest or outside a Git checkout; an archive has no tracked-file list.
+    """
+    path = root / MANIFEST
+    tracked = _manifest_files(root)
+    if tracked is None or not path.is_file():
+        return []
+    try:
+        listed = json.loads(path.read_text(encoding='utf-8'))['files']
+        if not isinstance(listed, dict):
+            raise TypeError('files must be an object')
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return [f'Invalid {MANIFEST.as_posix()}: {exc}']
+    errors = [f'Manifest omits tracked file: {n}' for n in tracked if n not in listed]
+    errors += [f'Manifest lists untracked file: {n}' for n in sorted(set(listed) - set(tracked))]
+    errors += [f'Manifest hash is stale: {n}' for n in tracked if n in listed and listed[n] != _digest(root / n)]
+    if len(errors) > MANIFEST_LIMIT:
+        errors = errors[:MANIFEST_LIMIT] + [f'... {len(errors) - MANIFEST_LIMIT} more; run check_repository.py --write-manifest']
+    return errors
+
+
+def write_manifest(root):
+    """Regenerate the manifest from tracked files, keeping its version and scope text."""
+    path = root / MANIFEST
+    tracked = _manifest_files(root)
+    if tracked is None:
+        raise ValueError('The manifest can only be written from a Git checkout')
+    current = json.loads(path.read_text(encoding='utf-8'))
+    manifest = {'package_version': current['package_version'], 'scope': current['scope'],
+                'files': {n: _digest(root / n) for n in tracked}}
+    path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+    return len(tracked)
+
+
 def inspect(root):
     errors = scope_errors(root)
+    errors.extend(manifest_errors(root))
     files = [p for p in root.rglob('*') if not SKIPPED & set(p.relative_to(root).parts) and p.is_file()]
     for path in files:
         if path.is_symlink():
@@ -292,7 +352,12 @@ def run_suites(root=ROOT, python=None, timeout=SUITE_TIMEOUT, runner=subprocess.
 def main(argv=None, root=ROOT):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--skip-tests', action='store_true')
+    parser.add_argument('--write-manifest', action='store_true',
+                        help='Regenerate documentation/MANIFEST.json from tracked files and exit')
     args = parser.parse_args(argv)
+    if args.write_manifest:
+        print(f'Wrote {MANIFEST.as_posix()} with {write_manifest(root)} files')
+        return 0
     errors = inspect(root)
     for error in errors:
         print(error, file=sys.stderr)
