@@ -19,7 +19,7 @@ keywords = ["agent-skills", "ai-agents", "bilingual"]
 # installed the exact JS/TS parse is unavailable and the map falls back to the approximate
 # extractor, which it reports rather than hiding.
 [project.optional-dependencies]
-syntax = ["tree-sitter==0.23.2", "tree-sitter-javascript==0.23.1", "tree-sitter-typescript==0.23.2"]
+syntax = ["tree-sitter==0.23.2", "tree-sitter-javascript==0.25.0", "tree-sitter-typescript==0.23.2"]
 mcp = ["mcp==2.3.0; python_version >= '3.11'"]
 
 [project.urls]
