@@ -85,6 +85,15 @@ class ManifestGateTests(unittest.TestCase):
                 errors = gate.manifest_errors(self.root)
         self.assertIn('Manifest omits tracked file: a.txt', errors)
 
+    def test_a_git_failure_is_reported_not_treated_as_a_pass(self):
+        failed = subprocess.CompletedProcess([], 128, b'', b'fatal: broken index')
+        with patch('check_repository.subprocess.run', return_value=failed):
+            errors = gate.manifest_errors(self.root)
+        self.assertEqual(len(errors), 1)
+        self.assertIn('Cannot verify documentation/MANIFEST.json: git ls-files failed', errors[0])
+        with patch('check_repository.subprocess.run', side_effect=FileNotFoundError('git')):
+            self.assertIn('git ls-files could not run', gate.manifest_errors(self.root)[0])
+
     def test_write_manifest_flag_runs_through_main_without_the_suites(self):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):

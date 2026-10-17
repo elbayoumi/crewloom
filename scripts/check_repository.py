@@ -183,14 +183,20 @@ MANIFEST_LIMIT = 20
 
 
 def _manifest_files(root):
-    """Return the Git-tracked files the manifest must list, or None outside a Git checkout."""
+    """Return the Git-tracked files the manifest must list, or None outside a Git checkout.
+
+    Raises ValueError when Git itself cannot list them: a gate must report that, never pass silently.
+    """
     if not (root / '.git').exists():
         return None
     # A commit hook exports GIT_DIR and friends, which would override -C and read another repository.
-    result = subprocess.run(['git', '-C', str(root), 'ls-files', '-z'], capture_output=True, check=False,
-                            env=git_environment())
+    try:
+        result = subprocess.run(['git', '-C', str(root), 'ls-files', '-z'], capture_output=True, check=False,
+                                env=git_environment())
+    except OSError as exc:
+        raise ValueError(f'git ls-files could not run: {exc}') from exc
     if result.returncode:
-        return None
+        raise ValueError('git ls-files failed: ' + result.stderr.decode('utf-8', 'replace').strip()[:200])
     names = [n for n in result.stdout.decode('utf-8').split('\0') if n and n != MANIFEST.as_posix()]
     return sorted(n for n in names if (root / n).is_file() and not (root / n).is_symlink())
 
@@ -205,8 +211,13 @@ def manifest_errors(root):
     Skipped without a manifest or outside a Git checkout; an archive has no tracked-file list.
     """
     path = root / MANIFEST
-    tracked = _manifest_files(root)
-    if tracked is None or not path.is_file():
+    if not path.is_file():
+        return []
+    try:
+        tracked = _manifest_files(root)
+    except ValueError as exc:
+        return [f'Cannot verify {MANIFEST.as_posix()}: {exc}']
+    if tracked is None:
         return []
     try:
         listed = json.loads(path.read_text(encoding='utf-8'))['files']
