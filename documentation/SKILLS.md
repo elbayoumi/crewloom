@@ -1,6 +1,6 @@
 # Skill catalog
 
-All 42 entries are English public adaptations. IDs stay stable across output languages. Read each procedure and its memory before use.
+All 43 entries are English public adaptations. IDs stay stable across output languages. Read each procedure and its memory before use.
 
 | Role | Procedure |
 | --- | --- |
@@ -30,6 +30,7 @@ All 42 entries are English public adaptations. IDs stay stable across output lan
 | Network Infra Engineer | [network-infra-engineer](../.agents/skills/network-infra-engineer/SKILL.md) |
 | Paid Media Buyer | [paid-media-buyer](../.agents/skills/paid-media-buyer/SKILL.md) |
 | Qa Test Automation Engineer | [qa-test-automation-engineer](../.agents/skills/qa-test-automation-engineer/SKILL.md) |
+| Reverse Engineering Analyst | [reverse-engineering-analyst](../.agents/skills/reverse-engineering-analyst/SKILL.md) |
 | Rfp Proposal Engineer | [rfp-proposal-engineer](../.agents/skills/rfp-proposal-engineer/SKILL.md) |
 | Security Operations Guardian | [security-operations-guardian](../.agents/skills/security-operations-guardian/SKILL.md) |
 | Seo Growth Engineer | [seo-growth-engineer](../.agents/skills/seo-growth-engineer/SKILL.md) |

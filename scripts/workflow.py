@@ -601,26 +601,34 @@ def inspect_image(image):
     return result.stdout.strip()
 
 
+ISOLATION_FLAGS = ('--network', 'none', '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges',
+                   '--pids-limit', '128', '--memory', '1g', '--cpus', '2', '--ulimit', 'fsize=4194304:4194304')
+
+
+def bind_mount(source, destination, readonly=False):
+    """One `--mount` argument pair; a comma would let a path add options to the mount specification."""
+    if ',' in str(source):
+        raise ValueError('Docker mount paths cannot contain commas')
+    return ['--mount', f'type=bind,src={source},dst={destination}' + (',readonly' if readonly else '')]
+
+
+def docker_command(root, argv, image_id, name, writable=None):
+    """The complete `docker run` argv: only the project mounted, runtime state hidden, network off."""
+    mounts = bind_mount(root, '/workspace', readonly=writable is not None)
+    for relative in writable or ():
+        path = safe_path(root, relative)
+        mounts += bind_mount(path, f'/workspace/{path.relative_to(root)}')
+    return ['docker', 'run', '--rm', '--name', name, *ISOLATION_FLAGS,
+            '--user', f'{os.getuid()}:{os.getgid()}', '--tmpfs', '/tmp:rw,nosuid,size=128m',
+            '--tmpfs', '/workspace/.crewloom:ro,noexec,nosuid,size=1m', *mounts,
+            '--workdir', '/workspace', '--env', 'HOME=/tmp', '--env', 'PYTHONDONTWRITEBYTECODE=1',
+            '--env', 'PYTHONUNBUFFERED=1', image_id, *argv]
+
+
 def docker_execute(root, argv, image_id, timeout, writable=None):
     """Only project mounted; runtime state hidden; image immutable; network off."""
-    if ',' in str(root):
-        raise ValueError('Docker mount paths cannot contain commas')
     name = 'crewloom-' + uuid.uuid4().hex
-    command = ['docker', 'run', '--rm', '--name', name, '--network', 'none', '--read-only',
-               '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--pids-limit', '128',
-               '--memory', '1g', '--cpus', '2', '--ulimit', 'fsize=4194304:4194304',
-               '--user', f'{os.getuid()}:{os.getgid()}', '--tmpfs', '/tmp:rw,nosuid,size=128m',
-               '--tmpfs', '/workspace/.crewloom:ro,noexec,nosuid,size=1m',
-               '--mount', f'type=bind,src={root},dst=/workspace' + (',readonly' if writable is not None else ''),
-               '--workdir', '/workspace', '--env', 'HOME=/tmp', '--env', 'PYTHONDONTWRITEBYTECODE=1',
-               '--env', 'PYTHONUNBUFFERED=1', image_id, *argv]
-    if writable is not None:
-        mounts=[]
-        for relative in writable:
-            path=safe_path(root,relative)
-            if ',' in str(path):raise ValueError('Docker mount paths cannot contain commas')
-            mounts.extend(['--mount',f'type=bind,src={path},dst=/workspace/{path.relative_to(root)}'])
-        index=command.index(image_id);command[index:index]=mounts
+    command = docker_command(root, argv, image_id, name, writable)
     started = time.monotonic()
     captured = bytearray()
     discarded = [False]

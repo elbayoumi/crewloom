@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add the `reverse-engineering-analyst` role (43 roles), an authorization-first procedure in English and Arabic, a pinned [REA](https://github.com/morluto/rea) MCP configuration (`examples/mcp/rea.json`) and the read-only `re-findings` tool that checks a findings packet's target hash, authorization and evidence links. REA is a separate MIT-licensed project and is not bundled.
+- Dashboard child processes no longer inherit `CREWLOOM_DASHBOARD_TOKEN` or secret-named variables, and stored tool output redacts exact secret values and common credential shapes.
+- Split `docker_execute` into `docker_command` and `bind_mount`, and add Docker-free regressions that pin every isolation flag.
 - `check_repository.py` now fails when `documentation/MANIFEST.json` omits, invents or mis-hashes a Git-tracked file; `--write-manifest` regenerates it. Skipped outside a Git checkout.
 
 ## 0.6.1 — 2026-10-17

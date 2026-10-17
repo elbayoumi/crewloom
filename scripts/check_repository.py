@@ -15,7 +15,7 @@ from repo_map import git_environment
 from workflow import folded
 
 ROOT = Path(__file__).resolve().parents[1]
-SUITES = ('skill-forge-recruiter', 'context-guardian', 'frontend-ux-auditor', 'qa-test-automation-engineer')
+SUITES = ('skill-forge-recruiter', 'context-guardian', 'frontend-ux-auditor', 'qa-test-automation-engineer', 'reverse-engineering-analyst')
 TEST_PATTERN = 'test_*.py'
 SUITE_TIMEOUT = 60
 

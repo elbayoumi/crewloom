@@ -79,7 +79,7 @@ class DistributionMetadata(unittest.TestCase):
         # climbs four levels above itself still finds `.agents/skills` beside its installation.
         self.assertEqual(resources.roles_dir().relative_to(resources.distribution_root()),
                          resources.ROLES_DIRECTORY)
-        self.assertEqual(len(resources.role_ids()), 42)
+        self.assertEqual(len(resources.role_ids()), 43)
 
     def test_every_flat_runtime_module_is_declared_and_exists(self):
         modules = pyproject()['tool']['setuptools']['py-modules']

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "rea": {
+      "command": "npx",
+      "transport": "stdio",
+      "args": ["-y", "rea-agents@6.5.0", "mcp"],
+      "env": {}
+    }
+  }
+}
