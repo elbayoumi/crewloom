@@ -13,6 +13,8 @@ These synthetic inputs contain no client data. The six local checks below need n
 
 SEO packet word count is declared metadata, not a generated article. MCP `your_server.py` is an external project input, not a bundled server. Static grid checks do not prove rendered layout. Video pacing is a measurement tool, not a speech engine.
 
+See [the MCP example](mcp/README.md) for the structure fixture and the procedure to wire a real server.
+
 - [Model-generated software feature](model-workflow/README.md): authenticated CLI generation, scoped artifacts and isolated acceptance.
 - [Repeated host trials](evaluation/unicode-slug/HOST_TRIALS.md): frozen protocol, anonymized submissions and deterministic scoring.
 

@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "mcp-integration",
+  "language": "en",
+  "steps": [
+    {
+      "id": "identify-server",
+      "role": "mcp-integration-builder",
+      "kind": "task",
+      "summary": "Identify target host, server purpose, tool contracts and credentials",
+      "inputs": [
+        "task.md"
+      ],
+      "outputs": [
+        "artifacts/server-brief.md"
+      ]
+    },
+    {
+      "id": "configure",
+      "role": "mcp-integration-builder",
+      "kind": "task",
+      "summary": "Configure or implement the server with validated inputs",
+      "inputs": [
+        "artifacts/server-brief.md"
+      ],
+      "outputs": [
+        "artifacts/mcp-config.json"
+      ]
+    },
+    {
+      "id": "validate-config",
+      "role": "mcp-integration-builder",
+      "kind": "command",
+      "summary": "Validate MCP client config with the bundled checker",
+      "argv": [
+        "python3",
+        ".agents/skills/mcp-integration-builder/scripts/validate_mcp_config.py",
+        "--config",
+        "artifacts/mcp-config.json"
+      ],
+      "inputs": [
+        "artifacts/mcp-config.json"
+      ],
+      "outputs": [
+        "artifacts/validation-result.txt"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "exercise-tools",
+      "role": "mcp-integration-builder",
+      "kind": "task",
+      "summary": "Start server and exercise representative tool calls; record evidence",
+      "inputs": [
+        "artifacts/mcp-config.json"
+      ],
+      "outputs": [
+        "artifacts/tool-evidence.md"
+      ]
+    },
+    {
+      "id": "document",
+      "role": "mcp-integration-builder",
+      "kind": "task",
+      "summary": "Document setup, configuration and removal",
+      "inputs": [
+        "artifacts/tool-evidence.md"
+      ],
+      "outputs": [
+        "artifacts/integration-notes.md"
+      ]
+    }
+  ]
+}

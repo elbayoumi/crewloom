@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "social-reel",
+  "language": "en",
+  "steps": [
+    {
+      "id": "brief",
+      "role": "creative-director",
+      "kind": "task",
+      "summary": "Fix audience, approved offer, claim boundaries and channel; record unresolved decisions",
+      "inputs": ["task.md"],
+      "outputs": ["artifacts/reel-brief.md"]
+    },
+    {
+      "id": "hook",
+      "role": "viral-hook-architect",
+      "kind": "task",
+      "summary": "Write hook variants and select one; record why the others were rejected",
+      "inputs": ["artifacts/reel-brief.md"],
+      "outputs": ["artifacts/hooks.md"]
+    },
+    {
+      "id": "script",
+      "role": "video-script-architect",
+      "kind": "task",
+      "summary": "Write the narration-only script for the selected duration",
+      "inputs": ["artifacts/reel-brief.md", "artifacts/hooks.md"],
+      "outputs": ["reel/script.txt"]
+    },
+    {
+      "id": "pacing",
+      "role": "video-script-architect",
+      "kind": "command",
+      "summary": "Measure narration word pacing for the selected duration",
+      "argv": ["python3", ".agents/skills/video-script-architect/scripts/validate_script_pacing.py", "--file", "reel/script.txt", "--duration", "30"],
+      "inputs": ["reel/script.txt"],
+      "outputs": ["artifacts/pacing.txt"],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "visual",
+      "role": "graphic-design-producer",
+      "kind": "task",
+      "summary": "Produce channel-sized vertical key frames and on-screen text for each beat",
+      "inputs": ["artifacts/reel-brief.md", "reel/script.txt"],
+      "outputs": ["assets/keyframe-01.png", "assets/keyframe-02.png", "assets/keyframe-03.png"]
+    },
+    {
+      "id": "assembly-brief",
+      "role": "video-assembly-editor",
+      "kind": "task",
+      "summary": "Write the shot list, timing, music and transition brief for the editor",
+      "inputs": ["reel/script.txt", "assets/keyframe-01.png"],
+      "outputs": ["artifacts/assembly-brief.md"]
+    },
+    {
+      "id": "review",
+      "role": "visual-qa-reviewer",
+      "kind": "task",
+      "summary": "Review frames and script against the approved brief and record unresolved gaps",
+      "inputs": ["artifacts/assembly-brief.md", "artifacts/pacing.txt"],
+      "outputs": ["artifacts/visual-review.md"]
+    }
+  ]
+}

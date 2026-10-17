@@ -14,6 +14,8 @@ The toolkit brings together **42 English role guides**, **150 detailed reference
 
 Managed workflows add project and checkout identities, frozen context, isolated Docker acceptance, credential-scoped review, and concurrent task worktrees. [Native lifecycle setup](documentation/HOST_LIFECYCLE.md) connects supported host callbacks; [agency readiness](documentation/READINESS.md) reports client evidence without modifying client projects. See [enforcement boundaries](documentation/ENFORCEMENT.md) for what each execution path actually covers.
 
+An application MCP server is configured in your own agent host, not here. [Application MCP servers](documentation/MCP.md) covers configuration, discovery, a bounded tool call, driving a running application, and the separate claims that configuration, reachability and effect each prove.
+
 ## Execute a software workflow
 
 Run a six-stage feature with actual commands, project-bound evidence and resumable state:

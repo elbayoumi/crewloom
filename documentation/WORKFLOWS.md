@@ -17,6 +17,8 @@ Use one owner per artifact. Architecture review does not stand in for implementa
 
 Confirm the audience and approved claims. Use the script-pacing tool before voice recording. Voice and editing need separately configured media tools; no publishing occurs from these role instructions alone.
 
+Use [the short-form reel plan](../workflows/social-reel.json) to make the same chain resumable project work: it pauses for the script, measures narration pacing with the bundled `script-pacing` tool as a command step, and records key frames, an assembly brief and a visual review. The plan produces assets and briefs; it does not record voice, assemble video or publish to a platform.
+
 ## Prepare organic content
 
 `seo-growth-engineer` creates the keyword / intent brief and article packet. Run the packet gate, inspect the actual article and links, then obtain publishing authorization. The included packet example demonstrates schema checks, not search performance.
@@ -30,6 +32,10 @@ Confirm the audience and approved claims. Use the script-pacing tool before voic
 > Read AGENTS.md, the chosen role, its detailed playbook, and relevant memory. Use English. The task is [concrete output]. Inputs are [real files]. Acceptance is [observable checks]. External actions are [explicit authority]. Verify the result and update memory.
 
 > اقرأ AGENTS.md والمهارة ودليلها التفصيلي والبرين. استخدم العربية. المطلوب [مخرج محدد] والمدخلات [ملفات فعلية] وشروط القبول [فحوص واضحة]. التصرفات الخارجية المصرح بها [نطاق صريح]. افحص النتيجة وحدّث الذاكرة.
+
+## Wire an application MCP server
+
+`mcp-integration-builder` identifies the host, server purpose and tool contracts, configures the server, validates the client configuration with the bundled checker, exercises discovery plus one bounded tool call, and documents setup and removal. Use [the MCP integration plan](../workflows/mcp-integration.json) with the [application MCP guide](MCP.md). Configured, reachable and effective are separate claims; role steps cannot grant credentials or widen a server's filesystem authority.
 
 ## Executable software path
 
