@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
+import { childEnvironment } from './child-env.ts';
 import { ROOT } from './repo.ts';
 
 /** Read-only controls selected by server configuration. Never accept browser paths. */
@@ -8,7 +9,7 @@ export async function controlStatus(kind: 'queue' | 'budget') {
   if (!directory) return { configured: false };
   return new Promise<Record<string, unknown>>((resolve) => {
     const child = spawn(process.env.PYTHON ?? 'python3', [path.join(ROOT, 'scripts/crewloom.py'),
-      kind, 'status', '--directory', directory], { cwd: ROOT, shell: false });
+      kind, 'status', '--directory', directory], { cwd: ROOT, shell: false, env: childEnvironment() });
     let output = ''; let size = 0; let refused = false;
     const timer = setTimeout(() => { refused = true; child.kill(); }, 10000);
     child.stdout.on('data', (chunk: Buffer) => {

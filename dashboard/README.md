@@ -15,7 +15,7 @@ Set `CREWLOOM_ROOT` to point at another checkout (default: the parent directory)
 
 | Panel | Source |
 | --- | --- |
-| 42 role rows: status, open tasks, completed entries, open challenges, last memory update | `.agents/skills/<id>/brain/*.md` |
+| 43 role rows: status, open tasks, completed entries, open challenges, last memory update | `.agents/skills/<id>/brain/*.md` |
 | Role detail with `SKILL.md` and all five memory files | same |
 | Tool runner for the 18 registered tools | `documentation/TOOLS.json` via `crewloom.py run` |
 | Recent runs (CLI and dashboard) with exit code and duration | `.crewloom/runs.jsonl` |

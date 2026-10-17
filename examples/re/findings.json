@@ -1,0 +1,18 @@
+{
+  "target": {
+    "path": "samples/example.bin",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "authorization": "Own test fixture built for this example; no third-party software."
+  },
+  "tool": {"name": "rea-agents", "version": "6.5.0"},
+  "evidence": [
+    {"id": "ev-1", "tool": "inspect_artifact", "operation": "format and section inventory"},
+    {"id": "ev-2", "tool": "analyze_function", "operation": "decompile entry function"}
+  ],
+  "findings": [
+    {"id": "f-1", "kind": "observation", "claim": "The file is an ELF executable with a .text section.", "evidence_ids": ["ev-1"]},
+    {"id": "f-2", "kind": "derivation", "claim": "The entry function calls one imported routine.", "evidence_ids": ["ev-2"]},
+    {"id": "f-3", "kind": "inference", "claim": "The routine is probably used for logging.", "evidence_ids": ["ev-2"], "limitations": "Judged from the symbol name; behavior was not executed."},
+    {"id": "f-4", "kind": "unknown", "claim": "Whether the binary contacts the network.", "limitations": "No dynamic analysis was authorized."}
+  ]
+}

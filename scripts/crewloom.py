@@ -25,7 +25,7 @@ def library_root():
 
 
 def skills_dir():
-    """Directory holding the 42 role trees for this installation."""
+    """Directory holding the 43 role trees for this installation."""
     return resources.roles_dir()
 
 
@@ -217,7 +217,7 @@ def tool_path(item):
     return path
 
 
-PATH_FLAGS = {'--project-dir', '--file', '--config', '--packet', '--snapshot', '--tokens', '--out', '--exceptions', '--project'}
+PATH_FLAGS = {'--project-dir', '--file', '--config', '--packet', '--snapshot', '--tokens', '--out', '--exceptions', '--project', '--findings'}
 POSITIONAL_PATH_TOOLS = {'workflow-contract', 'delivery-evidence'}
 
 # Commands whose parser, defaults and exit codes live in another module. They declare no arguments

@@ -1,5 +1,10 @@
 # Completed work
 
+### 2026-10-17 — REA role and hardening
+- Artifact: `.agents/skills/reverse-engineering-analyst/`, `examples/mcp/rea.json`, `examples/re/findings.json`, `dashboard/lib/child-env.ts`, `scripts/test_docker_command.py`.
+- Impact: Reverse-engineering role with evidence bookkeeping; dashboard children no longer inherit the dashboard token; container isolation flags are regression-tested without Docker.
+- Evidence: Required gate passes with the 43-role counts; 10 findings-checker, 8 isolation-command and 3 environment-hygiene cases pass. REA was not executed against a real target and the Chrome companion's `<all_urls>` scope is unchanged by design.
+
 ### 2026-10-15 — Hosted Python compatibility follow-up
 - Artifact: native_desktop.py and its existing regression suite; PR21 first-head failure retained.
 - Impact: synchronous construction needs no implicit event loop; asynchronous native operations serialize on one loop and reject foreign loops.

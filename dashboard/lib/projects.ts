@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
+import { childEnvironment } from './child-env.ts';
 import { ROOT } from './repo.ts';
 
 import type { ProjectCatalog } from './project-commands.ts';
@@ -11,7 +12,7 @@ export async function catalogRequest(action: 'list' | 'cancel-task', projectId?:
   return new Promise((resolve) => {
     const child = spawn(process.env.PYTHON ?? 'python3', [path.join(ROOT, 'scripts/crewloom.py'),
       'projects', action, '--catalog', catalog,
-      ...(action === 'cancel-task' ? ['--project-id', projectId ?? '', '--task-id', taskId ?? ''] : [])], { cwd: ROOT, shell: false });
+      ...(action === 'cancel-task' ? ['--project-id', projectId ?? '', '--task-id', taskId ?? ''] : [])], { cwd: ROOT, shell: false, env: childEnvironment() });
     let output = ''; let size = 0; let refused = false;
     const timer = setTimeout(() => { refused = true; child.kill(); }, 15000);
     child.stdout.on('data', (chunk: Buffer) => {

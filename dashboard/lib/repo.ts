@@ -1,6 +1,7 @@
 import { promises as fs, existsSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { childEnvironment, redactOutput } from './child-env.ts';
 
 export const ROOT = path.resolve(process.env.CREWLOOM_ROOT ?? path.join(process.cwd(), '..'));
 export const SKILLS = path.join(ROOT, '.agents', 'skills');
@@ -155,14 +156,14 @@ export type ExecResult = { exit_code: number; output: string; duration_ms: numbe
 function exec(args: string[], timeoutMs: number, cwd = PROJECT): Promise<ExecResult> {
   return new Promise((resolve) => {
     const started = Date.now();
-    const child = spawn('python3', args, { cwd, env: { ...process.env, CREWLOOM_NO_LOG: '1' } });
+    const child = spawn('python3', args, { cwd, env: childEnvironment({ CREWLOOM_NO_LOG: '1' }) });
     let output = '';
     const cap = (d: Buffer) => { if (output.length < 20000) output += d.toString(); };
     child.stdout.on('data', cap);
     child.stderr.on('data', cap);
     const timer = setTimeout(() => { child.kill('SIGKILL'); output += '\n[timeout]'; }, timeoutMs);
     child.on('error', (e) => { clearTimeout(timer); resolve({ exit_code: 127, output: String(e), duration_ms: Date.now() - started }); });
-    child.on('close', (code) => { clearTimeout(timer); resolve({ exit_code: code ?? 1, output, duration_ms: Date.now() - started }); });
+    child.on('close', (code) => { clearTimeout(timer); resolve({ exit_code: code ?? 1, output: redactOutput(output), duration_ms: Date.now() - started }); });
   });
 }
 

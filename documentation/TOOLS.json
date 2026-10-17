@@ -34,6 +34,17 @@
       "effect": "read-only"
     },
     {
+      "id": "re-findings",
+      "skill": "reverse-engineering-analyst",
+      "path": ".agents/skills/reverse-engineering-analyst/scripts/check_re_findings.py",
+      "description": "Validate a reverse-engineering findings packet for target hash, authorization and evidence links",
+      "example_args": "--findings {input}",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
       "id": "script-pacing",
       "skill": "video-script-architect",
       "path": ".agents/skills/video-script-architect/scripts/validate_script_pacing.py",

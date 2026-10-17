@@ -6,11 +6,11 @@
 <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB" alt="Python 3.9 or later" />
 </p>
 
-<p align="center"><a href="README.ar.md">العربية</a> · <a href="documentation/SKILLS.md">42 roles</a> · <a href="documentation/TOOLS.md">Tool catalog</a> · <a href="examples/README.md">Run examples</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
+<p align="center"><a href="README.ar.md">العربية</a> · <a href="documentation/SKILLS.md">43 roles</a> · <a href="documentation/TOOLS.md">Tool catalog</a> · <a href="examples/README.md">Run examples</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
 
 Crewloom is a repository-native toolkit for specialist AI agent work. Choose a role, give it your project inputs, keep working memory, and check the result with local tools. Use your existing agent host and model.
 
-The toolkit brings together **42 English role guides**, **150 detailed reference documents**, **18 catalogued Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic. See [language support and paired acceptance](documentation/LANGUAGES.md) for UI behavior and runtime boundaries.
+The toolkit brings together **43 English role guides**, **153 detailed reference documents**, **19 catalogued Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic. See [language support and paired acceptance](documentation/LANGUAGES.md) for UI behavior and runtime boundaries.
 
 Managed workflows add project and checkout identities, frozen context, isolated Docker acceptance, credential-scoped review, and concurrent task worktrees. [Native lifecycle setup](documentation/HOST_LIFECYCLE.md) connects supported host callbacks; [agency readiness](documentation/READINESS.md) reports client evidence without modifying client projects. See [enforcement boundaries](documentation/ENFORCEMENT.md) for what each execution path actually covers.
 

@@ -7,6 +7,7 @@ Run `python3 scripts/crewloom.py tools` to list these tools. `run` dispatches on
 | [workflow-contract](../.agents/skills/automation-ops-engineer/scripts/check_workflow_contract.py) | Validate an n8n export; reject embedded literal secret fields | `{input}` |
 | [seo-packet](../.agents/skills/seo-growth-engineer/scripts/check_seo_content_packet.py) | Validate article metadata, length, canonical and internal links | `--packet {input}` |
 | [mcp-config](../.agents/skills/mcp-integration-builder/scripts/validate_mcp_config.py) | Check MCP server configuration and suspicious credential literals | `--config {input}` |
+| [re-findings](../.agents/skills/reverse-engineering-analyst/scripts/check_re_findings.py) | Validate a reverse-engineering findings packet for target hash, authorization and evidence links; bookkeeping only, not proof of a claim | `--findings {input}` |
 | [script-pacing](../.agents/skills/video-script-architect/scripts/validate_script_pacing.py) | Measure script word pacing for a selected duration | `--file {input} --duration 30` |
 | [budget-pacing](../.agents/skills/paid-media-buyer/scripts/budget_pacer.py) | Compare actual campaign spend with approved expected pacing | `--daily-budget 100 --days-elapsed 3 --actual-spend 300` |
 | [ui-hints](../.agents/skills/frontend-ux-auditor/scripts/check_ui_quality.py) | Static UI hints; exit 2 requests rendered review rather than claiming acceptance | `--project-dir {input} --json` |
