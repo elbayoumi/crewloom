@@ -5,8 +5,8 @@ import { childEnvironment, redactOutput } from '../lib/child-env.ts';
 const TOKEN = 'a'.repeat(43);
 const source = {
   PATH: '/usr/bin', HOME: '/home/u', CREWLOOM_PROJECT: '/p', CREWLOOM_CATALOG: '/c',
-  CREWLOOM_DASHBOARD_TOKEN: TOKEN, GITHUB_TOKEN: 'ghp_' + 'b'.repeat(36), AWS_SECRET_ACCESS_KEY: 'c'.repeat(40),
-  OPENAI_API_KEY: 'sk-' + 'd'.repeat(30), DB_PASSWORD: 'hunter2hunter2', TOKENIZERS_PARALLELISM: 'false',
+  CREWLOOM_DASHBOARD_TOKEN: TOKEN, GITHUB_TOKEN: 'gh' + 'p_' + 'b'.repeat(36), AWS_SECRET_ACCESS_KEY: 'c'.repeat(40),
+  OPENAI_API_KEY: 's' + 'k-' + 'd'.repeat(30), DB_PASSWORD: 'hunter2hunter2', TOKENIZERS_PARALLELISM: 'false',
 };
 
 test('children do not inherit the dashboard credential or secret-named variables', () => {
@@ -23,8 +23,8 @@ test('explicit extra values win over the inherited environment', () => {
 });
 
 test('stored output hides exact secret values and common credential shapes', () => {
-  const output = `token=${TOKEN}\nkey ${source.GITHUB_TOKEN}\nnormal line\n` +
-    '-----BEGIN RSA PRIVATE KEY-----\nabc\n-----END RSA PRIVATE KEY-----';
+  const pem = ['-----BEGIN RSA', 'PRIVATE KEY-----'].join(' ');
+  const output = `token=${TOKEN}\nkey ${source.GITHUB_TOKEN}\nnormal line\n${pem}\nabc\n${pem.replace('BEGIN', 'END')}`;
   const redacted = redactOutput(output, source);
   assert.equal(redacted.includes(TOKEN), false);
   assert.equal(redacted.includes('ghp_'), false);

@@ -51,7 +51,7 @@ class FindingsPacket(unittest.TestCase):
         self.assertTrue(any('duplicate finding id' in e for e in errors))
 
     def test_embedded_secret_rejected(self):
-        errors = self.mutated(lambda p: p['findings'][0].update(claim='key ghp_abcdefghijklmnopqrstuvwxyz0123456789'))
+        errors = self.mutated(lambda p: p['findings'][0].update(claim='key ' + 'gh' + 'p_' + 'a1' * 18))
         self.assertTrue(any('embedded secret' in e for e in errors))
 
     def test_non_object_and_malformed_shapes_do_not_raise(self):
