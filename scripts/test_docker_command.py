@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 
 import workflow as w
 
@@ -30,6 +31,14 @@ class DockerCommand(unittest.TestCase):
         self.assertEqual(pairs['--user'], f'{os.getuid()}:{os.getgid()}')
         for flag in ('--pids-limit', '--memory', '--cpus', '--ulimit'):
             self.assertIn(flag, pairs)
+
+    def test_root_user_is_refused(self):
+        with mock.patch('os.getuid', return_value=0):
+            with self.assertRaisesRegex(ValueError, 'refuse to run as root'):
+                self.build()
+        with mock.patch('os.getuid', return_value=0):
+            with self.assertRaisesRegex(ValueError, 'refuse to run as root'):
+                w.docker_user()
 
     def test_no_privilege_widening_options(self):
         command = self.build(['out'])

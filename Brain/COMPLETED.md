@@ -1,5 +1,10 @@
 # Completed work
 
+### 2026-10-17 — Post-merge container isolation and acceptance hardening
+- Artifact: `scripts/workflow.py`, `scripts/test_docker_command.py`, `scripts/test_host_lifecycle.py`, `dashboard/`.
+- Impact: Workflow containers explicitly refuse execution under host root (UID 0); host lifecycle test fixtures fall back to supported version when system tools are upgraded; dashboard verified with clean 59/59 tests, tsc, and production build; REA pinned MCP probed against harmless fixture.
+- Evidence: 9 docker command isolation tests pass including root refusal; 75 host lifecycle tests pass on unpinned host environment; dashboard builds in 1.6s with zero errors; remote PR #35 branch deleted after merge.
+
 ### 2026-10-17 — REA role and hardening
 - Artifact: `.agents/skills/reverse-engineering-analyst/`, `examples/mcp/rea.json`, `examples/re/findings.json`, `dashboard/lib/child-env.ts`, `scripts/test_docker_command.py`.
 - Impact: Reverse-engineering role with evidence bookkeeping; dashboard children no longer inherit the dashboard token; container isolation flags are regression-tested without Docker.

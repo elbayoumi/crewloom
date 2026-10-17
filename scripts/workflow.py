@@ -612,6 +612,17 @@ def bind_mount(source, destination, readonly=False):
     return ['--mount', f'type=bind,src={source},dst={destination}' + (',readonly' if readonly else '')]
 
 
+def docker_user():
+    """Ensure workflow containers never run as root; unprivileged users run under their own uid:gid."""
+    if not hasattr(os, 'getuid') or not hasattr(os, 'getgid'):
+        raise ValueError('Workflow containers require Linux, macOS or WSL; native Windows is not supported yet')
+    uid = os.getuid()
+    gid = os.getgid()
+    if uid == 0:
+        raise ValueError('Workflow containers refuse to run as root; execute as an unprivileged user')
+    return f'{uid}:{gid}'
+
+
 def docker_command(root, argv, image_id, name, writable=None):
     """The complete `docker run` argv: only the project mounted, runtime state hidden, network off."""
     mounts = bind_mount(root, '/workspace', readonly=writable is not None)
@@ -619,7 +630,7 @@ def docker_command(root, argv, image_id, name, writable=None):
         path = safe_path(root, relative)
         mounts += bind_mount(path, f'/workspace/{path.relative_to(root)}')
     return ['docker', 'run', '--rm', '--name', name, *ISOLATION_FLAGS,
-            '--user', f'{os.getuid()}:{os.getgid()}', '--tmpfs', '/tmp:rw,nosuid,size=128m',
+            '--user', docker_user(), '--tmpfs', '/tmp:rw,nosuid,size=128m',
             '--tmpfs', '/workspace/.crewloom:ro,noexec,nosuid,size=1m', *mounts,
             '--workdir', '/workspace', '--env', 'HOME=/tmp', '--env', 'PYTHONDONTWRITEBYTECODE=1',
             '--env', 'PYTHONUNBUFFERED=1', image_id, *argv]

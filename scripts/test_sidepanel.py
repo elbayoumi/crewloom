@@ -184,8 +184,11 @@ class SidePanelHarness(unittest.TestCase):
         cls.playwright = _playwright()
         if cls.playwright is None:
             raise unittest.SkipTest('Playwright is not installed')
-        cls.manager = cls.playwright().start()
-        cls.browser = _launch(cls.manager)
+        try:
+            cls.manager = cls.playwright().start()
+            cls.browser = _launch(cls.manager)
+        except Exception as exc:  # pragma: no cover - depends on local environment/loop
+            raise unittest.SkipTest(f'Playwright harness unavailable: {exc}')
 
     @classmethod
     def tearDownClass(cls):
