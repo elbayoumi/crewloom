@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- `check_repository.py` now fails when `documentation/MANIFEST.json` omits, invents or mis-hashes a Git-tracked file; `--write-manifest` regenerates it. Skipped outside a Git checkout.
+
 ## 0.6.1 — 2026-10-17
 
 - Browser companion2.3.2 translates known errors and in-page HUD status in Arabic/English, preserves site language and reacts to saved-language changes.
