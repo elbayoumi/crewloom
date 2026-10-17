@@ -2,11 +2,14 @@
 
 <p align="center">
 <a href="https://github.com/elbayoumi/crewloom/actions/workflows/ci.yml"><img src="https://github.com/elbayoumi/crewloom/actions/workflows/ci.yml/badge.svg" alt="Repository checks" /></a>
+<a href="https://github.com/elbayoumi/crewloom/releases/latest"><img src="https://img.shields.io/github/v/release/elbayoumi/crewloom?color=2ea44f&label=release" alt="Latest Release" /></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="Apache-2.0" /></a>
 <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB" alt="Python 3.9 or later" />
+<a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-Protocol-purple" alt="Model Context Protocol" /></a>
+<a href="https://github.com/elbayoumi/crewloom/stargazers"><img src="https://img.shields.io/github/stars/elbayoumi/crewloom?style=social" alt="GitHub stars" /></a>
 </p>
 
-<p align="center"><a href="README.ar.md">العربية</a> · <a href="documentation/SKILLS.md">43 roles</a> · <a href="documentation/TOOLS.md">Tool catalog</a> · <a href="examples/README.md">Run examples</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
+<p align="center"><a href="README.ar.md">العربية</a> · <a href="documentation/SKILLS.md">43 Roles</a> · <a href="documentation/TOOLS.md">Tool Catalog</a> · <a href="examples/README.md">Run Examples</a> · <a href="dashboard/README.md">Live Dashboard</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
 
 Crewloom is a repository-native toolkit for specialist AI agent work. Choose a role, give it your project inputs, keep working memory, and check the result with local tools. Use your existing agent host and model.
 
@@ -60,6 +63,7 @@ Both example checks print `PASS`. See [six runnable examples](examples/README.md
 | Work | Start with | Concrete output |
 | --- | --- | --- |
 | Build a product feature | [Full-stack engineer](.agents/skills/fullstack-mvp-engineer/SKILL.md) + [QA](.agents/skills/qa-test-automation-engineer/SKILL.md) | Implementation and a delivery evidence packet |
+| Reverse engineering & binary audit | [Reverse engineering analyst](.agents/skills/reverse-engineering-analyst/SKILL.md) | Findings packet with evidence-linked verification |
 | Review a frontend | [UI auditor](.agents/skills/frontend-ux-auditor/SKILL.md) | Source findings, grid checks, and supplied layout evidence |
 | Prepare organic content | [SEO engineer](.agents/skills/seo-growth-engineer/SKILL.md) | Article brief and checked metadata packet |
 | Produce a short video | [Script architect](.agents/skills/video-script-architect/SKILL.md) + [Studio director](.agents/skills/studio-director/SKILL.md) | Beat sheet, pacing measurement, and production handoff |
@@ -77,7 +81,7 @@ python -m pip install -e .  # adds the `crewloom` command
 crewloom install --host claude --target /path/to/your/project --skill frontend-ux-auditor
 ```
 
-`--host claude` copies roles to `.claude/skills`; `--host agents` copies them to `.agents/skills` for hosts that read that folder (omit `--skill` for all 42). Existing roles are never overwritten without `--force`. Copied roles are static: re-run the command after pulling updates. A normal `pip install .` builds a local wheel with the Python runtime, role resources, adapters and examples. The editable command above keeps a development link to the clone. The optional Node dashboard runs from a source checkout.
+`--host claude` copies roles to `.claude/skills`; `--host agents` copies them to `.agents/skills` for hosts that read that folder (omit `--skill` for all 43). Existing roles are never overwritten without `--force`. Copied roles are static: re-run the command after pulling updates. A normal `pip install .` builds a local wheel with the Python runtime, role resources, adapters and examples. The editable command above keeps a development link to the clone. The optional Node dashboard runs from a source checkout.
 
 Use the optional [native Codex plugin](documentation/CODEX_PLUGIN.md) for role/context/workflow guidance and the separate [manual browser companion](documentation/CHROME_EXTENSION_SIDE_PANEL.md) for element inspection and tab capture.
 

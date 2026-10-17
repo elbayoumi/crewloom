@@ -1,8 +1,17 @@
 # Crewloom
 
-![Crewloom](assets/crewloom-banner.svg)
+<p align="center"><img src="assets/crewloom-banner.svg" alt="Crewloom: أدوار، ذاكرة، وأدلة لوكلاء الذكاء الاصطناعي" width="100%" /></p>
 
-[English](README.md) · [المهارات](documentation/SKILLS.md) · [الأدوات](documentation/TOOLS.md) · [أمثلة التشغيل](examples/README.md)
+<p align="center">
+<a href="https://github.com/elbayoumi/crewloom/actions/workflows/ci.yml"><img src="https://github.com/elbayoumi/crewloom/actions/workflows/ci.yml/badge.svg" alt="Repository checks" /></a>
+<a href="https://github.com/elbayoumi/crewloom/releases/latest"><img src="https://img.shields.io/github/v/release/elbayoumi/crewloom?color=2ea44f&label=release" alt="Latest Release" /></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="Apache-2.0" /></a>
+<img src="https://img.shields.io/badge/Python-3.9%2B-3776AB" alt="Python 3.9 or later" />
+<a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-Protocol-purple" alt="Model Context Protocol" /></a>
+<a href="https://github.com/elbayoumi/crewloom/stargazers"><img src="https://img.shields.io/github/stars/elbayoumi/crewloom?style=social" alt="GitHub stars" /></a>
+</p>
+
+<p align="center"><a href="README.md">English</a> · <a href="documentation/SKILLS.md">43 دوراً</a> · <a href="documentation/TOOLS.md">دليل الأدوات</a> · <a href="examples/README.md">أمثلة التشغيل</a> · <a href="dashboard/README.md">لوحة التحكم الحية</a> · <a href="CONTRIBUTING.md">المساهمة</a></p>
 
 أدوات وإجراءات لتنظيم شغل وكلاء الذكاء الاصطناعي داخل الريبو: تختار الدور، توفر بيانات المشروع، تحفظ الذاكرة، وتفحص المخرجات.
 
