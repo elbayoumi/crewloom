@@ -10,6 +10,15 @@ import workflow as w
 
 class DockerCommand(unittest.TestCase):
     def setUp(self):
+        self.mock_uid = os.getuid() or 1000
+        self.mock_gid = os.getgid() or 1000
+        patch_uid = mock.patch('os.getuid', return_value=self.mock_uid)
+        patch_gid = mock.patch('os.getgid', return_value=self.mock_gid)
+        patch_uid.start()
+        patch_gid.start()
+        self.addCleanup(patch_uid.stop)
+        self.addCleanup(patch_gid.stop)
+
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name).resolve()
         (self.root / 'out').mkdir()
@@ -28,7 +37,7 @@ class DockerCommand(unittest.TestCase):
         self.assertEqual(pairs['--network'], 'none')
         self.assertEqual(pairs['--cap-drop'], 'ALL')
         self.assertEqual(pairs['--security-opt'], 'no-new-privileges')
-        self.assertEqual(pairs['--user'], f'{os.getuid()}:{os.getgid()}')
+        self.assertEqual(pairs['--user'], f'{self.mock_uid}:{self.mock_gid}')
         for flag in ('--pids-limit', '--memory', '--cpus', '--ulimit'):
             self.assertIn(flag, pairs)
 
