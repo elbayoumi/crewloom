@@ -60,8 +60,12 @@ class Fixture(unittest.TestCase):
         # supported release these fixtures were written against. A real host still wins.
         real_version = hl._version_of
         fallback = {'codex': 'codex-cli 0.155.1', 'opencode': '1.18.32'}
-        patcher = mock.patch.object(hl, '_version_of',
-                                    side_effect=lambda host: real_version(host) or fallback.get(host))
+        def supported_or_fallback(host):
+            real = real_version(host)
+            if real and hl.normalize_version(real) in hl.SUPPORTED_VERSIONS.get(host, ()):
+                return real
+            return fallback.get(host)
+        patcher = mock.patch.object(hl, '_version_of', side_effect=supported_or_fallback)
         patcher.start()
         self.addCleanup(patcher.stop)
         temporary = tempfile.TemporaryDirectory(prefix='crewloom-native-lifecycle-')
