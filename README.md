@@ -184,7 +184,7 @@ Monitor roles, memory, and tool runs live with the optional [web dashboard](dash
 See [evidence from real projects](documentation/EVIDENCE.md), including a false positive.
 
 For contributing or preparing a release, use the [verification checklist](documentation/RELEASE.md).
-The current package metadata is `0.7.0`; check the repository's release tags for what has been published.
+The current package metadata is `0.8.0`; check the repository's release tags for what has been published.
 
 Follow the [workflow recipes](documentation/WORKFLOWS.md) for role order, inputs, and acceptance evidence. Roles guide your agent; specialist platforms and project assets remain project inputs.
 

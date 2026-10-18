@@ -2,7 +2,7 @@
 
 ## Current development snapshot
 
-The package version is `0.7.0`. The sections below retain historical release evidence;
+The package version is `0.8.0`. The sections below retain historical release evidence;
 they do not establish acceptance of later changes. A release requires checks on its exact
 commit, successful hosted CI and a deliberate tag/publication step.
 

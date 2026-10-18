@@ -1,8 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.8.0 — 2026-10-18
 
-- `check_repository.py` now fails when `documentation/MANIFEST.json` omits, invents or mis-hashes a Git-tracked file; `--write-manifest` regenerates it. Skipped outside a Git checkout.
+- Add cross-host provider evaluation across Claude, Codex, and OpenCode runtimes, with normalized Anthropic token usage metrics separating prompt cache reads (`cached_input_tokens`) and cache creation writes (`cache_write_tokens`) (resolves #37).
+- Formalize prompt cache efficiency telemetry metric calculation (`cached / (uncached + cached + cache_write)`), recording trial generation latency and Docker grading duration in evaluation summaries.
+- Add headless Chrome extension background service worker verification (7 tests), bidirectional in-page HUD language switching (LTR / RTL) with persistent state, and automated WCAG 2.1 AA audits across side panel and dashboard (resolves #38).
+- Enforce strict manifest completeness gate in `scripts/check_repository.py` rejecting uncommitted, missing, or mismatched SHA-256 digests in `documentation/MANIFEST.json`, and provide `--write-manifest` regeneration flag (resolves #33).
+- Add production MCP integration workflow plan (`workflows/mcp-integration.json`), short-form reel video production workflow plan (`workflows/social-reel.json`), and application MCP server architecture guide (`documentation/MCP.md`) (resolves #34).
 
 ## 0.7.0 — 2026-10-18
 
