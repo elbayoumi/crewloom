@@ -76,12 +76,13 @@ Use `CrewloomAutoGenExecutor` as the `code_execution_config` executor for AutoGe
 from autogen import ConversableAgent
 from adapters.interop.autogen_sandbox import CrewloomAutoGenExecutor
 
-# Initialize Crewloom rootless executor
+# Initialize Crewloom rootless executor (supports stateful sessions across code blocks)
 executor = CrewloomAutoGenExecutor(
     workspace_root="./my-project",
     image_id="python:3.11-slim",
     timeout=30,
-    writable=["artifacts/"]
+    writable=["artifacts/"],
+    stateful=True  # Preserves variables, definitions, and imported modules across blocks
 )
 
 # Assign executor to AutoGen Assistant / UserProxyAgent
@@ -101,6 +102,15 @@ user_proxy.initiate_chat(
     message="Write a script to compute the SHA-256 of 'crewloom' and print it."
 )
 ```
+
+### AutoGen Features:
+- **Stateful REPL Continuity**: When `stateful=True`, consecutive code blocks share variable states and imported libraries via safe snapshotting.
+- **Cancellation Token Support**: Compatible with AutoGen 0.4 `cancellation_token` objects and standard threading/asyncio events (returns exit code `130`).
+- **Command Line Runner**: Run code blocks or reset sessions directly from the CLI:
+  ```bash
+  python3 -m adapters.interop.autogen_sandbox --workspace ./project --code "print(1 + 1)" --json
+  python3 -m adapters.interop.autogen_sandbox --workspace ./project --reset --json
+  ```
 
 ---
 
