@@ -8,12 +8,12 @@ The dashboard gives launched tools a copy of its environment without the dashboa
 
 ## Container Security and Rootless Isolation Policy
 
-Crewloom enforces hardware- and OS-level execution sandboxing for autonomous workflows via Docker:
+Crewloom enforces OS-level container isolation and defense-in-depth sandboxing for autonomous workflows via Docker. Containers share the host kernel; for untrusted hostile code samples, run in a dedicated, disposable virtual machine.
 
 1. **Rootless & Non-Root Execution**:
    - Workflow containers refuse execution under host root (`uid == 0`).
    - The `--user` flag mirrors the unprivileged host user (`uid:gid`), preventing files created inside the container from escaping ownership bounds.
-   - In containerized CI or Kubernetes environments where the host agent is already containerized, configure `userns-remap` in `/etc/docker/daemon.json` (`"userns-remap": "default"`) or run Docker-in-Docker in rootless mode (`dockerd-rootless.sh`) so that container UID 0 maps to an unprivileged subordinate UID range on the underlying host.
+   - When deploying in containerized CI runners with `userns-remap` or rootless Docker, ensure checkout files and declared writable directories are pre-arranged with ownership matching the mapped subordinate UID/GID range, because Crewloom passes the caller's numeric `uid:gid` through `--user`. Without pre-arranged subordinate permissions, write stages on bind mounts will fail. Refer to Docker Engine security documentation for rootless UID/GID mapping and userns-remap bind-mount ownership.
 
 2. **Air-Gapped Network Bounds**:
    - All workflow containers run with `--network none`. Network egress and ingress are strictly disabled, eliminating arbitrary exfiltration of repository context or tokens.
