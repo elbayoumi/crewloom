@@ -172,7 +172,7 @@ export default function Dashboard() {
             </div>
             <div className="scroll">
               <table>
-                <thead><tr><th>{t.role}</th><th>{t.status}</th><th>{t.tasks}</th><th>{t.done}</th><th>{t.challenges}</th><th>{t.runs}</th><th>{t.activity}</th></tr></thead>
+                <thead><tr><th scope="col">{t.role}</th><th scope="col">{t.status}</th><th scope="col">{t.tasks}</th><th scope="col">{t.done}</th><th scope="col">{t.challenges}</th><th scope="col">{t.runs}</th><th scope="col">{t.activity}</th></tr></thead>
                 <tbody>
                   {skills.map((s) => (
                     <tr key={s.id} className="row" tabIndex={0} onClick={() => pickSkill(s.id)} onKeyDown={(e) => e.key === 'Enter' && pickSkill(s.id)}>
@@ -193,7 +193,7 @@ export default function Dashboard() {
               <h2>{detail.id}</h2>
               <div className="tabs">
                 {['skill', ...Object.keys(detail.brain)].map((k) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{k}</button>)}
-                <button className="ghost" onClick={() => { setDetail(null); openId.current = null; }}>✕</button>
+                <button className="ghost" aria-label="Close detail view" onClick={() => { setDetail(null); openId.current = null; }}>✕</button>
               </div>
               <pre>{tab === 'skill' ? detail.skill : detail.brain[tab]}</pre>
             </section>

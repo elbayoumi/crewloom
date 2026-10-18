@@ -123,6 +123,8 @@ function handleMessage(message, sender, sendResponse) {
     return true;
   }
 
+  sendResponse({ ok: false, error: 'unknown error' });
+  return false;
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

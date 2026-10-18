@@ -98,7 +98,9 @@ function renderHudLanguage() {
   hudElement.lang = contentLanguage;
   hudElement.dir = contentLanguage === 'ar' ? 'rtl' : 'ltr';
   hudElement.querySelector('.crewloom-hud-text').textContent = hudText(hudStatus.key,hudStatus.vars);
-  hudElement.querySelector('.crewloom-hud-close').title = hudText('close');
+  const closeBtn = hudElement.querySelector('.crewloom-hud-close');
+  closeBtn.title = hudText('close');
+  closeBtn.setAttribute('aria-label', hudText('close'));
 }
 function setHudLanguage(value) {
   contentLanguage = value === 'ar' ? 'ar' : 'en';
@@ -115,15 +117,17 @@ function showHud(key = 'active', vars = {}) {
   }
   hudElement = document.createElement('div');
   hudElement.className = 'crewloom-agent-hud';
+  hudElement.setAttribute('role', 'region');
+  hudElement.setAttribute('aria-label', 'Crewloom Computer Use Status HUD');
   const logoUrl = chrome.runtime.getURL('icons/icon-32.png');
   hudElement.innerHTML = `
     <img src="${logoUrl}" alt="Crewloom" class="crewloom-hud-logo">
     <span class="crewloom-hud-title">Crewloom Computer Use</span>
-    <div class="crewloom-hud-status">
-      <span class="crewloom-hud-dot"></span>
+    <div class="crewloom-hud-status" role="status" aria-live="polite">
+      <span class="crewloom-hud-dot" aria-hidden="true"></span>
       <span class="crewloom-hud-text"></span>
     </div>
-    <button class="crewloom-hud-close">✕</button>
+    <button class="crewloom-hud-close" aria-label="✕">✕</button>
   `;
   renderHudLanguage();
   hudElement.querySelector('.crewloom-hud-close').addEventListener('click', () => {
