@@ -5,6 +5,7 @@
 ## 0.7.0 — 2026-10-18
 
 - Add the `distributed-systems-architect` role (44 roles), an architecture procedure in English and Arabic, standard-library `system-design` verifier (20 tools) checking high-availability SLOs and SPOFs, workflow contract `workflows/system-design.json`, and a 100K RPS real-time global messaging reference blueprint.
+- Add the `reverse-engineering-analyst` role, an authorization-first procedure in English and Arabic, a pinned [REA](https://github.com/morluto/rea) MCP configuration (`examples/mcp/rea.json`) and the read-only `re-findings` tool that checks a findings packet's target hash, authorization and evidence links. REA is a separate MIT-licensed project and is not bundled.
 - Add `quickstart.sh` zero-install script with environment discovery, dry-run support, and automated prerequisites checking across macOS and Linux.
 - Add `crewloom demo` interactive ANSI terminal walkthrough simulating role selection, 5-stage memory consultation, and isolated container execution in 20 seconds.
 - Add official Model Context Protocol (MCP) configuration templates for Cursor (`examples/mcp/cursor.json`) and Windsurf (`examples/mcp/windsurf.json`) with three-tier verification guide in `examples/mcp/README.md` (resolves #40).

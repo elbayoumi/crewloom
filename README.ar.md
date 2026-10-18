@@ -144,7 +144,7 @@ crewloom dashboard
 
 الجسر الاختياري [Project Task MCP](documentation/MCP_BRIDGE.md) يربط الأدوات بمشروع ومهمة محددين؛ يحتاج Python 3.11+ وتثبيت `python -m pip install '.[mcp]'`. قوالب التهيئة المختبرة متوفرة لـ [Cursor](examples/mcp/cursor.json) و [Windsurf](examples/mcp/windsurf.json) (انظر [دليل إعداد MCP](examples/mcp/README.md)). القراءة هي الوضع الافتراضي، واستيراد الملفات والتحقق يحتاجان تفعيلًا صريحًا. [إضافة المتصفح](documentation/CHROME_EXTENSION_SIDE_PANEL.md) أدوات يدوية، و[قبول سطح المكتب](documentation/NATIVE_DESKTOP.md) محدود بتطبيق الاختبار المصرّح به.
 
-إصدار المصدر الحالي `0.6.1`؛ راجع وسوم الإصدارات في المستودع لمعرفة ما نُشر فعلاً. [قائمة التحقق للإصدار](documentation/RELEASE.md) تفصل اختبارات الكود عن أدلة جودة الأدوار وعن النشر الفعلي.
+إصدار المصدر الحالي `0.7.0`؛ راجع وسوم الإصدارات في المستودع لمعرفة ما نُشر فعلاً. [قائمة التحقق للإصدار](documentation/RELEASE.md) تفصل اختبارات الكود عن أدلة جودة الأدوار وعن النشر الفعلي.
 
 ## مسار برمجي قابل للتشغيل
 
