@@ -778,6 +778,357 @@ class ContentScriptTest(unittest.TestCase):
             context.close()
 
 
+class BackgroundServiceWorkerHeadlessTest(SidePanelHarness):
+    """Headless extension background service worker verification.
+
+    Tests background.js event routing, context menus, session-storage capture queues,
+    and runtime message dispatch without requiring a headed browser.
+    """
+
+    BACKGROUND_HARNESS = """
+    window.__panelBehavior = null;
+    window.__openPanels = [];
+    window.__menus = [];
+    window.__menuListener = null;
+    window.__installedListener = null;
+    window.__messageListener = null;
+    window.__sentRuntime = [];
+    window.__sentToTabs = [];
+    window.__stored = { 'crewloom.enabled': true };
+    window.__session = {};
+    window.__capturedTabs = [];
+
+    window.chrome = {
+      sidePanel: {
+        setPanelBehavior: async (opts) => { window.__panelBehavior = opts; },
+        open: async (opts) => { window.__openPanels.push(opts); }
+      },
+      contextMenus: {
+        removeAll: (cb) => { window.__menus = []; if (cb) cb(); },
+        create: (menu) => { window.__menus.push(menu); },
+        onClicked: { addListener: (fn) => { window.__menuListener = fn; } }
+      },
+      runtime: {
+        id: 'owned',
+        getURL: (p) => 'chrome-extension://owned/' + p,
+        getManifest: () => ({ version: '2.3.2' }),
+        lastError: null,
+        onInstalled: { addListener: (fn) => { window.__installedListener = fn; } },
+        onMessage: { addListener: (fn) => { window.__messageListener = fn; } },
+        sendMessage: async (msg) => { window.__sentRuntime.push(msg); }
+      },
+      storage: {
+        local: {
+          get: (keys, cb) => cb(window.__stored),
+          set: (obj, cb) => { Object.assign(window.__stored, obj); if (cb) cb(); }
+        },
+        session: {
+          get: (keys, cb) => {
+            if (typeof keys === 'string') cb({ [keys]: window.__session[keys] });
+            else cb(window.__session);
+          },
+          set: (obj, cb) => { Object.assign(window.__session, obj); if (cb) cb(); },
+          remove: (key, cb) => { delete window.__session[key]; if (cb) cb(); }
+        }
+      },
+      tabs: {
+        captureVisibleTab: (windowId, opts, cb) => {
+          if (window.__captureError) {
+            window.chrome.runtime.lastError = { message: window.__captureError };
+            cb(null);
+          } else {
+            window.chrome.runtime.lastError = null;
+            window.__capturedTabs.push(windowId);
+            cb('data:image/png;base64,SYNTHETIC_DATA');
+          }
+        },
+        sendMessage: (tabId, msg, cb) => {
+          window.__sentToTabs.push({ tabId, msg });
+          if (cb) cb({ ok: true });
+        },
+        query: (query, cb) => {
+          cb([{ id: 101, windowId: query.windowId, active: true }]);
+        }
+      }
+    };
+    """
+
+    PANEL_SENDER = "{ id: 'owned', url: 'chrome-extension://owned/sidepanel.html' }"
+
+    def _load_sw(self, page):
+        page.set_content('<html><head></head><body></body></html>')
+        page.add_script_tag(content=self.BACKGROUND_HARNESS)
+        page.add_script_tag(path=str(EXTENSION / 'background.js'))
+
+    def _dispatch(self, page, msg, sender=None):
+        sender_expr = sender if sender is not None else self.PANEL_SENDER
+        return page.evaluate(
+            f"() => Promise.race(["
+            f"  new Promise(r => window.__messageListener({json.dumps(msg)}, {sender_expr}, r)),"
+            f"  new Promise((_, reject) => setTimeout(() => reject(new Error('timeout waiting for message reply')), 3000))"
+            f"])"
+        )
+
+    def test_background_initializes_sidepanel_behavior_and_listeners(self):
+        context, page = self.new_page()
+        try:
+            self._load_sw(page)
+            behavior = page.evaluate('() => window.__panelBehavior')
+            self.assertEqual(behavior, {'openPanelOnActionClick': True})
+            self.assertTrue(page.evaluate('() => typeof window.__installedListener === "function"'))
+            self.assertTrue(page.evaluate('() => typeof window.__menuListener === "function"'))
+            self.assertTrue(page.evaluate('() => typeof window.__messageListener === "function"'))
+        finally:
+            context.close()
+
+    def test_background_installs_context_menus_idempotently(self):
+        context, page = self.new_page()
+        try:
+            self._load_sw(page)
+            page.evaluate('() => window.__installedListener()')
+            menus = page.evaluate('() => window.__menus')
+            menu_ids = [m['id'] for m in menus]
+            self.assertIn('crewloom-inspect', menu_ids)
+            self.assertIn('crewloom-capture', menu_ids)
+        finally:
+            context.close()
+
+    def test_background_routes_context_menu_inspect_click_to_tab(self):
+        context, page = self.new_page()
+        try:
+            self._load_sw(page)
+            page.evaluate("() => window.__menuListener({ menuItemId: 'crewloom-inspect' }, { id: 42, windowId: 9 })")
+            sent = page.evaluate('() => window.__sentToTabs')
+            self.assertEqual(len(sent), 1)
+            self.assertEqual(sent[0]['tabId'], 42)
+            self.assertEqual(sent[0]['msg'], {'type': 'TOGGLE_INSPECTOR'})
+        finally:
+            context.close()
+
+    def test_background_routes_context_menu_capture_click_to_session_storage(self):
+        context, page = self.new_page()
+        try:
+            self._load_sw(page)
+            page.evaluate("() => window.__menuListener({ menuItemId: 'crewloom-capture' }, { id: 42, windowId: 9 })")
+            session = page.evaluate('() => window.__session')
+            pending = session.get('crewloom.pendingCapture.9')
+            self.assertIsNotNone(pending)
+            self.assertEqual(pending['tabId'], 42)
+            runtime_msgs = page.evaluate('() => window.__sentRuntime')
+            self.assertIn({'type': 'CAPTURE_REQUEST', 'windowId': 9}, runtime_msgs)
+        finally:
+            context.close()
+
+    def test_background_capture_tab_window_validation_and_disabled_refusal(self):
+        context, page = self.new_page()
+        try:
+            self._load_sw(page)
+            # Rejects untrusted senders
+            res_untrusted = self._dispatch(page, {'type': 'CAPTURE_TAB', 'windowId': 7},
+                                           sender="{ id: 'evil', url: 'https://evil.com' }")
+            self.assertFalse(res_untrusted['ok'])
+            self.assertIn('companion panel', res_untrusted['error'])
+
+            # Rejects missing or invalid windowId
+            res_no_win = self._dispatch(page, {'type': 'CAPTURE_TAB'})
+            self.assertFalse(res_no_win['ok'])
+            self.assertEqual(res_no_win['error'], 'Explicit panel window required')
+
+            res_neg_win = self._dispatch(page, {'type': 'CAPTURE_TAB', 'windowId': -1})
+            self.assertFalse(res_neg_win['ok'])
+
+            # Rejects when disabled
+            page.evaluate("() => { window.__stored['crewloom.enabled'] = false; }")
+            res_disabled = self._dispatch(page, {'type': 'CAPTURE_TAB', 'windowId': 7})
+            self.assertFalse(res_disabled['ok'])
+            self.assertIn('disabled', res_disabled['error'].lower())
+
+            # Accepts when enabled
+            page.evaluate("() => { window.__stored['crewloom.enabled'] = true; }")
+            res_ok = self._dispatch(page, {'type': 'CAPTURE_TAB', 'windowId': 7})
+            self.assertTrue(res_ok['ok'])
+            self.assertIn('SYNTHETIC_DATA', res_ok['dataUrl'])
+        finally:
+            context.close()
+
+    def test_background_panel_ready_consumes_pending_capture_once_with_ttl(self):
+        context, page = self.new_page()
+        try:
+            self._load_sw(page)
+            # Setup pending capture for window 12
+            page.evaluate("() => { window.__session['crewloom.pendingCapture.12'] = { tabId: 88, createdAt: Date.now() }; }")
+            res1 = self._dispatch(page, {'type': 'PANEL_READY', 'windowId': 12})
+            self.assertTrue(res1['ok'])
+            self.assertEqual(res1['pending']['tabId'], 88)
+
+            # Consumed once; second call returns null
+            res2 = self._dispatch(page, {'type': 'PANEL_READY', 'windowId': 12})
+            self.assertTrue(res2['ok'])
+            self.assertIsNone(res2['pending'])
+
+            # Expired capture (>30s) is discarded
+            page.evaluate("() => { window.__session['crewloom.pendingCapture.12'] = { tabId: 88, createdAt: Date.now() - 35000 }; }")
+            res3 = self._dispatch(page, {'type': 'PANEL_READY', 'windowId': 12})
+            self.assertTrue(res3['ok'])
+            self.assertIsNone(res3['pending'])
+        finally:
+            context.close()
+
+    def test_background_get_active_tab_and_unsupported_messages(self):
+        context, page = self.new_page()
+        try:
+            self._load_sw(page)
+            res_tab = self._dispatch(page, {'type': 'GET_ACTIVE_TAB', 'windowId': 5})
+            self.assertTrue(res_tab['ok'])
+            self.assertEqual(res_tab['tab']['id'], 101)
+
+            res_unsupported = self._dispatch(page, {'type': 'NONEXISTENT_TYPE'})
+            self.assertFalse(res_unsupported['ok'])
+            self.assertEqual(res_unsupported['error'], 'unknown error')
+        finally:
+            context.close()
+
+
+class InPageHudLanguageTest(SidePanelHarness):
+    """Real-time in-page HUD language switching validation and accessibility semantics."""
+
+    def fixture(self, page):
+        page.set_content(
+            '<!DOCTYPE html><html lang="en" dir="ltr"><head>'
+            '<style>body{margin:0;height:1000px}</style></head>'
+            '<body><button id="target">Interactive Element</button></body></html>'
+        )
+        page.add_style_tag(path=str(EXTENSION / 'content.css'))
+        page.add_script_tag(content=CONTENT_MOCK)
+        page.add_script_tag(path=str(EXTENSION / 'content.js'))
+
+    def test_realtime_hud_language_switching_and_bilingual_dictionary(self):
+        context, page = self.new_page()
+        try:
+            self.fixture(page)
+            page.evaluate("() => showHud('active')")
+            hud = page.locator('.crewloom-agent-hud')
+            self.assertEqual(hud.get_attribute('lang'), 'en')
+            self.assertEqual(hud.get_attribute('dir'), 'ltr')
+            self.assertEqual(hud.get_attribute('role'), 'region')
+            self.assertEqual(hud.get_attribute('aria-label'), 'Crewloom Computer Use Status HUD')
+            self.assertIn('Active', hud.inner_text())
+
+            close_btn = page.locator('.crewloom-hud-close')
+            self.assertEqual(close_btn.get_attribute('title'), 'Hide Overlay')
+            self.assertEqual(close_btn.get_attribute('aria-label'), 'Hide Overlay')
+
+            page.evaluate("() => window.__controlChanged({'crewloom.lang': {newValue: 'ar'}}, 'local')")
+            self.assertEqual(hud.get_attribute('lang'), 'ar')
+            self.assertEqual(hud.get_attribute('dir'), 'rtl')
+            self.assertIn('نشط', hud.inner_text())
+            self.assertEqual(close_btn.get_attribute('title'), 'إخفاء الإشارات')
+            self.assertEqual(close_btn.get_attribute('aria-label'), 'إخفاء الإشارات')
+
+            self.assertEqual(page.get_attribute('html', 'lang'), 'en')
+            self.assertEqual(page.get_attribute('html', 'dir'), 'ltr')
+
+            page.evaluate("() => window.__controlChanged({'crewloom.lang': {newValue: 'en'}}, 'local')")
+            self.assertEqual(hud.get_attribute('lang'), 'en')
+            self.assertEqual(hud.get_attribute('dir'), 'ltr')
+            self.assertIn('Active', hud.inner_text())
+        finally:
+            context.close()
+
+    def test_all_hud_status_variants_render_correctly_in_both_languages(self):
+        context, page = self.new_page()
+        try:
+            self.fixture(page)
+            page.evaluate("() => showHud('indexed', { total: 42 })")
+            self.assertIn('42 elements indexed', page.inner_text('.crewloom-hud-text'))
+
+            page.evaluate("() => showHud('limited', { count: 10, total: 50, limit: 10 })")
+            self.assertIn('Indexed 10 of 50 (limit 10)', page.inner_text('.crewloom-hud-text'))
+
+            page.evaluate("() => showHud('clicked', { index: 3 })")
+            self.assertIn('Clicked [3]', page.inner_text('.crewloom-hud-text'))
+
+            page.evaluate("() => showHud('inspector')")
+            self.assertIn('Inspector active', page.inner_text('.crewloom-hud-text'))
+
+            page.evaluate("() => setHudLanguage('ar')")
+            page.evaluate("() => showHud('indexed', { total: 42 })")
+            self.assertIn('تم ترقيم 42 عنصر', page.inner_text('.crewloom-hud-text'))
+
+            page.evaluate("() => showHud('limited', { count: 10, total: 50, limit: 10 })")
+            self.assertIn('تم ترقيم 10 من 50 (الحد 10)', page.inner_text('.crewloom-hud-text'))
+
+            page.evaluate("() => showHud('clicked', { index: 3 })")
+            self.assertIn('تم الضغط على [3]', page.inner_text('.crewloom-hud-text'))
+
+            page.evaluate("() => showHud('inspector')")
+            self.assertIn('الفاحص نشط', page.inner_text('.crewloom-hud-text'))
+        finally:
+            context.close()
+
+
+class CompanionAccessibilityTest(SidePanelHarness):
+    """Automated WCAG 2.1 AA accessibility audits for the companion side panel."""
+
+    def test_sidepanel_declares_landmark_roles(self):
+        context, page = self.new_page()
+        try:
+            self.open_panel(page)
+            self.assertEqual(page.locator('header[role="banner"]').count(), 1)
+            self.assertEqual(page.locator('main[role="main"]').count(), 1)
+            self.assertEqual(page.locator('footer[role="contentinfo"]').count(), 1)
+        finally:
+            context.close()
+
+    def test_all_interactive_controls_have_accessible_names_bilingual(self):
+        context, page = self.new_page()
+        try:
+            self.open_panel(page)
+            btn_ids = ['#indexBtn', '#captureBtn', '#inspectBtn', '#clearBtn',
+                       '#refreshTabBtn', '#langToggle', '#clickElementBtn',
+                       '#clearConsoleBtn', '#openMacSettingsBtn']
+            for bid in btn_ids:
+                btn = page.locator(bid)
+                text = (btn.inner_text() or '').strip()
+                aria_label = btn.get_attribute('aria-label') or ''
+                title = btn.get_attribute('title') or ''
+                has_accessible_name = bool(text or aria_label or title)
+                self.assertTrue(has_accessible_name, f'Button {bid} lacks an accessible name in English')
+
+            self.assertTrue(bool(page.locator('#elementInput').get_attribute('aria-label')))
+            self.assertTrue(bool(page.locator('#companionLabel').inner_text()))
+
+            page.click('#langToggle')
+            page.wait_for_function("() => document.documentElement.dir === 'rtl'")
+            for bid in btn_ids:
+                btn = page.locator(bid)
+                text = (btn.inner_text() or '').strip()
+                aria_label = btn.get_attribute('aria-label') or ''
+                title = btn.get_attribute('title') or ''
+                self.assertTrue(bool(text or aria_label or title), f'Button {bid} lacks an accessible name in Arabic')
+
+            self.assertEqual(page.locator('#refreshTabBtn').get_attribute('aria-label'), 'تحديث حالة التبويب')
+            self.assertEqual(page.locator('#clearConsoleBtn').get_attribute('aria-label'), 'مسح')
+        finally:
+            context.close()
+
+    def test_live_regions_and_status_announcements(self):
+        context, page = self.new_page()
+        try:
+            self.open_panel(page)
+            logs = page.locator('#terminalLogs')
+            self.assertEqual(logs.get_attribute('role'), 'log')
+            self.assertEqual(logs.get_attribute('aria-live'), 'polite')
+
+            badge = page.locator('#elemCountBadge')
+            self.assertEqual(badge.get_attribute('aria-live'), 'polite')
+
+            daemon = page.locator('#daemonPill')
+            self.assertEqual(daemon.get_attribute('role'), 'status')
+        finally:
+            context.close()
+
+
 @unittest.skipUnless(os.environ.get('CREWLOOM_REAL_BROWSER') == '1',
                      'set CREWLOOM_REAL_BROWSER=1 to load the unpacked extension in a real browser')
 class RealBrowserExtensionTest(unittest.TestCase):

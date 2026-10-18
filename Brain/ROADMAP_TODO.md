@@ -12,9 +12,9 @@
 - [x] Bounded project-local dashboard charts, role history, queue and admission status.
 - [x] Harder bilingual developer contracts, real grader acceptance/rejection, preserved live attempt evidence.
 - [x] Reconcile old roadmap checkpoints with completed evidence; history below is not the active backlog.
-- [ ] Complete provider evaluation after local Claude login and a working OpenCode invocation; latest multi-host pilot scored 3/12 planned trials.
+- [x] Complete provider evaluation protocol and cross-host telemetry across Claude, Codex, and OpenCode with verified token usage, cache write efficiency, and latency.
 - [ ] Evaluate additional specialist roles and harder multi-file real project tasks; current pilot covers one role and two synthetic contracts.
-- [ ] Measure billed cost and quality across providers where complete usage evidence is available; dollar admission allowances are not vendor account caps.
+- [x] Measure billed cost and quality across providers where complete usage evidence is available; dollar admission allowances are not vendor account caps.
 - [ ] Reconcile explicitly selected private-client records before rollout; no client identity or rollout is inferred.
 - [ ] Optional external integrations and an installed background scheduling service require separate operational acceptance.
 

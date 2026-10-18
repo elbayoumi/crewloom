@@ -618,9 +618,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.setAttribute('lang', language);
     langToggle.textContent = isRtl ? 'English' : 'العربية';
     langToggle.title = t('switchLanguage');
+    langToggle.setAttribute('aria-label', t('switchLanguage'));
     document.getElementById('companionLabel').textContent = t('companion');
     document.querySelector('.sp-badge').textContent = t('computerUse');
     refreshTabBtn.title = t('refreshTab');
+    refreshTabBtn.setAttribute('aria-label', t('refreshTab'));
     visionImg.alt = t('previewAlt');
     elementInput.setAttribute('aria-label',t('inputPlaceholder'));
     if (currentTab && !currentTab.title) tabTitle.textContent = t('untitled');
@@ -637,12 +639,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('#visionEmpty span').textContent = t('visionEmpty');
     elementInput.placeholder = t('inputPlaceholder');
     clickElementBtn.textContent = t('clickBtn');
+    clickElementBtn.setAttribute('aria-label', t('clickBtn'));
     document.querySelector('.directory-section .section-title').textContent = t('interactiveTitle');
     document.querySelector('.terminal-section .section-title').textContent = t('terminalTitle');
     clearConsoleBtn.textContent = t('clearConsole');
+    clearConsoleBtn.setAttribute('aria-label', t('clearConsole'));
     document.getElementById('permAcc').textContent = t('permAcc');
     document.getElementById('permScreen').textContent = t('permScreen');
     openMacSettingsBtn.textContent = t('macSettings');
+    openMacSettingsBtn.setAttribute('aria-label', t('macSettings'));
     frameMeta.textContent = lastCaptureTime ? t('captureMeta', { time: lastCaptureTime }) : t('noCapture');
 
     const empty = directoryList.querySelector('.directory-empty');

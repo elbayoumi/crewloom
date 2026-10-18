@@ -41,6 +41,12 @@ body {
   gap: 12px;
 }
 
+.sp-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 5px;

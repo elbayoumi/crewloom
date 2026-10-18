@@ -8,7 +8,7 @@
 <body>
   <div class="sidepanel-root">
     <!-- Top Header -->
-    <header class="sp-header">
+    <header class="sp-header" role="banner">
       <div class="sp-brand">
         <img src="icons/icon-32.png" alt="Crewloom Logo" class="sp-logo">
         <div class="sp-brand-meta">
@@ -17,112 +17,114 @@
         </div>
       </div>
       <div class="sp-header-controls">
-        <span class="daemon-pill" id="daemonPill">
+        <span class="daemon-pill" id="daemonPill" role="status" aria-label="Daemon status">
           <span class="pill-dot"></span>
           <span id="daemonLabel">Active</span>
         </span>
-        <button id="langToggle" class="btn-ghost" title="Switch Language">العربية</button>
+        <button id="langToggle" class="btn-ghost" title="Switch Language" aria-label="Switch Language">العربية</button>
       </div>
     </header>
 
     <label><input type="checkbox" id="companionEnabled"> <span id="companionLabel">Browser companion</span></label>
 
-    <!-- Active Tab Banner -->
-    <section class="tab-banner" id="tabBanner">
-      <div class="tab-info">
-        <span class="tab-favicon">🌐</span>
-        <div class="tab-details">
-          <span class="tab-title" id="tabTitle">Loading active tab...</span>
-          <span class="tab-url" id="tabUrl">—</span>
+    <main class="sp-main" role="main">
+      <!-- Active Tab Banner -->
+      <section class="tab-banner" id="tabBanner" aria-label="Active Tab Information">
+        <div class="tab-info">
+          <span class="tab-favicon" aria-hidden="true">🌐</span>
+          <div class="tab-details">
+            <span class="tab-title" id="tabTitle">Loading active tab...</span>
+            <span class="tab-url" id="tabUrl">—</span>
+          </div>
         </div>
-      </div>
-      <button id="refreshTabBtn" class="btn-icon" title="Refresh Tab State">↻</button>
-    </section>
+        <button id="refreshTabBtn" class="btn-icon" title="Refresh Tab State" aria-label="Refresh Tab State">↻</button>
+      </section>
 
-    <!-- 4 Primary Computer Use Action Tools -->
-    <section class="tools-grid">
-      <button id="indexBtn" class="tool-card tool-primary">
-        <span class="tool-icon">⚡</span>
-        <div class="tool-text">
-          <span class="tool-name">Auto-Index Page</span>
-          <span class="tool-sub">Number buttons [1], [2]...</span>
+      <!-- 4 Primary Computer Use Action Tools -->
+      <section class="tools-grid" aria-label="Computer Use Tools">
+        <button id="indexBtn" class="tool-card tool-primary">
+          <span class="tool-icon" aria-hidden="true">⚡</span>
+          <div class="tool-text">
+            <span class="tool-name">Auto-Index Page</span>
+            <span class="tool-sub">Number buttons [1], [2]...</span>
+          </div>
+        </button>
+
+        <button id="captureBtn" class="tool-card">
+          <span class="tool-icon" aria-hidden="true">📸</span>
+          <div class="tool-text">
+            <span class="tool-name">Vision Capture</span>
+            <span class="tool-sub">Capture tab screenshot</span>
+          </div>
+        </button>
+
+        <button id="inspectBtn" class="tool-card">
+          <span class="tool-icon" aria-hidden="true">🎯</span>
+          <div class="tool-text">
+            <span class="tool-name">Hover Inspector</span>
+            <span class="tool-sub">Inspect DOM elements</span>
+          </div>
+        </button>
+
+        <button id="clearBtn" class="tool-card">
+          <span class="tool-icon" aria-hidden="true">🧹</span>
+          <div class="tool-text">
+            <span class="tool-name">Clear Overlays</span>
+            <span class="tool-sub">Remove in-page tags</span>
+          </div>
+        </button>
+      </section>
+
+      <!-- Visual Vision Viewport (Screenshot Preview) -->
+      <section class="vision-section" id="visionSection" aria-label="Visual Vision Preview">
+        <div class="section-header">
+          <span class="section-title">Visual Vision Frame</span>
+          <span class="frame-meta" id="frameMeta">No capture yet</span>
         </div>
-      </button>
-
-      <button id="captureBtn" class="tool-card">
-        <span class="tool-icon">📸</span>
-        <div class="tool-text">
-          <span class="tool-name">Vision Capture</span>
-          <span class="tool-sub">Capture tab screenshot</span>
+        <div class="vision-viewport" id="visionViewport">
+          <div class="vision-empty" id="visionEmpty">
+            <span>Click "Vision Capture" to stream the visual tab state for the AI agent.</span>
+          </div>
+          <img id="visionImg" class="vision-img hidden" alt="Visual Frame Preview">
         </div>
-      </button>
+      </section>
 
-      <button id="inspectBtn" class="tool-card">
-        <span class="tool-icon">🎯</span>
-        <div class="tool-text">
-          <span class="tool-name">Hover Inspector</span>
-          <span class="tool-sub">Inspect DOM elements</span>
+      <!-- Direct Element Command & Quick Click -->
+      <section class="command-section" aria-label="Direct Element Command">
+        <div class="command-box">
+          <input type="number" id="elementInput" placeholder="Element # (e.g. 1)" min="1" aria-label="Element # (e.g. 1)">
+          <button id="clickElementBtn" class="btn-accent" aria-label="Execute Click">Execute Click</button>
         </div>
-      </button>
+      </section>
 
-      <button id="clearBtn" class="tool-card">
-        <span class="tool-icon">🧹</span>
-        <div class="tool-text">
-          <span class="tool-name">Clear Overlays</span>
-          <span class="tool-sub">Remove in-page tags</span>
+      <!-- Indexed Elements Directory -->
+      <section class="directory-section" aria-label="Interactive Elements Directory">
+        <div class="section-header">
+          <span class="section-title">Interactive Elements</span>
+          <span class="element-count-badge" id="elemCountBadge" aria-live="polite">0</span>
         </div>
-      </button>
-    </section>
-
-    <!-- Visual Vision Viewport (Screenshot Preview) -->
-    <section class="vision-section" id="visionSection">
-      <div class="section-header">
-        <span class="section-title">Visual Vision Frame</span>
-        <span class="frame-meta" id="frameMeta">No capture yet</span>
-      </div>
-      <div class="vision-viewport" id="visionViewport">
-        <div class="vision-empty" id="visionEmpty">
-          <span>Click "Vision Capture" to stream the visual tab state for the AI agent.</span>
+        <div class="directory-list" id="directoryList" role="region" aria-label="Interactive elements list">
+          <div class="directory-empty">Click "Auto-Index Page" to detect interactive elements.</div>
         </div>
-        <img id="visionImg" class="vision-img hidden" alt="Visual Frame Preview">
-      </div>
-    </section>
+      </section>
 
-    <!-- Direct Element Command & Quick Click -->
-    <section class="command-section">
-      <div class="command-box">
-        <input type="number" id="elementInput" placeholder="Element # (e.g. 1)" min="1">
-        <button id="clickElementBtn" class="btn-accent">Execute Click</button>
-      </div>
-    </section>
-
-    <!-- Indexed Elements Directory -->
-    <section class="directory-section">
-      <div class="section-header">
-        <span class="section-title">Interactive Elements</span>
-        <span class="element-count-badge" id="elemCountBadge">0</span>
-      </div>
-      <div class="directory-list" id="directoryList">
-        <div class="directory-empty">Click "Auto-Index Page" to detect interactive elements.</div>
-      </div>
-    </section>
-
-    <!-- Live Execution Console / Terminal Log -->
-    <section class="terminal-section">
-      <div class="section-header">
-        <span class="section-title">Agent Execution Stream</span>
-        <button id="clearConsoleBtn" class="btn-ghost-sm">Clear</button>
-      </div>
-      <div class="terminal-body" id="terminalLogs"></div>
-    </section>
+      <!-- Live Execution Console / Terminal Log -->
+      <section class="terminal-section" aria-label="Agent Execution Stream">
+        <div class="section-header">
+          <span class="section-title">Agent Execution Stream</span>
+          <button id="clearConsoleBtn" class="btn-ghost-sm" aria-label="Clear Console Logs">Clear</button>
+        </div>
+        <div class="terminal-body" id="terminalLogs" role="log" aria-live="polite"></div>
+      </section>
+    </main>
 
     <!-- Bottom macOS System Permissions Bar -->
-    <footer class="sp-footer">
+    <footer class="sp-footer" role="contentinfo">
       <div class="perm-badges">
         <span class="perm-pill" id="permAcc">🖥️ Accessibility</span>
         <span class="perm-pill" id="permScreen">📸 Screen Capture</span>
       </div>
-      <button id="openMacSettingsBtn" class="btn-link">macOS Settings ↗</button>
+      <button id="openMacSettingsBtn" class="btn-link" aria-label="macOS Settings ↗">macOS Settings ↗</button>
     </footer>
   </div>
   <script src="sidepanel.js"></script>
