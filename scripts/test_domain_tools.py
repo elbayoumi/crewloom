@@ -18,6 +18,8 @@ class DomainExamples(unittest.TestCase):
             ('seo-packet', '--packet', 'examples/seo/article-packet.json'),
             ('mcp-config', '--config', 'examples/mcp/config.json'),
             ('mcp-config', '--config', 'examples/mcp/rea.json'),
+            ('mcp-config', '--config', 'examples/mcp/cursor.json'),
+            ('mcp-config', '--config', 'examples/mcp/windsurf.json'),
             ('re-findings', '--findings', 'examples/re/findings.json'),
             ('budget-pacing', '--daily-budget', '100', '--days-elapsed', '3', '--actual-spend', '300'),
             ('script-pacing', '--file', 'examples/video/script.txt', '--duration', '30'),

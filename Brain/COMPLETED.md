@@ -1,5 +1,10 @@
 # Completed work
 
+### 2026-10-18 — Zero-friction developer experience, Cursor/Windsurf MCP, and competitive positioning
+- Artifact: `quickstart.sh`, `scripts/crewloom.py`, `examples/mcp/cursor.json`, `examples/mcp/windsurf.json`, `examples/mcp/README.md`, `README.md`, `README.ar.md`, `scripts/test_e2e_expansion.py`.
+- Impact: Fast zero-install quickstart script (`./quickstart.sh`) with dry-run support; rich interactive ANSI CLI walkthrough (`crewloom demo`); official MCP configurations for Cursor and Windsurf (resolving Issue #40); 7-dimension competitive framework comparison matrix and vector architecture workflow diagrams in English and Arabic.
+- Evidence: 93 strict E2E tests pass (0 skips, 0 failures) in `scripts/test_e2e_expansion.py`; repository gate passes cleanly with 0 errors (`check_repository.py`); MCP configuration schema verified across all templates.
+
 ### 2026-10-17 — Post-merge container isolation and acceptance hardening
 - Artifact: `scripts/workflow.py`, `scripts/test_docker_command.py`, `scripts/test_host_lifecycle.py`, `dashboard/`.
 - Impact: Workflow containers explicitly refuse execution under host root (UID 0); host lifecycle test fixtures fall back to supported version when system tools are upgraded; dashboard verified with clean 59/59 tests, tsc, and production build; REA pinned MCP probed against harmless fixture.
