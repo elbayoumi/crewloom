@@ -176,6 +176,27 @@ class TestCrewAISandboxTool(unittest.TestCase):
         self.assertEqual(res["output"], "direct output\n")
         self.assertFalse(res["output_truncated"])
 
+    @mock.patch("adapters.interop.crewai_sandbox.subprocess.run")
+    @mock.patch("adapters.interop.crewai_sandbox.subprocess.Popen")
+    def test_execute_sandbox_command_cancellation_kills_container(self, mock_popen, mock_run):
+        import io
+        proc = mock.MagicMock()
+        proc.stdout = io.BytesIO(b"partial output\n")
+        proc.poll.return_value = None
+        proc.wait.return_value = 0
+        mock_popen.return_value = proc
+
+        token = mock.Mock()
+        token.is_cancelled.return_value = True
+
+        res = execute_sandbox_command(self.workspace, ["python3", "-c", "import time; time.sleep(10)"], cancellation_token=token)
+        self.assertEqual(res["exit_code"], 130)
+        self.assertTrue(res["cancelled"])
+        self.assertIn("Execution cancelled by user", res["output"])
+        proc.kill.assert_called()
+        kill_calls = [call for call in mock_run.call_args_list if call[0][0][:2] == ["docker", "kill"]]
+        self.assertTrue(len(kill_calls) >= 1)
+
     @mock.patch("adapters.interop.crewai_sandbox.execute_sandbox_command")
     def test_tool_execution_success(self, mock_exec):
         mock_exec.return_value = {

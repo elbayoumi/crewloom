@@ -244,11 +244,19 @@ class CrewloomAutoGenExecutor:
                 image_id=self.image_id,
                 timeout=self.timeout,
                 writable=self.writable,
+                cancellation_token=cancellation_token,
             )
 
             output = result["output"].strip()
             if output:
                 combined_outputs.append(output)
+
+            if result.get("cancelled") or result["exit_code"] == 130:
+                combined_output = "\n".join(combined_outputs)
+                return CommandLineCodeResult(
+                    exit_code=130,
+                    output=combined_output or "Execution cancelled by user",
+                )
 
             if result["exit_code"] != 0:
                 combined_output = "\n".join(combined_outputs)

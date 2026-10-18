@@ -126,14 +126,35 @@ def build_sandbox_command(
     ]
 
 
+def _is_cancelled(cancellation_token: Any) -> bool:
+    """Inspect whether a cancellation token or event has been triggered."""
+    if cancellation_token is None:
+        return False
+    if hasattr(cancellation_token, "is_cancelled"):
+        val = cancellation_token.is_cancelled
+        return bool(val() if callable(val) else val)
+    if hasattr(cancellation_token, "is_set"):
+        val = cancellation_token.is_set
+        return bool(val() if callable(val) else val)
+    if callable(cancellation_token):
+        try:
+            return bool(cancellation_token())
+        except Exception:
+            return False
+    if isinstance(cancellation_token, bool):
+        return cancellation_token
+    return False
+
+
 def execute_sandbox_command(
     root: Union[str, Path],
     argv: Sequence[str],
     image_id: str = "python:3.11-slim",
     timeout: int = 30,
     writable: Optional[Sequence[str]] = None,
+    cancellation_token: Any = None,
 ) -> Dict[str, Any]:
-    """Execute command in sandbox with timeout and output capture."""
+    """Execute command in sandbox with timeout, active cancellation monitoring, and output capture."""
     root_path = Path(root).resolve()
     container_name = "crewloom-crewai-" + uuid.uuid4().hex[:12]
     cmd = build_sandbox_command(root_path, argv, image_id=image_id, name=container_name, writable=writable)
@@ -142,6 +163,7 @@ def execute_sandbox_command(
     captured = bytearray()
     discarded = [False]
     timed_out = False
+    cancelled = False
     exit_code = 1
 
     try:
@@ -152,6 +174,7 @@ def execute_sandbox_command(
             "exit_code": 127,
             "output": "Docker binary not found on PATH; container sandbox unavailable",
             "timed_out": False,
+            "cancelled": False,
             "duration_ms": round((time.monotonic() - started) * 1000),
             "output_truncated": False,
             "isolation": "crewloom-airgap",
@@ -176,13 +199,29 @@ def execute_sandbox_command(
     reader.start()
 
     try:
-        try:
-            exit_code = process.wait(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
-            exit_code = 124
-            timed_out = True
+        deadline = started + timeout
+        while True:
+            if _is_cancelled(cancellation_token):
+                cancelled = True
+                exit_code = 130
+                try:
+                    subprocess.run(["docker", "kill", container_name], capture_output=True, check=False)
+                except Exception:
+                    pass
+                process.kill()
+                process.wait()
+                break
+            try:
+                remaining = max(0.01, deadline - time.monotonic())
+                exit_code = process.wait(timeout=min(0.2, remaining))
+                break
+            except subprocess.TimeoutExpired:
+                if time.monotonic() >= deadline:
+                    process.kill()
+                    process.wait()
+                    exit_code = 124
+                    timed_out = True
+                    break
     finally:
         subprocess.run(["docker", "rm", "--force", container_name], capture_output=True, check=False)
         if process.poll() is None:
@@ -196,11 +235,14 @@ def execute_sandbox_command(
     output = captured.decode("utf-8", errors="replace")
     if timed_out:
         output = (output + f"\n[Command timed out after {timeout} seconds]").strip()
+    elif cancelled:
+        output = (output + "\n[Execution cancelled by user]").strip()
 
     return {
         "exit_code": exit_code,
         "output": output,
         "timed_out": timed_out,
+        "cancelled": cancelled,
         "duration_ms": duration_ms,
         "output_truncated": discarded[0],
         "isolation": "crewloom-airgap",
