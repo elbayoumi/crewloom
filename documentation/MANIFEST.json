@@ -848,7 +848,7 @@
     "scripts/test_run_log.py": "a9e5cf108f9ffe106646791a24100214012c17d8dae93f34f99bb2e75ed86c2e",
     "scripts/test_runtime_integration.py": "e45c6681e218a47d2f5e4c653d715d4fa11ded8a7f61b8482c871328fd4f672e",
     "scripts/test_shared_admission.py": "6d97ee03d6464436cd487b39b3542960f7c3323555bf74679410e58026dd3e36",
-    "scripts/test_sidepanel.py": "878cb89f668a84eaa6f10ed34bae818cd357c6da353f676c65a31e7c2dcff4af",
+    "scripts/test_sidepanel.py": "f36474701ab10f0f29c2932068bc55dffc3ecbc9d623347ee2fe467639e552fe",
     "scripts/test_study_closure_map_boundaries.py": "4d8059a777664e3fc4578ae5ea75f05446931d4b588b6fd536e0dd26faf378f8",
     "scripts/test_study_exception_semantics_boundaries.py": "b3af859d2f84392779a9ff51dea43ebbf897b3d807ff7db3c809a8b82c6ab331",
     "scripts/test_study_failure_latency_boundaries.py": "a66bb2a05a615d5b3e0e276659f00e9d1e83944b046d52bbfcbdf68f650f93c2",
