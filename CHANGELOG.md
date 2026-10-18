@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.1 — 2026-10-18
+
+- Add native standard-library loopback gateways for local open-weights model runtimes: Ollama (`/api/chat`) and vLLM (`/v1/chat/completions`), with loopback host validation, explicit port enforcement, and transparent markdown code-fence stripping.
+- Add cross-framework interoperability adapters in `adapters/interop/` providing drop-in zero-trust container sandboxes for CrewAI (`CrewloomSandboxTool`), Microsoft AutoGen (`CrewloomAutoGenExecutor`), and LangChain/LangGraph (`CrewloomLangGraphNode`), with pure standard-library implementations.
+- Add comprehensive architecture guides for local AI sovereignty (`documentation/LOCAL_AI_SOVEREIGNTY.md`) and cross-framework interoperability (`documentation/INTEROP.md`).
+- Add 17-test regression suite for cross-framework interop adapters (`scripts/test_interop_adapters.py`) and 13-test regression suite for local provider gateways (`scripts/test_provider_gateway.py`).
+- Clean up orphaned merge marker in `README.md` and expand competitive comparison table with Local AI Sovereignty and Framework Interoperability dimensions in both English and Arabic.
+
 ## 0.8.0 — 2026-10-18
 
 - Add cross-host provider evaluation across Claude, Codex, and OpenCode runtimes, with normalized Anthropic token usage metrics separating prompt cache reads (`cached_input_tokens`) and cache creation writes (`cache_write_tokens`) (resolves #37).

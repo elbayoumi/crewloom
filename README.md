@@ -102,8 +102,10 @@ flowchart TD
 | **Orchestration** | **Deterministic DAG workflows**; concurrent Git worktrees; credential-reviewed `--ff-only` integration. | Sequential / hierarchical delegation; prone to unbounded agent chatter and loops. | Conversational group chats; prone to repetitive chatter and missed termination conditions. | Explicit stateful graphs with cycles and conditional edges; boilerplate-intensive. |
 | **Developer Experience** | **Zero friction**: 1-line quickstart (`quickstart.sh`), instant 20-second offline demo (`crewloom demo`), zero API keys needed. | High setup friction; large dependency tree; mandatory paid API key for hello-world. | Requires virtualenv, `OAI_CONFIG_LIST` configuration, and active LLM credentials. | Requires multi-package installation, model credentials, and complex graph wiring. |
 | **AI IDE & MCP** | **Native stdio MCP bridge** with fine-grained security flags for Cursor, Windsurf, and Codex. | No repository MCP server; relies on standalone Python execution scripts. | Client-side tool consumer only; does not expose repo context or task packets to IDEs. | Client-side tool consumer; lacks repository-native MCP server for AI IDEs. |
-| **Cloud Overhead** | **100% local and offline**; zero telemetry; local dashboard on `localhost:4317`. | Pushes toward CrewAI Enterprise / cloud monitoring. | Standalone library; optional cloud extensions. | Strongly coupled with LangSmith cloud monitoring and LangGraph Cloud. |
->>>>>>> main
+| **Local AI Sovereignty** | **100% local and offline**; native loopback gateways for Ollama & vLLM; zero telemetry; local dashboard. | Pushes toward CrewAI Enterprise / cloud monitoring. | Standalone library; optional cloud extensions. | Strongly coupled with LangSmith cloud monitoring and LangGraph Cloud. |
+| **Framework Interop** | **Universal Zero-Trust Sandbox**; drop-in standard-library adapters for CrewAI, AutoGen, and LangGraph (`adapters/interop/`). | Siloed execution; no drop-in sandboxing export. | Siloed execution; external code executor requires complex configuration. | Node-based; requires custom sandbox engineering. |
+
+See the [Local AI Sovereignty Guide](documentation/LOCAL_AI_SOVEREIGNTY.md) and [Cross-Framework Interoperability Guide](documentation/INTEROP.md) for architecture details.
 
 ## Execute a software workflow
 
