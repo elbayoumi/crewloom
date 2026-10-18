@@ -156,7 +156,7 @@ class InstalledDistributionTests(unittest.TestCase):
         self.assertTrue([name for name in wheel_names if name.endswith('.dist-info/licenses/NOTICE')])
         roles = [name for name in wheel_names if name.startswith('crewloom_data/.agents/skills/')
                  and name.endswith('/SKILL.md')]
-        self.assertEqual(len(roles), 43, 'wheel must carry all 43 roles')
+        self.assertEqual(len(roles), 44, 'wheel must carry all 44 roles')
 
     def test_archives_carry_no_credential_material(self):
         for path in (self.wheel, self.sdist):
@@ -180,7 +180,7 @@ class InstalledDistributionTests(unittest.TestCase):
         names = set(zipfile.ZipFile(next(rebuilt.glob('*.whl'))).namelist())
         roles = [name for name in names if name.startswith('crewloom_data/.agents/skills/')
                  and name.endswith('/SKILL.md')]
-        self.assertEqual(len(roles), 43)
+        self.assertEqual(len(roles), 44)
         self.assertIn('crewloom_data/documentation/TOOLS.json', names)
 
     # ------------------------------------------------------------------ installed CLI
@@ -193,7 +193,7 @@ class InstalledDistributionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr[-2000:])
         report = json.loads(result.stdout)
         self.assertFalse(report['source'], 'an installed wheel must not report a source checkout')
-        self.assertEqual(len(report['roles']), 43)
+        self.assertEqual(len(report['roles']), 44)
         self.assertNotIn(str(ROOT), report['root'])
         self.assertTrue(report['root'].endswith('crewloom_data'))
 
@@ -206,14 +206,14 @@ class InstalledDistributionTests(unittest.TestCase):
         self.assertFalse(report['model_improvement_measured'])
         self.assertEqual(len(report['fixture_sha256']), 64)
 
-    def test_all_43_roles_discover_validate_and_show(self):
+    def test_all_44_roles_discover_validate_and_show(self):
         listed = self.crewloom('list')
         self.assertEqual(listed.returncode, 0, listed.stderr)
         identifiers = listed.stdout.split()
-        self.assertEqual(len(identifiers), 43)
+        self.assertEqual(len(identifiers), 44)
         validated = self.crewloom('validate')
         self.assertEqual(validated.returncode, 0, validated.stderr[-2000:])
-        self.assertIn('PASS: 43 skills', validated.stdout)
+        self.assertIn('PASS: 44 skills', validated.stdout)
         for identifier in identifiers:
             shown = self.crewloom('show', identifier)
             self.assertEqual(shown.returncode, 0, shown.stderr)
@@ -231,12 +231,12 @@ class InstalledDistributionTests(unittest.TestCase):
         # A project that already uses a role must not be clobbered by a reinstall, so the
         # existing role is refreshed explicitly. Local memory is never a copied artifact.
         refused = run(self.cli + ['install', '--host', 'agents', '--target', str(target),
-                                  '--skill', 'context-guardian'], cwd=self.work)
+                                   '--skill', 'context-guardian'], cwd=self.work)
         self.assertEqual(refused.returncode, 2)
         self.assertIn('--force', refused.stderr)
         result = run(self.cli + ['install', '--host', 'agents', '--target', str(target), '--force'], cwd=self.work)
         self.assertEqual(result.returncode, 0, result.stderr[-2000:])
-        self.assertEqual(len(list((target / '.agents' / 'skills').glob('*/SKILL.md'))), 43)
+        self.assertEqual(len(list((target / '.agents' / 'skills').glob('*/SKILL.md'))), 44)
         self.assertEqual((brain / 'ROADMAP_TODO.md').read_text(encoding='utf-8'),
                          '# Roadmap\n\n- [ ] local project work\n')
         self.assertTrue((brain / 'ARCHITECTURE.md').is_file())

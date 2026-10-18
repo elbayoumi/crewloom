@@ -9,11 +9,11 @@
 <a href="https://github.com/elbayoumi/crewloom/stargazers"><img src="https://img.shields.io/github/stars/elbayoumi/crewloom?style=social" alt="GitHub stars" /></a>
 </p>
 
-<p align="center"><a href="README.ar.md">العربية</a> · <a href="documentation/SKILLS.md">43 Roles</a> · <a href="documentation/TOOLS.md">Tool Catalog</a> · <a href="examples/README.md">Run Examples</a> · <a href="dashboard/README.md">Live Dashboard</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
+<p align="center"><a href="README.ar.md">العربية</a> · <a href="documentation/SKILLS.md">44 Roles</a> · <a href="documentation/TOOLS.md">Tool Catalog</a> · <a href="examples/README.md">Run Examples</a> · <a href="dashboard/README.md">Live Dashboard</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
 
 Crewloom is a repository-native toolkit for specialist AI agent work. Choose a role, give it your project inputs, keep working memory, and check the result with local tools. Use your existing agent host and model.
 
-The toolkit brings together **43 English role guides**, **153 detailed reference documents**, **19 catalogued Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic. See [language support and paired acceptance](documentation/LANGUAGES.md) for UI behavior and runtime boundaries.
+The toolkit brings together **44 English role guides**, **156 detailed reference documents**, **20 catalogued Python tools**, and **five memory templates per role**. English is the primary entry point; detailed source playbooks include Arabic. Context packs and task instructions support English or Arabic. See [language support and paired acceptance](documentation/LANGUAGES.md) for UI behavior and runtime boundaries.
 
 Managed workflows add project and checkout identities, frozen context, isolated Docker acceptance, credential-scoped review, and concurrent task worktrees. [Native lifecycle setup](documentation/HOST_LIFECYCLE.md) connects supported host callbacks; [agency readiness](documentation/READINESS.md) reports client evidence without modifying client projects. See [enforcement boundaries](documentation/ENFORCEMENT.md) for what each execution path actually covers.
 
@@ -48,7 +48,7 @@ flowchart TD
 
     subgraph Memory ["2. Vector Memory & Context Engine"]
         Rules["Policy & Constitution<br/><code>AGENTS.md</code>"]
-        Roles["43 Specialist Roles<br/><code>.agents/skills/*/SKILL.md</code>"]
+        Roles["44 Specialist Roles<br/><code>.agents/skills/*/SKILL.md</code>"]
         Brain["Hierarchical Memory & Lessons<br/><code>Brain/</code> • Role Brains • <code>lessons.jsonl</code>"]
         Indexer["Code Range Index & Vector Recall<br/>Lexical + Semantic Matching • Range Hashes"]
         FrozenGen["Sealed Frozen Generation<br/><code>sha256</code> + <code>semantic_sha256</code> Context"]
@@ -96,7 +96,7 @@ flowchart TD
 
 | Dimension | Crewloom | CrewAI | AutoGen (AG2) | LangGraph |
 | :--- | :--- | :--- | :--- | :--- |
-| **Architecture** | **Repository-native toolkit**; standard library Python 3.9+; brings 43 roles to existing hosts. | Standalone framework; heavy dependencies (Pydantic, LiteLLM); role-playing simulation. | Multi-agent conversation runtime; message-passing loops; code-extraction execution. | Graph-based state machine library; deeply coupled to LangChain ecosystem. |
+| **Architecture** | **Repository-native toolkit**; standard library Python 3.9+; brings 44 roles to existing hosts. | Standalone framework; heavy dependencies (Pydantic, LiteLLM); role-playing simulation. | Multi-agent conversation runtime; message-passing loops; code-extraction execution. | Graph-based state machine library; deeply coupled to LangChain ecosystem. |
 | **Memory & Vector Recall** | **3-tier structured memory** (`Brain/`, role brains, project context); hash-anchored code ranges; evidence-gated lessons. | ChromaDB vector store + SQLite; generic chunk search without line-hash verification. | Conversational chat history buffer; optional external RAG plugins; no repository brain. | State channel checkpointers (Memory/Postgres); vector search deferred to external stores. |
 | **Isolation & Security** | **Docker sandbox (`--network none`)**; read-only snapshots; transactional publication with rollback journals. | Host OS execution by default; optional Docker without strict network or file isolation. | Optional Docker code executor; network enabled by default; no transactional rollback. | No built-in sandbox; executes directly on host or requires manual third-party sandbox setup. |
 | **Orchestration** | **Deterministic DAG workflows**; concurrent Git worktrees; credential-reviewed `--ff-only` integration. | Sequential / hierarchical delegation; prone to unbounded agent chatter and loops. | Conversational group chats; prone to repetitive chatter and missed termination conditions. | Explicit stateful graphs with cycles and conditional edges; boilerplate-intensive. |
@@ -166,7 +166,7 @@ python -m pip install -e .  # adds the `crewloom` command
 crewloom install --host claude --target /path/to/your/project --skill frontend-ux-auditor
 ```
 
-`--host claude` copies roles to `.claude/skills`; `--host agents` copies them to `.agents/skills` for hosts that read that folder (omit `--skill` for all 43). Existing roles are never overwritten without `--force`. Copied roles are static: re-run the command after pulling updates. A normal `pip install .` builds a local wheel with the Python runtime, role resources, adapters and examples. The editable command above keeps a development link to the clone. The optional Node dashboard runs from a source checkout.
+`--host claude` copies roles to `.claude/skills`; `--host agents` copies them to `.agents/skills` for hosts that read that folder (omit `--skill` for all 44). Existing roles are never overwritten without `--force`. Copied roles are static: re-run the command after pulling updates. A normal `pip install .` builds a local wheel with the Python runtime, role resources, adapters and examples. The editable command above keeps a development link to the clone. The optional Node dashboard runs from a source checkout.
 
 Use the optional [native Codex plugin](documentation/CODEX_PLUGIN.md) for role/context/workflow guidance and the separate [manual browser companion](documentation/CHROME_EXTENSION_SIDE_PANEL.md) for element inspection and tab capture. For AI IDEs, integrate with tested MCP templates for [Cursor](examples/mcp/cursor.json) and [Windsurf](examples/mcp/windsurf.json) (see [MCP guide](examples/mcp/README.md)).
 

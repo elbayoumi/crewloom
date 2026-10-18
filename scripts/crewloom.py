@@ -25,7 +25,7 @@ def library_root():
 
 
 def skills_dir():
-    """Directory holding the 43 role trees for this installation."""
+    """Directory holding the 44 role trees for this installation."""
     return resources.roles_dir()
 
 
@@ -454,7 +454,7 @@ def run_demo(role='reverse-engineering-analyst', fast=False, project=None):
 
     print_flush(f"│                                                                               │")
     print_flush(f"│  {BOLD}VERIFICATION SUMMARY:{RESET}                                                        │")
-    print_flush(f"│  ✔ Phase 1: 43 Catalog Roles Discovered & {role:<28} {GREEN}[PASS]{RESET} │")
+    print_flush(f"│  ✔ Phase 1: 44 Catalog Roles Discovered & {role:<28} {GREEN}[PASS]{RESET} │")
     print_flush(f"│  ✔ Phase 2: 5 Brain Files Consulted & 8192 Budget Respected   {GREEN}[PASS]{RESET} │")
     print_flush(f"│  ✔ Phase 3: Container Isolated (--network none, 0 API Keys)   {GREEN}[PASS]{RESET} │")
     print_flush(f"│  ✔ Phase 4: Pacing & Contract Verification Succeeded          {GREEN}[PASS]{RESET} │")

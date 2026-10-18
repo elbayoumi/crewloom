@@ -1,6 +1,6 @@
 # Skill catalog
 
-All 43 entries are English public adaptations. IDs stay stable across output languages. Read each procedure and its memory before use.
+All 44 entries are English public adaptations. IDs stay stable across output languages. Read each procedure and its memory before use.
 
 | Role | Procedure |
 | --- | --- |
@@ -18,6 +18,7 @@ All 43 entries are English public adaptations. IDs stay stable across output lan
 | Data Harvester | [data-harvester](../.agents/skills/data-harvester/SKILL.md) |
 | Deal Closer | [deal-closer](../.agents/skills/deal-closer/SKILL.md) |
 | Delivery Director | [delivery-director](../.agents/skills/delivery-director/SKILL.md) |
+| Distributed Systems Architect | [distributed-systems-architect](../.agents/skills/distributed-systems-architect/SKILL.md) |
 | Executive Accountant | [executive-accountant](../.agents/skills/executive-accountant/SKILL.md) |
 | Frontend Ux Auditor | [frontend-ux-auditor](../.agents/skills/frontend-ux-auditor/SKILL.md) |
 | Fullstack Mvp Engineer | [fullstack-mvp-engineer](../.agents/skills/fullstack-mvp-engineer/SKILL.md) |
