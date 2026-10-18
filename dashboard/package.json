@@ -1,7 +1,9 @@
 {
   "name": "crewloom-dashboard",
   "private": true,
+  "type": "module",
   "version": "0.1.0",
+  "engines": { "node": ">=24" },
   "scripts": {
     "dev": "node server.mjs --dev",
     "build": "next build",

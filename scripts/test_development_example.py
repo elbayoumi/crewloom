@@ -124,6 +124,17 @@ def git(root, *arguments, check=True):
 
 
 class ExampleAssetTests(unittest.TestCase):
+    def test_generation_declares_reused_helper_implementations(self):
+        expected = {'billing': ['src/money.py'], 'planning': ['src/scheduling_support.py'],
+                    'report': ['src/money.py', 'src/scheduling_support.py']}
+        for name, helpers in expected.items():
+            workflow = json.loads((PROJECT / 'workflows' / (name + '.json')).read_text())
+            generate = next(step for step in workflow['steps'] if step['id'] == 'generate')
+            for helper in helpers:
+                self.assertIn(helper, generate['inputs'])
+                self.assertTrue((PROJECT / helper).is_file())
+            self.assertFalse(any(path.startswith('tools/') for path in generate['inputs']))
+
     """What the repository ships, before anything is copied into a project."""
 
     def test_every_shipped_python_file_parses(self):
@@ -289,6 +300,56 @@ class SetupRefusalTests(unittest.TestCase):
 
 
 class ApplicationSemanticsTests(unittest.TestCase):
+    def test_combined_unknown_field_checks_named_key_without_fixed_phrase(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'project'; shutil.copytree(self.root, root)
+            path = root / 'src/report.py'
+            varied = path.read_text().replace('unknown report input fields', 'Unrecognized fields')
+            path.write_text(varied)
+            command = [sys.executable, '-c', "import json,runpy; m=runpy.run_path('tools/check_combined.py'); print(json.dumps(m['refusals']()))"]
+            good = subprocess.run(command, cwd=root, capture_output=True, text=True, check=True)
+            self.assertEqual(json.loads(good.stdout)['an_unknown_payload_field_is_refused'],
+                             {'returncode': 2, 'no_report': True, 'names_cause': True})
+            path.write_text(varied.replace("'Unrecognized fields: ' + ', '.join(sorted(unknown))", "'Unrecognized fields'"))
+            bad = subprocess.run(command, cwd=root, capture_output=True, text=True, check=True)
+            self.assertFalse(json.loads(bad.stdout)['an_unknown_payload_field_is_refused']['names_cause'])
+
+    def test_report_refusals_allow_wording_but_require_unknown_field_name(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'project'
+            shutil.copytree(self.root, root)
+            path = root / 'src/report.py'
+            original = path.read_text()
+            varied = original.replace('unknown report input fields', 'Unrecognized fields').replace(
+                'report input must be a JSON object', 'Invalid document type')
+            path.write_text(varied)
+            good = subprocess.run([sys.executable, 'tools/check_report.py'], cwd=root,
+                                  capture_output=True, text=True)
+            self.assertEqual(good.returncode, 0, good.stdout + good.stderr)
+            path.write_text(varied.replace("'Unrecognized fields: ' + ', '.join(sorted(unknown))",
+                                           "'Unrecognized fields'"))
+            bad = subprocess.run([sys.executable, 'tools/check_report.py'], cwd=root,
+                                 capture_output=True, text=True)
+            self.assertNotEqual(bad.returncode, 0)
+            self.assertIn('unknown_payload_field_is_refused', bad.stdout + bad.stderr)
+
+    def test_refusal_grader_accepts_other_wording_but_rejects_wrong_exception_type(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'project'
+            shutil.copytree(PROJECT, root)
+            for relative, name in ARTIFACT_MODULES.items():
+                shutil.copyfile(GENERATED / name, root / relative)
+            path = root / 'src/planning.py'
+            source = path.read_text().replace('twice', 'duplicate')
+            path.write_text(source)
+            good = subprocess.run([sys.executable, 'tools/check_planning.py'], cwd=root,
+                                  capture_output=True, text=True)
+            self.assertEqual(good.returncode, 0, good.stdout + good.stderr)
+            path.write_text(source.replace('raise ValueError', 'raise RuntimeError'))
+            bad = subprocess.run([sys.executable, 'tools/check_planning.py'], cwd=root,
+                                 capture_output=True, text=True)
+            self.assertNotEqual(bad.returncode, 0)
+
     """The generated application, run for real with the standard library only."""
 
     @classmethod
@@ -620,6 +681,11 @@ class DockerDevelopmentExampleTests(PreparedProject):
         self.assertIn('src/planning.py', request['inputs'])
         self.assertIn('CURRENCIES = ', request['inputs']['src/billing.py'])
         self.assertIn('def schedule(', request['inputs']['src/planning.py'])
+        for output, helper in [('src/billing.py', 'src/money.py'),
+                               ('src/planning.py', 'src/scheduling_support.py'),
+                               ('src/report.py', 'src/scheduling_support.py')]:
+            observed = next(item for item in self.requests if output in item['outputs'])
+            self.assertEqual(observed['inputs'][helper], (PROJECT / helper).read_text())
         # An independent task cannot see the other task's generated module.
         self.assertFalse((self.worktree('billing') / 'src' / 'planning.py').exists())
         self.assertFalse((self.worktree('planning') / 'src' / 'billing.py').exists())

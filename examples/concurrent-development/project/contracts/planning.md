@@ -1,5 +1,9 @@
 # Contract: `src/planning.py`
 
+Runtime import contract: the CLI puts `src/` on `sys.path` and imports this module as
+`planning`, without a package parent. Import the reused helper with
+`from scheduling_support import ...`; package-relative imports cannot run here.
+
 Write exactly one module at `src/planning.py`. Standard library only. It is imported by
 `src/report.py`, so its public names are the contract, not its internals.
 
@@ -22,7 +26,7 @@ DEFAULT_CAPACITY = 2
 
 def check_capacity(value) -> int       # explicit int; an omitted value uses DEFAULT_CAPACITY
 def checked_tasks(tasks) -> list        # validated {'id','depends_on','priority'} in input order
-def detect_cycle(tasks) -> list        # ids on one cycle in visit order, [] when sound
+def detect_cycle(tasks) -> list        # ids on one cycle in visit order, repeating the starting id at the end; [] when sound
 def depths(tasks) -> dict              # id -> dependency depth; a cycle raises ValueError
 def schedule(tasks, capacity=None) -> dict
 ```

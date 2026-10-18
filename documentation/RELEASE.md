@@ -1,4 +1,52 @@
-# Initial public edition
+# Release and verification
+
+## Current development snapshot
+
+The package version is `0.7.0`. The sections below retain historical release evidence;
+they do not establish acceptance of later changes. A release requires checks on its exact
+commit, successful hosted CI and a deliberate tag/publication step.
+
+| Component | Prerequisites | Acceptance |
+| --- | --- | --- |
+| Core CLI and roles | Git, Python 3.9+ | Full repository gate, including refusal cases |
+| Dashboard | Node 24+, locked npm dependencies | Unit tests, TypeScript, production build |
+| Distribution | Python, network access to the build backend | Build/install wheel and sdist outside the checkout |
+| Task MCP | Python 3.11+, `.[mcp]`, Docker | Actual SDK read/write round trips and container verification |
+| Chrome companion | Playwright 1.63.0, Chromium; Linux uses Xvfb | Load the actual unpacked extension, inspect, click and capture |
+| Native desktop fixture | macOS, explicitly approved bounded driver | Separate opt-in live fixture acceptance; CI does not grant OS access |
+
+Run these commands from an activated development environment at the repository root:
+
+```bash
+git config core.hooksPath .githooks
+python -m pip install '.[syntax,mcp]' 'playwright==1.63.0'
+python scripts/check_repository.py
+python scripts/package_browser.py --check
+CREWLOOM_DISTRIBUTION_TESTS=1 python -m unittest discover -s scripts -p test_distribution.py
+CREWLOOM_MCP_TESTS=1 python -m unittest discover -s scripts -p test_mcp_bridge.py
+CREWLOOM_MCP_TESTS=1 python -m unittest discover -s scripts -p test_chat_capture.py
+python -m playwright install chromium
+CREWLOOM_REAL_BROWSER=1 python -m unittest discover -s scripts -p test_sidepanel.py
+```
+
+The integration commands require Python 3.11+; Python 3.9 remains supported for the
+standard-library core. Pull `python:3.14-slim` before Docker acceptance. On Linux install
+Chromium's system dependencies with `python -m playwright install --with-deps chromium`
+and prefix the browser command with `xvfb-run -a` for a headed display.
+
+In `dashboard/`, run `npm ci`, `npm test`, `npx tsc --noEmit`, and `npm run build`.
+Check `npm audit` separately: zero known advisories does not prove absence of vulnerabilities.
+
+[CI](../.github/workflows/ci.yml) runs the supported Python matrix, dashboard, distribution,
+isolated workflows, coordinator, path boundaries and actual MCP/browser protocols. Explicit
+browser/distribution acceptance fails if its prerequisites are missing; default core runs
+retain optional skips. The screenshot-refresh and separate Playwright MCP provider tests
+remain opt-in. No paid model generation or native desktop permission prompt runs in CI.
+
+Dependency update proposals are scheduled through [Dependabot](../.github/dependabot.yml).
+Updates require the same checks and review; there is no automatic merge rule.
+
+## Historical initial public edition
 
 Crewloom provides 42 English public role adaptations, clean memory templates, a repository CLI, bilingual context labels, a structure validator, and a resource-pattern checker.
 
@@ -48,12 +96,22 @@ Workflow task actions require an explicit project root. Project ownership persis
 
 ## 0.6.0 development metadata
 
-`version = "0.6.0.dev0"`. This is a development version, not a tag or a published release.
+The preceding development snapshots used `version = "0.6.0.dev0"`. The reviewed release candidate now uses `0.6.0`; metadata alone does not assert a published tag.
 
 - Installable distributions: a standard wheel and an sdist build from `pyproject.toml` with a pinned `setuptools>=77,<81` backend and no runtime dependencies. One explicit resolver (`scripts/crewloom_resources.py`) maps repository paths to either a checkout or the installed data package, so `list`, `show`, `install`, `context`, `validate`, `project` and `workflow` all work outside the source checkout without duplicating the role tree, reading the working directory, or relying on an editable path.
-- The flat runtime is declared as `py-modules`, including `js_syntax`, which `repo_map` imports at module scope so an installed navigation index always has it. The one optional extra, `crewloom[syntax]`, pins `tree-sitter==0.23.2`, `tree-sitter-javascript==0.23.1` and `tree-sitter-typescript==0.23.2`. Without it every command still works and the generated map records that approximate extraction was used.
+- The flat runtime is declared as `py-modules`, including `js_syntax`, which `repo_map` imports at module scope so an installed navigation index always has it. The optional extra `crewloom[syntax]` pins `tree-sitter==0.23.2`, `tree-sitter-javascript==0.23.1` and `tree-sitter-typescript==0.23.2`. Without it every core command still works and the generated map records that approximate extraction was used. `crewloom[mcp]` additionally pins the official MCP SDK on Python 3.11+.
 - The sdist carries the approved public source: role trees, documentation, examples, English/Arabic guides, `LICENSE`, `NOTICE`, `MASTER_BRAIN.md`, `Brain/`, `.github/`, `.githooks/`, and the dashboard sources referenced by the README. It never carries `.crewloom`, `node_modules`, generated builds, or logs.
 - The dashboard is not bundled in the wheel because its Node dependencies are not. Running `crewloom dashboard` from an installed wheel prints that diagnosis with exit 2 instead of a missing-file traceback; start it from a checkout or unpacked sdist.
-- Dashboard authentication is required on every API read, write and the event stream. The generated token is written to an owner-only runtime file and only its path is printed.
+- The dashboard launcher enables password-free access on a verified loopback listener. Local URL and mutation Origin checks remain required. Non-loopback hosting requires an explicitly configured credential; local launches do not generate a token. See [dashboard authentication](../dashboard/README.md#authentication).
 
 `CREWLOOM_DISTRIBUTION_TESTS=1` builds and installs both artifacts and exercises them outside the checkout. It is opt-in and never part of the commit gate.
+
+## 0.6.0 release scope
+
+The 0.6.0 candidate packages the integrated workflow, coordinator, source-context, MCP, browser and scoped native functionality described in the current guides. The [operational acceptance record](../examples/evaluation/agency-acceptance-20261015.json) records real model-generated delivery, actual isolated checks and scoped Chrome/Calculator/TextEdit results; it also preserves failures and coverage limits. The core remains dependency-free. The optional MCP extra uses the pinned official SDK; the dashboard remains a source/sdist component with its own Node dependencies. Loopback dashboard access follows the current [dashboard guide](../README.md#live-dashboard).
+
+A release tag is created only after the final-head required GitHub checks pass and the reviewed PR is normally merged. Wheel, sdist and extension ZIP are reviewed local build outputs; no package-index upload is implied. Broad specialist quality, all-app desktop control and unknown provider cost/model identity are not release claims.
+
+## 0.6.1 language follow-up
+
+Browser companion2.3.2 follows the saved language for known error details and its own in-page status, including Arabic RTL and English LTR. Language changes preserve the underlying site and hidden HUD state. Empty capture and accessible control labels are localized. Paired rendered regressions cover reload, frame propagation and refusal states. See [language support](LANGUAGES.md) for exact scope; unknown external diagnostics and technical identifiers remain intact.

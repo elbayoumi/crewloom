@@ -13,7 +13,9 @@
       "model": "__MODEL__",
       "timeout_seconds": 300,
       "inputs": [
-        "contracts/invoicing.md"
+        "contracts/invoicing.md",
+        "src/money.py",
+        "criteria.md"
       ],
       "outputs": [
         "src/billing.py"
@@ -24,7 +26,10 @@
       "role": "qa-test-automation-engineer",
       "kind": "command",
       "summary": "Run the generated invoice module in the container and check its totals",
-      "argv": ["python3", "tools/check_billing.py"],
+      "argv": [
+        "python3",
+        "tools/check_billing.py"
+      ],
       "timeout_seconds": 180,
       "inputs": [
         "src/billing.py",

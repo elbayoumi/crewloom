@@ -106,6 +106,14 @@ class OpenCodeTurnIdentity(unittest.TestCase):
             self.assertEqual(payload['turn_id'], 'msg_generated')
             self.assertEqual(payload['session_id'], 's')
 
+    def test_only_literal_user_text_parts_reach_prompt_capture(self):
+        result = self.node("await hooks['chat.message']({sessionID: 's'}, {message: {id: 'msg', sessionID: 's'}, "
+                           "parts: [{type: 'text', text: 'الرد بالعربي'}, {type: 'text', text: 'synthetic', synthetic: true}, "
+                           "{type: 'text', text: 'ignored', ignored: true}, {type: 'file', text: 'file-body'}]});"
+                           "await hooks['experimental.chat.system.transform']({sessionID: 's'}, {system: []});")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.stages()[-1][1]['prompt'], 'الرد بالعربي')
+
     def test_the_old_declared_message_id_shape_still_binds_its_turn(self):
         result = self.node("await hooks['chat.message']({sessionID: 's', messageID: 'legacy_turn'}, {});"
                            "const output = {system: []};"

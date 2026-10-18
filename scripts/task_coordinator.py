@@ -1108,12 +1108,15 @@ def _execute_task(root, meta, state, ident, image, log, allow_host_cli=False):
             plan, fingerprint = w.read_plan(path, record['workflow'])
             if plan['id'] != record['workflow_id']:
                 raise CoordinatorError('Workflow identity changed for task ' + ident)
+            import user_context
+            user_context.inherit_task(root,path,plan['id'])
             criteria_sha = w.digest(w.safe_path(path, plan['criteria']).read_bytes()) \
                 if plan.get('criteria') else None
             outcome['plan_sha256'] = fingerprint
             outcome['criteria_sha256'] = criteria_sha
             log('task.started', task=ident, workflow=plan['id'], dependencies=dependencies)
             w.run(path, plan, fingerprint, image, allow_host_cli=native)
+            user_context.inherit_task(root,path,plan['id'],verify_only=True)
             verified = _verify_execution(meta, ident, path, plan, fingerprint, criteria_sha)
             head, changed = _commit_outputs(path, _branch(state['batch'], ident),
                                             verified['declared_outputs'])
@@ -1153,6 +1156,8 @@ def _recheck_verified(root, meta, state, ident, log):
         plan, fingerprint = w.read_plan(path, record['workflow'])
         if plan['id'] != record['workflow_id'] or fingerprint != record.get('plan_sha256'):
             return False, 'workflow plan changed'
+        import user_context
+        user_context.inherit_task(root,path,plan['id'],verify_only=True)
         _, recorded = w.state_for(path, plan, fingerprint)
         if recorded.get('status') != 'complete' \
                 or recorded.get('checkout_id') != record.get('checkout_id'):

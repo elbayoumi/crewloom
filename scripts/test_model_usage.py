@@ -117,8 +117,45 @@ class UsageMetricTests(unittest.TestCase):
             h.usage_metrics('opencode', {'cache': 3})
         with self.assertRaises(ValueError):
             h.usage_metrics('opencode', 'tokens')
-        with self.assertRaisesRegex(ValueError, 'codex and opencode'):
-            h.usage_metrics('claude', {})
+        with self.assertRaisesRegex(ValueError, 'codex, opencode and claude'):
+            h.usage_metrics('unknown', {})
+
+    def test_claude_usage_normalization_and_cache_accounting(self):
+        claude_usage = {
+            'input_tokens': 120,
+            'cache_read_input_tokens': 40,
+            'cache_creation_input_tokens': 15,
+            'output_tokens': 25,
+            'reasoning_tokens': 5,
+        }
+        value = self.metrics('claude', claude_usage)
+        self.assertEqual(value, {
+            'input_tokens': 175,
+            'uncached_input_tokens': 120,
+            'cached_input_tokens': 40,
+            'cache_write_tokens': 15,
+            'output_tokens': 25,
+            'reasoning_tokens': 5,
+            'total_tokens': 205,
+        })
+        self.assertEqual(h.cache_efficiency(value), 0.2286)
+
+    def test_claude_without_cache_keeps_input_tokens(self):
+        value = self.metrics('claude', {'input_tokens': 80, 'output_tokens': 20})
+        self.assertEqual(value['input_tokens'], 80)
+        self.assertEqual(value['uncached_input_tokens'], 80)
+        self.assertIsNone(value['cached_input_tokens'])
+        self.assertIsNone(value['cache_write_tokens'])
+        self.assertEqual(value['total_tokens'], 100)
+        self.assertIsNone(h.cache_efficiency(value))
+
+    def test_cache_efficiency_calculation(self):
+        self.assertIsNone(h.cache_efficiency(None))
+        self.assertIsNone(h.cache_efficiency({}))
+        self.assertIsNone(h.cache_efficiency({'cached_input_tokens': None, 'uncached_input_tokens': 100}))
+        self.assertEqual(h.cache_efficiency({'cached_input_tokens': 50, 'uncached_input_tokens': 50, 'cache_write_tokens': 0}), 0.5)
+        self.assertEqual(h.cache_efficiency({'cached_input_tokens': 100, 'uncached_input_tokens': 0, 'cache_write_tokens': 0}), 1.0)
+        self.assertEqual(h.cache_efficiency({'cached_input_tokens': 0, 'uncached_input_tokens': 100, 'cache_write_tokens': 0}), 0.0)
 
     def test_cost_zero_is_preserved_and_absent_stays_null(self):
         with tempfile.TemporaryDirectory() as folder:

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "crewloom-example-task": {
+      "command": "crewloom",
+      "transport": "stdio",
+      "args": ["mcp", "--project", "/absolute/project", "--project-id", "example-project", "--task-id", "feature-task", "--plan", "workflow.json"],
+      "env": {}
+    }
+  }
+}

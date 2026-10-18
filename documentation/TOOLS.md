@@ -7,6 +7,8 @@ Run `python3 scripts/crewloom.py tools` to list these tools. `run` dispatches on
 | [workflow-contract](../.agents/skills/automation-ops-engineer/scripts/check_workflow_contract.py) | Validate an n8n export; reject embedded literal secret fields | `{input}` |
 | [seo-packet](../.agents/skills/seo-growth-engineer/scripts/check_seo_content_packet.py) | Validate article metadata, length, canonical and internal links | `--packet {input}` |
 | [mcp-config](../.agents/skills/mcp-integration-builder/scripts/validate_mcp_config.py) | Check MCP server configuration and suspicious credential literals | `--config {input}` |
+| [re-findings](../.agents/skills/reverse-engineering-analyst/scripts/check_re_findings.py) | Validate a reverse-engineering findings packet for target hash, authorization and evidence links; bookkeeping only, not proof of a claim | `--findings {input}` |
+| [system-design](../.agents/skills/distributed-systems-architect/scripts/check_system_design.py) | Validate a system design specification packet for schema, realistic SLOs, data replication, and SPOF mitigation | `--packet {input}` |
 | [script-pacing](../.agents/skills/video-script-architect/scripts/validate_script_pacing.py) | Measure script word pacing for a selected duration | `--file {input} --duration 30` |
 | [budget-pacing](../.agents/skills/paid-media-buyer/scripts/budget_pacer.py) | Compare actual campaign spend with approved expected pacing | `--daily-budget 100 --days-elapsed 3 --actual-spend 300` |
 | [ui-hints](../.agents/skills/frontend-ux-auditor/scripts/check_ui_quality.py) | Static UI hints; exit 2 requests rendered review rather than claiming acceptance | `--project-dir {input} --json` |
@@ -45,9 +47,19 @@ Project context is opt-in per project and never changes workflow isolation. See 
 Every core tool above runs on the Python standard library alone. The navigation index reads real JS/TS syntax trees and `tsconfig` aliases only when the one optional extra is installed:
 
 ```
-python3 -m pip install 'crewloom[syntax]'   # tree-sitter 0.23.2, javascript 0.23.1, typescript 0.23.2
+python3 -m pip install '.[syntax]'   # from the source clone in an activated Python environment
 ```
 
 Without it the same commands still work and the generated map records that approximate extraction was used, so a missing extra is reported rather than hidden. `map --help` and the map metadata name the parser that produced each index.
 
 Native host setup and callback boundaries: [Native host lifecycle](HOST_LIFECYCLE.md).
+
+The optional `crewloom mcp` command exposes one project's task through the official Python MCP SDK, with read-only tools by default. It requires `crewloom[mcp]` on Python 3.11+; other core commands remain dependency-free. See [MCP bridge and external reply import](MCP_BRIDGE.md).
+
+## Dashboard execution contracts
+
+Argument input accepts quoted text or a JSON array of strings. It never invokes a shell or
+expands variables. Paths remain project-relative. Context report defaults use `context.md` and
+`context-pilot.json` within the selected project. Project lifecycle, lesson and agency-readiness
+tools require explicit identities/external roots via their documented CLI; the dashboard labels
+these tools CLI-only and refuses execution rather than presenting incompatible Run defaults.

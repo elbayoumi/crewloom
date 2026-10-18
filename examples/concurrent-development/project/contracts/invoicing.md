@@ -3,6 +3,10 @@
 Write exactly one module at `src/billing.py`. Standard library only. It is imported by
 `src/report.py`, so its public names are the contract, not its internals.
 
+Runtime import contract: the CLI puts `src/` on `sys.path` and imports this module as
+`billing`, without a package parent. Import the reused helper with `from money import ...`;
+package-relative imports such as `from .money import ...` cannot run in this application.
+
 ## Inputs it must rely on
 
 `src/money.py` is already in the project and is reused, not reimplemented:
@@ -37,8 +41,9 @@ def compute_invoice(invoice) -> dict
 
 - `line` must be an object; `quantity` an `int` in `1..MAX_QUANTITY` (a `bool` is refused);
 - `unit_price` and `tax_rate` go through `parse_amount`, so a JSON float or the string
-  `'NaN'` is refused; `unit_price` must be positive; `tax_rate` is quantized to 4 decimal
-  places and must be within `0..100`;
+  `'NaN'` is refused; `unit_price` must be positive; the raw parsed `tax_rate` must be
+  within `0..100` before it is quantized to 4 decimal places. Rounding must not admit
+  an out-of-range value such as `100.00001` or `-0.00001`;
 - `category == 'refund'` negates an otherwise positive line, so a refund reduces the group
   total instead of being signed inside `quantity`;
 - `description_en` and `description_ar` must both be nonempty strings after stripping whitespace; missing or empty descriptions raise `ValueError` naming that field;

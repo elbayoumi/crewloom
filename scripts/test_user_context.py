@@ -32,6 +32,43 @@ class UserContextTests(unittest.TestCase):
         (self.root / 'request.txt').write_text(self.request, encoding='utf-8')
         pb.enter(self.root, 'sample-project', 'understand-task', ROLE, seeds=['request.txt'])
 
+    def child_worktree(self):
+        for key,value in [('user.name','Acceptance'),('user.email','acceptance@example.invalid')]:
+            subprocess.run(['git','config',key,value],cwd=self.root,check=True,env=repo_map.git_environment())
+        subprocess.run(['git','commit','--allow-empty','-qm','Freeze test base'],cwd=self.root,check=True,env=repo_map.git_environment())
+        temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup)
+        child=Path(temporary.name).resolve()/'child'
+        subprocess.run(['git','worktree','add','--detach','-q',str(child),'HEAD'],cwd=self.root,check=True,env=repo_map.git_environment())
+        pb.bootstrap(child,project_id='sample-project')
+        return child
+
+    def test_selected_context_reaches_worktree_and_refuses_parent_correction_on_resume(self):
+        self.record();self.contract()
+        # A different task's record must never be delivered to this child.
+        pb.cancel(self.root,'sample-project','understand-task','Record another task before resuming')
+        uc.record(self.root,'owner','other-secret','Reduce errors, not add dashboards.','request.txt',
+                  'Reduce errors, not add dashboards.',task_id='other-task')
+        pb.enter(self.root,'sample-project','understand-task',ROLE,seeds=['request.txt'])
+        child=self.child_worktree()
+        fingerprint=uc.inherit_task(self.root,child,'understand-task')
+        selected=uc.select(child,'understand-task')
+        self.assertEqual([r['key'] for r in selected['memories']],['response-language'])
+        self.assertEqual(selected['memories'][0]['value'],'الرد بالعربي.')
+        self.assertTrue(selected['contract']['source']['path'].startswith('.crewloom/private/inputs/inherited/'))
+        self.assertEqual(uc.inherit_task(self.root,child,'understand-task',verify_only=True),fingerprint)
+        self.record('Keep the foundation English.')
+        with self.assertRaisesRegex(ValueError,'context changed'):
+            uc.inherit_task(self.root,child,'understand-task',verify_only=True)
+
+    def test_inheritance_refuses_foreign_project_and_modified_child_source(self):
+        self.record();self.contract();child=self.child_worktree()
+        uc.inherit_task(self.root,child,'understand-task')
+        source=uc.select(child,'understand-task')['contract']['source']['path']
+        (child/source).write_text('Changed inherited source')
+        with self.assertRaises(ValueError):uc.inherit_task(self.root,child,'understand-task',verify_only=True)
+        config=child/'crewloom.project.json';value=json.loads(config.read_text());value['project_id']='foreign-project';config.write_text(json.dumps(value))
+        with self.assertRaisesRegex(ValueError,'disagree'):uc.inherit_task(self.root,child,'understand-task')
+
     def record(self, value='الرد بالعربي.', **kwargs):
         return uc.record(self.root, 'owner', 'response-language', value, 'request.txt',
                          kwargs.pop('quote', value), task_id='understand-task', **kwargs)

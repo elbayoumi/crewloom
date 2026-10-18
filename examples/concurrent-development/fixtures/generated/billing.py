@@ -71,11 +71,10 @@ def _unit_price(line, index, category):
 
 
 def _tax_rate(line, index):
-    value = quantize(parse_amount(line.get('tax_rate', '0'), 'line ' + str(index) + ' tax_rate'),
-                     RATE_PLACES)
+    value = parse_amount(line.get('tax_rate', '0'), 'line ' + str(index) + ' tax_rate')
     if value < 0 or value > MAX_TAX_RATE:
         raise ValueError('line ' + str(index) + ' tax_rate must be from 0 to 100')
-    return value
+    return quantize(value, RATE_PLACES)
 
 
 def _text(line, field, index):

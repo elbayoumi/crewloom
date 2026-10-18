@@ -1,5 +1,7 @@
 # Crewloom shared memory
 
+- 2026-10-15: Repository review retains the prior defect-closure work and adds explicit-prerequisite refusal, real MCP/browser CI, lockfile dashboard startup, reviewed dependency proposals and synchronized bilingual setup. Local component acceptance passes; source proposal/hosted CI and stable-release rollout are distinct. See [review evidence](documentation/PROFESSIONAL_REVIEW.md).
+
 [Architecture](Brain/ARCHITECTURE.md) · [Completed](Brain/COMPLETED.md) · [Challenges](Brain/CHALLENGES.md) · [Ideas](Brain/IDEAS_VAULT.md) · [Backlog](Brain/ROADMAP_TODO.md)
 
 The public edition contains clean role memory and shared repository memory. It has no imported customer or agency execution history. See [the constitution](AGENTS.md) for the memory lifecycle and [the release notes](documentation/RELEASE.md) for validation scope.
@@ -83,4 +85,38 @@ User sources and customization data stay project-local; commit hooks reject priv
 
 - 2026-10-11 | Completed private understanding pilot shows 17/18 selected-context passes versus 14/18 raw-history on nine synthetic cases; PR #16 contains collection tooling. Practical agency delivery remains unproven.
 
+- 2026-10-11 | Practical delivery remains pending; contract/grader mismatch repaired and live attempt retained separately. Understanding PR review fixes committed as 096f473 through full gate.
+
+- 2026-10-11 | Generated multi-file example now passes separate real combined13/helper16 verification after acceptance contract alignment. Library changes still pending publication and original coordinator delivery has not been approved.
+
+- 2026-10-11 | Initial explicit repair runtime is local and regression-tested; automated repair preparation/dispatch and practical delivery approval remain pending.
+
+- 2026-10-11 | Crewloom now has local evidence-driven repair preparation/execution with unchanged acceptance and private candidate history. One real requested-model pilot passed five bilingual checks after a seeded failure; general model improvement and competitive performance remain unproven.
+
 - 2026-10-11 | PR #16 review tightened grader/arm immutability; original pilot remains a limited observation. Practical repair improved planning but uncovered undocumented grader requirements, so agency acceptance remains pending.
+
+- 2026-10-11 | Flexible OpenCode selection now supports private loopback provider contracts without merging global host configuration. Actual protocol compatibility is demonstrated; actual weak-model or Claude-level capability is not.
+
+- 2026-10-12 | Crewloom improvement contracts now include portable task-packet export for external agents alongside five automatic model adapters. Export shares scoped context and evidence rules but grants no execution/acceptance authority; arbitrary automatic host dispatch remains unsupported.
+
+- 2026-10-12 | Crewloom now packages a native Codex entry plugin alongside a manual browser companion. Current-main authorization, persistent default-off activation and reference-bound element checks address the reviewed local issues. Real browser/installed-plugin evidence establishes these integrations only; autonomous desktop/model control remains future scoped work.
+
+- 2026-10-14 | Browser/dashboard13-defect closure implemented with rejected old cases and passing current tests: Python1123 (107skip), dashboard55, Docker77, real Chromium38 (1optional skip), distribution12. Manual browser control remains explicit; new MCP/desktop integration requires its own live evidence. Local runtime rollout follows the mandatory commit gate; no public merge or all-role performance claim.
+
+- 2026-10-14 | Browser/dashboard13-defect fixes are committed behind the mandatory hook. Optional bound MCP and external candidate import now pass real stdio/Docker acceptance; isolated Playwright navigation/snapshot/click/close verified. Local runtime rollout pending final gate; native desktop and general model quality remain unverified.
+
+- 2026-10-14 | Local13-defect closure delivered: gated commits, immutable CLI/dashboard snapshot, Chrome2.3.0 ZIP and read-only Codex MCP registration. Runtime HTTP, rendered English/Arabic and exact installed MCP command verified. Native desktop and cross-model/full-role quality remain explicit acceptance work.
+
+- 2026-10-14 | Native prompt capture now opts in per task, preserves exact private sources and blocks project tools on source-linked heuristic questions. Actual MCP answer transport passes. Two requested usable models each scored selected4/4 versus raw2/4 on two bilingual synthetic scenarios; model identity was not independently reported. Fixture-scoped native AX tools are implemented and compiled, while human manifest approval and live Accessibility control remain pending.
+
+- 2026-10-14 | Capture/clarification/native-client continuation is gated at ef7782a (99 suites,1207 tests with optional skips), installed locally and verified through all three actual read-only MCP tools. Native control remains unverified pending human manifest approval; synthetic quality evidence does not establish full agency delivery.
+
+- 2026-10-15 | Approved fixture-scoped native control now has real observe/press/reobserve evidence (0→1→0), plus stale-handle and foreign-process refusal. Global-discovery and menu-projection defects repaired within the unchanged manifest. General desktop automation and broad role-quality claims remain unverified.
+
+- 2026-10-15 | Native fixture correction is gated (99 suites/1211 tests with optional skips) and verified through the installed CLI. Approved test processes were closed after acceptance. No claim of general desktop control or full-role quality follows from this result.
+
+- 2026-10-15 | Delivery continuation now exercises two independent model-generated Ledgerline projects. Actual failures exposed context delivery and import-contract gaps; their fixes preserve verifier bytes. PR20 is open; general app acceptance and final publication remain pending until verified.
+
+- 2026-10-16 | 0.6.0 operational acceptance is recorded with complete real generated software delivery, independent container checks and post-delivery correction. Real profile/browser and two system-app scopes passed.42 role guides validate, with live evidence limited to named software/context/QA/MCP/machine workflows. Final normal GitHub merge/release and local refresh remain the delivery steps.
+
+- 2026-10-17 | Arabic and English are paired product acceptance requirements for localized changes, with RTL/LTR and failure-state evidence. Language support scope is explicit; external diagnostics and application labels retain their source text.

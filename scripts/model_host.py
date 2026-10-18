@@ -19,6 +19,7 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
+from urllib.parse import urlsplit
 
 HOSTS = ('codex', 'claude', 'opencode', 'openai', 'anthropic')
 # Hosts reached through an installed CLI, which is the explicit operator exception.
@@ -117,7 +118,66 @@ def opencode_schema_instruction(outputs):
             + '. Output only that JSON: no Markdown fence, no other keys, no commentary, no explanation.')
 
 
-def opencode_agent_config(model=None, outputs=None):
+def local_provider_config(data, model):
+    """Translate a small private local-provider contract, never an arbitrary host config."""
+    fields = {'schema_version', 'provider_id', 'base_url', 'models', 'prompt_budget_bytes'}
+    if not isinstance(data, dict) or set(data) != fields or type(data['schema_version']) is not int or data['schema_version'] != 1:
+        raise ValueError('Local provider requires the versioned five-field contract')
+    import workflow as w
+    provider = data['provider_id']; models = data['models']; budget = data['prompt_budget_bytes']
+    if not isinstance(provider, str) or not w.ID.fullmatch(provider):
+        raise ValueError('Local provider ID must be kebab-case')
+    if (not isinstance(models, list) or not 1 <= len(models) <= 64
+            or any(not isinstance(item, str) or not 1 <= len(item) <= 200
+                   or any(ord(char) <= 32 for char in item) for item in models)
+            or len(set(models)) != len(models)):
+        raise ValueError('Local provider needs distinct model identifiers')
+    if type(budget) is not int or not 1024 <= budget <= MAX_TEXT:
+        raise ValueError('Local prompt byte budget must be 1024..262144')
+    if not isinstance(data['base_url'], str):
+        raise ValueError('Local provider URL must be text')
+    url = urlsplit(data['base_url'])
+    if (url.scheme not in ('http', 'https') or url.hostname not in ('localhost', '127.0.0.1', '::1')
+            or url.username is not None or url.password is not None or url.query or url.fragment
+            or any(char.isspace() for char in data['base_url'])):
+        raise ValueError('Local provider must use a loopback URL without credentials or query')
+    # Accessing port also rejects malformed numeric/range values.
+    if url.port is None or url.port == 0:
+        raise ValueError('Local provider requires an explicit port')
+    if not isinstance(model, str):
+        raise ValueError('Local provider requires an explicit model identifier')
+    selected_provider, separator, selected_model = (model or '').partition('/')
+    if not separator or selected_provider != provider or selected_model not in models:
+        raise ValueError('Requested model is not declared by the local provider')
+    return {'enabled_providers': [provider], 'provider': {provider: {
+        'npm': '@ai-sdk/openai-compatible', 'name': provider,
+        'options': {'baseURL': data['base_url']},
+        'models': {name: {'name': name} for name in models}}}}
+
+
+def provider_profile(root, step):
+    relative = step.get('opencode_provider')
+    if relative is None:
+        return None
+    import workflow as w
+    import project_binding as pb
+    pb.load_binding(root)
+    if (step.get('host') != 'opencode' or not isinstance(relative, str)
+            or Path(relative).parent.as_posix() != '.crewloom/private/providers'
+            or Path(relative).suffix != '.json'):
+        raise ValueError('OpenCode provider must be a project-private providers JSON file')
+    path = w.safe_path(root, relative, internal=True)
+    if not path.is_file() or path.stat().st_nlink != 1 or path.stat().st_size > 16384:
+        raise ValueError('Provider profile must be bounded and single-link')
+    info = path.stat()
+    if os.name == 'posix' and (info.st_uid != os.getuid() or info.st_mode & 0o077):
+        raise ValueError('Provider profile must be owner-only (chmod 600) and owned by the current user')
+    raw = path.read_bytes(); data = json.loads(raw)
+    local_provider_config(data, step.get('model'))
+    return {'data': data, 'sha256': w.digest(raw), 'prompt_budget_bytes': data['prompt_budget_bytes']}
+
+
+def opencode_agent_config(model=None, outputs=None, provider_profile=None):
     """The deny-all profile OpenCode runs under, and nothing wider.
 
     A permission denial hides one skill; the skill tool exposes the whole list,
@@ -134,6 +194,8 @@ def opencode_agent_config(model=None, outputs=None):
     if model:profile['agent'][OPENCODE_AGENT]['model']=model;profile['model']=model
     if outputs is not None:
         profile['agent'][OPENCODE_AGENT]['prompt']+=' '+opencode_schema_instruction(outputs)
+    if provider_profile is not None:
+        profile.update(local_provider_config(provider_profile, model))
     return profile
 
 
@@ -151,11 +213,11 @@ def opencode_environment(scratch, profile):
     return env
 
 
-def command(host, executable, scratch, model=None, prompt=None, outputs=None):
+def command(host, executable, scratch, model=None, prompt=None, outputs=None, provider_profile=None):
     schema=scratch/'schema.json';schema.write_text(json.dumps(SCHEMA))
     if host=='opencode':
         profile=scratch/'opencode.json'
-        profile.write_text(json.dumps(opencode_agent_config(model,outputs)))
+        profile.write_text(json.dumps(opencode_agent_config(model,outputs,provider_profile)))
         argv=[executable,'run','--pure','--agent',OPENCODE_AGENT,'--format','json',
               '--dir',str(scratch)]
         if model:argv.extend(['--model',model])
@@ -272,6 +334,50 @@ def _codex_metrics(usage):
             'total_tokens':total}
 
 
+def _claude_metrics(usage):
+    """Normalize Claude / Anthropic usage metrics, separating cache read and write."""
+    if not isinstance(usage, dict):
+        raise ValueError('Malformed provider usage evidence')
+    uncached = _count(usage.get('input_tokens'), 'input token')
+    cached = _count(usage.get('cache_read_input_tokens', usage.get('cached_input_tokens')), 'cached input token')
+    write = _count(usage.get('cache_creation_input_tokens', usage.get('cache_write_tokens')), 'cache write token')
+    output = _count(usage.get('output_tokens'), 'output token')
+    reasoning = _count(usage.get('reasoning_tokens'), 'reasoning token')
+    reported = _count(usage.get('total_tokens'), 'total token')
+    if uncached is not None:
+        input_tokens = uncached + (cached or 0) + (write or 0)
+    else:
+        input_tokens = None
+    if reported is not None:
+        total = reported
+    elif input_tokens is not None and output is not None:
+        total = input_tokens + output + (reasoning or 0)
+    else:
+        total = None
+    return {'input_tokens': input_tokens, 'uncached_input_tokens': uncached,
+            'cached_input_tokens': cached, 'cache_write_tokens': write,
+            'output_tokens': output, 'reasoning_tokens': reasoning, 'total_tokens': total}
+
+
+def cache_efficiency(metrics):
+    """Calculate cache efficiency ratio: cached / (uncached + cached + cache_write).
+
+    Returns float between 0.0 and 1.0 rounded to 4 decimals, or None if no cache telemetry is present.
+    """
+    if not isinstance(metrics, dict):
+        return None
+    cached = metrics.get('cached_input_tokens')
+    uncached = metrics.get('uncached_input_tokens')
+    write = metrics.get('cache_write_tokens')
+    if cached is None and write is None:
+        return None
+    total_cached = cached or 0
+    total_input = (uncached or 0) + total_cached + (write or 0)
+    if total_input <= 0:
+        return None
+    return round(total_cached / total_input, 4)
+
+
 def usage_metrics(host, usage):
     """Public provider-usage normalization; raw evidence is never rewritten.
 
@@ -283,7 +389,9 @@ def usage_metrics(host, usage):
     if host=='codex':
         if not isinstance(usage,dict):raise ValueError('Malformed provider usage evidence')
         return _codex_metrics(usage)
-    raise ValueError('Usage normalization is defined for codex and opencode')
+    if host in ('claude', 'anthropic'):
+        return _claude_metrics(usage)
+    raise ValueError('Usage normalization is defined for codex, opencode and claude')
 
 
 def _structured_text(text):
@@ -431,7 +539,7 @@ def _retain(evidence, name, path):
     target.write_bytes(data)
 
 
-def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
+def generate(host, prompt, outputs, timeout=180, model=None, evidence=None, provider_profile=None):
     """One adapter entry point for every generation host.
 
     API providers keep their own tool-free RPC boundary and their own explicit model and
@@ -440,6 +548,12 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
     logs; it is never written unless a caller explicitly requests it.
     """
     from provider_gateway import PROVIDERS
+    if provider_profile is not None:
+        if host != 'opencode':
+            raise ValueError('Local provider profiles require OpenCode')
+        local_provider_config(provider_profile, model)
+        if len(prompt.encode()) > provider_profile['prompt_budget_bytes']:
+            raise ValueError('Prompt exceeds selected local provider byte budget')
     if host in PROVIDERS:
         from provider_gateway import generate as provider_generate
         return provider_generate(host, prompt, outputs, timeout, model)
@@ -451,7 +565,8 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
         (folder/'prompt.txt').write_text(prompt,encoding='utf-8')
     with tempfile.TemporaryDirectory(prefix='crewloom-host-') as folder:
         scratch=Path(folder).resolve()
-        argv=command(host,info['executable'],scratch,model,prompt,outputs)
+        argv=(command(host,info['executable'],scratch,model,prompt,outputs,provider_profile)
+              if provider_profile is not None else command(host,info['executable'],scratch,model,prompt,outputs))
         # Preserve CLI auth location; never forward arbitrary project variables.
         env={key:value for key,value in os.environ.items() if key in
              ('PATH','HOME','USER','LANG','LC_ALL','TMPDIR','SYSTEMROOT','CODEX_HOME',
@@ -492,10 +607,11 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None):
             'prompt_bytes':len(prompt.encode()),
             'duration_ms':round((time.monotonic()-started)*1000),'usage':usage,'cost_usd':cost,
             'execution_boundary':'text-generation in temporary directory; artifacts validated by Crewloom'}
-        if host in ('codex','opencode'):
+        if host in ('codex','opencode','claude'):
             # The requested model and the model the host actually reported stay
             # separate: a stream without model metadata reports null, never the request.
             record['usage_metrics']=usage_metrics(host,usage)
+            record['cache_efficiency']=cache_efficiency(record['usage_metrics'])
         if host in CLI_HOSTS:
             record['native_host_exception']=True
             record['execution_boundary']+='; installed CLI, native host exception, not an OS sandbox'
@@ -682,6 +798,10 @@ def build_prompt(root, step, language, task_id=None, context=None):
         inputs.append({'path':relative,'text':path.read_text()})
     payload={'language':language,'role':step['role'],'guidance':guidance,
              'inputs':inputs,'task':step['summary'],'outputs':step['outputs']}
+    configured = provider_profile(root, step)
+    if configured:
+        payload['model_runtime'] = {'provider_profile_sha256': configured['sha256'],
+                                    'prompt_budget_bytes': configured['prompt_budget_bytes']}
     if task_id:
         frozen=project_context_payload(root,task_id,step,context)
         if frozen:

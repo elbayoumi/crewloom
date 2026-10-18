@@ -17,3 +17,5 @@ wheel and source archive, so the same check runs from an installed copy.
 
 This gate cannot stop a privileged host tool from writing outside it; it rejects the mistake
 at commit time and in CI.
+
+The reviewed `extensions/` directory contains the optional manual browser companion. Its source and tests belong to Crewloom; it is not an independent client application. Native plugin packaging lives under the existing `adapters/codex/` directory and its marketplace under `.agents/plugins/`.

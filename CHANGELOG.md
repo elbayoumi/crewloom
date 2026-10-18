@@ -1,5 +1,35 @@
 # Changelog
 
+## Unreleased
+
+## 0.7.0 — 2026-10-18
+
+- Add the `distributed-systems-architect` role (44 roles), an architecture procedure in English and Arabic, standard-library `system-design` verifier (20 tools) checking high-availability SLOs and SPOFs, workflow contract `workflows/system-design.json`, and a 100K RPS real-time global messaging reference blueprint.
+- Add the `reverse-engineering-analyst` role, an authorization-first procedure in English and Arabic, a pinned [REA](https://github.com/morluto/rea) MCP configuration (`examples/mcp/rea.json`) and the read-only `re-findings` tool that checks a findings packet's target hash, authorization and evidence links. REA is a separate MIT-licensed project and is not bundled.
+- Add `quickstart.sh` zero-install script with environment discovery, dry-run support, and automated prerequisites checking across macOS and Linux.
+- Add `crewloom demo` interactive ANSI terminal walkthrough simulating role selection, 5-stage memory consultation, and isolated container execution in 20 seconds.
+- Add official Model Context Protocol (MCP) configuration templates for Cursor (`examples/mcp/cursor.json`) and Windsurf (`examples/mcp/windsurf.json`) with three-tier verification guide in `examples/mcp/README.md` (resolves #40).
+- Add bilingual 7-dimension competitive framework comparison matrix (Crewloom vs CrewAI vs AutoGen vs LangGraph) and vector architecture workflow diagrams to `README.md` and `README.ar.md`.
+- Formalize rootless container policies, non-root `uid:gid` mirroring, and `userns-remap` bind-mount ownership guidelines in `SECURITY.md`, and reject comma characters in both source and destination mount parameters to eliminate parameter injection (resolves #39).
+- Dashboard child processes no longer inherit `CREWLOOM_DASHBOARD_TOKEN` or secret-named variables, and stored tool output redacts exact secret values and common credential shapes.
+- Split `docker_execute` into `docker_command` and `bind_mount`, and add Docker-free regressions that pin every isolation flag.
+- Workflow containers refuse execution under host root (UID 0) to ensure container isolation cannot inherit root privileges.
+- Host lifecycle test fixtures fall back to supported host releases when unpinned or upgraded host binaries are installed.
+
+## 0.6.1 — 2026-10-17
+
+- Browser companion2.3.2 translates known errors and in-page HUD status in Arabic/English, preserves site language and reacts to saved-language changes.
+- Fix HUD hiding against its own important CSS declaration; switching language keeps a hidden HUD hidden.
+- Make paired language, direction and failure-state acceptance explicit without claiming every external/CLI diagnostic is translated.
+
+## 0.6.0 — 2026-10-16
+
+- Fix audited browser targeting, dashboard run validation and extension packaging/download behavior.
+- Add project/task-bound MCP, freshness-checked candidate import, source-linked capture/clarification and selected user-context delivery into isolated worktrees.
+- Add exact application/window AX button scopes and observation-only native sessions; verify real Chrome profile, Calculator and TextEdit acceptance.
+- Record a complete real model-generated Ledgerline delivery with independent Docker checks, reviewed publication, preserved failed attempts, resumption and an Arabic correction. See [the acceptance record](examples/evaluation/agency-acceptance-20261015.json).
+- Keep role/domain coverage and unreported model identity/cost explicit; no universal model-quality claim.
+
 - 2026-10-10: Add explicit-project priority scheduling, shared managed-generation admission, bounded role activity charts, and a frozen bilingual developer pilot with preserved provider failures.
 
 ## 0.4.0 — 2026-10-01
@@ -11,6 +41,13 @@
 - Add host-layout setup guidance and real Docker integration checks in CI.
 
 ## Unreleased
+
+- Allocate native operation locks inside the running event loop for Python 3.9 compatibility; retain serialized actions and refuse foreign-loop reuse.
+
+- Run official MCP round trips and real headed Chrome extension acceptance in CI; fail explicit browser/distribution acceptance when prerequisites are unavailable.
+- Use the dashboard lockfile on first launch, require Node 24+, and declare ES modules for its TypeScript test runner.
+- Schedule reviewed dependency updates, bound CI job duration, and cancel superseded pull-request runs.
+- Align English/Arabic setup, dashboard status rules and release documentation with the implemented authentication and integration boundaries.
 
 - Package the Python runtime, all 42 roles, native adapters and runnable examples in a wheel and source archive; add an optional pinned JavaScript/TypeScript syntax backend.
 - Add isolated concurrent model-task worktrees, dependency integration, combined Docker acceptance, credential-scoped review and recoverable artifact publication.

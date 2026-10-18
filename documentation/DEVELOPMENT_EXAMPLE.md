@@ -53,7 +53,7 @@ numerically rather than by marker string:
 
 | Task | Declares | Generation step | Command acceptance |
 | --- | --- | --- | --- |
-| `billing` | — | `src/billing.py` from `contracts/invoicing.md` | `tools/check_billing.py`, 21 cases |
+| `billing` | — | `src/billing.py` from `contracts/invoicing.md` | `tools/check_billing.py`, 23 cases |
 | `planning` | — | `src/planning.py` from `contracts/planning.md` | `tools/check_planning.py`, 20 cases |
 | `report` | `billing`, `planning` | `src/report.py`, `src/app.py` from `contracts/report.md` with both ancestor modules as declared inputs | `tools/check_report.py`, 14 cases |
 | integration | every task output | — | `tools/check_combined.py`, 13 cases, and `tools/run_helper_tests.py` over `tests/` |

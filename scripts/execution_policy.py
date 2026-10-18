@@ -809,7 +809,7 @@ def _commit(root, transaction, folder):
     return receipt
 
 
-def publish(root, artifacts, expected_inputs):
+def publish(root, artifacts, expected_inputs, *, expected_outputs=None):
     """Publish one declared output group as a single recoverable transaction.
 
     Every input fingerprint, destination and payload is checked before the first destination is
@@ -834,11 +834,22 @@ def publish(root, artifacts, expected_inputs):
         if w.hashes(root, list(expected_inputs)) != expected_inputs:
             raise ValueError('Inputs changed during execution; artifacts rejected')
         targets = destinations(root, list(artifacts))
+        if expected_outputs is not None:
+            if not isinstance(expected_outputs, dict) or set(expected_outputs) != set(artifacts):
+                raise ValueError('Expected output fingerprints must cover exactly the published group')
+            if w.output_fingerprints(root, list(artifacts)) != expected_outputs:
+                raise ValueError('Outputs changed during external generation; artifacts rejected')
         if any(not isinstance(data, bytes) or not data for data in artifacts.values()):
             raise ValueError('Outputs must be nonempty regular files')
         if sum(len(data) for data in artifacts.values()) > MAX_OUTPUT_BYTES:
             raise ValueError('Output artifact budget exceeded')
         transaction, folder = _stage(root, targets, artifacts, expected_inputs)
+        if expected_outputs is not None and (any(
+                entry['original_sha256'] != expected_outputs[entry['path']]
+                for entry in transaction['entries'])
+                or w.output_fingerprints(root, list(artifacts)) != expected_outputs):
+            _discard(folder)
+            raise ValueError('Outputs changed during publication preparation; artifacts rejected')
         try:
             _apply(root, transaction, folder)
         except BaseException as failure:

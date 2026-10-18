@@ -2,6 +2,23 @@
 
 Crewloom integrates through project-local role files and explicit handoff JSON. The supported installation layouts are `agents` (`.agents/skills`) and `claude` (`.claude/skills`). Layout installation and validation are tested; model behavior and automatic host discovery must be verified in your actual host.
 
+## Any agent: portable task packets
+
+Context selection, source-linked user understanding, project memory, artifact scope and verification belong to Crewloom's workflow, not to one model or agent brand. Automatic model dispatch currently has five reviewed adapters: Codex, Claude Code, OpenCode, OpenAI API and Anthropic API. Local provider profiles currently configure OpenCode only; this does not restrict the portable task path below.
+
+For another agent, use a workflow `task` step rather than inventing an unsupported `host` value. Bind the project and install its owning role first. Start the workflow to reserve its project and next task, then export the host-neutral generation contract:
+
+```bash
+crewloom workflow run --project /path/to/project --plan workflow.json
+crewloom workflow agent-packet --project /path/to/project --plan workflow.json
+```
+
+The packet carries canonical project/root/checkout identity, workflow and step IDs, plan and input hashes, the assembled prompt and its hash, declared outputs, JSON response schema and the existing review handoff. It uses the same guidance, bounded memory selection and frozen user/project context as managed generation. Enforced projects require fresh context for the exact task scope. Changed sources, binding, guidance or context during preparation are refused. A cancelled workflow cannot export a packet.
+
+Send `prompt` and `response_schema` explicitly to your chosen agent or its integration. The packet does not invoke the agent, spend provider quota, grant tool permissions, write returned artifacts or accept the task. It contains private project text: keep saved packets in the project's ignored `.crewloom/private/` directory and choose the receiving service under your own data policy. An external integration must validate the returned JSON with `model_host.validate_artifacts`, recheck the input hashes and project binding before authorized writes, and follow the existing task review and isolated command verification. There is no automatic reply-import command in this path.
+
+Automatic bounded `repair` remains available for supported `model` adapters. For an external `task` agent, hand back actual verifier diagnostics and retain failed attempts using the existing workflow review process; exporting a packet does not implement automatic external-agent repair. Packet compatibility is a text/JSON contract, not evidence that every agent obeys it or improves on every task.
+
 ## Setup
 
 ```bash

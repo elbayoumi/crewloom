@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-15",
+  "scope": "Account-free real model-generated Ledgerline delivery, scoped app integrations and explicit coverage limits",
+  "source_commit": "37f8387",
+  "project_ids": [
+    "ledgerline-sol",
+    "ledgerline-luna"
+  ],
+  "requested_models": [
+    "gpt-6-sol",
+    "gpt-6-luna"
+  ],
+  "backend_identity_verified": false,
+  "provider_cost_verified": false,
+  "trials": [
+    {
+      "project_id": "ledgerline-sol",
+      "workflow": "billing-workflow",
+      "step": "generate",
+      "model_requested": "gpt-6-sol",
+      "model_reported": null,
+      "duration_ms": 44105,
+      "usage": {
+        "input_tokens": 12266,
+        "cached_input_tokens": 8832,
+        "output_tokens": 2320,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 826,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "complete",
+      "attempt_preserved": true
+    },
+    {
+      "project_id": "ledgerline-sol",
+      "workflow": "report-workflow",
+      "step": "generate",
+      "model_requested": "gpt-6-sol",
+      "model_reported": null,
+      "duration_ms": 54491,
+      "usage": {
+        "input_tokens": 15389,
+        "cached_input_tokens": 0,
+        "output_tokens": 2767,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 1414,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "complete",
+      "attempt_preserved": true
+    },
+    {
+      "project_id": "ledgerline-sol",
+      "workflow": "planning-workflow",
+      "step": "generate",
+      "model_requested": "gpt-6-sol",
+      "model_reported": null,
+      "duration_ms": 25402,
+      "usage": {
+        "input_tokens": 12003,
+        "cached_input_tokens": 0,
+        "output_tokens": 1360,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 222,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "complete",
+      "attempt_preserved": true
+    },
+    {
+      "project_id": "ledgerline-sol",
+      "workflow": "billing-workflow",
+      "step": "generate",
+      "model_requested": "gpt-6-sol",
+      "model_reported": null,
+      "duration_ms": 52091,
+      "usage": {
+        "input_tokens": 13117,
+        "cached_input_tokens": 0,
+        "output_tokens": 2498,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 847,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "complete",
+      "attempt_preserved": true
+    },
+    {
+      "project_id": "ledgerline-sol",
+      "workflow": "report-workflow",
+      "step": "generate",
+      "model_requested": "gpt-6-sol",
+      "model_reported": null,
+      "duration_ms": 52992,
+      "usage": {
+        "input_tokens": 16370,
+        "cached_input_tokens": 0,
+        "output_tokens": 2675,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 1254,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "complete",
+      "attempt_preserved": true
+    },
+    {
+      "project_id": "ledgerline-sol",
+      "workflow": "billing-workflow",
+      "step": "generate",
+      "model_requested": "gpt-6-sol",
+      "model_reported": null,
+      "duration_ms": 42437,
+      "usage": {
+        "input_tokens": 12076,
+        "cached_input_tokens": 0,
+        "output_tokens": 2172,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 736,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "failed",
+      "attempt_preserved": true
+    },
+    {
+      "project_id": "ledgerline-sol",
+      "workflow": "planning-workflow",
+      "step": "generate",
+      "model_requested": "gpt-6-sol",
+      "model_reported": null,
+      "duration_ms": 43594,
+      "usage": {
+        "input_tokens": 11824,
+        "cached_input_tokens": 8704,
+        "output_tokens": 2157,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 861,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "failed",
+      "attempt_preserved": true
+    },
+    {
+      "project_id": "ledgerline-luna",
+      "workflow": "billing-workflow",
+      "step": "generate",
+      "model_requested": "gpt-6-luna",
+      "model_reported": null,
+      "duration_ms": 22338,
+      "usage": {
+        "input_tokens": 12089,
+        "cached_input_tokens": 0,
+        "output_tokens": 1795,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 205,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "complete",
+      "attempt_preserved": true
+    },
+    {
+      "project_id": "ledgerline-luna",
+      "workflow": "planning-workflow",
+      "step": "generate",
+      "model_requested": "gpt-6-luna",
+      "model_reported": null,
+      "duration_ms": 14008,
+      "usage": {
+        "input_tokens": 11828,
+        "cached_input_tokens": 0,
+        "output_tokens": 1228,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 0,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "failed",
+      "attempt_preserved": true
+    },
+    {
+      "project_id": "ledgerline-luna",
+      "workflow": "billing-workflow",
+      "step": "generate",
+      "model_requested": "gpt-6-luna",
+      "model_reported": null,
+      "duration_ms": 14500,
+      "usage": {
+        "input_tokens": 11899,
+        "cached_input_tokens": 0,
+        "output_tokens": 1544,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 0,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "failed",
+      "attempt_preserved": true
+    },
+    {
+      "project_id": "ledgerline-luna",
+      "workflow": "planning-workflow",
+      "step": "generate",
+      "model_requested": "gpt-6-luna",
+      "model_reported": null,
+      "duration_ms": 16030,
+      "usage": {
+        "input_tokens": 11643,
+        "cached_input_tokens": 0,
+        "output_tokens": 1496,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 193,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "complete",
+      "attempt_preserved": true
+    },
+    {
+      "project_id": "ledgerline-luna",
+      "workflow": "planning-assisted",
+      "step": "generate",
+      "model_requested": "gpt-6-luna",
+      "model_reported": null,
+      "duration_ms": 13984,
+      "usage": {
+        "input_tokens": 13996,
+        "cached_input_tokens": 5888,
+        "output_tokens": 1300,
+        "cache_write_input_tokens": 0,
+        "reasoning_output_tokens": 0,
+        "host_diagnostic_items": 2,
+        "observed_model_steps": 1
+      },
+      "cost_usd": null,
+      "generation_status": "complete",
+      "workflow_status": "complete",
+      "attempt_preserved": true
+    }
+  ],
+  "primary_delivery": {
+    "generated_modules": 4,
+    "billing_cases": 23,
+    "planning_cases": 20,
+    "report_cases": 14,
+    "integration_cases": 13,
+    "helper_tests": 16,
+    "all_passed": true,
+    "credential_reviewed": true,
+    "independent_human_identity_proven": false,
+    "resume_without_regeneration": true,
+    "post_delivery_arabic_correction_executor_verified": true,
+    "foreign_project_write_and_context_refused": true
+  },
+  "preserved_failures": [
+    "Top-level runtime rejected package-relative imports",
+    "Luna normalized dependency tuples were revalidated as wire lists",
+    "Original example omitted criteria from declared repair inputs; native repair was refused",
+    "Raw tax rates just outside bounds rounded into range; original candidate rejected by added cases",
+    "Atomic CLI output cannot replace the broker allocated output mount; staged inside isolated tmp and streamed to declared artifact",
+    "Python3.9 eager asyncio.Lock construction; fixed before merge",
+    "A fixture Git child lacked explicit environment; mandatory gate rejected the commit and the test was corrected"
+  ],
+  "assisted_trial": {
+    "requested_model": "gpt-6-luna",
+    "planning_cases": 20,
+    "passed": true,
+    "operator_diagnosis_supplied": true,
+    "not_a_first_pass_comparison": true
+  },
+  "apps": {
+    "chrome": {
+      "version": "2.3.0",
+      "actual_user_profile": true,
+      "index_click_capture_passed": true,
+      "disabled_after_test": true
+    },
+    "calculator": {
+      "operation": "7+5",
+      "exact_observed_result": "12",
+      "stale_handle_refused": true
+    },
+    "textedit": {
+      "observation_only": true,
+      "click_tool_absent": true,
+      "fixture_bytes_unchanged": true
+    }
+  },
+  "role_coverage": {
+    "guides_validated": 42,
+    "live_evidence_roles": [
+      "fullstack-mvp-engineer",
+      "qa-test-automation-engineer",
+      "context-guardian",
+      "machine-control-operator",
+      "mcp-integration-builder"
+    ],
+    "all_role_model_quality_proven": false
+  },
+  "limitations": [
+    "Small, staged operational acceptance; not a controlled general model comparison",
+    "Requested model IDs are unreported backend identity",
+    "Non-software business roles still require representative domain inputs and their own acceptance",
+    "Native adapter covers exact app/window button or read-only scopes, not arbitrary typing or every app"
+  ],
+  "private_receipts_retained": true,
+  "review_followup": {
+    "date": "2026-10-16",
+    "version": "2.3.1",
+    "permissions_unchanged": true,
+    "observed": {
+      "online_daemon": 4317,
+      "indexed_elements": 11,
+      "increment": "count:0 -> count:1",
+      "vision_capture_preview": true,
+      "clear_overlays": true,
+      "final_companion_enabled": false,
+      "owned_tab_closed": true,
+      "owned_server_stopped": true
+    },
+    "real_browser_suite": {
+      "tests": 42,
+      "skips": 1,
+      "result": "passed"
+    },
+    "known_bad_regressions": {
+      "selected": 4,
+      "rejected_old_source": 4,
+      "source": "37f8387"
+    }
+  }
+}

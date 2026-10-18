@@ -34,6 +34,28 @@
       "effect": "read-only"
     },
     {
+      "id": "re-findings",
+      "skill": "reverse-engineering-analyst",
+      "path": ".agents/skills/reverse-engineering-analyst/scripts/check_re_findings.py",
+      "description": "Validate a reverse-engineering findings packet for target hash, authorization and evidence links",
+      "example_args": "--findings {input}",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
+      "id": "system-design",
+      "skill": "distributed-systems-architect",
+      "path": ".agents/skills/distributed-systems-architect/scripts/check_system_design.py",
+      "description": "Validate a system design specification packet for schema, realistic SLOs, data replication, and SPOF mitigation",
+      "example_args": "--packet {input}",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
       "id": "script-pacing",
       "skill": "video-script-architect",
       "path": ".agents/skills/video-script-architect/scripts/validate_script_pacing.py",
@@ -115,7 +137,7 @@
       "skill": "context-guardian",
       "path": ".agents/skills/context-guardian/scripts/context_pack.py",
       "description": "Bounded English or Arabic context pack",
-      "example_args": "--skill context-guardian --out /tmp/context.md",
+      "example_args": "--skill context-guardian --out context.md",
       "dependencies": [
         "Python standard library"
       ],
@@ -166,7 +188,8 @@
         "Python standard library",
         "Git project for navigation indexing"
       ],
-      "effect": "writes-project-configuration-and-runtime-state"
+      "effect": "writes-project-configuration-and-runtime-state",
+      "dashboard": "cli"
     },
     {
       "id": "project-lessons",
@@ -178,14 +201,15 @@
         "Python standard library",
         "Recorded workflow evidence for promotion"
       ],
-      "effect": "writes-project-runtime-state"
+      "effect": "writes-project-runtime-state",
+      "dashboard": "cli"
     },
     {
       "id": "context-pilot",
       "skill": "context-guardian",
       "path": "scripts/context_pilot.py",
       "description": "Reproducible cold and warm context pilot with byte comparison",
-      "example_args": "--out /tmp/crewloom-pilot.json",
+      "example_args": "--out context-pilot.json",
       "dependencies": [
         "Python standard library"
       ],
@@ -200,7 +224,8 @@
       "dependencies": [
         "Python standard library"
       ],
-      "effect": "reads-project-and-agency-registry"
+      "effect": "reads-project-and-agency-registry",
+      "dashboard": "cli"
     }
   ]
 }

@@ -40,3 +40,21 @@ Use [the short-form reel plan](../workflows/social-reel.json) to make the same c
 ## Executable software path
 
 Use [the task plan](../workflows/software-feature.json) for host-produced work, or [the supplied feature example](../examples/software-workflow/README.md) to exercise six command stages. Both use the [same execution and handoff contract](EXECUTION.md). Task acceptance is not an authenticated review system.
+
+## Evidence-driven repair workflows
+
+A model step may declare `repair_from` with `plan`, `failed_step`, `model_step` and `candidates`. The source plan must have a finished failed command in the same bound project and checkout; its preceding model candidate must have been consumed by that verifier. `candidates` maps each original output to a separate, immutable input copy whose bytes match the failed execution. Include those copies and original source inputs in the repair model step's inputs. Keep the original role, host, model and output scope. The repair workflow has exactly that model step followed by the unchanged verifier step, with the same criteria and language.
+
+The runner appends the bounded failure diagnostic as explicitly untrusted input, hashes the resulting prompt and rechecks the evidence before publishing generated files. Original inputs and verifier dependencies must remain unchanged; stale/cross-project references, modified candidate copies, changed verification and ancestry deeper than two repairs are rejected. Verification reuses the recorded Docker image digest, and the complete prompt including feedback remains within the existing 256 KiB input budget. Criteria, when supplied, must be a recorded producer or verifier input. Existing model-request and shared admission budgets still apply. Repair does not grant publication permission or change reviewer requirements.
+
+Use a fresh workflow ID and explicitly name the original producer and failed verifier:
+
+```sh
+crewloom workflow prepare-repair --project /path/to/project --plan workflow.json --repair-id repair-one --model-step generate --step verify
+```
+
+This prepares owner-only candidate copies and a new plan under the project's `/.crewloom-repairs/` directory. The existing privacy guard ignores this namespace and rejects forced staged additions. Preparation refuses an active competing task; finish or cancel it through the normal flow first. Existing preparations and execution history are never overwritten. A rejected preparation may leave private files for inspection; use a fresh ID after fixing its cause.
+
+To prepare and execute in one command, use `repair` instead of `prepare-repair`. Installed CLI providers retain the explicit `--allow-host-cli` requirement. API providers retain their normal credential requirements. The repair uses the same model and verifier image as the failed execution; it never silently substitutes a stronger model. A second repair can reference the preceding prepared plan. A third repair is refused. The shared project ledger also limits repair model requests to two per original workflow, including failed requests and branches with new IDs. Ordinary `run` does not start paid repairs automatically.
+
+Deterministic provider fixtures verify failure-feedback delivery, original-journal preservation, retry limits and reuse; real Docker verification tests the failed-to-passing artifact cycle. These tests do not establish improvement for a particular live model. The checks do not authenticate arbitrary host tools or make state files tamper-proof.

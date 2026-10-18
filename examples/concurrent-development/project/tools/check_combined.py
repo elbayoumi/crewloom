@@ -132,7 +132,7 @@ def refusals():
     category = deepcopy(load('data/ledger_en.json'))
     category['invoice']['lines'][0]['category'] = 'discount'
     cases = (('a_cycle_is_refused', cycle, 'cycle'),
-             ('an_unknown_payload_field_is_refused', unknown, 'unknown report input fields'),
+             ('an_unknown_payload_field_is_refused', unknown, 'extra'),
              ('a_float_amount_is_refused', amount, 'unit_price'),
              ('a_boolean_quantity_is_refused', quantity, 'quantity'),
              ('an_unknown_category_is_refused', category, 'category'))

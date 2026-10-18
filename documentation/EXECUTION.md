@@ -56,6 +56,8 @@ crewloom workflow run --project /path/to/project
 
 Only the next outstanding task can be accepted. Files must exist and be nonempty; upstream fingerprints must remain unchanged. Configure host permissions separately for manual agent tasks; they do not run inside the command container.
 
+External agents can return structured candidate files through `workflow import-reply` or the optional project/task MCP bridge. The importer checks the issued packet against current inputs, context, binding and output revisions, then uses transactional publication. It never accepts a task or certifies execution. See [MCP and external replies](MCP_BRIDGE.md).
+
 ## Credential-verified reviewers
 
 A bare `--reviewer NAME` is a recorded declaration: it names someone, it does not authenticate them. A project can opt in to verified review instead, and then a decision is refused unless an authenticated registered principal made it:

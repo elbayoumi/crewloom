@@ -52,7 +52,7 @@ def read_private(root, relative, default):
 def ignores(root, host=None):
     path = pb.writable(root, '.gitignore')
     original = path.read_text() if path.exists() else ''
-    lines = ['/.crewloom/']
+    lines = ['/.crewloom/', '/.crewloom-repairs/']
     if host:
         lines.append('/' + str(host) + '/*/brain/')
     positions = {line: index for index, line in enumerate(original.splitlines())}
@@ -87,7 +87,7 @@ def private_name(name, origins=(), role_memory=True):
     parts = name.casefold().split('/')
     if role_memory and parts[0] == 'brain':
         return True
-    if any(part in ('.crewloom', '.git') for part in parts):
+    if any(part in ('.crewloom', '.crewloom-repairs', '.git') for part in parts):
         return True
     base = parts[-1]
     if base == '.env' or base.startswith('.env.') and base not in ('.env.example', '.env.sample', '.env.template'):

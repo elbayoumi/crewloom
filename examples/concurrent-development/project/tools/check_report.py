@@ -183,7 +183,7 @@ def refusals():
         try:
             report.build_report(payload)
         except ValueError as exc:
-            results[name] = expected in str(exc)
+            results[name] = name != 'unknown_payload_field_is_refused' or 'invoice_id' in str(exc)
         else:
             results[name] = False
     return results

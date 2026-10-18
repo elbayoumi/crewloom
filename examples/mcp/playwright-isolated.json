@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "playwright-project-tests": {
+      "command": "npx",
+      "transport": "stdio",
+      "args": ["-y", "@playwright/mcp@0.0.83", "--isolated", "--headless", "--no-webmcp", "--block-service-workers", "--output-dir", "/absolute/project/.crewloom/private/browser"],
+      "env": {}
+    }
+  }
+}

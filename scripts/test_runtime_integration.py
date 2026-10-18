@@ -269,6 +269,12 @@ class LegacyInvocation(unittest.TestCase):
         self.assertEqual(refused.returncode, 2)
         self.assertNotIn('Traceback', refused.stderr)
 
+    def test_the_study_v2_flags_reach_the_study_v2_command(self):
+        study = cli('context', 'study-v2', '--help')
+        self.assertEqual(study.returncode, 0, study.stderr)
+        self.assertIn('--study-host {codex,opencode}', study.stdout)
+        self.assertIn('closure map', study.stdout)
+
     def test_the_context_pack_command_is_unchanged(self):
         result = cli('context', '--help')
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -354,7 +360,7 @@ class RealHelpCommands(unittest.TestCase):
         report = json.loads(layout.stdout)
         self.assertFalse(report['source'], 'the packaged layout was not the one that answered')
         self.assertTrue(report['root'].endswith('crewloom_data'))
-        self.assertEqual(report['roles'], 42)
+        self.assertEqual(report['roles'], 44)
 
         def installed(*arguments):
             script = ('import sys;'
@@ -369,7 +375,7 @@ class RealHelpCommands(unittest.TestCase):
         self.assert_real_help(installed, 'installed')
         listed = installed('list')
         self.assertEqual(listed.returncode, 0, listed.stderr[-2000:])
-        self.assertEqual(len(listed.stdout.split()), 42)
+        self.assertEqual(len(listed.stdout.split()), 44)
         pack = installed('context', 'context-guardian', '--out', str(work / 'pack.md'))
         self.assertEqual(pack.returncode, 0, pack.stderr[-2000:])
         self.assertIn('# Context pack', (work / 'pack.md').read_text(encoding='utf-8'))

@@ -1,6 +1,6 @@
 # Skill catalog
 
-All 42 entries are English public adaptations. IDs stay stable across output languages. Read each procedure and its memory before use.
+All 44 entries are English public adaptations. IDs stay stable across output languages. Read each procedure and its memory before use.
 
 | Role | Procedure |
 | --- | --- |
@@ -18,6 +18,7 @@ All 42 entries are English public adaptations. IDs stay stable across output lan
 | Data Harvester | [data-harvester](../.agents/skills/data-harvester/SKILL.md) |
 | Deal Closer | [deal-closer](../.agents/skills/deal-closer/SKILL.md) |
 | Delivery Director | [delivery-director](../.agents/skills/delivery-director/SKILL.md) |
+| Distributed Systems Architect | [distributed-systems-architect](../.agents/skills/distributed-systems-architect/SKILL.md) |
 | Executive Accountant | [executive-accountant](../.agents/skills/executive-accountant/SKILL.md) |
 | Frontend Ux Auditor | [frontend-ux-auditor](../.agents/skills/frontend-ux-auditor/SKILL.md) |
 | Fullstack Mvp Engineer | [fullstack-mvp-engineer](../.agents/skills/fullstack-mvp-engineer/SKILL.md) |
@@ -30,6 +31,7 @@ All 42 entries are English public adaptations. IDs stay stable across output lan
 | Network Infra Engineer | [network-infra-engineer](../.agents/skills/network-infra-engineer/SKILL.md) |
 | Paid Media Buyer | [paid-media-buyer](../.agents/skills/paid-media-buyer/SKILL.md) |
 | Qa Test Automation Engineer | [qa-test-automation-engineer](../.agents/skills/qa-test-automation-engineer/SKILL.md) |
+| Reverse Engineering Analyst | [reverse-engineering-analyst](../.agents/skills/reverse-engineering-analyst/SKILL.md) |
 | Rfp Proposal Engineer | [rfp-proposal-engineer](../.agents/skills/rfp-proposal-engineer/SKILL.md) |
 | Security Operations Guardian | [security-operations-guardian](../.agents/skills/security-operations-guardian/SKILL.md) |
 | Seo Growth Engineer | [seo-growth-engineer](../.agents/skills/seo-growth-engineer/SKILL.md) |

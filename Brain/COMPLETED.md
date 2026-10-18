@@ -1,5 +1,30 @@
 # Completed work
 
+### 2026-10-18 — Zero-friction developer experience, Cursor/Windsurf MCP, and competitive positioning
+- Artifact: `quickstart.sh`, `scripts/crewloom.py`, `examples/mcp/cursor.json`, `examples/mcp/windsurf.json`, `examples/mcp/README.md`, `README.md`, `README.ar.md`, `scripts/test_e2e_expansion.py`.
+- Impact: Fast zero-install quickstart script (`./quickstart.sh`) with dry-run support; rich interactive ANSI CLI walkthrough (`crewloom demo`); official MCP configurations for Cursor and Windsurf (resolving Issue #40); 7-dimension competitive framework comparison matrix and vector architecture workflow diagrams in English and Arabic.
+- Evidence: 93 strict E2E tests pass (0 skips, 0 failures) in `scripts/test_e2e_expansion.py`; repository gate passes cleanly with 0 errors (`check_repository.py`); MCP configuration schema verified across all templates.
+
+### 2026-10-17 — Post-merge container isolation and acceptance hardening
+- Artifact: `scripts/workflow.py`, `scripts/test_docker_command.py`, `scripts/test_host_lifecycle.py`, `dashboard/`.
+- Impact: Workflow containers explicitly refuse execution under host root (UID 0); host lifecycle test fixtures fall back to supported version when system tools are upgraded; dashboard verified with clean 59/59 tests, tsc, and production build; REA pinned MCP probed against harmless fixture.
+- Evidence: 9 docker command isolation tests pass including root refusal; 75 host lifecycle tests pass on unpinned host environment; dashboard builds in 1.6s with zero errors; remote PR #35 branch deleted after merge.
+
+### 2026-10-17 — REA role and hardening
+- Artifact: `.agents/skills/reverse-engineering-analyst/`, `examples/mcp/rea.json`, `examples/re/findings.json`, `dashboard/lib/child-env.ts`, `scripts/test_docker_command.py`.
+- Impact: Reverse-engineering role with evidence bookkeeping; dashboard children no longer inherit the dashboard token; container isolation flags are regression-tested without Docker.
+- Evidence: Required gate passes with the 43-role counts; 10 findings-checker, 8 isolation-command and 3 environment-hygiene cases pass. REA was not executed against a real target and the Chrome companion's `<all_urls>` scope is unchanged by design.
+
+### 2026-10-15 — Hosted Python compatibility follow-up
+- Artifact: native_desktop.py and its existing regression suite; PR21 first-head failure retained.
+- Impact: synchronous construction needs no implicit event loop; asynchronous native operations serialize on one loop and reject foreign loops.
+- Evidence: actual Python3.9 Docker and Python3.14 each9pass/1optional-live-skip; original hosted failure and new red/green construction test confirm the cause. Final gate/hosted rerun follows.
+
+### 2026-10-15 — Professional repository review
+- Artifact: documentation/PROFESSIONAL_REVIEW.md, launcher/tests, pinned CI and Dependabot configuration; prior defect-closure commits retained.
+- Impact: explicit acceptance cannot skip missing prerequisites; first dashboard install obeys the lockfile; bilingual setup matches runtime behavior.
+- Evidence: required commit gate99 suites/1216cases (1104pass/112skip); dashboard56, browser41pass/1skip, MCP9pass/1skip, capture8, distribution14 and Docker34/43 pass; TypeScript/build and npm audit clean. Hosted outcomes belong to the reviewed commit.
+
 ### 2026-10-01 — Initial public toolkit
 - Artifact: 42 English public role guides, clean memory, core CLI and checks.
 - Impact: Independently usable repository edition without client history or external account configuration.
@@ -275,4 +300,78 @@
 
 - 2026-10-11 | Actual private paired study complete: 36/36 scored, frozen inputs unchanged. Raw history 14/18 versus selected context 17/18 (EN 7/9 vs 8/9; AR 7/9 vs 9/9). Requested gpt-5.5, reported identity unknown. Zero scope-ID/publication-intent/verified-claim errors. Nine synthetic cases, one trial per condition; no statistical or general-delivery claim. PR #16 opened from gated commit 06401c9.
 
+- 2026-10-11 | Actual first ledgerline run preserved: billing verified, planning generation failed container acceptance, report correctly blocked; worker overlap confirmed. Reused helper source now declared in billing/planning/report generation inputs; 38 example tests pass (3 runtime-dependent skips). Independent closure-corrected project created for a separate real attempt.
+
+- 2026-10-11 | Contract alignment: invalid-input grader now checks required ValueError without undocumented wording; public cycle contract explicitly repeats start ID at end. Alternate valid error wording accepted, RuntimeError rejected. Full Docker example suite passes 39 tests. Separate bound agency-ledgerline-contract-20261011 actual coordinator attempt started, prior three failures retained.
+
+- 2026-10-11 | Live contract-aligned coordinator interim: billing and planning verified by actual container acceptance; report running after merged ancestors, worker overlap confirmed. Full combined delivery remains pending; previous three attempts preserved.
+
+- 2026-10-11 | Report contract exposes exact bilingual title resources. Report refusal grading accepts legitimate wording but requires unknown-field naming; regression accepts alternate messages and rejects missing field name. Full Docker example suite passes 40 tests. Separate actual report-fix batch started; previous failures preserved.
+
+- 2026-10-11 | Combined unknown-field check now requires actual offending key extra rather than hidden phrase. Alternate error wording accepted; missing key name rejected. Full Docker example suite passes 41 tests. Actual generated integration bytes separately reverified with corrected grader in network-free read-only container: combined 13/13 and helpers 16/16. Original failed prepare unchanged; coordinator publication not yet approved.
+
+- 2026-10-11 | Initial evidence-driven repair runtime added in existing workflow runner. Twenty-nine workflow cases pass locally (five optional Docker cases skipped in that run); regression rejects altered candidate, changed original input, foreign checkout and substituted verifier. Full Docker workflow run pending; no live repair-quality claim.
+
+- 2026-10-11 | Evidence-driven repair workflow Docker suite passed all 29 cases; producer-before-verifier guard added and final Docker rerun initiated under exec66482. Actual provider repair payload/chain acceptance and publication still pending.
+
+- 2026-10-11 | Added one-command private repair preparation/execution, full-prompt budget and verifier-image checks. Workflow 31 cases passed in Docker; privacy 19 cases passed including real forced private commit rejection and clean commit acceptance. Separate bound live Codex pilot (requested gpt-5.5, reported identity unavailable) repaired an intentionally seeded broken Unicode slug; actual isolated bilingual acceptance passed 5/5 and original failed journal stayed byte-identical. This is transport/repair evidence, not a weak-model or Claude comparison.
+
+- 2026-10-11 | Final repair budget guard counts all model repair requests by original workflow across new IDs and branches. Regression rejects a branch after two requests, an oversized feedback prompt before provider calls and a substituted verifier image. Final Docker workflow31 passes.
+
 - 2026-10-11 | PR #16 review fixes: freeze actual evaluate_hosts grader and audit exact ordered records per arm rather than subsets. Fourteen evaluator tests pass (one optional Docker skip), including grader mutation invalidation and obsolete-selected/missing-raw rejection. Original live pilot predates grader fingerprint and is supporting evidence only.
+
+- 2026-10-11 | Local OpenCode profile support and English guide added. Model-host33 cases pass with actual OpenCode1.18.32 loopback protocol fixture enabled; workflow32 Docker cases pass, including changed-profile publication/reuse refusal. Separate real opencode/space-bunny-free feature attempt failed transport before producing code; retained privately and not scored as model quality. No actual local inference benchmark or universal improvement claim.
+
+- 2026-10-11 | Mandatory merged-source hook passed public structure, syntax, links and all requested regressions. Memory history repaired and revalidated before final PR readiness; final documentation-only commit gate pending.
+
+- 2026-10-11 | PR17 final initial head passed all nine CI checks. Review P2 reproduced acceptance of mode0644 provider files; loader now refuses it and accepts mode0600. Actual OpenCode model-host33 and Docker workflow32 regressions pass after the ownership fix; mandatory review-fix commit gate pending.
+
+- 2026-10-12 | Added host-neutral agent-packet CLI and English host guide. Workflow34 tests pass with all Docker cases enabled: packet preserves journal/output state, makes no provider call, carries Arabic and identity/schema/hash data, refuses in-flight source changes, cancelled tasks and stale enforced context. PR17 merged at 2b8508b; installed exact snapshot and validate passed42 skills. New packet publication/runtime update pending.
+
+- 2026-10-12 | PR18 late-input mutation review fixed; workflow34 passes all Docker cases again. The new regression verifies a change after the final prompt read is refused; final hook and exact-head CI pending.
+
+- 2026-10-12 | Ported intended other-agent browser source onto current main without modifying dirty original. Dashboard46 tests and production build pass. Actual headed Chromium29 cases pass with one optional screenshot skip: real capture/click/index, disabled actions and persisted state; negative DOM spoof/removal/hidden/stale cases pass. Actual dashboard HTTP refuses foreign Origin before OS probe; English/Arabic/mobile UI tested with unknown connection and no overflow. Codex CLI installed/enabled crewloom@crewloom-local0.1.0; cached manifest/skill/icon verified. No autonomous model/browser bridge claim.
+
+- 2026-10-12 | Installed native Codex plugin and real browser/dashboard checks remain verified; packaging18 cases now pass after public asset contract expansion. Full corrected commit gate pending.
+
+- 2026-10-12 | Initial integrated commit c009813 passed the complete mandatory hook. Final native Chrome test now additionally confirms generation-less click requests are refused; all29 browser checks pass again with one optional screenshot skip. Final fix commit gate pending.
+
+- 2026-10-13 | PR19 review fixes implemented. Dashboard47 tests pass; headed Chrome30 tests pass with one optional screenshot skip, including non-export of entered form values. Added rendered first-open/changed-tab regression; final gate/publication pending.
+
+### 2026-10-14 — Browser/dashboard defect closure
+- Artifact: existing browser/dashboard modules, source packager and documentation/BROWSER_DASHBOARD_ACCEPTANCE.md.
+- Evidence: original tab/DOM/metrics regressions reject old behavior; Python1123 (1016pass/107skip), dashboard55, TypeScript/build, Docker workflow34/policy43, actual Chromium38pass/1optional skip, distribution12 pass. ZIP rejects stale/unreviewed content and accepts deterministic rebuilds. Local rollout follows the gated commit; autonomous MCP/desktop integration is a separate phase.
+
+### 2026-10-14 — MCP and reply import acceptance
+- Artifact: scripts/mcp_bridge.py, workflow import-reply, documentation/MCP_BRIDGE.md and scoped client templates.
+- Evidence:10 bridge/import tests pass with real stdio and Docker; all five Crewloom tools called, plus actual Playwright navigate/snapshot/click/close against an isolated synthetic fixture. Both configs validate; distribution13 and packaging20 pass, Docker publication43 pass. Native Codex registration/runtime rollout follows the gated commit; no paid generation, desktop or broad model-quality claim.
+
+### 2026-10-14 — Verified local runtime rollout
+- Artifact: immutable Git snapshot bb6c68fb5c0bac5ed69500316edd6cb990015064 installed through pipx with the MCP extra; dashboard serves the same snapshot and preserves its monitored project. Prior snapshot retained.
+- Evidence: actual CLI source and SDK2.3.0 confirmed; HTTP overview/page/extension ZIP200, foreign-origin ZIP403, exact ZIP2.3.0 checksum matches source. Rendered English1440px/Arabic390px pass without horizontal overflow or page errors. Codex read-only config registered; its exact installed launch command lists/calls crewloom_status and crewloom_context successfully. Current chats require a new host connection to load tools.
+
+### 2026-10-14 — Typed run-history follow-up
+- Artifact: dashboard/lib/repo.ts and dashboard/test/repo.test.ts.
+- Evidence: regression rejects the prior parser (10 rows accepted instead of2);56 dashboard tests and TypeScript now pass. Required timestamp/role/duration/source fields and optional output/root are validated before history can reach metrics or React. All547 existing local rows have the required fields. Operational installation evidence remains project-private.
+
+### 2026-10-14 — Capture and bounded capability continuation
+- Artifact: existing user-context/native lifecycle/MCP modules; scripts/native_desktop.py, synthetic Swift target and documentation/NATIVE_DESKTOP.md.
+- Evidence: capture8 incl real SDK answer protocol; lifecycle75 (2optional skips), OpenCode36, packaging20, native mock4 pass; Swift fixture compiles. Two requested CLI models each yield selected-context4/4 versus raw-history2/4 on two bilingual scenarios; actual backend model identity unreported. Configured model rejection preserved. Full commit gate/local installation pending; human manifest approval/live Accessibility proof pending.
+
+- 2026-10-14 | Continuation commit ef7782a passed the mandatory99-suite/1207-test repository gate (optional live suites retain their skips). Immutable source installed with pinned MCP extra; exact installed stdio command lists/calls all three read tools. No native driver launch or automatic host capture activation; approval remains pending.
+
+- 2026-10-15 | Artifact: native_desktop.py, opt-in live regression and native guide. Real approved CuaDriver/SDK acceptance passed: counter0→1→0, stale/unobserved handles and foreign PID refused. Seven offline tests pass; live suite skips unless explicitly enabled. Expired session and denied global-discovery attempts retained privately; installed rollout follows the mandatory gate.
+
+- 2026-10-15 | Corrected immutable release ae387fe passed the mandatory99-suite/1211-test gate (optional skips). Exact installed Crewloom native CLI passed real counter0→1→0 and stale/unobserved/foreign-process refusal. Approved daemon stopped and owned fixture closed; receipts remain project-private.
+
+- 2026-10-15 | Artifact: coordinator/user_context delivery guard, native exact target/read-only preparation, import-contract clarification. User-context18 and native10 tests pass (native live case remains opt-in); real Docker coordinator49 passed. Public PR20 opened for the prior gated fixes. Paired model delivery and broader live application acceptance continue with preserved failures.
+
+- 2026-10-16 | Operational acceptance delivered: four real generated modules,70 application cases +16 helper tests, exact credential-reviewed local publication, unchanged verified generation counts on resume, and executor-verified Arabic correction. Actual Chrome profile2.3.0 index/click/capture, Calculator exact12 and TextEdit read-only pass; test sessions stopped.42 guides validate; live role coverage is explicit. Distribution13 passes for0.6.0; final release gate/merge/install follows.
+
+- 2026-10-16 | Browser PR20 review closure: tracked cleanup includes all contacted frames and partial failures; remaining index quota is reused; unverifiable cross-origin targets are omitted with a warning. Four new checks reject37f8387; final real-browser42 passes (one optional skip). Chrome profile upgrade2.3.1 verified index/click/capture/clear, then disabled and owned server/tab closed.
+
+- 2026-10-17 | Browser companion2.3.2 localizes known error details, HUD statuses, empty capture, toggle labels and accessible control names. Paired direction/reload/frame cases and known-bad release rejection are exercised; full release gate and operational rollout follow.
+
+- 2026-10-17 | Paired rendered browser46 passes (one optional screenshot skip); three new regressions reject the previous released source. Evaluator14 and context19 pass. Actual profile2.3.2 verifies Arabic HUD on English site, English HUD on Arabic site, exact click effects, saved Arabic after reopen and hidden-state preservation; companion disabled and owned tab/server closed.
+
+- 2026-10-17 | Capture-disable race translation and internal-error coverage check added after review. Initial corrected real-browser47 passes (one optional skip), and the additional internal-error check passes. Final combined48-case suite, normal gate and exact-head CI follow.

@@ -17,6 +17,7 @@ import unittest
 import venv
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 import repo_map
 
@@ -31,6 +32,23 @@ def run(argv, cwd=None, env=None, timeout=900):
     result = subprocess.run([str(item) for item in argv], cwd=None if cwd is None else str(cwd),
                             env=merged, capture_output=True, text=True, timeout=timeout)
     return result
+
+
+class DistributionPrerequisiteTests(unittest.TestCase):
+    def test_explicit_distribution_acceptance_fails_without_its_backend(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = type('BuildFixture', (InstalledDistributionTests,),
+                           {'work': Path(temporary), 'reports': []})
+            failure = subprocess.CompletedProcess([], 1, '', 'backend unavailable')
+            with patch(__name__ + '.venv.EnvBuilder'), patch(__name__ + '.run', return_value=failure):
+                try:
+                    fixture._build_and_install()
+                except unittest.SkipTest:
+                    self.fail('Explicit distribution acceptance skipped its missing backend')
+                except AssertionError as exc:
+                    self.assertIn('build backend', str(exc))
+                else:
+                    self.fail('Missing build backend was accepted')
 
 
 @unittest.skipUnless(os.environ.get('CREWLOOM_DISTRIBUTION_TESTS') == '1',
@@ -59,14 +77,14 @@ class InstalledDistributionTests(unittest.TestCase):
         installed = run([cls.builder / 'bin' / 'python', '-m', 'pip', 'install',
                          '--disable-pip-version-check', '--no-input', BUILD_REQUIREMENTS])
         if installed.returncode:
-            raise unittest.SkipTest('Pinned build backend is unavailable: ' + installed.stderr[-400:])
+            raise AssertionError('Required build backend is unavailable: ' + installed.stderr[-400:])
         # Build from a pristine copy so a stale egg-info or build directory cannot mask a
         # packaging omission, and so the artifacts provably come from the declared sources.
         source = cls.work / 'source'
         shutil.copytree(ROOT, source, symlinks=True,
                         ignore=shutil.ignore_patterns('__pycache__', '*.pyc', '*.pyo', 'node_modules',
                                                       '.next', '.crewloom', 'build', 'dist',
-                                                      '*.egg-info', '.git', '.tmp'))
+                                                      '*.egg-info', '.git', '.tmp', '.venv', '.tox'))
         cls.dists = cls.work / 'dist'
         cls.dists.mkdir()
         # Wheel and sdist are built by separate interpreters. Building both through one
@@ -108,6 +126,16 @@ class InstalledDistributionTests(unittest.TestCase):
 
     # ------------------------------------------------------------------ archives
 
+    def test_optional_mcp_cli_and_resources_work_without_the_extra(self):
+        result = self.crewloom('mcp', '--help')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('--allow-import', result.stdout)
+        names = zipfile.ZipFile(self.wheel).namelist()
+        self.assertIn('mcp_bridge.py', names)
+        self.assertIn('crewloom_data/documentation/MCP_BRIDGE.md', names)
+        self.assertIn('crewloom_data/examples/mcp/crewloom-task.json', names)
+        self.assertIn('crewloom_data/examples/mcp/playwright-isolated.json', names)
+
     def test_wheel_and_sdist_contain_the_declared_public_material_only(self):
         wheel_names = zipfile.ZipFile(self.wheel).namelist()
         sdist_names = tarfile.open(self.sdist).getnames()
@@ -128,7 +156,7 @@ class InstalledDistributionTests(unittest.TestCase):
         self.assertTrue([name for name in wheel_names if name.endswith('.dist-info/licenses/NOTICE')])
         roles = [name for name in wheel_names if name.startswith('crewloom_data/.agents/skills/')
                  and name.endswith('/SKILL.md')]
-        self.assertEqual(len(roles), 42, 'wheel must carry all 42 roles')
+        self.assertEqual(len(roles), 44, 'wheel must carry all 44 roles')
 
     def test_archives_carry_no_credential_material(self):
         for path in (self.wheel, self.sdist):
@@ -152,7 +180,7 @@ class InstalledDistributionTests(unittest.TestCase):
         names = set(zipfile.ZipFile(next(rebuilt.glob('*.whl'))).namelist())
         roles = [name for name in names if name.startswith('crewloom_data/.agents/skills/')
                  and name.endswith('/SKILL.md')]
-        self.assertEqual(len(roles), 42)
+        self.assertEqual(len(roles), 44)
         self.assertIn('crewloom_data/documentation/TOOLS.json', names)
 
     # ------------------------------------------------------------------ installed CLI
@@ -165,7 +193,7 @@ class InstalledDistributionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr[-2000:])
         report = json.loads(result.stdout)
         self.assertFalse(report['source'], 'an installed wheel must not report a source checkout')
-        self.assertEqual(len(report['roles']), 42)
+        self.assertEqual(len(report['roles']), 44)
         self.assertNotIn(str(ROOT), report['root'])
         self.assertTrue(report['root'].endswith('crewloom_data'))
 
@@ -178,14 +206,14 @@ class InstalledDistributionTests(unittest.TestCase):
         self.assertFalse(report['model_improvement_measured'])
         self.assertEqual(len(report['fixture_sha256']), 64)
 
-    def test_all_42_roles_discover_validate_and_show(self):
+    def test_all_44_roles_discover_validate_and_show(self):
         listed = self.crewloom('list')
         self.assertEqual(listed.returncode, 0, listed.stderr)
         identifiers = listed.stdout.split()
-        self.assertEqual(len(identifiers), 42)
+        self.assertEqual(len(identifiers), 44)
         validated = self.crewloom('validate')
         self.assertEqual(validated.returncode, 0, validated.stderr[-2000:])
-        self.assertIn('PASS: 42 skills', validated.stdout)
+        self.assertIn('PASS: 44 skills', validated.stdout)
         for identifier in identifiers:
             shown = self.crewloom('show', identifier)
             self.assertEqual(shown.returncode, 0, shown.stderr)
@@ -203,12 +231,12 @@ class InstalledDistributionTests(unittest.TestCase):
         # A project that already uses a role must not be clobbered by a reinstall, so the
         # existing role is refreshed explicitly. Local memory is never a copied artifact.
         refused = run(self.cli + ['install', '--host', 'agents', '--target', str(target),
-                                  '--skill', 'context-guardian'], cwd=self.work)
+                                   '--skill', 'context-guardian'], cwd=self.work)
         self.assertEqual(refused.returncode, 2)
         self.assertIn('--force', refused.stderr)
         result = run(self.cli + ['install', '--host', 'agents', '--target', str(target), '--force'], cwd=self.work)
         self.assertEqual(result.returncode, 0, result.stderr[-2000:])
-        self.assertEqual(len(list((target / '.agents' / 'skills').glob('*/SKILL.md'))), 42)
+        self.assertEqual(len(list((target / '.agents' / 'skills').glob('*/SKILL.md'))), 44)
         self.assertEqual((brain / 'ROADMAP_TODO.md').read_text(encoding='utf-8'),
                          '# Roadmap\n\n- [ ] local project work\n')
         self.assertTrue((brain / 'ARCHITECTURE.md').is_file())

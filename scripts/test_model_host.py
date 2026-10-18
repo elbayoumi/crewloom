@@ -4,6 +4,8 @@ from pathlib import Path
 import tempfile
 import os
 import sys
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import unittest
 from unittest.mock import patch
 import model_host as h
@@ -29,6 +31,99 @@ def fake_cli(folder, name, cases):
     lines+=['  *) exit 1;;','esac']
     binary=Path(folder)/name;binary.write_text('\n'.join(lines)+'\n');binary.chmod(0o755)
     return binary
+
+
+class LocalProviderTests(unittest.TestCase):
+    def profile(self):
+        return {'schema_version': 1, 'provider_id': 'local',
+                'base_url': 'http://127.0.0.1:11434/v1',
+                'models': ['model-small', 'vendor/model-large'], 'prompt_budget_bytes': 16384}
+
+    def test_local_models_preserve_denied_tools_and_explicit_model(self):
+        for model in ('local/model-small', 'local/vendor/model-large'):
+            config = h.opencode_agent_config(model, ['src/a.py'], self.profile())
+            self.assertEqual(config['model'], model)
+            self.assertEqual(config['enabled_providers'], ['local'])
+            self.assertEqual(config['permission'], {'*': 'deny'})
+            self.assertFalse(config['tools']['skill'])
+            self.assertEqual(config['provider']['local']['npm'], '@ai-sdk/openai-compatible')
+            self.assertNotIn('plugin', config)
+
+    def test_unknown_model_remote_endpoint_and_host_settings_are_rejected(self):
+        for updates in ({'base_url': 'https://example.invalid/v1'},
+                        {'base_url': 'http://user:password@127.0.0.1:11434/v1'},
+                        {'base_url': 'http://127.0.0.1:11434/v1?token=private'},
+                        {'base_url': 'http://127.0.0.1:0/v1'},
+                        {'plugin': ['unreviewed-package']}, {'prompt_budget_bytes': True}):
+            with self.subTest(updates=updates), self.assertRaises(ValueError):
+                h.local_provider_config(dict(self.profile(), **updates), 'local/model-small')
+        with self.assertRaisesRegex(ValueError, 'not declared'):
+            h.local_provider_config(self.profile(), 'other/model-small')
+
+    def test_private_profile_binding_paths_and_generation_budget(self):
+        import project_binding as pb
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder).resolve()
+            pb.bootstrap(root, project_id='local-profile-fixture', mode='off')
+            path = root/'.crewloom/private/providers/local.json'
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(self.profile()))
+            step = {'host': 'opencode', 'model': 'local/model-small',
+                    'opencode_provider': '.crewloom/private/providers/local.json'}
+            if os.name == 'posix':
+                path.chmod(0o644)
+                with self.assertRaisesRegex(ValueError, 'owner-only'):
+                    h.provider_profile(root, step)
+            path.chmod(0o600)
+            loaded = h.provider_profile(root, step)
+            self.assertEqual(loaded['prompt_budget_bytes'], 16384)
+            with self.assertRaises(ValueError):
+                h.provider_profile(root, dict(step, opencode_provider='../foreign.json'))
+            with patch.object(h, 'probe') as probe:
+                with self.assertRaisesRegex(ValueError, 'byte budget'):
+                    h.generate('opencode', 'x' * 16385, ['out.txt'], model='local/model-small', provider_profile=self.profile())
+                probe.assert_not_called()
+            with tempfile.TemporaryDirectory() as scratch:
+                argv = h.command('opencode', '/fixture/opencode', Path(scratch),
+                                 'local/vendor/model-large', 'task', ['out.txt'], self.profile())
+                actual = json.loads((Path(scratch)/'opencode.json').read_text())
+                self.assertEqual(actual['provider']['local']['options']['baseURL'], self.profile()['base_url'])
+                self.assertEqual(argv[argv.index('--model')+1], 'local/vendor/model-large')
+
+    @unittest.skipUnless(os.environ.get('CREWLOOM_OPENCODE_LOCAL_TESTS') == '1', 'Enable actual OpenCode local protocol check')
+    def test_actual_opencode_routes_declared_model_to_loopback(self):
+        requests = []
+        payload = json.dumps({'artifacts': [{'path': 'out.txt', 'content': 'fixture output'}]})
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+            def do_POST(self):
+                request = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+                requests.append((self.path, request))
+                chunks = [
+                    {'id': 'fixture', 'object': 'chat.completion.chunk', 'created': 1,
+                     'model': request['model'], 'choices': [{'index': 0, 'delta': {'role': 'assistant', 'content': payload}, 'finish_reason': None}]},
+                    {'id': 'fixture', 'object': 'chat.completion.chunk', 'created': 1,
+                     'model': request['model'], 'choices': [{'index': 0, 'delta': {}, 'finish_reason': 'stop'}],
+                     'usage': {'prompt_tokens': 10, 'completion_tokens': 10, 'total_tokens': 20}}]
+                response = ''.join('data: ' + json.dumps(chunk) + '\n\n' for chunk in chunks) + 'data: [DONE]\n\n'
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/event-stream')
+                self.send_header('Content-Length', str(len(response.encode())))
+                self.end_headers(); self.wfile.write(response.encode())
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        try:
+            profile = dict(self.profile(), base_url='http://127.0.0.1:' + str(server.server_port) + '/v1')
+            artifacts, evidence = h.generate('opencode', 'Produce the requested artifact.', ['out.txt'],
+                                            timeout=45, model='local/model-small', provider_profile=profile)
+            self.assertEqual(artifacts, {'out.txt': 'fixture output'})
+            self.assertEqual(evidence['model_requested'], 'local/model-small')
+            self.assertTrue(requests)
+            self.assertTrue(all(path == '/v1/chat/completions' for path, _ in requests))
+            self.assertTrue(all(request['model'] == 'model-small' and not request.get('tools') for _, request in requests))
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=2)
 
 
 class ArtifactTests(unittest.TestCase):

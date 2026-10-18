@@ -37,3 +37,13 @@ pre { background:var(--bg); border:1px solid var(--line); border-radius:8px; pad
 .activity-bars { display: grid; gap: .5rem; margin-block: 1rem; }
 .activity-bars > div { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; gap: .75rem; align-items: center; }
 .activity-bars meter { width: 100%; height: 1.2rem; }
+
+.computer-use-panel { padding:20px; margin:20px 0; border:1px solid var(--border,#334155); border-radius:16px; }
+.computer-use-row { display:flex; gap:16px; align-items:center; }
+.computer-use-row > div { flex:1; }
+.computer-use-row p { font-size:13px; opacity:.75; }
+.companion-switch { min-width:64px; width:64px; height:32px; border:0; border-radius:18px; background:#596372; padding:4px; }
+.companion-switch span { display:block; width:24px; height:24px; border-radius:50%; background:#eef5ff; }
+.companion-switch.on { background:#1678f9; }
+.companion-switch.on span { margin-inline-start:32px; }
+.companion-switch:disabled { opacity:.45; }

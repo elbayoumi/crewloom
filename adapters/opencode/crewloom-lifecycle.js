@@ -76,6 +76,7 @@ function turnIdentity(sessionID, input, output) {
 export const CrewloomLifecycle = async ({ directory, worktree }) => {
   const sessions = new Map();
   const turns = new Map();
+  const prompts = new Map();
 
   return {
     'chat.message': async (input, output) => {
@@ -84,6 +85,12 @@ export const CrewloomLifecycle = async ({ directory, worktree }) => {
       const turnID = turnIdentity(sessionID, input, output);
       sessions.set(sessionID, directory);
       turns.set(sessionID, turnID);
+      // Only literal text parts of this user event are captured. No assistant,
+      // tool output, synthetic part or remote transcript is read.
+      const parts = output && output.parts;
+      const textParts = Array.isArray(parts) ? parts.filter(p => p && p.type === 'text' && !p.synthetic && !p.ignored) : [];
+      prompts.set(sessionID, textParts.every(p => typeof p.text === 'string') && textParts.length
+        ? textParts.map(p => p.text).join('\n') : null);
       const response = call('prepare', {
         session_id: sessionID,
         turn_id: turnID,
@@ -107,6 +114,7 @@ export const CrewloomLifecycle = async ({ directory, worktree }) => {
         turn_id: turnID,
         cwd: sessions.get(sessionID) || directory,
         model: (input && input.model) || null,
+        prompt: prompts.get(sessionID) || null,
       });
       if (response && response.error) refuse(response.error);
       if (!response || !response.additionalContext) {

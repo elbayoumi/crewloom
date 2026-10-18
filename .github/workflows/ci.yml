@@ -5,31 +5,36 @@ on:
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   validate:
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python: ['3.9', '3.14']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: ${{ matrix.python }}
       - run: docker pull python:3.14-slim
       - run: python3 -m pip install '.[syntax]'
       - run: python3 scripts/check_repository.py
   dashboard:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: dashboard
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '24'
           cache: npm
@@ -40,13 +45,14 @@ jobs:
       - run: npm run build
 
   isolated-workflows:
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.14'
       - run: docker pull python:3.14-slim
@@ -59,13 +65,14 @@ jobs:
           python3 scripts/evaluate_feature.py --project /tmp/crewloom-submission --repeats 3
 
   coordinator:
+    timeout-minutes: 25
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.14'
       - run: docker pull python:3.14-slim
@@ -89,27 +96,29 @@ jobs:
         run: python3 -m unittest discover -s scripts -p test_development_example.py
 
   case-insensitive-paths:
+    timeout-minutes: 10
     # The alias boundaries reproduce a real bypass on a case-insensitive filesystem, so they are
     # proved on one; the two reserved-name cases still run everywhere.
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.14'
       - run: python3 -m unittest discover -s scripts -p test_filesystem_alias_boundaries.py
 
   native-and-held-out-acceptance:
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.14'
       - run: python3 -m pip install '.[syntax]'
@@ -124,13 +133,14 @@ jobs:
             python3 -m unittest discover -s scripts -p 'test_study_*boundaries.py'
 
   distribution:
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.14'
       - run: python3 -m pip install build 'setuptools>=77,<81' wheel
@@ -139,3 +149,26 @@ jobs:
         env:
           CREWLOOM_DISTRIBUTION_TESTS: '1'
         run: python3 -m unittest discover -s scripts -p test_distribution.py
+
+  integration-protocols:
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.14'
+      - run: git config --global gc.auto 0 && git config --global maintenance.auto false
+      - run: python3 -m pip install '.[mcp]' 'playwright==1.63.0'
+      - run: python3 -m playwright install --with-deps chromium
+      - run: docker pull python:3.14-slim
+      - name: Official MCP SDK round trips and isolated command acceptance
+        env:
+          CREWLOOM_MCP_TESTS: '1'
+        run: |
+          python3 -m unittest discover -s scripts -p test_mcp_bridge.py
+          python3 -m unittest discover -s scripts -p test_chat_capture.py
+      - name: Load the real Chrome extension in a headed browser
+        env:
+          CREWLOOM_REAL_BROWSER: '1'
+        run: xvfb-run -a python3 -m unittest discover -s scripts -p test_sidepanel.py

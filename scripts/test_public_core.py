@@ -105,6 +105,21 @@ class PublicCoreTests(unittest.TestCase):
 
 
 class PasswordFreeDashboardTests(unittest.TestCase):
+    def test_first_launch_uses_the_lockfile_and_install_failure_stops_startup(self):
+        import contextlib, io
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            for code in (0, 1):
+                with self.subTest(install_exit=code), patch.dict(os.environ, {}, clear=True), \
+                     patch.object(crewloom.resources, 'dashboard_dir', return_value=root), \
+                     patch.object(crewloom.shutil, 'which', return_value='/usr/bin/npm'), \
+                     patch.object(crewloom.subprocess, 'run') as launched, contextlib.redirect_stdout(io.StringIO()):
+                    launched.return_value.returncode = code
+                    self.assertEqual(crewloom.run_dashboard(4317, root, '127.0.0.1'), code)
+                    self.assertEqual(launched.call_args_list[0].args[0],
+                                     ['/usr/bin/npm', 'ci', '--no-audit', '--no-fund'])
+                    self.assertEqual(launched.call_count, 2 if code == 0 else 1)
+
     def test_local_launcher_never_generates_a_secret_and_enables_local_access(self):
         import contextlib, io
         with tempfile.TemporaryDirectory() as directory:

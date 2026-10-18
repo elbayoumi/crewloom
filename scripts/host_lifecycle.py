@@ -1318,6 +1318,10 @@ def guard(root, host, record, payload, strict=True):
     of the envelope it arrived in.
     """
     tool, args = native_call(payload)
+    import user_context
+    pending = user_context.capture_status(root, record['task_id'])['questions']
+    if any(question['status'] == 'open' for question in pending):
+        raise LifecycleError('Captured task has unresolved questions; operator must record a source-linked answer before tools run')
     if not tool:
         raise LifecycleError('Guard needs the exact native tool name')
     if tool in PATCH_TOOLS:
@@ -1623,7 +1627,16 @@ def callback(root, project_id, host, event, payload, config_sha=None, runner=Non
         if stage == 'prepare':
             response.update(_prepare(root, binding, record, session_id, turn_id))
         elif stage == 'inject':
-            response.update(_inject(root, binding, record, task_id))
+            import user_context
+            captured = user_context.capture_message(root, task_id, host, session_id, turn_id, payload.get('prompt'))
+            if captured['status'] == 'needs_clarification':
+                response.update(injected=False, clarification_required=True,
+                    additionalContext='Crewloom requires clarification before project tools run. '
+                    'Ask these source-linked questions and resolve them against a captured user answer:\n'
+                    + canonical(captured['questions']))
+            else:
+                response.update(_inject(root, binding, record, task_id))
+            response['capture'] = {key: captured[key] for key in ('status', 'messages', 'duplicate') if key in captured}
         elif stage == 'guard':
             response.update(_guard_response(host, root, record, payload))
         elif stage == 'checkpoint':

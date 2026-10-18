@@ -12,7 +12,8 @@
     "documentation",
     "examples",
     "scripts",
-    "workflows"
+    "workflows",
+    "extensions"
   ],
   "files": [
     ".gitignore",
@@ -26,6 +27,7 @@
     "NOTICE",
     "PKG-INFO",
     "pyproject.toml",
+    "quickstart.sh",
     "README.ar.md",
     "README.md",
     "REPOSITORY_SCOPE.json",

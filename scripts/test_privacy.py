@@ -41,6 +41,22 @@ class PrivacyTests(unittest.TestCase):
         pb.ignore_local_state(self.root)
         self.assertEqual(self.git('check-ignore', '.crewloom/private/note.txt', check=False).returncode, 0)
 
+    def test_repair_candidates_are_ignored_and_forced_commit_is_rejected(self):
+        p.init(self.root)
+        candidate = self.root/'.crewloom-repairs/repair-one/candidate-0.txt'
+        candidate.parent.mkdir(parents=True)
+        candidate.write_text('private failed candidate')
+        relative = candidate.relative_to(self.root).as_posix()
+        self.assertEqual(self.git('check-ignore', relative, check=False).returncode, 0)
+        self.git('add', '-f', relative)
+        bad = self.git('commit', '-m', 'reject private repair', check=False)
+        self.assertNotEqual(bad.returncode, 0)
+        self.assertIn('private path', bad.stdout + bad.stderr)
+        self.git('rm', '--cached', relative)
+        self.git('add', 'code.py', 'crewloom.project.json', '.gitignore')
+        clean = self.git('commit', '-m', 'public files only', check=False)
+        self.assertEqual(clean.returncode, 0, clean.stdout + clean.stderr)
+
     def test_real_bad_commit_rejected_then_clean_commit_accepted(self):
         p.init(self.root)
         p.private_write(self.root, '.crewloom/private/note.txt', b'private conversation')

@@ -15,7 +15,10 @@
       "inputs": [
         "contracts/report.md",
         "src/billing.py",
-        "src/planning.py"
+        "src/planning.py",
+        "src/money.py",
+        "src/scheduling_support.py",
+        "criteria.md"
       ],
       "outputs": [
         "src/report.py",
@@ -27,7 +30,10 @@
       "role": "qa-test-automation-engineer",
       "kind": "command",
       "summary": "Run the generated report and command in the container over the merged ancestors",
-      "argv": ["python3", "tools/check_report.py"],
+      "argv": [
+        "python3",
+        "tools/check_report.py"
+      ],
       "timeout_seconds": 240,
       "inputs": [
         "src/report.py",

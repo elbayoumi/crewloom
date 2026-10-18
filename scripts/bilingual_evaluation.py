@@ -68,8 +68,19 @@ def run(output, hosts, timeout=120, image=w.DEFAULT_IMAGE, seed=20261010, models
                 (folder / ('candidate-%02d.py' % index)).write_bytes(source)
                 cases = [grading._grade_case(source, task, case, 0, image_id, 15, root, (),
                                             Path(task['output']).name) for case in task['cases']]
+                metrics = evidence.get('usage_metrics') or {}
                 result.update(status='scored', evidence=evidence, source_sha256=w.digest(source),
-                              passed=sum(c['passed'] for c in cases), total=len(cases), cases=cases)
+                              passed=sum(c['passed'] for c in cases), total=len(cases), cases=cases,
+                              duration_generation_ms=evidence.get('duration_ms'),
+                              duration_grading_ms=sum(c.get('duration_ms_total', c.get('duration_ms', 0)) for c in cases),
+                              cost_usd=evidence.get('cost_usd'),
+                              cache_efficiency=evidence.get('cache_efficiency'),
+                              usage_metrics=metrics,
+                              input_tokens=metrics.get('input_tokens'),
+                              cached_input_tokens=metrics.get('cached_input_tokens'),
+                              cache_write_tokens=metrics.get('cache_write_tokens'),
+                              output_tokens=metrics.get('output_tokens'),
+                              total_tokens=metrics.get('total_tokens'))
             except (ValueError, OSError) as exc:
                 message = str(exc)
                 result.update(status='failed', error=message)
@@ -82,6 +93,63 @@ def run(output, hosts, timeout=120, image=w.DEFAULT_IMAGE, seed=20261010, models
     report['inputs_unchanged'] = frozen_inputs() == frozen
     report['scored_trials'] = sum(t['status'] == 'scored' for t in report['trials'])
     report['complete'] = report['inputs_unchanged'] and report['scored_trials'] == len(trials)
+    report['telemetry'] = [
+        {
+            'host': host,
+            'task': task['id'],
+            'language': language,
+            'planned': len(group),
+            'scored': sum(t['status'] == 'scored' for t in group),
+            'failed': sum(t['status'] != 'scored' for t in group),
+            'pass_rate': (
+                round(sum(t['passed'] for t in group if t.get('passed') is not None) /
+                      sum(t['total'] for t in group if t.get('total')), 4)
+                if any(t.get('total') for t in group) else None
+            ),
+            'mean_duration_generation_ms': (
+                round(sum(t['duration_generation_ms'] for t in group if t.get('duration_generation_ms') is not None) /
+                      len([t for t in group if t.get('duration_generation_ms') is not None]), 1)
+                if any(t.get('duration_generation_ms') is not None for t in group) else None
+            ),
+            'mean_duration_grading_ms': (
+                round(sum(t['duration_grading_ms'] for t in group if t.get('duration_grading_ms') is not None) /
+                      len([t for t in group if t.get('duration_grading_ms') is not None]), 1)
+                if any(t.get('duration_grading_ms') is not None for t in group) else None
+            ),
+            'mean_input_tokens': (
+                round(sum(t['input_tokens'] for t in group if t.get('input_tokens') is not None) /
+                      len([t for t in group if t.get('input_tokens') is not None]), 1)
+                if any(t.get('input_tokens') is not None for t in group) else None
+            ),
+            'mean_cached_input_tokens': (
+                round(sum(t['cached_input_tokens'] for t in group if t.get('cached_input_tokens') is not None) /
+                      len([t for t in group if t.get('cached_input_tokens') is not None]), 1)
+                if any(t.get('cached_input_tokens') is not None for t in group) else None
+            ),
+            'mean_cache_write_tokens': (
+                round(sum(t['cache_write_tokens'] for t in group if t.get('cache_write_tokens') is not None) /
+                      len([t for t in group if t.get('cache_write_tokens') is not None]), 1)
+                if any(t.get('cache_write_tokens') is not None for t in group) else None
+            ),
+            'mean_output_tokens': (
+                round(sum(t['output_tokens'] for t in group if t.get('output_tokens') is not None) /
+                      len([t for t in group if t.get('output_tokens') is not None]), 1)
+                if any(t.get('output_tokens') is not None for t in group) else None
+            ),
+            'mean_total_tokens': (
+                round(sum(t['total_tokens'] for t in group if t.get('total_tokens') is not None) /
+                      len([t for t in group if t.get('total_tokens') is not None]), 1)
+                if any(t.get('total_tokens') is not None for t in group) else None
+            ),
+            'cache_efficiency': (
+                round(sum(t['cache_efficiency'] for t in group if t.get('cache_efficiency') is not None) /
+                      len([t for t in group if t.get('cache_efficiency') is not None]), 4)
+                if any(t.get('cache_efficiency') is not None for t in group) else None
+            ),
+        }
+        for host in hosts for task in tasks for language in ('en', 'ar')
+        for group in [[t for t in report['trials'] if (t['host'], t['task'], t['language']) == (host, task['id'], language)]]
+    ]
     save()
     return report
 
@@ -201,7 +269,7 @@ def verify_understanding():
             'model_trials': 0, 'model_improvement_measured': False}
 
 
-def run_understanding(project, output, hosts, models, timeout=120, seed=20261011):
+def run_understanding(project, output, hosts, models, timeout=120, seed=20261011, case_ids=None):
     """One preserved, project-bound private study; failures are never replaced."""
     import project_binding as pb
     import privacy
@@ -222,6 +290,12 @@ def run_understanding(project, output, hosts, models, timeout=120, seed=20261011
     if folder.exists() or folder.is_symlink():
         raise ValueError('Existing study cannot be overwritten or restarted')
     cases = understanding_cases()
+    all_ids = [case['id'] for case in cases]
+    if case_ids is not None:
+        if (not isinstance(case_ids, list) or not case_ids or len(set(case_ids)) != len(case_ids)
+                or any(case_id not in all_ids for case_id in case_ids)):
+            raise ValueError('Case selection must contain distinct known understanding cases')
+        cases = [case for case in cases if case['id'] in case_ids]
     prepared = []
     for host in hosts:
         for case in cases:
@@ -245,6 +319,8 @@ def run_understanding(project, output, hosts, models, timeout=120, seed=20261011
     report = {'protocol': 'crewloom-user-understanding-pilot-v1', 'binding': binding,
               'seed': seed, 'timeout': timeout, 'models_requested': models,
               'frozen_inputs': frozen, 'planned_trials': [], 'trials': [], 'complete': False,
+              'coverage': {'case_ids': [case['id'] for case in cases], 'available_case_ids': all_ids,
+                           'full_suite': len(cases) == len(all_ids)},
               'limits': 'Synthetic classification only. Native CLI exception, not an OS sandbox. No general agency-performance claim.'}
     for index, trial in enumerate(prepared):
         privacy.private_write(root, str(relative / ('prompt-%02d.txt' % index)), trial['prompt'])
@@ -307,6 +383,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output')
     parser.add_argument('--understanding', action='store_true')
+    parser.add_argument('--case-id', action='append', help='Preselect a bounded understanding pilot; omitted runs all cases')
     parser.add_argument('--project')
     parser.add_argument('--verify-understanding', action='store_true', help='Verify frozen synthetic user-understanding contracts; no model calls')
     parser.add_argument('--host', action='append', choices=sorted(model_host.CLI_HOSTS), default=[])
@@ -316,7 +393,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.verify_understanding:
-            if args.host or args.output or args.model or args.understanding or args.project:
+            if args.host or args.output or args.model or args.understanding or args.project or args.case_id:
                 raise ValueError('Offline understanding verification does not accept provider/output arguments')
             print(json.dumps(verify_understanding(), ensure_ascii=False)); return 0
         if not args.output or not args.host:
@@ -330,9 +407,9 @@ def main(argv=None):
         if args.understanding:
             if not args.project:
                 raise ValueError('Understanding collection requires --project')
-            report = run_understanding(args.project, args.output, args.host, models, args.timeout)
+            report = run_understanding(args.project, args.output, args.host, models, args.timeout, case_ids=args.case_id)
         else:
-            if args.project:
+            if args.project or args.case_id:
                 raise ValueError('--project is supported only with --understanding')
             report = run(args.output, args.host, args.timeout, args.image, models=models)
         return 0 if report['complete'] else 2

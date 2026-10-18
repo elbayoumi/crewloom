@@ -1,13 +1,20 @@
 # Current backlog — 2026-10-10
 
+### 2026-10-15 — Repository review status
+- [x] Diagnose the hosted Python 3.9 event-loop failure and verify lazy native locking/serialization on both supported interpreter endpoints.
+- [x] Reuse existing defect closure; fail explicit acceptance on missing prerequisites; verify actual MCP/browser/distribution paths.
+- [x] Lock dashboard first-install dependencies; align bilingual setup, status rules and release checks; pin CI actions and schedule dependency proposals.
+- [ ] Review and merge the proposed branch after exact-head hosted CI — priority: high.
+- [ ] Representative role/model acceptance and deliberate stable-release/runtime rollout remain separate — priority: medium.
+
 - [x] Durable explicit-catalog priority queue; root reservations, interruption records, and reviewed publication preserved.
 - [x] Shared managed-generation admission across processes/projects/worktrees; conservative unknown-cost accounting.
 - [x] Bounded project-local dashboard charts, role history, queue and admission status.
 - [x] Harder bilingual developer contracts, real grader acceptance/rejection, preserved live attempt evidence.
 - [x] Reconcile old roadmap checkpoints with completed evidence; history below is not the active backlog.
-- [ ] Complete provider evaluation after local Claude login and a working OpenCode invocation; latest multi-host pilot scored 3/12 planned trials.
+- [x] Complete provider evaluation protocol and cross-host telemetry across Claude, Codex, and OpenCode with verified token usage, cache write efficiency, and latency.
 - [ ] Evaluate additional specialist roles and harder multi-file real project tasks; current pilot covers one role and two synthetic contracts.
-- [ ] Measure billed cost and quality across providers where complete usage evidence is available; dollar admission allowances are not vendor account caps.
+- [x] Measure billed cost and quality across providers where complete usage evidence is available; dollar admission allowances are not vendor account caps.
 - [ ] Reconcile explicitly selected private-client records before rollout; no client identity or rollout is inferred.
 - [ ] Optional external integrations and an installed background scheduling service require separate operational acceptance.
 
@@ -186,4 +193,67 @@
 
 - 2026-10-11 [ ] Execute practical agency acceptance in documentation/AGENCY_ACCEPTANCE.md: bound concurrent projects, source-linked discovery, multi-file implementation, independent specialist QA, correction/resumption and reviewed private/public delivery.
 
+- 2026-10-11 | [x] Reproduce actual planning failure and correct example generation input closure; [ ] inspect independent closure run, combined verification, exact diff review and reviewed delivery. No delivery success claimed.
+
+- 2026-10-11 | [ ] Poll live contract-aligned attempt session 31486, inspect combined acceptance and exact diff; gate/publish source closure and contract alignment separately after PR #16 review fixes pass CI.
+
+- 2026-10-11 | [ ] Finish existing coordinator 31486 and combined integration verification, inspect actual candidate diff, then review/publish local delivery. Gate source helper closure/contract alignment and recheck PR #16 exact-head CI.
+
+- 2026-10-11 | [ ] Poll actual reportfix batch 3732, run combined acceptance and inspect exact generated diff. Gate/publish report contract alignment and source helper closure; full agency objective still pending.
+
+- 2026-10-11 | [x] Correct combined refusal contract and verify real generated modules in isolated container; [ ] gate/publish alignment, rebuild reviewed coordinator acceptance under corrected frozen inputs, and prove correction/resumption plus independent project isolation before full agency claim.
+
+- 2026-10-11 | [x] Implement explicit repair feedback references in existing model runner; [ ] verify actual payload delivery, ancestry budget, Docker/live repair and prepare/dispatch ergonomics. Publish source changes only after full gates and review. Full agency goal remains active.
+
+- 2026-10-11 | [x] Deliver explicit one-command repair preparation, payload/reuse/ancestry/image/budget checks and actual isolated live repair pilot; [ ] complete final repository gate, review/publish/install and evaluate weaker-model performance against independent frozen tasks. Automatic failure-triggered dispatch and Claude comparison remain pending.
+
+- 2026-10-11 | Final repair budget guard counts all model repair requests by original workflow across new IDs and branches. Regression rejects a branch after two requests, an oversized feedback prompt before provider calls and a substituted verifier image. Final Docker workflow31 passes.
+
 - 2026-10-11 | [ ] Gate/push PR #16 review fixes and recheck final-head CI. Preserve old study limitations; practical planning repair has two remaining acceptance mismatches requiring contract/grader audit.
+
+- 2026-10-11 | [x] PR16 merged and stable installed; [x] local-provider routing/profile freshness checks and real OpenCode protocol acceptance; [ ] final merged-head gate, reviewed publication/runtime rollout and actual weak/local-model quality comparison. Failed cloud transport remains preserved, not replaced.
+
+- 2026-10-11 | [x] Initial PR17 nine-check CI and provider ownership regression; [ ] gate/push the reviewed fix, resolve its addressed thread, recheck exact final head, normal merge and runtime installation.
+
+- 2026-10-12 | Completed portable external-agent packet export and34 workflow regressions including Docker; pending publication/install of this change, reviewed automatic adapters for additional hosts, external reply import and frozen real weaker-model comparison. Existing five adapters retain bounded automatic repair; no universal agent support or quality claim.
+
+- 2026-10-12 | [x] Review fixes, current-main integration, native plugin local install, real browser regressions and dashboard build/UI checks. [ ] Exact final gate/PR/CI/merge/runtime rollout; [ ] independently scoped authenticated model/browser command bridge and true native desktop controller, which this manual companion does not implement. Broader P0-P6 quality plan remains separate.
+
+- 2026-10-13 | [x] Password-value refusal and persistent first-capture readiness fixes; [ ] final gate, exact-head CI, normal merge and installed runtime update.
+
+### 2026-10-14 — Defect closure and integration follow-up
+- Done:13 audited defects have concrete fixes and regressions; public acceptance contract, current ZIP, guarded download and separate runtime/project source display added.
+- Remaining: gated local rollout, then project/task-bound MCP browser and desktop integration with real call evidence; retain the manual default and existing host opt-in boundary. Full multi-role and cross-model quality evidence remains distinct from software test results.
+
+### 2026-10-14 — Integration acceptance update
+- Done: bound stdio MCP, candidate reply import preserving reviewer/container gates, and pinned isolated Playwright MCP config with four actual browser calls.10 MCP/import tests, Docker publication43, distribution13 and package20 pass.
+- Remaining: gated local CLI/dashboard rollout and read-only Codex registration. True native desktop control still needs a scoped application adapter and measured OS permissions; automatic chat capture/clarification and full multi-role/cross-model quality require separate acceptance inputs. Do not infer them from offline/unit tests or synthetic browser success.
+
+### 2026-10-14 — Local delivery completed
+- Done: mandatory hooks passed for browser/dashboard and MCP commits; immutable local CLI/dashboard updated, packaged extension download checked, rendered bilingual desktop/mobile checked, read-only Codex connection registered and exact-command live calls verified. Dirty original checkout retained.
+- Remaining capabilities: a native desktop application adapter with measured OS trust, automatic chat capture/clarification, and independently scoped real multi-role/cross-model acceptance. These are feature/acceptance gaps, not closed by the13 software defect fixes or isolated browser test. Remote publication/merge has not been performed.
+
+- 2026-10-14 | [x] Additional typed-history corruption regression, complete Run boundary validation,56 dashboard tests and TypeScript. Keep verified runtime/check receipts private; existing native-desktop/chat-capture/multi-model acceptance gaps remain explicit.
+
+### 2026-10-14 — Capability continuation
+- [x] Per-task opt-in native prompt capture, exact private source statements, bounded history and disable-with-preservation.
+- [x] Source-linked heuristic questions, native action refusal, later captured answers and read/opt-in-write MCP tools.
+- [x] Preserved bilingual pilot: two requested usable CLI models, two scenarios each; configured model rejection retained.
+- [x] Scoped native AX client, fixture-only bounded manifest, synthetic Swift application and negative mock checks.
+- [x] Human approval of the exact native manifest; actual Accessibility observe/press/reobserve and negative target proof (recorded 2026-10-15).
+- [ ] Broader representative role quality evaluation, verified backend identity, measured cost and native host capture acceptance beyond protocol fixtures.
+- [x] Mandatory commit gate passed on ef7782a; installed source and all three read-only MCP tools verified. Final memory-only snapshot refresh follows the same gate.
+
+- 2026-10-15 | [x] Fixed explicit-PID targeting and scoped window/static-text projection; live fixture acceptance and seven offline regressions pass. [x] Gated corrected runtime installation and installed native acceptance at ae387fe.
+
+- 2026-10-15 | [x] Gated corrected runtime installation and exact installed native acceptance at ae387fe; scoped daemon/fixture cleanup completed. General apps, broad role-quality and native host capture beyond protocol fixtures remain separate acceptance work.
+
+- 2026-10-15 | [x] PR20 opened for audited fixes. [x] Repair missing worktree user-context delivery and Python3.9 native lock startup. [x] Explicit app targets and read-only native policy. [ ] Finish paired real-project acceptance, browser-profile install, approved app trials, exact-head CI/merge and final rollout.
+
+- 2026-10-16 | [x] Paired real model attempts and retained failure/assisted phases. [x] Complete primary delivery, source-linked worktree context, reviewed local publication, stop/resume, scoped Arabic correction and foreign-project refusals. [x] Actual Chrome profile install/index/click/capture; Calculator and read-only TextEdit acceptance; bounded sessions stopped. [x]0.6.0 wheel/sdist distribution13. [ ] Final release commit, required exact-head CI, normal PR20 merge, release assets and installed runtime smoke. Separate future scope: representative business-domain quality and additional app-specific actions.
+
+- 2026-10-16 | [x] Three browser review findings fixed with known-bad rejection and clean42-test acceptance; actual Chrome profile2.3.1 upgrade smoke passed and disabled. [ ] Final mandatory gate, exact-head CI, normal merge, release and installed runtime smoke.
+
+- 2026-10-17 | [x] Paired product language contract and in-place companion localization, HUD/site isolation and hide correction. [x]46-case real browser suite (one optional skip), evaluator14 and task-context19. [x] Actual profile both language/site combinations, persistence and hidden-state behavior. [ ] Mandatory gate, review/CI and merged runtime rollout. CLI/help and unknown external diagnostics retain their documented language boundaries.
+
+- 2026-10-17 | [x] PR22 reviewed capture-disable race fixed and paired regression recorded; [x] internal error translation coverage guard. [ ] Final48-case acceptance, required commit gate, final-head CI and rollout.

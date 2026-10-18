@@ -1,0 +1,20 @@
+{
+  "name": "crewloom",
+  "version": "0.1.0",
+  "description": "Project-bound agent roles, context, memory and verified workflows through the installed Crewloom CLI.",
+  "author": { "name": "RUMUZE Agency" },
+  "homepage": "https://github.com/elbayoumi/crewloom",
+  "license": "Apache-2.0",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Crewloom",
+    "shortDescription": "Project context, roles and verified workflows",
+    "longDescription": "Use your installed Crewloom CLI for project-bound roles, source-linked context, working memory and isolated checks. Requires Git, Python and the Crewloom runtime; Docker is needed for isolated acceptance. This plugin does not grant desktop tools or install a model provider.",
+    "developerName": "RUMUZE Agency",
+    "category": "Developer Tools",
+    "websiteURL": "https://github.com/elbayoumi/crewloom",
+    "logo": "./assets/icon.png",
+    "brandColor": "#40DDBC",
+    "defaultPrompt": ["Use Crewloom to inspect this project's task, select a role and verify the result."]
+  }
+}

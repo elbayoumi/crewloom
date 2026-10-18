@@ -49,6 +49,53 @@ class Contracts(unittest.TestCase):
                 result = grading._grade_case(bad.encode(), task, case, 0, image, 15, ROOT, (), Path(task['output']).name)
                 self.assertEqual(result['passed'], 0, result)
 
+    def test_telemetry_and_cross_host_metrics_recording(self):
+        import tempfile
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as folder:
+            out = Path(folder) / 'pilot-test'
+            ref_quote = (ROOT / 'examples/bilingual-evaluation/references/quote.py').read_text()
+            ref_reconcile = (ROOT / 'examples/bilingual-evaluation/references/reconcile.py').read_text()
+            def mock_gen(h_name, prompt, outputs, timeout, model):
+                out_path = outputs[0]
+                text = ref_quote if 'quote.py' in out_path else ref_reconcile
+                evidence = {
+                    'host': h_name,
+                    'duration_ms': 1500,
+                    'cost_usd': 0.002,
+                    'cache_efficiency': 0.4,
+                    'usage_metrics': {
+                        'input_tokens': 150,
+                        'uncached_input_tokens': 90,
+                        'cached_input_tokens': 60,
+                        'cache_write_tokens': 0,
+                        'output_tokens': 45,
+                        'reasoning_tokens': None,
+                        'total_tokens': 195,
+                    }
+                }
+                return {out_path: text}, evidence
+            with patch.object(pilot.model_host, 'generate', side_effect=mock_gen), \
+                 patch.object(pilot.grading, '_grade_case', return_value={'passed': 1, 'duration_ms': 10, 'duration_ms_total': 12}):
+                report = pilot.run(out, ['codex', 'claude'], timeout=60, models={'codex': 'gpt-6', 'claude': 'claude-3-5'})
+            self.assertTrue(report['complete'])
+            self.assertEqual(len(report['trials']), 8)
+            trial = report['trials'][0]
+            self.assertEqual(trial['duration_generation_ms'], 1500)
+            self.assertEqual(trial['input_tokens'], 150)
+            self.assertEqual(trial['cached_input_tokens'], 60)
+            self.assertEqual(trial['cache_efficiency'], 0.4)
+            self.assertIn('telemetry', report)
+            self.assertEqual(len(report['telemetry']), 8)
+            entry = report['telemetry'][0]
+            self.assertEqual(entry['planned'], 1)
+            self.assertEqual(entry['scored'], 1)
+            self.assertEqual(entry['failed'], 0)
+            self.assertEqual(entry['pass_rate'], 1.0)
+            self.assertEqual(entry['mean_duration_generation_ms'], 1500.0)
+            self.assertEqual(entry['mean_input_tokens'], 150.0)
+            self.assertEqual(entry['mean_cached_input_tokens'], 60.0)
+            self.assertEqual(entry['cache_efficiency'], 0.4)
 
 
 class UnderstandingContracts(unittest.TestCase):
@@ -102,6 +149,15 @@ class UnderstandingContracts(unittest.TestCase):
                 self.assertEqual(len(report['trials']), 36)
                 self.assertTrue(report['complete'])
                 self.assertEqual(sum(g['planned'] for g in report['summary']), 36)
+                self.assertTrue(report['coverage']['full_suite'])
+                subset = pilot.run_understanding(root, relative + '-subset', ['codex'], {'codex': 'fixture-model'},
+                                                 case_ids=['latest-correction'])
+                self.assertEqual(len(subset['trials']), 4)
+                self.assertEqual(subset['coverage']['case_ids'], ['latest-correction'])
+                self.assertFalse(subset['coverage']['full_suite'])
+                with self.assertRaisesRegex(ValueError, 'distinct known'):
+                    pilot.run_understanding(root, relative + '-unknown', ['codex'], {'codex': 'fixture-model'},
+                                            case_ids=['unknown'])
                 for path in (root / relative).iterdir():
                     self.assertEqual(path.stat().st_mode & 0o777, 0o700 if path.is_dir() else 0o600)
                 with self.assertRaisesRegex(ValueError, 'overwritten'):

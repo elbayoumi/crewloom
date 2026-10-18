@@ -16,7 +16,7 @@ Do not reimplement invoice arithmetic or planning, and do not change those modul
 
 ```python
 PAYLOAD_KEYS = ('capacity', 'invoice', 'language', 'tasks')
-SECTION_TITLES = {'en': {...}, 'ar': {...}}   # invoice, plan, summary, currencies, waves, latest_tasks
+SECTION_TITLES = {'en': {'invoice': 'Invoice summary', 'plan': 'Execution plan', 'summary': 'Summary', 'currencies': 'Currencies', 'waves': 'Waves', 'latest_tasks': 'Latest tasks'}, 'ar': {'invoice': 'ملخص الفاتورة', 'plan': 'خطة التنفيذ', 'summary': 'الملخص', 'currencies': 'العملات', 'waves': 'الدفعات', 'latest_tasks': 'المهام الأخيرة'}}
 
 def build_report(payload) -> dict
 ```

@@ -6,6 +6,8 @@ This file is the single source of agent behavior in this repository. Follow the 
 
 Honor an explicit Arabic or English preference. Otherwise use the current request's language; for code or link-only input, retain the last preference and default to English if none exists. Public developer documentation defaults to English. Keep paths, skill IDs, flags, and machine-readable values stable across languages.
 
+Arabic and English are paired product acceptance requirements. For a changed localized surface, verify both languages, RTL/LTR, language switching and persistence where supported, including failure states. Keep external content and technical identifiers intact; document surfaces that still use English diagnostics rather than claiming complete runtime localization. See [language support](documentation/LANGUAGES.md).
+
 ## Memory lifecycle
 
 Before work, read the relevant architecture, completed work, challenges, and ideas. The shared repository memory lives in `Brain/`; role memory lives in `.agents/skills/<id>/brain/`.

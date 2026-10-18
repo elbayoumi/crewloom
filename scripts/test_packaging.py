@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import unittest
+import tempfile
 from pathlib import Path
 
 try:
@@ -51,10 +52,10 @@ def declared_files(directory, skip=()):
 
 
 class DistributionMetadata(unittest.TestCase):
-    def test_version_is_development_metadata_and_claims_no_tag(self):
+    def test_release_version_has_a_matching_changelog_entry(self):
         version = pyproject()['project']['version']
-        self.assertTrue(version.startswith('0.6.0'), version)
-        self.assertIn('dev', version.split('0.6.0')[-1], 'A development build must not look like a release tag')
+        self.assertRegex(version, r'^\d+\.\d+\.\d+$')
+        self.assertIn('## ' + version + ' — ', (ROOT / 'CHANGELOG.md').read_text(encoding='utf-8'))
 
     def test_declared_license_notice_and_english_docs(self):
         project = pyproject()['project']
@@ -78,7 +79,7 @@ class DistributionMetadata(unittest.TestCase):
         # climbs four levels above itself still finds `.agents/skills` beside its installation.
         self.assertEqual(resources.roles_dir().relative_to(resources.distribution_root()),
                          resources.ROLES_DIRECTORY)
-        self.assertEqual(len(resources.role_ids()), 42)
+        self.assertEqual(len(resources.role_ids()), 44)
 
     def test_every_flat_runtime_module_is_declared_and_exists(self):
         modules = pyproject()['tool']['setuptools']['py-modules']
@@ -114,13 +115,22 @@ class PackagedDataRegressions(unittest.TestCase):
         missing = (declared_files('documentation') | declared_files('assets', skip=('dashboard-demo.mp4', 'dashboard-demo.gif'))) - selected
         self.assertEqual(missing, set(), 'Documentation or public assets missing: ' + ', '.join(sorted(missing)))
 
+    def test_browser_and_native_plugin_install_resources_are_packaged(self):
+        selected = matched_files(pyproject()['tool']['setuptools']['package-data']['crewloom_data'])
+        for directory in ('extensions/chrome', 'adapters/codex/plugin', '.agents/plugins'):
+            self.assertEqual(declared_files(directory) - selected, set(), directory)
+        manifest = ROOT/'adapters/codex/plugin/.codex-plugin/plugin.json'
+        value = json.loads(manifest.read_text()); plugin = manifest.parent.parent
+        self.assertTrue((plugin/value['skills']/'crewloom/SKILL.md').is_file())
+        self.assertTrue((plugin/value['interface']['logo']).is_file())
+
     def test_runtime_registry_and_optional_node_assets_are_declared_separately(self):
         patterns = pyproject()['tool']['setuptools']['package-data']['crewloom_data']
         selected = matched_files(patterns)
         self.assertIn('documentation/TOOLS.json', selected)
         # Node assets are deliberately absent from the wheel; `crewloom dashboard` diagnoses that.
         self.assertFalse([name for name in selected if name.startswith('dashboard/')])
-        self.assertEqual([name for name in selected if name.startswith('assets/')], ['assets/crewloom-banner.svg'])
+        self.assertEqual({name for name in selected if name.startswith('assets/')}, {'assets/crewloom-banner.svg', 'assets/crewloom-computer-use-icon.svg', 'assets/crewloom-computer-use-icon.png', 'assets/crewloom-chrome-extension.zip'})
 
 
 class ResourceResolverRegressions(unittest.TestCase):
@@ -175,6 +185,35 @@ class ResourceResolverRegressions(unittest.TestCase):
 class ArchiveExclusionRegressions(unittest.TestCase):
     def manifest(self):
         return MANIFEST.read_text(encoding='utf-8')
+
+    def test_browser_zip_matches_the_actual_source(self):
+        import package_browser
+        self.assertEqual(package_browser.check(ROOT), [])
+
+    def test_browser_zip_gate_rejects_stale_source_and_accepts_rebuilt_package(self):
+        import contextlib
+        import io
+        import package_browser
+        import shutil
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'extensions' / 'chrome'
+            shutil.copytree(ROOT / 'extensions' / 'chrome', source)
+            (root / 'assets').mkdir()
+            script = source / 'content.js'
+            script.write_text('first')
+            package_browser.build(root)
+            before = package_browser.target(root).read_bytes()
+            package_browser.build(root)
+            self.assertEqual(before, package_browser.target(root).read_bytes())
+            script.write_text('changed')
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(package_browser.main(['--check'], root), 1)
+                self.assertEqual(package_browser.main([], root), 0)
+            self.assertEqual(package_browser.check(root), [])
+            (source / 'private-run.json').write_text('{"private":"fixture"}')
+            with self.assertRaisesRegex(ValueError, 'Unreviewed file'):
+                package_browser.build(root)
 
     def test_forbidden_trees_are_excluded_from_the_sdist(self):
         text = self.manifest()

@@ -1,17 +1,19 @@
 'use client';
 import ActivityPanel, { type Activity, type Controls } from './activity-panel';
 import ProjectsPanel from './projects-panel';
+import ComputerUsePanel from './computer-use-panel';
+import { parseToolArguments } from '../lib/tool-arguments';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type Skill = { id: string; description: string; lastActivity: string | null; openTasks: number; doneEntries: number; openChallenges: number; ideas: number; tools: string[]; runs: number; failedRuns: number; status: 'healthy' | 'attention' | 'idle' };
-type Tool = { id: string; skill: string; description: string; example_args: string; effect: string };
+type Tool = { id: string; skill: string; description: string; example_args: string; effect: string; dashboard?: 'cli' | 'project' };
 type Run = { ts: string; tool: string; skill: string; exit_code: number; duration_ms: number; source: string; output?: string };
-type Overview = { activity?: Activity; controls?: Controls; projectRoot: string; generatedAt: string; totals: Record<string, number>; skills: Skill[]; tools: Tool[]; runs: Run[] };
+type Overview = { activity?: Activity; controls?: Controls; projectRoot: string; toolkitRoot: string; generatedAt: string; totals: Record<string, number>; skills: Skill[]; tools: Tool[]; runs: Run[] };
 type Detail = { id: string; skill: string; brain: Record<string, string> };
 
 const T = {
-  en: { skills: 'Roles', tools: 'Tools', attention: 'Need attention', tasks: 'Open tasks', challenges: 'Open challenges', failed: 'Failed runs (last 50)', live: 'Live', offline: 'Reconnecting', search: 'Search roles', all: 'All', run: 'Run', runs: 'Recent runs', checks: 'Run repository checks', args: 'Arguments (space separated, project-relative)', none: 'No runs recorded yet. Run a tool here or with the CLI.', role: 'Role', status: 'Status', activity: 'Last memory update', done: 'Done', open: 'Open', ideas: 'Ideas', lang: 'العربية', signIn: 'Sign in', signOut: 'Sign out', token: 'Dashboard access token', unauthorized: 'Sign in to view this project.' },
-  ar: { skills: 'الأدوار', tools: 'الأدوات', attention: 'تحتاج متابعة', tasks: 'مهام مفتوحة', challenges: 'تحديات مفتوحة', failed: 'تشغيل فاشل (آخر 50)', live: 'مباشر', offline: 'إعادة اتصال', search: 'ابحث في الأدوار', all: 'الكل', run: 'تشغيل', runs: 'آخر التشغيلات', checks: 'شغّل فحوص الريبو', args: 'المعاملات (بمسافات، مسارات نسبية للمشروع)', none: 'لا توجد تشغيلات بعد. شغّل أداة من هنا أو من الـ CLI.', role: 'الدور', status: 'الحالة', activity: 'آخر تحديث للذاكرة', done: 'منجز', open: 'مفتوح', ideas: 'أفكار', lang: 'English', signIn: 'تسجيل الدخول', signOut: 'تسجيل الخروج', token: 'رمز دخول لوحة المعلومات', unauthorized: 'سجّل الدخول لعرض هذا المشروع.' },
+  en: { skills: 'Roles', tools: 'Tools', attention: 'Need attention', tasks: 'Open tasks', challenges: 'Open challenges', failed: 'Failed runs (last 50)', live: 'Live', offline: 'Reconnecting', search: 'Search roles', all: 'All', run: 'Run', runs: 'Recent runs', checks: 'Run repository checks', args: 'Arguments (quoted text or JSON array, project-relative)', none: 'No runs recorded yet. Run a tool here or with the CLI.', role: 'Role', status: 'Status', activity: 'Last memory update', done: 'Done', open: 'Open', ideas: 'Ideas', lang: 'العربية', signIn: 'Sign in', signOut: 'Sign out', token: 'Dashboard access token', unauthorized: 'Sign in to view this project.' },
+  ar: { skills: 'الأدوار', tools: 'الأدوات', attention: 'تحتاج متابعة', tasks: 'مهام مفتوحة', challenges: 'تحديات مفتوحة', failed: 'تشغيل فاشل (آخر 50)', live: 'مباشر', offline: 'إعادة اتصال', search: 'ابحث في الأدوار', all: 'الكل', run: 'تشغيل', runs: 'آخر التشغيلات', checks: 'شغّل فحوص الريبو', args: 'المعاملات (نص مقتبس أو مصفوفة JSON، مسارات نسبية للمشروع)', none: 'لا توجد تشغيلات بعد. شغّل أداة من هنا أو من الـ CLI.', role: 'الدور', status: 'الحالة', activity: 'آخر تحديث للذاكرة', done: 'منجز', open: 'مفتوح', ideas: 'أفكار', lang: 'English', signIn: 'تسجيل الدخول', signOut: 'تسجيل الخروج', token: 'رمز دخول لوحة المعلومات', unauthorized: 'سجّل الدخول لعرض هذا المشروع.' },
 } as const;
 
 const ago = (iso: string | null) => {
@@ -69,7 +71,10 @@ export default function Dashboard() {
 
   const loadDetail = useCallback(async (id: string) => {
     const res = await fetch(`/api/skills/${id}`, { cache: 'no-store' });
-    if (res.ok) setDetail(await res.json());
+    if (res.ok) {
+      const value = await res.json();
+      if (openId.current === id) setDetail(value);
+    }
   }, []);
 
   useEffect(() => { document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; }, [lang]);
@@ -92,7 +97,7 @@ export default function Dashboard() {
   const runTool = async () => {
     setBusy(true); setOutput(null);
     try {
-      const res = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool: toolId, args: args.split(/\s+/).filter(Boolean) }) });
+      const res = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool: toolId, args: parseToolArguments(args) }) });
       const body = await res.json();
       if (res.status === 401 || res.status === 403) { setAuth('out'); return; }
       setOutput({ ok: res.ok && body.exit_code === 0, text: body.error ?? body.output ?? '' });
@@ -140,7 +145,11 @@ export default function Dashboard() {
         </div>
       </header>
       <p>{lang === "ar" ? "المشروع الحالي" : "Current project"}: <code dir="ltr">{data?.projectRoot ?? "…"}</code></p>
+      {data?.toolkitRoot && <details><summary>{lang === 'ar' ? 'مصدر تشغيل اللوحة' : 'Dashboard runtime source'}</summary>
+        <code dir="ltr">{data.toolkitRoot}</code>
+      </details>}
       {error && <div className="card" role="alert">API: {error}</div>}
+      <ComputerUsePanel language={lang} />
       <ProjectsPanel language={lang} />
       <ActivityPanel activity={data?.activity} controls={data?.controls} language={lang} />
       <section className="tiles" aria-label="Totals">
@@ -163,7 +172,7 @@ export default function Dashboard() {
             </div>
             <div className="scroll">
               <table>
-                <thead><tr><th>{t.role}</th><th>{t.status}</th><th>{t.tasks}</th><th>{t.done}</th><th>{t.challenges}</th><th>{t.runs}</th><th>{t.activity}</th></tr></thead>
+                <thead><tr><th scope="col">{t.role}</th><th scope="col">{t.status}</th><th scope="col">{t.tasks}</th><th scope="col">{t.done}</th><th scope="col">{t.challenges}</th><th scope="col">{t.runs}</th><th scope="col">{t.activity}</th></tr></thead>
                 <tbody>
                   {skills.map((s) => (
                     <tr key={s.id} className="row" tabIndex={0} onClick={() => pickSkill(s.id)} onKeyDown={(e) => e.key === 'Enter' && pickSkill(s.id)}>
@@ -184,7 +193,7 @@ export default function Dashboard() {
               <h2>{detail.id}</h2>
               <div className="tabs">
                 {['skill', ...Object.keys(detail.brain)].map((k) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{k}</button>)}
-                <button className="ghost" onClick={() => { setDetail(null); openId.current = null; }}>✕</button>
+                <button className="ghost" aria-label="Close detail view" onClick={() => { setDetail(null); openId.current = null; }}>✕</button>
               </div>
               <pre>{tab === 'skill' ? detail.skill : detail.brain[tab]}</pre>
             </section>
@@ -197,10 +206,13 @@ export default function Dashboard() {
               <select value={toolId} onChange={(e) => { const tool = data?.tools.find((x) => x.id === e.target.value); setToolId(e.target.value); setArgs(tool?.example_args.replace('{input}', '') ?? ''); }} aria-label={t.tools}>
                 {data?.tools.map((x) => <option key={x.id} value={x.id}>{x.id}</option>)}
               </select>
-              <button onClick={runTool} disabled={busy || !toolId}>{t.run}</button>
+              <button onClick={runTool} disabled={busy || !toolId || data?.tools.find((tool) => tool.id === toolId)?.dashboard === 'cli'}>{t.run}</button>
             </div>
             <input style={{ width: '100%' }} value={args} onChange={(e) => setArgs(e.target.value)} placeholder={t.args} aria-label={t.args} />
             <p className="empty">{data?.tools.find((x) => x.id === toolId)?.description}</p>
+            {data?.tools.find((tool) => tool.id === toolId)?.dashboard === 'cli' && <p>
+              {lang === 'ar' ? 'الأداة تحتاج مدخلات مشاريع صريحة عبر CLI؛ راجع دليل الأدوات.' : 'This tool requires explicit project inputs through the CLI; see the tool guide.'}
+            </p>}
             <button className="ghost" onClick={runChecks} disabled={busy}>{t.checks}</button>
             {output && <pre style={{ borderColor: output.ok ? 'var(--ok)' : 'var(--bad)' }}>{output.text || (output.ok ? 'PASS' : 'FAIL')}</pre>}
           </section>

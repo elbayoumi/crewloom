@@ -1,0 +1,10 @@
+{
+  "name": "crewloom-local",
+  "interface": { "displayName": "Crewloom" },
+  "plugins": [{
+    "name": "crewloom",
+    "source": { "source": "local", "path": "./adapters/codex/plugin" },
+    "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+    "category": "Developer Tools"
+  }]
+}

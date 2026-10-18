@@ -1,5 +1,20 @@
 # Challenges
 
+### 2026-10-15 — Python 3.9 native lock construction
+- Cause: asyncio.Lock was created by a synchronous controller constructor; Python 3.9 eagerly binds it to an absent/old loop after asyncio.run, causing six hosted errors.
+- Solution: lazy allocation inside the running operation loop, explicit foreign-loop refusal and contended serialization regression; nine offline cases pass on actual Python 3.9 and 3.14, one approved-live case remains opt-in.
+- Status: Resolved locally; rerun exact-head hosted matrix before merge.
+
+### 2026-10-15 — Explicit acceptance skipped prerequisites
+- Cause: browser launch/build backend failures raised SkipTest during explicit acceptance; hosted CI omitted real MCP/browser protocols.
+- Solution: fail explicit prerequisite errors, clean browser setup, add actual SDK/headed-extension CI. Bad/clean regressions and live acceptance pass.
+- Status: Resolved locally; hosted evidence belongs to the proposed commit.
+
+### 2026-10-15 — Setup and dependency contracts drifted
+- Cause: first launch used npm install despite a reviewed lockfile; Arabic/release login and health prose predated implementation changes.
+- Solution: npm ci with failure-stop regression, Node/ES module metadata, source-install commands for unpublished extras and current bilingual setup/release checklist.
+- Status: Resolved locally; dashboard56, TypeScript/build and package acceptance pass.
+
 ### 2026-10-01 — Separate public tooling from private operations
 - Cause: The upstream workspace mixes reusable roles with client data and agency-specific contracts.
 - Solution: Publish English public adaptations, clean memory, and selected inspected tools in a new repository without upstream Git history.
@@ -291,4 +306,77 @@
 
 - 2026-10-11 | Audited remaining selected-context failure: deployment_environment requested during publication classification, although execution was explicitly excluded. Keep baseline score and target current-action clarification in the next separately identified evaluation.
 
+- 2026-10-11 | Generated planning repeatedly validated normalized tuple dependencies through list-only helper and failed 13 checks. Generation saw helper prose but omitted actual helper implementations; add source closure without leaking acceptance tools or modifying baseline evidence.
+
+- 2026-10-11 | Feedback repair fixed normalized-input revalidation; two remaining failures exposed closed-cycle ambiguity and hidden twice error substring. Clarify cycle contract and validate exception type rather than wording; independent regression rejects wrong exception type.
+
+- 2026-10-11 | Five report acceptance failures included undisclosed exact translation/message requirements. Publish exact title copy as model input and grade error semantics rather than undocumented phrases; keep numerical/immutability/CLI checks unchanged.
+
+- 2026-10-11 | Integration checker retained an undocumented unknown report input fields phrase after per-task report grading was corrected. Check offending key while retaining exit2/no-output assertions; regression rejects missing key and independent actual-byte verification passes.
+
+- 2026-10-11 | Manual failure explanations lived outside the workflow evidence chain. Add project-scoped repair references and hash-validated immutable candidate copies; avoid rewriting original attempts or granting log text execution authority.
+
+- 2026-10-11 | Appending feedback after the base-prompt check could exceed its budget, and a mutable Docker tag could change repair acceptance. Check the complete prompt before provider calls, pin the recorded verifier image digest and test both refusals. Ordinary runtime .crewloom inputs are reserved; use a separately guarded ignored repair namespace for candidate copies.
+
+- 2026-10-11 | Final repair budget guard counts all model repair requests by original workflow across new IDs and branches. Regression rejects a branch after two requests, an oversized feedback prompt before provider calls and a substituted verifier image. Final Docker workflow31 passes.
+
+- 2026-10-11 | Repository gate rejected three new fixture Git subprocesses without explicit environments. Added repo_map.git_environment() to each; the in-flight commit was stopped before publication so the corrected files can be staged and pass a fresh mandatory hook. No hook bypass used.
+
+- 2026-10-11 | The actual commit hook then exposed ambient GIT_INDEX_FILE reaching privacy.check from a new temporary workflow fixture. Scrub Git exports for the entire fixture lifetime as well as each Git subprocess; production foreign-index refusal remains intact. Reproduce with an explicit foreign index environment before retrying the full hook.
+
 - 2026-10-11 | Review found missing grader fingerprint and subset-only prompt audit; add grader to frozen inputs and require exact record sequences. Regressions reproduce both invalid conditions. Earlier trial report cannot retroactively prove a grader mutation check it did not run.
+
+- 2026-10-11 | Task-scoped OpenCode config intentionally excludes global custom provider definitions. Add an explicit private endpoint/model/byte-budget contract without importing plugins or wider host settings. A real installed-CLI protocol fixture verifies routing; catalogue presence alone did not establish cloud generation availability.
+
+- 2026-10-11 | Final merge audit found an overbroad DOTALL conflict-marker expression had omitted owned appended memory. Restore full ef25e9e memory and retain both reviewed-main and local-profile additions; assert original lines remain before regenerating the manifest. Code changes were unaffected. Narrowed real OpenCode cloud diagnostic also returned FreeTierError; preserve both transport failures and stop repeats.
+
+- 2026-10-11 | Bounded/single-link did not establish provider file confidentiality. Enforce current-user ownership and owner-only POSIX modes instead of silently accepting typical022-umask files; preserve native ACL limitations.
+
+- 2026-10-12 | Local OpenCode provider setup was mistaken for a restriction of all Crewloom improvement features. Separate supported automatic model adapters from portable external-agent task contracts; keep review, context freshness and command verification independent of agent brand. External reply import and automatic repair require a reviewed adapter, not an unsupported host label.
+
+- 2026-10-12 | PR18 P2 identified a late ordinary-editor mutation after the second prompt read. Move an additional source/binding/context check after that read; project locks only serialize Crewloom callers. Regression mutates an input immediately before the final builder returns and requires refusal.
+
+- 2026-10-12 | Review reproduced page-controlled numeric index spoofing and unguarded/fake API status in old branch. Fix by retaining element references, validating generations/visibility, gating controls in persistent Chrome state and reusing current-main route guards. Success badges and Accessibility claims replaced by unknown. Missing local Node dependencies initially blocked an existing CSS test; npm ci restored the pinned dependencies and all46 tests pass.
+
+- 2026-10-12 | Mandatory hook caught new browser/native-plugin assets missing from the distribution contract. Update explicit public asset patterns and sdist includes, retain Node-only dashboard exclusion, and add native/plugin resource coverage; all18 packaging regressions pass. No gate bypass.
+
+- 2026-10-12 | Direct helper convenience defaults must not become runtime message defaults: CLICK_INDEX now requires an integer generation before dispatch. A real Chrome transport request without it is rejected, while current-generation requests pass.
+
+- 2026-10-13 | PR19 review found password values exposed by index fallback and first-open capture lost before listeners existed. Replace value fallback with form labels and queue window/tab-bound requests; reject missing/sentinel capture windows.
+
+### 2026-10-14 — Defect root causes and fixes
+- Cause: mutable tab identity in callbacks; generation collisions across documents; first400 DOM order; own-element-only interactivity; template/heading-based readiness; whitespace argument splitting.
+- Fix: request/tab/frame/document-bound replies, action fingerprints and hit tests; viewport/frame/shadow inventory with pagination; run-based status and compact-record parsing; bounded quote/JSON argument data and CLI-only external-root tools.
+- Evidence: bad cases reject old behavior, current regressions pass. Browser tests need arrow-function predicates under extension CSP; a bare expression triggered unsafe-eval and was corrected without weakening CSP. ZIP freshness now has bad/clean acceptance and rejects undeclared source files.
+
+### 2026-10-14 — External candidate freshness and MCP schemas
+- Cause: exporting a packet alone left candidate publication to host-specific code; output edits could be overwritten while generation was in progress.
+- Solution: compare project/task/context/input/prompt/output revisions, recheck staged original bytes, reuse transactional publication, retain private replies and require existing review/verification. Tests reject foreign/stale packets, undeclared outputs, links and owner edits before/after staging.
+- SDK lesson: current official SDK uses MCPServer and Python3.11+; dict[str, Any] exposes direct structured results, while typing.Dict wrapped output. Current Playwright click schema requires target, not the older ref argument. Use actual list-tools schemas and live calls.
+
+### 2026-10-14 — Local package manager backend
+- Cause: pipx's default uv backend rejected an older installed uv before changing the Crewloom environment.
+- Solution: use the supported pip backend for the same editable immutable snapshot and pinned MCP extra, then verify the installed module source, actual stdio tools, dashboard source and downloadable ZIP. Preserve the previous snapshot for rollback.
+
+### 2026-10-14 — Parsed JSON is not a typed run
+- Cause: the first malformed-row fix excluded null/scalars but cast objects after checking only tool/exit/root. An object-valued source/duration could still reach React, and invalid dates could count toward role health.
+- Solution: validate every Run field at the parsing boundary and skip only the bad row. Reject wrong types, nonfinite/negative durations and invalid dates; use realistic timestamped log fixtures. Known violation rejected before the change;56-test clean suite and TypeScript pass.
+
+### 2026-10-14 — Clarification and native scope boundaries
+- Cause: source-linked context needed explicit recording; preserving questions without blocking native tools could still allow an edit. Fix: task opt-in, literal-source capture, unanswered-question guard and later-message exact answers; disabling capture preserves history. Ordinals survive canonical JSON key sorting.
+- Native lesson: short project-private sockets are required by macOS; refuse long paths, autostart and broad-daemon fallback. CuaDriver bounded startup requires actual human manifest approval; prepare and test before requesting it. Driver schemas and TCC readiness need live acceptance.
+- Evaluation: a cached/configured model ID was rejected by the actual authenticated CLI. Retain the two transport failures and blocked trials, then record an explicitly different available model in a separate run. Requested IDs are not verified backend identity.
+
+- 2026-10-15 | Cause: bounded app scope denies global list_apps, while get_window_state indexes only actionable rows and appends unrelated menu history. Solution: bind observed PID, rely on bounded driver bundle validation, filter exact window ancestry and retain only window text for static state. Real counter acceptance passed without widening the reviewed manifest.
+
+- 2026-10-15 | Real paired Ledgerline execution exposed package-relative imports under a top-level CLI, and root user context absent from task worktrees. Clarify runtime imports without changing verifiers; freeze selected source-linked context into each task checkout. GitHub Python3.9 found eager asyncio.Lock construction outside an event loop; initialize it lazily in async actions.
+
+- 2026-10-16 | Independent QA found raw tax rates just outside0..100 admitted after quantization; added two refusal cases reject old fixture/candidate, clarified pre-rounding validation and regenerated only affected delivery work. Repair templates now declare criteria for immutable feedback. An atomic CLI writer cannot replace a preallocated Docker output mount: stage inside container tmp and stream to the declared artifact; preserve the failed attempt.
+
+- 2026-10-16 | PR20 review found child-frame overlays surviving clear/failure, equal quota wasting dense-page capacity, and advertised cross-origin targets rejected on click. Track contacted frames before replies, allocate the remaining budget, and omit embedding paths whose visibility cannot be verified. Four regressions reject the prior source and pass the correction.
+
+- 2026-10-16 | Release gate correctly rejected the stale test requiring development-only metadata. Updated the release metadata check to require0.6.0 and its matching changelog entry; the normal full gate must pass before commit.
+
+- 2026-10-17 | Arabic panel logs wrapped English known errors and the page HUD ignored the saved language; empty capture/accessibility labels also stayed English. Reuse the panel dictionary and structured HUD messages, preserve unknown diagnostics, and update only the owned HUD. New rendered tests also exposed display:flex!important overriding the hide action; explicit important inline display preserves hiding across language changes.
+
+- 2026-10-17 | PR22 review reproduced an untranslated internal capture-disable race. Paired delayed-capture regression rejects the prior candidate in Arabic and accepts the fix without rendering captured data. Audit/map the remaining literal internal guards; a persistent contract check now requires both language resources for every literal companion error, while preserving external diagnostics.

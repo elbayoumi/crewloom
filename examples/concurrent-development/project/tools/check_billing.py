@@ -143,6 +143,8 @@ def refusals():
         ('zero_quantity_is_refused', mutate(quantity=0), 'quantity'),
         ('oversized_quantity_is_refused', mutate(quantity=10001), 'quantity'),
         ('tax_rate_above_one_hundred_is_refused', mutate(tax_rate='100.5'), 'tax_rate'),
+        ('raw_tax_above_maximum_cannot_round_into_range', mutate(tax_rate='100.00001'), 'tax_rate'),
+        ('raw_negative_tax_cannot_round_to_zero', mutate(tax_rate='-0.00001'), 'tax_rate'),
         ('missing_description_is_refused', invoice(lines=[dict(invoice()['lines'][0],
                                                               description_ar='')]),
          'description_ar'),

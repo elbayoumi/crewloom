@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Deep Space Obsidian Slate Background -->
+    <linearGradient id="iconMasterBg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#16243a"/>
+      <stop offset="50%" stop-color="#0e1625"/>
+      <stop offset="100%" stop-color="#060a12"/>
+    </linearGradient>
+
+    <!-- Glowing Cyber Border (Crewloom Mint Cyan to Electric Periwinkle) -->
+    <linearGradient id="iconMasterBorder" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#40ddbc"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#8ca9ff"/>
+    </linearGradient>
+
+    <!-- Core Glow Filter -->
+    <filter id="masterCoreGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="20" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <radialGradient id="masterAmbientGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#40ddbc" stop-opacity="0.35"/>
+      <stop offset="60%" stop-color="#8ca9ff" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#40ddbc" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Squircle Base with smooth iOS curve -->
+  <rect x="24" y="24" width="464" height="464" rx="116" fill="url(#iconMasterBg)"/>
+  <rect x="24" y="24" width="464" height="464" rx="116" stroke="url(#iconMasterBorder)" stroke-width="12" fill="none"/>
+
+  <!-- Ambient Internal Glow -->
+  <circle cx="256" cy="256" r="160" fill="url(#masterAmbientGlow)"/>
+
+  <!-- Crewloom Interlocking Warp & Weft Grid -->
+  <!-- Horizontal Weft Threads (#40ddbc Mint Cyan) -->
+  <g stroke="#40ddbc" stroke-width="22" stroke-linecap="round">
+    <line x1="110" y1="185" x2="402" y2="185" opacity="0.85"/>
+    <line x1="110" y1="327" x2="402" y2="327" opacity="0.85"/>
+  </g>
+
+  <!-- Vertical Warp Threads (#8ca9ff Electric Periwinkle) -->
+  <g stroke="#8ca9ff" stroke-width="22" stroke-linecap="round">
+    <line x1="185" y1="110" x2="185" y2="402" opacity="0.85"/>
+    <line x1="327" y1="110" x2="327" y2="402" opacity="0.85"/>
+  </g>
+
+  <!-- Central Computer Use Aperture / Precision Command Diamond -->
+  <g filter="url(#masterCoreGlow)">
+    <!-- Diamond Frame -->
+    <path d="M 256 160 L 352 256 L 256 352 L 160 256 Z"
+          fill="#0e1625"
+          stroke="#40ddbc"
+          stroke-width="16"
+          stroke-linejoin="round"/>
+
+    <!-- Inner Core Jewel -->
+    <circle cx="256" cy="256" r="32" fill="#8ca9ff"/>
+    <circle cx="256" cy="256" r="16" fill="#ffffff"/>
+
+    <!-- Laser Targeting Reticle Axes -->
+    <line x1="256" y1="120" x2="256" y2="142" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="256" y1="370" x2="256" y2="392" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="120" y1="256" x2="142" y2="256" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="370" y1="256" x2="392" y2="256" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+
+    <!-- Corner Node Rivets -->
+    <circle cx="185" cy="185" r="8" fill="#ffffff"/>
+    <circle cx="327" cy="185" r="8" fill="#ffffff"/>
+    <circle cx="185" cy="327" r="8" fill="#ffffff"/>
+    <circle cx="327" cy="327" r="8" fill="#ffffff"/>
+  </g>
+</svg>

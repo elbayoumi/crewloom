@@ -1,5 +1,13 @@
 # Repository architecture
 
+### 2026-10-15 — Release verification boundaries
+The default core remains standard-library compatible on Python 3.9+. Explicit integration CI installs the pinned MCP SDK and Playwright, runs actual SDK/container protocols and loads the unpacked extension in headed Chromium. Missing explicit prerequisites fail; optional native desktop approval remains outside CI. Dashboard development requires Node 24+, ES modules and lockfile installation.
+
+### 2026-10-14 — Browser and dashboard correctness
+- Index replies bind tab/navigation request; targets bind frame, document token, generation and action fingerprint. Clicks recheck ancestor interactivity and hit-test visibility. Open Shadow DOM/readable frames share a bounded viewport-prioritized inventory; the directory is paginated.
+- Dashboard role status uses run evidence rather than template headings. Memory counters accept dated compact records; malformed run values are isolated. Tool arguments are data, with bounded quote/JSON parsing and no shell evaluation; external-root tools remain CLI-only.
+- A deterministic source-only browser packager and stale/unreviewed-file regressions prevent ZIP drift. Runtime source and monitored project are displayed separately. These changes do not add autonomous model/browser dispatch or a native desktop controller.
+
 [Public architecture](../documentation/ARCHITECTURE.md) describes the toolkit boundaries. [AGENTS.md](../AGENTS.md) is the single authority for agent behavior. Public role procedures and core tools improve in their existing paths; do not maintain duplicate versioned implementations.
 
 Model generation passes explicit project text to a trusted CLI in a temporary directory; the artifact layer validates writes and the Docker executor verifies code. Host CLI flags are not an OS sandbox. Trial treatment labels remain outside the deterministic scorer.
@@ -56,3 +64,41 @@ The existing bilingual evaluator owns pinned synthetic understanding contracts, 
 - Understanding offline verification now audits each generated prompt against independently declared required record IDs and exact source/scope data; grading expectations remain excluded from prompts. Live collection must reuse this preflight.
 
 - 2026-10-11 | The understanding collector binds canonical project identity and records a shuffled fixed paired plan before generation. Output is restricted to new private evaluation directories; each trial is preserved, failures stop repeated transport attempts, and model identity is explicitly requested.
+
+- 2026-10-11 | Concurrent example generation now declares reused helper implementations as prompt inputs for billing, planning and report. Acceptance tools remain excluded from generation.
+
+- 2026-10-11 | Planning acceptance enforces declared exception types without fixture-specific wording. Cycle representation is explicitly closed in the public generation contract.
+
+- 2026-10-11 | Report titles are explicit bilingual contract resources. Invalid payload acceptance checks required ValueError and named unknown key, rather than fixture-specific messages.
+
+- 2026-10-11 | Model repair_from references source failure state in the same bound checkout, exact candidate copies and unchanged producer/verifier scope; original sources/static verifier dependencies remain frozen. Failure diagnostics are bounded input data. Maximum two repair ancestors and existing request/admission budgets apply. Explicit plan preparation/dispatch remains pending.
+
+- 2026-10-11 | Repair preparation and execution reuse workflow.py through prepare-repair/repair. Owner-only candidate copies and plans live under /.crewloom-repairs/; privacy.py ignores and rejects this namespace in staged indexes. Unchanged verifier argv/dependencies/image digest, recorded criteria inputs, source hashes and two-repair ancestry bound the cycle; ordinary run does not automatically spend on repair.
+
+- 2026-10-11 | Final repair budget guard counts all model repair requests by original workflow across new IDs and branches. Regression rejects a branch after two requests, an oversized feedback prompt before provider calls and a substituted verifier image. Final Docker workflow31 passes.
+
+- 2026-10-11 | OpenCode model IDs remain explicit provider/model values. Optional opencode_provider references a bounded project-private five-field loopback provider contract; fixed OpenAI-compatible SDK and deny-all host profile remain. Hash enters prompt/generation evidence; changed profiles reject repair, publication and reuse. Byte budgets are not tokenizer or context-capacity estimates.
+
+- 2026-10-11 | Private local-provider readers now reject foreign ownership and any group/other permission bits on POSIX, matching the documented chmod600 contract. Non-POSIX ACL ownership remains unverified.
+
+- 2026-10-12 | Portable external-agent generation reuses workflow.py agent-packet for the reserved awaiting task. Packet carries bound project/checkout, plan/input/prompt hashes, schema and existing handoff; same model_host prompt construction and fresh exact-scope managed context apply. Export never dispatches, imports replies or accepts tasks.
+
+- 2026-10-12 | Manual browser companion is now an explicit extensions/ scope entry; native Codex plugin uses one CLI-backed skill under adapters/codex/plugin and a local marketplace. Browser activation is extension-wide persistent storage, default off, enforced at content/capture boundaries. Element clicks use owned references and generation checks. New API routes reuse guard/privateHeaders; native accessibility remains unknown, explicit screen probe is shell-free and bounded.
+
+- 2026-10-13 | Capture requests persist in session storage per explicit window with a30-second expiry and original tab identity; panel readiness consumes once. Form index metadata excludes entered input/textarea/select values.
+
+### 2026-10-14 — Bound MCP and external candidate imports
+- Optional official MCP SDK2.3.0 stdio bridge fixes project/root, checkout, policy, task and plan at launch. Read-only tools are the default inventory; import and container verification require explicit launch flags. No tool selects arbitrary roots, commands or providers.
+- External reply import reuses agent_packet, schema validation, project locks and grouped publication. Packet input/prompt/context/binding/output revisions must remain current, including output fingerprints captured before and after staging. Raw replies remain private; imports do not accept task reviews or create execution evidence.
+- A pinned isolated Playwright MCP config provides a separately authorized host browser integration. It does not turn the Chrome manual panel into an autonomous channel or establish native desktop trust.
+
+### 2026-10-14 — Scoped capture and native acceptance
+- Optional per-task native prompt capture reuses user_context, validated native callbacks, private source storage and frozen context. Literal placeholders/language conflicts retain source-linked questions; native guards refuse actions until a later captured answer resolves them. Interpretation is not permission or speaker authentication. Task MCP adds read questions and opt-in answer writes.
+- Separate native AX MCP connects only to an existing explicit private driver socket. Prepared fixture-only bounded manifests require human approval; exact app/window discovery, one-use button handles, serialization and private action audit precede re-observation. Mock acceptance and compilation do not establish live desktop control.
+- The existing understanding collector supports explicit preselected cases and reports subset coverage; failures and all paired trials remain preserved.
+
+- 2026-10-15 | Fixed observed PID replaces global app discovery under the fixture-only manifest. AX rows are projected by exact window ancestry; static counter text comes from its bounded tree block. Ambiguous identity/rows and potentially truncated blocks fail closed; menu history and raw tokens never leave the adapter.
+
+- 2026-10-15 | Coordinator task context is now projected into same-project Git worktrees with private source copies and parent/child selection receipts. Recheck before commit and on resume refuses changed corrections. Native preparation accepts an explicit exact app/window/button set or observation-only scope; no implicit new application authority.
+
+- 2026-10-17 | Bilingual acceptance covers the selected context/workflow language and localized UI success/empty/error states. Browser HUD retains only structured status keys/counts, reads saved language through extension storage, and updates its own lang/dir without changing the page; unknown external diagnostics remain verbatim.

@@ -17,6 +17,11 @@ class DomainExamples(unittest.TestCase):
             ('workflow-contract', 'examples/workflows/valid.json'),
             ('seo-packet', '--packet', 'examples/seo/article-packet.json'),
             ('mcp-config', '--config', 'examples/mcp/config.json'),
+            ('mcp-config', '--config', 'examples/mcp/rea.json'),
+            ('mcp-config', '--config', 'examples/mcp/cursor.json'),
+            ('mcp-config', '--config', 'examples/mcp/windsurf.json'),
+            ('re-findings', '--findings', 'examples/re/findings.json'),
+            ('system-design', '--packet', 'examples/system-design/global-messaging.json'),
             ('budget-pacing', '--daily-budget', '100', '--days-elapsed', '3', '--actual-spend', '300'),
             ('script-pacing', '--file', 'examples/video/script.txt', '--duration', '30'),
             ('grid-safety', '--project-dir', 'examples/ui', '--json'),
@@ -31,7 +36,7 @@ class DomainExamples(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             self.project=Path(folder)
             path=Path(folder)/'input.json'; path.write_text(json.dumps([]))
-            for tool, flag in [('seo-packet','--packet'),('mcp-config','--config')]:
+            for tool, flag in [('seo-packet','--packet'),('mcp-config','--config'),('re-findings','--findings'),('system-design','--packet')]:
                 with self.subTest(tool=tool):
                     result=self.run_tool(tool,flag,str(path))
                     self.assertEqual(result.returncode,2)

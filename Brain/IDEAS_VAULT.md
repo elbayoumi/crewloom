@@ -1,5 +1,11 @@
 # Ideas
 
+### 2026-10-15 — Construct async authority inside its execution loop
+Keep synchronous scope validation independent from event-loop allocation. Create async serialization primitives only during actual asynchronous use and bind the controller to that loop. Test real contention and reject foreign-loop reuse rather than relying on newer runtimes' lazy behavior.
+
+### 2026-10-15 — Make skipped acceptance visible
+Optional core coverage and explicit integration acceptance need separate outcomes. When an operator enables an integration, unavailable prerequisites should produce a failed run with a setup diagnosis. Keep screenshot/provider/native opt-ins individually labelled so a passing job cannot imply acceptance of every capability.
+
 Evaluate repeatable role tasks in both Arabic and English across target agent hosts. Keep provider-specific evidence separate from structural checks and local tool tests. Add optional components only with clean setup instructions and meaningful behavioral tests.
 
 
@@ -98,4 +104,42 @@ Keep personal preferences as scoped private input data instead of editing distri
 
 - 2026-10-11 | Paired synthetic outcomes identify useful targeted corrections, while general agency capability still requires actual multi-role delivery evidence.
 
+- 2026-10-11 | Contract prose does not replace actual reused helper code. Include existing runtime dependencies in generation input closure and preserve original failed attempts.
+
+- 2026-10-11 | Repair feedback must distinguish genuine behavioral defects from grader requirements absent from the public contract; preserve prior reports rather than silently rescoring them.
+
+- 2026-10-11 | Public copy resources and semantic refusal checks make failures actionable without weakening required invalid-input or unknown-field behavior.
+
+- 2026-10-11 | Compare equivalent per-task and integration contracts to catch duplicate hidden wording requirements; retain separately identified re-verification rather than rewriting failed prepare.
+
+- 2026-10-11 | A repair is a new recorded attempt against unchanged verification, with an immutable prior candidate and diagnostic; it is not replacement history or permission to weaken tests.
+
+- 2026-10-11 | Measure weaker-model benefit with frozen unseen tasks and the same verifier, reporting raw execution versus bounded repair, token/cost/time totals and user interventions. Preserve seeded repair demonstrations separately from real model-error baselines; do not turn a transport success into a quality claim.
+
 - 2026-10-11 | Freeze transitive scoring dependencies as well as prompts; exact arm inventory protects distractors and obsolete-record exclusion.
+
+- 2026-10-11 | Keep portable workflows separate from machine-local model endpoints. Evaluate capability by actual valid artifacts and unchanged acceptance rather than model names, context-window advertising or a successful catalogue lookup.
+
+- 2026-10-12 | Evaluate new agent integrations against the portable packet contract before adding automatic dispatch: exact project binding, schema-valid declared artifacts, fresh inputs, preserved failed attempts and independent verification. Contract availability alone proves no model quality gain.
+
+- 2026-10-12 | Native plugin availability, manual browser tools and agent automation are distinct capabilities. Keep activation at action boundaries, trust extension-owned references rather than DOM attributes, and measure readiness instead of translating a successful request into permission or registration.
+
+- 2026-10-13 | Test the lifecycle boundary, not only an already-open panel: worker restart, first initialization, wrong window, changed tab and expired requests are separate capture refusal conditions.
+
+### 2026-10-14 — Preserve identity across automation layers
+- Carry tab/frame/document/request identity from discovery through execution and return transport. Keep manual activation separate from agent automation consent; test delayed replies, navigation and disabled state in the real transport. Project/task identity must survive the same boundary in a future MCP bridge.
+
+### 2026-10-14 — Host capability separation
+- Keep the task/context/artifact MCP boundary reusable across hosts; attach an independently authorized browser or native desktop provider rather than expanding candidate import into arbitrary host execution. A host-capability matrix should record verified calls, permissions, application targets and unresolved scope.
+
+- 2026-10-14 | Keep native acceptance scoped to an account-free synthetic target before expanding actions. Independent mock refusal, human-approved driver capability, actual Accessibility state and a re-observed application postcondition are separate evidence.
+
+- 2026-10-15 | Keep live native acceptance opt-in and preserve a unique receipt for every attempt. Separate source and installed-runtime receipts; test foreign PID refusal and stale handles alongside visible state transitions.
+
+- 2026-10-15 | Use real generation failures to refine explicit runtime contracts without altering the frozen verifier. Freeze task-source context at the worktree boundary as well as inside model prompts. Report quality per attempted role and task, with failed and blocked runs retained.
+
+- 2026-10-16 | Close an operational acceptance with a published code candidate, a post-delivery correction completed from executor evidence, a per-role coverage inventory and retained failed phases. Unknown backend identity/cost and untested domains remain explicit fields, rather than blocking delivery of verified toolkit capabilities.
+
+- 2026-10-16 | Keep the manually installed browser companion in a stable reviewed directory so reloads retain its Chrome ID; immutable toolkit releases remain separate. Upgrade2.3.1 keeps the existing permissions and explicit enable boundary.
+
+- 2026-10-17 | Use equivalent language/direction/error acceptance for every localized change. Keep application labels and third-party diagnostics intact; a translation count or role-guide translation cannot demonstrate bilingual runtime quality.
