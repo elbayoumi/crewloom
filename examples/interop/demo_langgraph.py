@@ -51,6 +51,9 @@ def main() -> int:
             print(f"[+] Output:\n{res['output'].strip()}")
             print(f"[+] Exit Code: {res['exit_code']} | Duration: {res['duration_ms']}ms")
             print(f"[+] Security Badge: {res['isolation']}")
+            if res["exit_code"] != 0:
+                print(f"\n[!] LangGraph sandbox node failed with exit code {res['exit_code']}")
+                return res["exit_code"]
         else:
             print("\n[*] Docker binary not detected; completed offline node & state verification.")
             print("[*] PASS: LangGraph node callable and state transformation verified.")

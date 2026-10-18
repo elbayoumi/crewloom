@@ -58,6 +58,9 @@ def main() -> int:
             print(f"[+] Exit Code: {result['exit_code']}")
             print(f"[+] Output:\n{result['output'].strip()}")
             print(f"[+] Duration: {result['duration_ms']}ms | Isolation: {result['isolation']}")
+            if result["exit_code"] != 0:
+                print(f"\n[!] Sandbox execution failed with exit code {result['exit_code']}")
+                return result["exit_code"]
         else:
             print("\n[*] Docker binary not detected; completed offline command & protocol verification.")
             print("[*] PASS: CrewAI tool protocol and isolation flags verified.")

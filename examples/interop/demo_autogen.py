@@ -59,6 +59,9 @@ print("Fibonacci(10) =", fib(10))
             res = executor.execute_code_blocks(blocks)
             print(f"[+] Exit Code: {res.exit_code}")
             print(f"[+] Output:\n{res.output.strip()}")
+            if res.exit_code != 0:
+                print(f"\n[!] AutoGen CodeExecutor failed with exit code {res.exit_code}")
+                return res.exit_code
         else:
             print("\n[*] Docker binary not detected; completed offline parsing & protocol verification.")
             print("[*] PASS: AutoGen CodeExecutor protocol and block extraction verified.")

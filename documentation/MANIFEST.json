@@ -1,5 +1,5 @@
 {
-  "package_version": "0.8.0",
+  "package_version": "0.8.1",
   "scope": "Reviewed release candidate source; runtime/build directories and this manifest excluded; publication requires final checks and merge",
   "files": {
     ".agents/CODE_REGISTRY.md": "7335a05d2543fa2be7376a4a3cda6f0d5a4692d07999a758c1db63811f824bc8",
@@ -714,9 +714,9 @@
     "examples/evaluation/unicode-slug/results.json": "7cbc8a1344f4c3315395a35bb463c2d8e2d89438f88363c5be8d962f6a34b1ff",
     "examples/evaluation/unicode-slug/seeded-baseline/src/slug.py": "18a4f92b60a27406614614ab414eb86d9c619b23f0bb0df859b6081faff3d74f",
     "examples/interop/README.md": "6e9bdcd719d02e1ac469c102398e2372713824586043ede832ae8c1310f21dc1",
-    "examples/interop/demo_autogen.py": "827e7fd6b23d29d7048e9499abfc7932f0a2244af6a3c06c0f0532f7fa037b67",
-    "examples/interop/demo_crewai.py": "4161e4c335088e1beb73190885573496de95873aa1c7aee69fb9ea28ccda928d",
-    "examples/interop/demo_langgraph.py": "66ef10ccd32f7910be10269684b2c967dd496a01f7ab14ff4eb8d22ffccf03c1",
+    "examples/interop/demo_autogen.py": "b0fc1cf38f3238c1203e6b61537b1202f7c193d44f3590335fc3a181c739efae",
+    "examples/interop/demo_crewai.py": "aa36c9d1ce3f425cf94d17cb8be1635f7d47a70de2ac029c8a59c2dc40d3bc2d",
+    "examples/interop/demo_langgraph.py": "9711c456c679910616a1aea5abddeb00c4bfe4defc591a33763f323595b75cff",
     "examples/mcp/README.md": "41578c6f3357fb4134a76338050ec04aa344d2c3a102da23f038e1836b2ab821",
     "examples/mcp/config.json": "6234fd85be9033db5aed61e0b6159b786084fdd32cf95f7d8b9f8d35c94db8bb",
     "examples/mcp/crewloom-task.json": "c986513a5952b9588d092f6f2314588fad68c72dec7bd19c96b9da4d574d0c87",
