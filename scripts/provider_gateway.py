@@ -44,17 +44,59 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         raise ValueError('Provider redirects are forbidden')
 
 
-def _is_private_or_loopback_host(hostname: str) -> bool:
-    """Check if hostname is loopback or a private RFC 1918 / mDNS / local domain."""
-    if hostname in ('localhost', '127.0.0.1', '::1'):
-        return True
-    if hostname.endswith(('.local', '.internal', '.lan')):
-        return True
+ALLOWED_LOCAL_NETWORKS: Tuple[Any, ...] = (
+    ipaddress.ip_network('127.0.0.0/8'),
+    ipaddress.ip_network('10.0.0.0/8'),
+    ipaddress.ip_network('172.16.0.0/12'),
+    ipaddress.ip_network('192.168.0.0/16'),
+    ipaddress.ip_network('::1/128'),
+    ipaddress.ip_network('fc00::/7'),
+)
+
+
+def _is_ip_allowed(ip: Any) -> bool:
+    """Verify that an IP address is within permitted loopback or RFC 1918 / ULA CIDRs."""
+    return any(ip in network for network in ALLOWED_LOCAL_NETWORKS)
+
+
+def _validate_local_endpoint_host(hostname: str) -> None:
+    """Validate that hostname resolves strictly to approved loopback or RFC 1918 CIDRs."""
+    import socket
+
+    if not hostname:
+        raise ValueError('Local provider hostname cannot be empty')
+
+    # Try parsing directly as an IP literal first
     try:
         ip = ipaddress.ip_address(hostname)
-        return ip.is_private or ip.is_loopback
-    except ValueError:
-        return False
+        if not _is_ip_allowed(ip):
+            raise ValueError(
+                f'Local provider address {hostname} is outside allowed loopback and RFC 1918 CIDRs'
+            )
+        return
+    except ValueError as exc:
+        if 'outside allowed loopback' in str(exc):
+            raise
+
+    # Resolve DNS hostnames and verify all resolved addresses to prevent DNS rebinding
+    try:
+        addr_info = socket.getaddrinfo(hostname, None)
+    except socket.gaierror as exc:
+        raise ValueError(f'Failed to resolve local provider hostname {hostname!r}: {exc}') from None
+
+    if not addr_info:
+        raise ValueError(f'Local provider hostname {hostname!r} resolved to no addresses')
+
+    for _family, _socktype, _proto, _canonname, sockaddr in addr_info:
+        ip_str = sockaddr[0]
+        try:
+            ip = ipaddress.ip_address(ip_str)
+        except ValueError:
+            raise ValueError(f'Invalid resolved IP address {ip_str!r} for {hostname!r}') from None
+        if not _is_ip_allowed(ip):
+            raise ValueError(
+                f'Local provider hostname {hostname!r} resolved to {ip_str}, which is outside allowed CIDRs'
+            )
 
 
 def _resolve_endpoint(provider: str) -> str:
@@ -78,8 +120,8 @@ def _resolve_endpoint(provider: str) -> str:
             raise ValueError('Local provider requires an explicit port')
 
         allow_remote = os.environ.get('CREWLOOM_ALLOW_REMOTE_GATEWAY') == '1'
-        if not allow_remote and not _is_private_or_loopback_host(url.hostname or ''):
-            raise ValueError('Local provider must use a loopback or private network URL without credentials or query')
+        if not allow_remote:
+            _validate_local_endpoint_host(url.hostname or '')
 
         path = url.path.rstrip('/')
         if provider == 'ollama':
@@ -344,14 +386,13 @@ def parse(
             'prompt_tokens': prompt_tokens,
             'completion_tokens': completion_tokens,
         }
-    else:
-        raise ValueError(f'Unknown provider: {provider}')
-
     raw = ''.join(text).strip()
 
-    # Cleanly strip DeepSeek R1 reasoning tags <think>...</think>
-    if '<think>' in raw and '</think>' in raw:
-        raw = re.sub(r'<think>.*?</think>', '', raw, flags=re.DOTALL).strip()
+    # Cleanly strip only a leading model reasoning block outside the JSON payload
+    if raw.startswith('<think>'):
+        end_idx = raw.find('</think>')
+        if end_idx != -1:
+            raw = raw[end_idx + len('</think>'):].strip()
 
     # Strip markdown code fences if present
     if raw.startswith('```json') and raw.endswith('```'):
