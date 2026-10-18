@@ -21,6 +21,7 @@ Run these commands from an activated development environment at the repository r
 git config core.hooksPath .githooks
 python -m pip install '.[syntax,mcp]' 'playwright==1.63.0'
 python scripts/check_repository.py
+# After changing tracked files, refresh the manifest first: python scripts/check_repository.py --write-manifest
 python scripts/package_browser.py --check
 CREWLOOM_DISTRIBUTION_TESTS=1 python -m unittest discover -s scripts -p test_distribution.py
 CREWLOOM_MCP_TESTS=1 python -m unittest discover -s scripts -p test_mcp_bridge.py

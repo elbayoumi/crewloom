@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `check_repository.py` now fails when `documentation/MANIFEST.json` omits, invents or mis-hashes a Git-tracked file; `--write-manifest` regenerates it. Skipped outside a Git checkout.
+
 ## 0.7.0 — 2026-10-18
 
 - Add the `distributed-systems-architect` role (44 roles), an architecture procedure in English and Arabic, standard-library `system-design` verifier (20 tools) checking high-availability SLOs and SPOFs, workflow contract `workflows/system-design.json`, and a 100K RPS real-time global messaging reference blueprint.
