@@ -84,6 +84,8 @@ class DockerCommand(unittest.TestCase):
             self.build(root=comma)
         with self.assertRaisesRegex(ValueError, 'commas'):
             w.bind_mount('/tmp/x,readonly=false', '/workspace')
+        with self.assertRaisesRegex(ValueError, 'commas'):
+            w.bind_mount('/tmp/clean', '/workspace/a,b')
 
     def test_writable_path_cannot_escape_the_project(self):
         with self.assertRaises(ValueError):
