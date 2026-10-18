@@ -11,7 +11,8 @@ The dashboard gives launched tools a copy of its environment without the dashboa
 Crewloom enforces OS-level container isolation and defense-in-depth sandboxing for autonomous workflows via Docker. Containers share the host kernel; for untrusted hostile code samples, run in a dedicated, disposable virtual machine.
 
 1. **Rootless & Non-Root Execution**:
-   - Workflow containers refuse execution under host root (`uid == 0`).
+   - Workflow containers refuse execution under host root (`uid == 0`) by default.
+   - For containerized CI/CD or Docker-in-Docker environments where the runner process executes as root, set `CREWLOOM_ALLOW_CONTAINER_ROOT=1` to safely execute container tasks under unprivileged UID `10001:10001`, or specify an explicit unprivileged user via `CREWLOOM_CONTAINER_USER=<uid>:<gid>` (e.g. `10001:10001`). Execution with root container UID (`0:0`) remains strictly refused.
    - The `--user` flag mirrors the unprivileged host user (`uid:gid`), preventing files created inside the container from escaping ownership bounds.
    - When deploying in containerized CI runners with `userns-remap` or rootless Docker, ensure checkout files and declared writable directories are pre-arranged with ownership matching the mapped subordinate UID/GID range, because Crewloom passes the caller's numeric `uid:gid` through `--user`. Without pre-arranged subordinate permissions, write stages on bind mounts will fail. Refer to Docker Engine security documentation for rootless UID/GID mapping and userns-remap bind-mount ownership.
 

@@ -613,13 +613,26 @@ def bind_mount(source, destination, readonly=False):
 
 
 def docker_user():
-    """Ensure workflow containers never run as root; unprivileged users run under their own uid:gid."""
+    """Ensure workflow containers never run as root; unprivileged users run under their own uid:gid.
+
+    In containerized CI/CD or Docker-in-Docker environments where the outer runner executes
+    as root (uid 0), an unprivileged fallback user (e.g. 10001:10001) may be configured via
+    CREWLOOM_CONTAINER_USER or CREWLOOM_ALLOW_CONTAINER_ROOT to safely prevent host root
+    escalation without breaking automated pipelines.
+    """
     if not hasattr(os, 'getuid') or not hasattr(os, 'getgid'):
         raise ValueError('Workflow containers require Linux, macOS or WSL; native Windows is not supported yet')
     uid = os.getuid()
     gid = os.getgid()
     if uid == 0:
-        raise ValueError('Workflow containers refuse to run as root; execute as an unprivileged user')
+        override = os.environ.get('CREWLOOM_CONTAINER_USER', '').strip()
+        if override:
+            if not re.fullmatch(r'[0-9]+:[0-9]+', override) or override.startswith('0:'):
+                raise ValueError('CREWLOOM_CONTAINER_USER must specify unprivileged uid:gid (e.g. 10001:10001)')
+            return override
+        if os.environ.get('CREWLOOM_ALLOW_CONTAINER_ROOT') == '1':
+            return '10001:10001'
+        raise ValueError('Workflow containers refuse to run as root; execute as an unprivileged user or configure CREWLOOM_CONTAINER_USER / CREWLOOM_ALLOW_CONTAINER_ROOT')
     return f'{uid}:{gid}'
 
 

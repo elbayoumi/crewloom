@@ -42,11 +42,31 @@ class DockerCommand(unittest.TestCase):
             self.assertIn(flag, pairs)
 
     def test_root_user_is_refused(self):
-        with mock.patch('os.getuid', return_value=0):
+        with mock.patch('os.getuid', return_value=0), mock.patch.dict(os.environ, {}, clear=True):
             with self.assertRaisesRegex(ValueError, 'refuse to run as root'):
                 self.build()
-        with mock.patch('os.getuid', return_value=0):
+        with mock.patch('os.getuid', return_value=0), mock.patch.dict(os.environ, {}, clear=True):
             with self.assertRaisesRegex(ValueError, 'refuse to run as root'):
+                w.docker_user()
+
+    def test_container_root_fallback_when_allowed(self):
+        with mock.patch('os.getuid', return_value=0), mock.patch.dict(os.environ, {'CREWLOOM_ALLOW_CONTAINER_ROOT': '1'}):
+            self.assertEqual(w.docker_user(), '10001:10001')
+            command = self.build()
+            self.assertEqual(self.pairs(command)['--user'], '10001:10001')
+
+    def test_container_user_custom_override(self):
+        with mock.patch('os.getuid', return_value=0), mock.patch.dict(os.environ, {'CREWLOOM_CONTAINER_USER': '1002:1002'}):
+            self.assertEqual(w.docker_user(), '1002:1002')
+            command = self.build()
+            self.assertEqual(self.pairs(command)['--user'], '1002:1002')
+
+    def test_container_user_rejects_root_and_malformed_override(self):
+        with mock.patch('os.getuid', return_value=0), mock.patch.dict(os.environ, {'CREWLOOM_CONTAINER_USER': '0:0'}):
+            with self.assertRaisesRegex(ValueError, 'CREWLOOM_CONTAINER_USER must specify unprivileged uid:gid'):
+                w.docker_user()
+        with mock.patch('os.getuid', return_value=0), mock.patch.dict(os.environ, {'CREWLOOM_CONTAINER_USER': 'root:root'}):
+            with self.assertRaisesRegex(ValueError, 'CREWLOOM_CONTAINER_USER must specify unprivileged uid:gid'):
                 w.docker_user()
 
     def test_no_privilege_widening_options(self):

@@ -55,7 +55,14 @@ def _docker_user() -> str:
     uid = os.getuid()
     gid = os.getgid()
     if uid == 0:
-        raise ValueError("Workflow containers refuse to run as root; execute as an unprivileged user")
+        override = os.environ.get("CREWLOOM_CONTAINER_USER", "").strip()
+        if override:
+            if not re.fullmatch(r"[0-9]+:[0-9]+", override) or override.startswith("0:"):
+                raise ValueError("CREWLOOM_CONTAINER_USER must specify unprivileged uid:gid (e.g. 10001:10001)")
+            return override
+        if os.environ.get("CREWLOOM_ALLOW_CONTAINER_ROOT") == "1":
+            return "10001:10001"
+        raise ValueError("Workflow containers refuse to run as root; execute as an unprivileged user or configure CREWLOOM_CONTAINER_USER / CREWLOOM_ALLOW_CONTAINER_ROOT")
     return f"{uid}:{gid}"
 
 

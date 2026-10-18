@@ -176,7 +176,7 @@ def run_dashboard(port, project, hostname):
         return 2
     npm = shutil.which('npm')
     if not npm:
-        print('npm not found: install Node 24+ to use the dashboard', file=sys.stderr)
+        print('npm not found: install Node 20+ to use the dashboard', file=sys.stderr)
         return 1
     if not dashboard_binding_allowed(hostname):
         print('Refusing a non-loopback dashboard bind without configured authentication. '
@@ -551,7 +551,7 @@ def main():
     install.add_argument('--target', default='.', help='Project directory (default: current)')
     install.add_argument('--skill', action='append', default=[], help='Role ID; repeat for several (default: all)')
     install.add_argument('--force', action='store_true', help='Overwrite roles that already exist')
-    dash = commands.add_parser('dashboard', help='Start the live dashboard (needs Node 24+)')
+    dash = commands.add_parser('dashboard', help='Start the live dashboard (needs Node 20+)')
     dash.add_argument('--project', default='.', help='Project monitored by this dashboard process')
     dash.add_argument('--port', type=int, default=4317)
     dash.add_argument('--host', default='127.0.0.1',

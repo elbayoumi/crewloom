@@ -1,6 +1,6 @@
 # Crewloom Dashboard
 
-A standalone Next.js web app that monitors a Crewloom checkout live. The Python toolkit stays standard-library only; the dashboard is optional and needs Node 24+.
+A standalone Next.js web app that monitors a Crewloom checkout live. The Python toolkit stays standard-library only; the dashboard is optional and needs Node 20+.
 
 ```bash
 cd dashboard
