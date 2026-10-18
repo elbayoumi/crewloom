@@ -1462,7 +1462,7 @@ def doctor(image, root=None, host=None, model_host=None):
         from model_host import probe
         from provider_gateway import PROVIDERS
         try:
-            checks['model_host'] = ({'provider':model_host,'generation_supported':True,'credentials_configured':bool(os.environ.get(PROVIDERS[model_host][1])),'authentication_verified':False} if model_host in PROVIDERS else probe(model_host))
+            checks['model_host'] = ({'provider':model_host,'generation_supported':True,'credentials_configured':bool(model_host in ('ollama','vllm') or os.environ.get(PROVIDERS[model_host][1])),'authentication_verified':False} if model_host in PROVIDERS else probe(model_host))
         except (ValueError, OSError, subprocess.SubprocessError) as exc: checks['model_host'] = {'generation_supported': False, 'error': str(exc)}
     if root and host:
         directory = root / ('.agents' if host == 'agents' else '.claude') / 'skills'

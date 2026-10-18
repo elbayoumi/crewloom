@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 from urllib.parse import urlsplit
 
-HOSTS = ('codex', 'claude', 'opencode', 'openai', 'anthropic')
+HOSTS = ('codex', 'claude', 'opencode', 'openai', 'anthropic', 'ollama', 'vllm')
 # Hosts reached through an installed CLI, which is the explicit operator exception.
 CLI_HOSTS = ('codex', 'claude', 'opencode')
 MAX_TEXT = 256 * 1024
