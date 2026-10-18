@@ -552,6 +552,49 @@ class TestLangGraphSandboxNode(unittest.TestCase):
             code = main(["--file", "nonexistent.py", "--workspace", str(self.workspace)])
         self.assertEqual(code, 2)
 
+    @mock.patch("adapters.interop.langgraph_sandbox.execute_sandbox_command")
+    def test_raw_code_with_internal_markdown_literal_preserved(self, mock_exec):
+        mock_exec.return_value = {
+            "exit_code": 0,
+            "output": "literal printed\n",
+            "timed_out": False,
+            "duration_ms": 10,
+            "output_truncated": False,
+            "isolation": "crewloom-airgap",
+            "image_id": "python:3.11-slim",
+        }
+        node = CrewloomLangGraphNode(workspace_root=self.workspace)
+        raw_code = 'print("""```python\\nprint(999)\\n```""")'
+        delta = node({"code": raw_code, "language": "python"})
+        self.assertIn("sandbox_result", delta)
+        called_argv = mock_exec.call_args[1]["argv"]
+        # Raw program must be preserved verbatim, not truncated to print(999)
+        self.assertEqual(called_argv, ["python3", "-c", raw_code])
+
+    @mock.patch("adapters.interop.langgraph_sandbox.execute_sandbox_command")
+    def test_positional_factory_arguments_compatibility(self, mock_exec):
+        mock_exec.return_value = {
+            "exit_code": 0,
+            "output": "positional ok\n",
+            "timed_out": False,
+            "duration_ms": 5,
+            "output_truncated": False,
+            "isolation": "crewloom-airgap",
+            "image_id": "python:3.11-slim",
+        }
+        # Positional arguments: workspace_root, image_id, timeout, writable, input_key, output_key
+        node = create_crewloom_sandbox_node(
+            self.workspace,
+            "python:3.11-slim",
+            30,
+            None,
+            "custom_code",
+            "custom_output",
+        )
+        delta = node({"custom_code": "print('positional test')"})
+        self.assertIn("custom_output", delta)
+        self.assertEqual(delta["custom_output"]["exit_code"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

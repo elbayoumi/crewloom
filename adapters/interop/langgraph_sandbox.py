@@ -88,6 +88,7 @@ class CrewloomLangGraphNode:
             }
 
         code = state.get(self.input_key, "")
+        from_message = False
         if not code and "messages" in state:
             # Fallback: inspect the last message for tool_calls or code
             messages = state["messages"]
@@ -95,8 +96,10 @@ class CrewloomLangGraphNode:
                 last_msg = messages[-1]
                 if hasattr(last_msg, "content"):
                     code = str(last_msg.content)
+                    from_message = True
                 elif isinstance(last_msg, dict):
                     code = str(last_msg.get("content", ""))
+                    from_message = True
 
         if not code:
             return {
@@ -113,17 +116,29 @@ class CrewloomLangGraphNode:
             }
 
         language = state.get(self.language_key, "python")
-        extracted_blocks: List[CodeBlock] = extract_code_blocks(str(code))
+        code_str = str(code)
+
+        extracted_blocks: List[CodeBlock] = extract_code_blocks(code_str)
         if extracted_blocks:
-            # Match language-specific block if available, otherwise pick the first
-            matched = [
-                b for b in extracted_blocks
-                if b.language == language or (language in ("python", "python3", "py") and b.language in ("python", "python3", "py"))
-            ]
-            target_block = matched[0] if matched else extracted_blocks[0]
-            code = target_block.code
-            if not state.get(self.language_key):
-                language = target_block.language
+            is_valid_syntax = False
+            if language in ("python", "python3", "py"):
+                try:
+                    import ast
+                    ast.parse(code_str)
+                    is_valid_syntax = True
+                except (SyntaxError, ValueError):
+                    is_valid_syntax = False
+
+            # Extract blocks if from message, or if not valid syntax as a raw script
+            if from_message or not is_valid_syntax:
+                matched = [
+                    b for b in extracted_blocks
+                    if b.language == language or (language in ("python", "python3", "py") and b.language in ("python", "python3", "py"))
+                ]
+                target_block = matched[0] if matched else extracted_blocks[0]
+                code = target_block.code
+                if not state.get(self.language_key):
+                    language = target_block.language
 
         if language in ("python", "python3", "py"):
             argv = ["python3", "-c", str(code)]
@@ -163,8 +178,8 @@ def create_crewloom_sandbox_node(
     timeout: int = 30,
     writable: Optional[Sequence[str]] = None,
     input_key: str = "code",
-    language_key: str = "language",
     output_key: str = "sandbox_result",
+    language_key: str = "language",
     cancellation_token: Any = None,
 ) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
     """Factory creating a LangGraph node function for isolated container execution."""
