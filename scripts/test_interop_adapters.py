@@ -11,6 +11,7 @@ Verifies:
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 import sys
@@ -359,32 +360,36 @@ echo "done"
         self.assertTrue(executor.stateful)
         with mock.patch("adapters.interop.autogen_sandbox.execute_sandbox_command") as mock_exec:
             mock_exec.return_value = {"exit_code": 0, "output": "stateful_output"}
-            res = executor.execute_code_blocks([CodeBlock(language="python", code="x = 10")])
+            res = executor.execute_code_blocks([CodeBlock(language="python", code="def add(a, b): return a + b\nx = 10")])
             self.assertEqual(res.exit_code, 0)
             self.assertEqual(res.output, "stateful_output")
-            # Verify argv passed to execute_sandbox_command used the stateful wrapper
+
+            # Block 1 was recorded in session
+            self.assertEqual(len(executor._session_blocks), 1)
+
+            # Block 2 should replay block 1
+            res2 = executor.execute_code_blocks([CodeBlock(language="python", code="print(add(x, 20))")])
+            self.assertEqual(res2.exit_code, 0)
+
             called_argv = mock_exec.call_args[1]["argv"]
             self.assertEqual(called_argv[0], "python3")
             self.assertEqual(called_argv[1], "-c")
-            self.assertIn("_STATE_FILE", called_argv[2])
-            self.assertIn("_HISTORY_FILE", called_argv[2])
+            self.assertIn("_REPLAY_BLOCKS", called_argv[2])
+            self.assertIn("def add(a, b): return a + b", called_argv[2])
 
     def test_restart_cleans_session_state(self):
         executor = CrewloomAutoGenExecutor(workspace_root=self.workspace, stateful=True)
         session_dir = self.workspace / ".crewloom" / "autogen_session"
         session_dir.mkdir(parents=True, exist_ok=True)
-        state_file = session_dir / "session_state.pkl"
-        hist_file = session_dir / "session_history.py"
-        state_file.write_text("dummy state")
-        hist_file.write_text("dummy history")
+        hist_file = session_dir / "session_history.json"
+        hist_file.write_text(json.dumps(["x = 10"]))
 
-        self.assertTrue(state_file.exists())
         self.assertTrue(hist_file.exists())
 
         executor.restart()
 
-        self.assertFalse(state_file.exists())
         self.assertFalse(hist_file.exists())
+        self.assertEqual(executor._session_blocks, [])
 
     def test_autogen_cli_runner(self):
         from adapters.interop.autogen_sandbox import main

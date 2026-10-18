@@ -76,72 +76,34 @@ def _is_cancelled(cancellation_token: Any) -> bool:
     return False
 
 
-def _build_stateful_python_wrapper(user_code: str, state_path: str, history_path: str) -> str:
-    """Generate isolated Python runner that persists state variables across executions."""
-    # Escape triple quotes in user code if necessary
-    user_code_escaped = user_code.replace("\\", "\\\\").replace('"""', '\\"\\"\\"')
-
+def _build_stateful_python_wrapper(current_code: str, previous_blocks: Sequence[str]) -> str:
+    """Generate isolated Python runner that replays previous blocks with suppressed stdout/stderr."""
     return f'''
-import importlib
 import os
-import pickle
 import sys
 
-_STATE_FILE = {repr(state_path)}
-_HISTORY_FILE = {repr(history_path)}
+_REPLAY_BLOCKS = {repr(list(previous_blocks))}
+_CURRENT_CODE = {repr(current_code)}
 
-# 1. Restore previous session state (variables & imported modules)
-_SESSION_DATA = {{"vars": {{}}, "modules": []}}
-if os.path.isfile(_STATE_FILE):
+if _REPLAY_BLOCKS:
+    _saved_stdout, _saved_stderr = sys.stdout, sys.stderr
     try:
-        with open(_STATE_FILE, "rb") as _f:
-            _SESSION_DATA = pickle.load(_f)
-    except Exception:
-        _SESSION_DATA = {{"vars": {{}}, "modules": []}}
-
-for _mod in _SESSION_DATA.get("modules", []):
-    try:
-        globals()[_mod] = importlib.import_module(_mod)
-    except Exception:
-        pass
-
-globals().update(_SESSION_DATA.get("vars", {{}}))
-
-# 2. Append block to session history log
-try:
-    os.makedirs(os.path.dirname(_HISTORY_FILE), exist_ok=True)
-    with open(_HISTORY_FILE, "a", encoding="utf-8") as _hf:
-        _hf.write("\\n# --- Block Execution ---\\n" + """{user_code_escaped}""" + "\\n")
-except Exception:
-    pass
-
-# 3. Execute target user code within globals
-_CODE_TO_EXEC = """{user_code_escaped}"""
-exec(compile(_CODE_TO_EXEC, "<autogen-session>", "exec"), globals())
-
-# 4. Snapshot picklable variables and new modules
-_NEW_VARS = {{}}
-_NEW_MODULES = []
-
-for _k, _v in list(globals().items()):
-    if _k.startswith("_") or _k in ("_STATE_FILE", "_HISTORY_FILE", "_SESSION_DATA", "_CODE_TO_EXEC", "_NEW_VARS", "_NEW_MODULES"):
-        continue
-    if type(_v).__name__ == "module":
-        if hasattr(_v, "__name__") and _v.__name__ not in _NEW_MODULES:
-            _NEW_MODULES.append(_v.__name__)
-    else:
+        sys.stdout = open(os.devnull, "w")
+        sys.stderr = open(os.devnull, "w")
+        for _block in _REPLAY_BLOCKS:
+            try:
+                exec(compile(_block, "<autogen-replay>", "exec"), globals())
+            except Exception:
+                pass
+    finally:
         try:
-            pickle.dumps(_v)
-            _NEW_VARS[_k] = _v
+            sys.stdout.close()
+            sys.stderr.close()
         except Exception:
             pass
+        sys.stdout, sys.stderr = _saved_stdout, _saved_stderr
 
-try:
-    os.makedirs(os.path.dirname(_STATE_FILE), exist_ok=True)
-    with open(_STATE_FILE, "wb") as _f:
-        pickle.dump({{"vars": _NEW_VARS, "modules": _NEW_MODULES}}, _f)
-except Exception:
-    pass
+exec(compile(_CURRENT_CODE, "<autogen-session>", "exec"), globals())
 '''
 
 
@@ -176,8 +138,27 @@ class CrewloomAutoGenExecutor:
         self.writable = tuple(writable) if writable is not None else None
         self.stateful = stateful
         self._session_dir = self.workspace_root / ".crewloom" / "autogen_session"
-        self._state_file = self._session_dir / "session_state.pkl"
-        self._history_file = self._session_dir / "session_history.py"
+        self._history_file = self._session_dir / "session_history.json"
+        self._session_blocks: List[str] = self._load_session_history() if stateful else []
+
+    def _load_session_history(self) -> List[str]:
+        """Load session block history from workspace on host."""
+        if self._history_file.exists():
+            try:
+                return json.loads(self._history_file.read_text(encoding="utf-8"))
+            except Exception:
+                return []
+        return []
+
+    def _save_session_history(self) -> None:
+        """Persist session block history to workspace on host."""
+        if not self.stateful:
+            return
+        try:
+            self._session_dir.mkdir(parents=True, exist_ok=True)
+            self._history_file.write_text(json.dumps(self._session_blocks), encoding="utf-8")
+        except OSError:
+            pass
 
     def execute_code_blocks(
         self,
@@ -225,10 +206,7 @@ class CrewloomAutoGenExecutor:
             lang = block.language.lower()
             if lang in ("python", "python3", "py"):
                 if self.stateful:
-                    # In container, workspace is mounted at /workspace
-                    container_state = "/workspace/.crewloom/autogen_session/session_state.pkl"
-                    container_hist = "/workspace/.crewloom/autogen_session/session_history.py"
-                    wrapper_code = _build_stateful_python_wrapper(block.code, container_state, container_hist)
+                    wrapper_code = _build_stateful_python_wrapper(block.code, self._session_blocks)
                     argv = ["python3", "-c", wrapper_code]
                 else:
                     argv = ["python3", "-c", block.code]
@@ -265,15 +243,16 @@ class CrewloomAutoGenExecutor:
                     output=combined_output or f"Command failed with exit code {result['exit_code']}",
                 )
 
+            # Record successful python execution for session continuity
+            if self.stateful and lang in ("python", "python3", "py"):
+                self._session_blocks.append(block.code)
+                self._save_session_history()
+
         return CommandLineCodeResult(exit_code=0, output="\n".join(combined_outputs))
 
     def restart(self) -> None:
         """Reset persistent executor state and session history."""
-        if self._state_file.exists():
-            try:
-                self._state_file.unlink()
-            except OSError:
-                pass
+        self._session_blocks.clear()
         if self._history_file.exists():
             try:
                 self._history_file.unlink()
