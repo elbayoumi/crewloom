@@ -68,8 +68,19 @@ def run(output, hosts, timeout=120, image=w.DEFAULT_IMAGE, seed=20261010, models
                 (folder / ('candidate-%02d.py' % index)).write_bytes(source)
                 cases = [grading._grade_case(source, task, case, 0, image_id, 15, root, (),
                                             Path(task['output']).name) for case in task['cases']]
+                metrics = evidence.get('usage_metrics') or {}
                 result.update(status='scored', evidence=evidence, source_sha256=w.digest(source),
-                              passed=sum(c['passed'] for c in cases), total=len(cases), cases=cases)
+                              passed=sum(c['passed'] for c in cases), total=len(cases), cases=cases,
+                              duration_generation_ms=evidence.get('duration_ms'),
+                              duration_grading_ms=sum(c.get('duration_ms_total', c.get('duration_ms', 0)) for c in cases),
+                              cost_usd=evidence.get('cost_usd'),
+                              cache_efficiency=evidence.get('cache_efficiency'),
+                              usage_metrics=metrics,
+                              input_tokens=metrics.get('input_tokens'),
+                              cached_input_tokens=metrics.get('cached_input_tokens'),
+                              cache_write_tokens=metrics.get('cache_write_tokens'),
+                              output_tokens=metrics.get('output_tokens'),
+                              total_tokens=metrics.get('total_tokens'))
             except (ValueError, OSError) as exc:
                 message = str(exc)
                 result.update(status='failed', error=message)
@@ -82,6 +93,63 @@ def run(output, hosts, timeout=120, image=w.DEFAULT_IMAGE, seed=20261010, models
     report['inputs_unchanged'] = frozen_inputs() == frozen
     report['scored_trials'] = sum(t['status'] == 'scored' for t in report['trials'])
     report['complete'] = report['inputs_unchanged'] and report['scored_trials'] == len(trials)
+    report['telemetry'] = [
+        {
+            'host': host,
+            'task': task['id'],
+            'language': language,
+            'planned': len(group),
+            'scored': sum(t['status'] == 'scored' for t in group),
+            'failed': sum(t['status'] != 'scored' for t in group),
+            'pass_rate': (
+                round(sum(t['passed'] for t in group if t.get('passed') is not None) /
+                      sum(t['total'] for t in group if t.get('total')), 4)
+                if any(t.get('total') for t in group) else None
+            ),
+            'mean_duration_generation_ms': (
+                round(sum(t['duration_generation_ms'] for t in group if t.get('duration_generation_ms') is not None) /
+                      len([t for t in group if t.get('duration_generation_ms') is not None]), 1)
+                if any(t.get('duration_generation_ms') is not None for t in group) else None
+            ),
+            'mean_duration_grading_ms': (
+                round(sum(t['duration_grading_ms'] for t in group if t.get('duration_grading_ms') is not None) /
+                      len([t for t in group if t.get('duration_grading_ms') is not None]), 1)
+                if any(t.get('duration_grading_ms') is not None for t in group) else None
+            ),
+            'mean_input_tokens': (
+                round(sum(t['input_tokens'] for t in group if t.get('input_tokens') is not None) /
+                      len([t for t in group if t.get('input_tokens') is not None]), 1)
+                if any(t.get('input_tokens') is not None for t in group) else None
+            ),
+            'mean_cached_input_tokens': (
+                round(sum(t['cached_input_tokens'] for t in group if t.get('cached_input_tokens') is not None) /
+                      len([t for t in group if t.get('cached_input_tokens') is not None]), 1)
+                if any(t.get('cached_input_tokens') is not None for t in group) else None
+            ),
+            'mean_cache_write_tokens': (
+                round(sum(t['cache_write_tokens'] for t in group if t.get('cache_write_tokens') is not None) /
+                      len([t for t in group if t.get('cache_write_tokens') is not None]), 1)
+                if any(t.get('cache_write_tokens') is not None for t in group) else None
+            ),
+            'mean_output_tokens': (
+                round(sum(t['output_tokens'] for t in group if t.get('output_tokens') is not None) /
+                      len([t for t in group if t.get('output_tokens') is not None]), 1)
+                if any(t.get('output_tokens') is not None for t in group) else None
+            ),
+            'mean_total_tokens': (
+                round(sum(t['total_tokens'] for t in group if t.get('total_tokens') is not None) /
+                      len([t for t in group if t.get('total_tokens') is not None]), 1)
+                if any(t.get('total_tokens') is not None for t in group) else None
+            ),
+            'cache_efficiency': (
+                round(sum(t['cache_efficiency'] for t in group if t.get('cache_efficiency') is not None) /
+                      len([t for t in group if t.get('cache_efficiency') is not None]), 4)
+                if any(t.get('cache_efficiency') is not None for t in group) else None
+            ),
+        }
+        for host in hosts for task in tasks for language in ('en', 'ar')
+        for group in [[t for t in report['trials'] if (t['host'], t['task'], t['language']) == (host, task['id'], language)]]
+    ]
     save()
     return report
 

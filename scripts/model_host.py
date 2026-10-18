@@ -334,6 +334,50 @@ def _codex_metrics(usage):
             'total_tokens':total}
 
 
+def _claude_metrics(usage):
+    """Normalize Claude / Anthropic usage metrics, separating cache read and write."""
+    if not isinstance(usage, dict):
+        raise ValueError('Malformed provider usage evidence')
+    uncached = _count(usage.get('input_tokens'), 'input token')
+    cached = _count(usage.get('cache_read_input_tokens', usage.get('cached_input_tokens')), 'cached input token')
+    write = _count(usage.get('cache_creation_input_tokens', usage.get('cache_write_tokens')), 'cache write token')
+    output = _count(usage.get('output_tokens'), 'output token')
+    reasoning = _count(usage.get('reasoning_tokens'), 'reasoning token')
+    reported = _count(usage.get('total_tokens'), 'total token')
+    if uncached is not None:
+        input_tokens = uncached + (cached or 0) + (write or 0)
+    else:
+        input_tokens = None
+    if reported is not None:
+        total = reported
+    elif input_tokens is not None and output is not None:
+        total = input_tokens + output + (reasoning or 0)
+    else:
+        total = None
+    return {'input_tokens': input_tokens, 'uncached_input_tokens': uncached,
+            'cached_input_tokens': cached, 'cache_write_tokens': write,
+            'output_tokens': output, 'reasoning_tokens': reasoning, 'total_tokens': total}
+
+
+def cache_efficiency(metrics):
+    """Calculate cache efficiency ratio: cached / (uncached + cached + cache_write).
+
+    Returns float between 0.0 and 1.0 rounded to 4 decimals, or None if no cache telemetry is present.
+    """
+    if not isinstance(metrics, dict):
+        return None
+    cached = metrics.get('cached_input_tokens')
+    uncached = metrics.get('uncached_input_tokens')
+    write = metrics.get('cache_write_tokens')
+    if cached is None and write is None:
+        return None
+    total_cached = cached or 0
+    total_input = (uncached or 0) + total_cached + (write or 0)
+    if total_input <= 0:
+        return None
+    return round(total_cached / total_input, 4)
+
+
 def usage_metrics(host, usage):
     """Public provider-usage normalization; raw evidence is never rewritten.
 
@@ -345,7 +389,9 @@ def usage_metrics(host, usage):
     if host=='codex':
         if not isinstance(usage,dict):raise ValueError('Malformed provider usage evidence')
         return _codex_metrics(usage)
-    raise ValueError('Usage normalization is defined for codex and opencode')
+    if host in ('claude', 'anthropic'):
+        return _claude_metrics(usage)
+    raise ValueError('Usage normalization is defined for codex, opencode and claude')
 
 
 def _structured_text(text):
@@ -561,10 +607,11 @@ def generate(host, prompt, outputs, timeout=180, model=None, evidence=None, prov
             'prompt_bytes':len(prompt.encode()),
             'duration_ms':round((time.monotonic()-started)*1000),'usage':usage,'cost_usd':cost,
             'execution_boundary':'text-generation in temporary directory; artifacts validated by Crewloom'}
-        if host in ('codex','opencode'):
+        if host in ('codex','opencode','claude'):
             # The requested model and the model the host actually reported stay
             # separate: a stream without model metadata reports null, never the request.
             record['usage_metrics']=usage_metrics(host,usage)
+            record['cache_efficiency']=cache_efficiency(record['usage_metrics'])
         if host in CLI_HOSTS:
             record['native_host_exception']=True
             record['execution_boundary']+='; installed CLI, native host exception, not an OS sandbox'

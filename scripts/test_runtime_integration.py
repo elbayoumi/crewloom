@@ -269,6 +269,12 @@ class LegacyInvocation(unittest.TestCase):
         self.assertEqual(refused.returncode, 2)
         self.assertNotIn('Traceback', refused.stderr)
 
+    def test_the_study_v2_flags_reach_the_study_v2_command(self):
+        study = cli('context', 'study-v2', '--help')
+        self.assertEqual(study.returncode, 0, study.stderr)
+        self.assertIn('--study-host {codex,opencode}', study.stdout)
+        self.assertIn('closure map', study.stdout)
+
     def test_the_context_pack_command_is_unchanged(self):
         result = cli('context', '--help')
         self.assertEqual(result.returncode, 0, result.stderr)

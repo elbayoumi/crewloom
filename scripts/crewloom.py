@@ -241,6 +241,8 @@ def delegated_command(argv):
     reordered, so the owning module keeps its own usage text, defaults and refusal messages, and
     this file can never grow a stale copy of them.
     """
+    if tuple(argv[:2]) == ('context', 'study-v2'):
+        return 'evaluate_hosts', ['--study-v2', *argv[2:]]
     if tuple(argv[:2]) == STUDY_ARGUMENTS:
         # `evaluate_hosts.main` is the single real entry point for both collection modes. It
         # recognizes `--study` itself and hands over to the study collector, so this command and
