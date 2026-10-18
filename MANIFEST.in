@@ -8,6 +8,7 @@ include CHANGELOG.md
 include CONTRIBUTING.md
 include SECURITY.md
 include MASTER_BRAIN.md
+include quickstart.sh
 
 recursive-include .agents *.md *.py
 recursive-include Brain *.md

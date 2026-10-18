@@ -46,7 +46,7 @@ class InstallTests(unittest.TestCase):
     def test_installs_all_roles_for_agents_host(self):
         with tempfile.TemporaryDirectory() as directory:
             self.assertEqual(cli('install', '--host', 'agents', '--target', directory).returncode, 0)
-            self.assertEqual(len(list((Path(directory) / '.agents' / 'skills').glob('*/SKILL.md'))), 43)
+            self.assertEqual(len(list((Path(directory) / '.agents' / 'skills').glob('*/SKILL.md'))), 44)
 
 
 if __name__ == '__main__':

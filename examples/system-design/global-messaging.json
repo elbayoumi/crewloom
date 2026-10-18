@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "system_id": "global-messaging",
+  "summary": "Real-time global messaging and notification platform with 100K RPS peak throughput, multi-region edge routing, ordered Kafka event pipelines, and zero single points of failure.",
+  "target_scale": {
+    "read_rps": 80000,
+    "write_rps": 20000,
+    "storage_annual_gb": 15000
+  },
+  "slo_targets": {
+    "availability_percent": 99.99,
+    "latency_p99_ms": 120
+  },
+  "components": [
+    {
+      "id": "edge-api-gateway",
+      "role": "Anycast edge ingress, TLS termination, token bucket rate-limiting, and JWT verification",
+      "protocol": "https",
+      "failure_domain": "multi-region"
+    },
+    {
+      "id": "websocket-session-manager",
+      "role": "Stateful client connection management, heartbeat monitoring, and distributed message push",
+      "protocol": "websocket",
+      "failure_domain": "multi-az"
+    },
+    {
+      "id": "message-delivery-router",
+      "role": "Fan-out routing, presence checks, and offline notification dispatch",
+      "protocol": "grpc",
+      "failure_domain": "multi-az"
+    },
+    {
+      "id": "ordered-event-pipeline",
+      "role": "Distributed log partitioning, topic replay, and asynchronous state synchronization",
+      "protocol": "kafka",
+      "failure_domain": "multi-az"
+    }
+  ],
+  "data_stores": [
+    {
+      "id": "primary-message-db",
+      "engine": "postgresql-partitioned",
+      "replication_factor": 3,
+      "backup_rpo_minutes": 5
+    },
+    {
+      "id": "distributed-session-cache",
+      "engine": "redis-cluster",
+      "replication_factor": 3,
+      "backup_rpo_minutes": 15
+    },
+    {
+      "id": "persistent-event-log",
+      "engine": "kafka-tiered-storage",
+      "replication_factor": 3,
+      "backup_rpo_minutes": 0
+    }
+  ],
+  "resilience": {
+    "circuit_breaker": true,
+    "rate_limiting": "token-bucket-distributed",
+    "spof_mitigations": [
+      "Anycast routing directs traffic across redundant global edge locations; failed edge routes failover in < 3s",
+      "WebSocket gateways are stateless proxies backed by a shared multi-AZ Redis cluster",
+      "PostgreSQL primary uses synchronous replication to hot standby with automated Patroni Raft consensus failover",
+      "Kafka brokers maintain minimum in-sync replicas (min.insync.replicas=2) across three availability zones"
+    ]
+  },
+  "threat_model": [
+    {
+      "threat": "DDoS volume flood at public API endpoints",
+      "mitigation": "Edge Anycast network scrubbing and distributed Token Bucket rate-limiting per client IP / API token"
+    },
+    {
+      "threat": "Inter-service eavesdropping and tampering",
+      "mitigation": "Enforce mutual TLS (mTLS) with SPIFFE/SPIRE identity attestation across all internal RPC and event streams"
+    },
+    {
+      "threat": "Unauthorized channel message injection",
+      "mitigation": "HMAC-SHA256 signature verification and cryptographically scoped channel capability tokens"
+    }
+  ]
+}

@@ -45,6 +45,17 @@
       "effect": "read-only"
     },
     {
+      "id": "system-design",
+      "skill": "distributed-systems-architect",
+      "path": ".agents/skills/distributed-systems-architect/scripts/check_system_design.py",
+      "description": "Validate a system design specification packet for schema, realistic SLOs, data replication, and SPOF mitigation",
+      "example_args": "--packet {input}",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "effect": "read-only"
+    },
+    {
       "id": "script-pacing",
       "skill": "video-script-architect",
       "path": ".agents/skills/video-script-architect/scripts/validate_script_pacing.py",

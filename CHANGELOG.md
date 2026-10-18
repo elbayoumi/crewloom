@@ -2,12 +2,21 @@
 
 ## Unreleased
 
-- Add the `reverse-engineering-analyst` role (43 roles), an authorization-first procedure in English and Arabic, a pinned [REA](https://github.com/morluto/rea) MCP configuration (`examples/mcp/rea.json`) and the read-only `re-findings` tool that checks a findings packet's target hash, authorization and evidence links. REA is a separate MIT-licensed project and is not bundled.
+- `check_repository.py` now fails when `documentation/MANIFEST.json` omits, invents or mis-hashes a Git-tracked file; `--write-manifest` regenerates it. Skipped outside a Git checkout.
+
+## 0.7.0 — 2026-10-18
+
+- Add the `distributed-systems-architect` role (44 roles), an architecture procedure in English and Arabic, standard-library `system-design` verifier (20 tools) checking high-availability SLOs and SPOFs, workflow contract `workflows/system-design.json`, and a 100K RPS real-time global messaging reference blueprint.
+- Add the `reverse-engineering-analyst` role, an authorization-first procedure in English and Arabic, a pinned [REA](https://github.com/morluto/rea) MCP configuration (`examples/mcp/rea.json`) and the read-only `re-findings` tool that checks a findings packet's target hash, authorization and evidence links. REA is a separate MIT-licensed project and is not bundled.
+- Add `quickstart.sh` zero-install script with environment discovery, dry-run support, and automated prerequisites checking across macOS and Linux.
+- Add `crewloom demo` interactive ANSI terminal walkthrough simulating role selection, 5-stage memory consultation, and isolated container execution in 20 seconds.
+- Add official Model Context Protocol (MCP) configuration templates for Cursor (`examples/mcp/cursor.json`) and Windsurf (`examples/mcp/windsurf.json`) with three-tier verification guide in `examples/mcp/README.md` (resolves #40).
+- Add bilingual 7-dimension competitive framework comparison matrix (Crewloom vs CrewAI vs AutoGen vs LangGraph) and vector architecture workflow diagrams to `README.md` and `README.ar.md`.
+- Formalize rootless container policies, non-root `uid:gid` mirroring, and `userns-remap` bind-mount ownership guidelines in `SECURITY.md`, and reject comma characters in both source and destination mount parameters to eliminate parameter injection (resolves #39).
 - Dashboard child processes no longer inherit `CREWLOOM_DASHBOARD_TOKEN` or secret-named variables, and stored tool output redacts exact secret values and common credential shapes.
 - Split `docker_execute` into `docker_command` and `bind_mount`, and add Docker-free regressions that pin every isolation flag.
 - Workflow containers refuse execution under host root (UID 0) to ensure container isolation cannot inherit root privileges.
 - Host lifecycle test fixtures fall back to supported host releases when unpinned or upgraded host binaries are installed.
-- `check_repository.py` now fails when `documentation/MANIFEST.json` omits, invents or mis-hashes a Git-tracked file; `--write-manifest` regenerates it. Skipped outside a Git checkout.
 
 ## 0.6.1 — 2026-10-17
 

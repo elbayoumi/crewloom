@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "system-design",
+  "language": "en",
+  "steps": [
+    {
+      "id": "scale_and_requirements",
+      "role": "business-analyst-discovery",
+      "kind": "task",
+      "summary": "Define business requirements, target scale (RPS/storage), and user traffic patterns",
+      "inputs": [
+        "task.md"
+      ],
+      "outputs": [
+        "artifacts/system-requirements.json"
+      ]
+    },
+    {
+      "id": "distributed_architecture",
+      "role": "distributed-systems-architect",
+      "kind": "task",
+      "summary": "Decompose service boundaries, C4 models, inter-service protocols, and failure domains",
+      "inputs": [
+        "artifacts/system-requirements.json"
+      ],
+      "outputs": [
+        "artifacts/c4-architecture.md",
+        "artifacts/system-design.json"
+      ]
+    },
+    {
+      "id": "data_tier_modeling",
+      "role": "tech-stack-architect",
+      "kind": "task",
+      "summary": "Model database engines, replication topology, sharding keys, and caching policies",
+      "inputs": [
+        "artifacts/system-design.json"
+      ],
+      "outputs": [
+        "artifacts/data-tier-architecture.md"
+      ]
+    },
+    {
+      "id": "reliability_and_resilience",
+      "role": "network-infra-engineer",
+      "kind": "task",
+      "summary": "Verify SPOF elimination, load balancing, circuit breakers, rate limiting, and disaster recovery RTO/RPO",
+      "inputs": [
+        "artifacts/system-design.json",
+        "artifacts/data-tier-architecture.md"
+      ],
+      "outputs": [
+        "artifacts/resilience-report.md"
+      ]
+    },
+    {
+      "id": "threat_modeling",
+      "role": "security-operations-guardian",
+      "kind": "task",
+      "summary": "Conduct STRIDE threat modeling, mTLS boundaries, and access control audit",
+      "inputs": [
+        "artifacts/system-design.json",
+        "artifacts/resilience-report.md"
+      ],
+      "outputs": [
+        "artifacts/threat-model.md"
+      ]
+    },
+    {
+      "id": "verification",
+      "role": "qa-test-automation-engineer",
+      "kind": "task",
+      "summary": "Execute system-design contract validation and produce verified delivery evidence",
+      "inputs": [
+        "artifacts/system-design.json"
+      ],
+      "outputs": [
+        "artifacts/verification.json"
+      ]
+    }
+  ]
+}

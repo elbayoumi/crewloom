@@ -607,7 +607,7 @@ ISOLATION_FLAGS = ('--network', 'none', '--read-only', '--cap-drop', 'ALL', '--s
 
 def bind_mount(source, destination, readonly=False):
     """One `--mount` argument pair; a comma would let a path add options to the mount specification."""
-    if ',' in str(source):
+    if ',' in str(source) or ',' in str(destination):
         raise ValueError('Docker mount paths cannot contain commas')
     return ['--mount', f'type=bind,src={source},dst={destination}' + (',readonly' if readonly else '')]
 
