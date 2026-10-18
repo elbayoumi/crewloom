@@ -459,6 +459,99 @@ class TestLangGraphSandboxNode(unittest.TestCase):
         self.assertEqual(delta["sandbox_result"]["exit_code"], 0)
         self.assertIn("No code provided", delta["sandbox_result"]["output"])
 
+    @mock.patch("adapters.interop.langgraph_sandbox.execute_sandbox_command")
+    def test_markdown_code_block_extraction(self, mock_exec):
+        mock_exec.return_value = {
+            "exit_code": 0,
+            "output": "hello world\n",
+            "timed_out": False,
+            "duration_ms": 10,
+            "output_truncated": False,
+            "isolation": "crewloom-airgap",
+            "image_id": "python:3.11-slim",
+        }
+        node = CrewloomLangGraphNode(workspace_root=self.workspace)
+        markdown_text = (
+            "Here is the code:\n"
+            "```python\n"
+            "print('hello world')\n"
+            "```\n"
+            "End of message."
+        )
+        delta = node({"code": markdown_text, "language": "python"})
+        self.assertIn("sandbox_result", delta)
+        self.assertEqual(delta["sandbox_result"]["exit_code"], 0)
+        # Verify markdown fences were stripped and raw python code was executed
+        called_argv = mock_exec.call_args[1]["argv"]
+        self.assertEqual(called_argv, ["python3", "-c", "print('hello world')"])
+
+    def test_cancellation_token_in_state(self):
+        node = CrewloomLangGraphNode(workspace_root=self.workspace)
+        token = mock.MagicMock()
+        token.is_cancelled = mock.MagicMock(return_value=True)
+
+        delta = node({"code": "print('should not run')", "cancellation_token": token})
+        res = delta["sandbox_result"]
+        self.assertEqual(res["exit_code"], 130)
+        self.assertTrue(res["cancelled"])
+        self.assertIn("cancelled by user", res["output"])
+
+    @mock.patch("adapters.interop.langgraph_sandbox.execute_sandbox_command")
+    def test_messages_fallback(self, mock_exec):
+        mock_exec.return_value = {
+            "exit_code": 0,
+            "output": "message output\n",
+            "timed_out": False,
+            "duration_ms": 10,
+            "output_truncated": False,
+            "isolation": "crewloom-airgap",
+            "image_id": "python:3.11-slim",
+        }
+        node = CrewloomLangGraphNode(workspace_root=self.workspace)
+        delta = node({"messages": [{"content": "print('message output')"}]})
+        self.assertIn("sandbox_result", delta)
+        self.assertEqual(delta["sandbox_result"]["exit_code"], 0)
+        called_argv = mock_exec.call_args[1]["argv"]
+        self.assertEqual(called_argv, ["python3", "-c", "print('message output')"])
+
+    def test_langgraph_cli_runner(self):
+        from adapters.interop.langgraph_sandbox import main
+        import io
+        from unittest.mock import patch
+
+        with patch("adapters.interop.langgraph_sandbox.execute_sandbox_command") as mock_exec:
+            mock_exec.return_value = {
+                "exit_code": 0,
+                "output": "LangGraph CLI",
+                "timed_out": False,
+                "cancelled": False,
+                "duration_ms": 5,
+                "output_truncated": False,
+                "isolation": "crewloom-airgap",
+                "image_id": "python:3.11-slim",
+            }
+            stdout = io.StringIO()
+            with patch("sys.stdout", stdout):
+                code = main(["--code", "print('LangGraph CLI')", "--workspace", str(self.workspace), "--json"])
+            self.assertEqual(code, 0)
+            data = json.loads(stdout.getvalue())
+            self.assertEqual(data["status"], "success")
+            self.assertEqual(data["output"], "LangGraph CLI")
+
+        # Missing code/file argument returns 2
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with patch("sys.stdout", stdout), patch("sys.stderr", stderr):
+            code = main(["--workspace", str(self.workspace)])
+        self.assertEqual(code, 2)
+
+        # File not found returns 2
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with patch("sys.stdout", stdout), patch("sys.stderr", stderr):
+            code = main(["--file", "nonexistent.py", "--workspace", str(self.workspace)])
+        self.assertEqual(code, 2)
+
 
 if __name__ == "__main__":
     unittest.main()
