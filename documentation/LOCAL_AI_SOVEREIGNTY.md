@@ -56,20 +56,35 @@ ollama pull qwen2.5-coder:14b
 # Ollama automatically listens on loopback: http://127.0.0.1:11434
 ```
 
-### Step 2: Configure Crewloom for Ollama
+### Step 2: Configure Workflow Plan for Ollama
 
-No API key is required. Point Crewloom to your Ollama runtime:
+No API key is required. In your workflow plan JSON (or `workflows/*.json`), declare `"host": "ollama"` and your desired model for any model-generation steps:
+
+```json
+{
+  "id": "implement-algorithm",
+  "role": "backend-developer",
+  "host": "ollama",
+  "model": "qwen2.5-coder:14b",
+  "inputs": {"spec": "requirements.md"},
+  "outputs": {"code": "solution.py"}
+}
+```
+
+If your Ollama instance runs on a custom loopback port or host, set the endpoint environment variable (the gateway automatically appends `/api/chat` if omitted):
 
 ```bash
-export CREWLOOM_PROVIDER=ollama
-export CREWLOOM_MODEL=qwen2.5-coder:14b
 export OLLAMA_ENDPOINT=http://127.0.0.1:11434
 ```
 
 ### Step 3: Run Workflow
 
 ```bash
-python3 scripts/crewloom.py execute --workflow feature-development --project ./my-app
+# Verify system readiness
+python3 scripts/crewloom.py workflow doctor
+
+# Execute workflow against your local Ollama runtime
+python3 scripts/crewloom.py workflow run --project ./my-app --plan workflows/my-plan.json
 ```
 
 All 44 agent roles, memory queries, and contract verifications will execute against your local Ollama instance with zero outbound internet traffic.
@@ -91,11 +106,24 @@ python3 -m vllm.entrypoints.openai.api_server \
     --max-model-len 32768
 ```
 
-### Step 2: Configure Crewloom for vLLM
+### Step 2: Configure Workflow Plan for vLLM
+
+In your workflow plan JSON, declare `"host": "vllm"` and your model identifier:
+
+```json
+{
+  "id": "synthesize-architecture",
+  "role": "distributed-systems-architect",
+  "host": "vllm",
+  "model": "Qwen/Qwen2.5-Coder-32B-Instruct",
+  "inputs": {"spec": "requirements.md"},
+  "outputs": {"architecture": "system_design.md"}
+}
+```
+
+If using a custom loopback port or host, specify `VLLM_ENDPOINT` (the gateway automatically appends `/chat/completions` or `/v1/chat/completions` if omitted):
 
 ```bash
-export CREWLOOM_PROVIDER=vllm
-export CREWLOOM_MODEL=Qwen/Qwen2.5-Coder-32B-Instruct
 export VLLM_ENDPOINT=http://127.0.0.1:8000/v1
 ```
 

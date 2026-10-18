@@ -72,16 +72,16 @@ class CrewloomAutoGenExecutor:
         self.workspace_root = Path(workspace_root).resolve()
         self.image_id = image_id
         self.timeout = timeout
-        self.writable = tuple(writable) if writable else None
+        self.writable = tuple(writable) if writable is not None else None
 
-    def execute_code_blocks(self, code_blocks: Sequence[Any]) -> CommandLineCodeResult:
+    def execute_code_blocks(
+        self,
+        code_blocks: Sequence[Any],
+        cancellation_token: Any = None,
+    ) -> CommandLineCodeResult:
         """Execute a sequence of code blocks and return aggregated result.
 
-        Accepts:
-            - Sequence of CodeBlock instances
-            - Sequence of objects with `.code` and `.language` attributes
-            - Sequence of tuples `(language, code)`
-            - Raw markdown string containing code fences
+        Compatible with both AutoGen 0.2 and 0.4 synchronous execution signatures.
         """
         blocks: List[CodeBlock] = []
 
@@ -140,3 +140,12 @@ class CrewloomAutoGenExecutor:
     def restart(self) -> None:
         """Reset executor state (implements AutoGen CodeExecutor protocol)."""
         pass
+
+    async def a_execute_code_blocks(
+        self,
+        code_blocks: Sequence[Any],
+        cancellation_token: Any = None,
+    ) -> CommandLineCodeResult:
+        """Execute code blocks asynchronously matching AutoGen 0.4 CodeExecutor protocol."""
+        import asyncio
+        return await asyncio.to_thread(self.execute_code_blocks, code_blocks, cancellation_token)

@@ -125,41 +125,70 @@ def execute_sandbox_command(
     cmd = build_sandbox_command(root_path, argv, image_id=image_id, name=container_name, writable=writable)
 
     started = time.monotonic()
+    captured = bytearray()
+    discarded = [False]
     timed_out = False
     exit_code = 1
-    output = ""
-    truncated = False
 
     try:
-        proc = subprocess.run(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=timeout,
-            check=False,
-        )
-        exit_code = proc.returncode
-        raw_output = proc.stdout or b""
-        if len(raw_output) > 65536:
-            raw_output = raw_output[:65536]
-            truncated = True
-        output = raw_output.decode("utf-8", errors="replace")
-    except subprocess.TimeoutExpired:
-        timed_out = True
-        exit_code = 124
-        output = f"Command timed out after {timeout} seconds"
-        subprocess.run(["docker", "rm", "--force", container_name], capture_output=True, check=False)
+        import threading
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     except FileNotFoundError:
-        exit_code = 127
-        output = "Docker binary not found on PATH; container sandbox unavailable"
+        return {
+            "exit_code": 127,
+            "output": "Docker binary not found on PATH; container sandbox unavailable",
+            "timed_out": False,
+            "duration_ms": round((time.monotonic() - started) * 1000),
+            "output_truncated": False,
+            "isolation": "crewloom-airgap",
+            "image_id": image_id,
+        }
+
+    def collect():
+        while True:
+            chunk = process.stdout.read(4096)
+            if not chunk:
+                return
+            available = max(0, 65536 - len(captured))
+            captured.extend(chunk[:available])
+            if len(chunk) > available:
+                discarded[0] = True
+                try:
+                    subprocess.run(["docker", "kill", container_name], capture_output=True, check=False)
+                except Exception:
+                    pass
+
+    reader = threading.Thread(target=collect, daemon=True)
+    reader.start()
+
+    try:
+        try:
+            exit_code = process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+            exit_code = 124
+            timed_out = True
+    finally:
+        subprocess.run(["docker", "rm", "--force", container_name], capture_output=True, check=False)
+        if process.poll() is None:
+            process.kill()
+            process.wait()
+        reader.join(timeout=5)
+        if process.stdout:
+            process.stdout.close()
 
     duration_ms = round((time.monotonic() - started) * 1000)
+    output = captured.decode("utf-8", errors="replace")
+    if timed_out:
+        output = (output + f"\n[Command timed out after {timeout} seconds]").strip()
+
     return {
         "exit_code": exit_code,
         "output": output,
         "timed_out": timed_out,
         "duration_ms": duration_ms,
-        "output_truncated": truncated,
+        "output_truncated": discarded[0],
         "isolation": "crewloom-airgap",
         "image_id": image_id,
     }
@@ -189,7 +218,17 @@ class CrewloomSandboxTool:
         self.workspace_root = Path(workspace_root).resolve()
         self.image_id = image_id
         self.timeout = timeout
-        self.writable = tuple(writable) if writable else None
+        self.writable = tuple(writable) if writable is not None else None
+        self.func = self.run  # Direct CrewAI agent tool protocol compatibility
+
+    @property
+    def func(self) -> Callable[[str], str]:
+        """CrewAI agent builder validator compatibility."""
+        return getattr(self, "_func", self.run)
+
+    @func.setter
+    def func(self, value: Callable[[str], str]) -> None:
+        self._func = value
 
     def execute(
         self,

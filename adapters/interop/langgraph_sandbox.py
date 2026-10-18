@@ -40,7 +40,7 @@ class CrewloomLangGraphNode:
         self.workspace_root = Path(workspace_root).resolve()
         self.image_id = image_id
         self.timeout = timeout
-        self.writable = tuple(writable) if writable else None
+        self.writable = tuple(writable) if writable is not None else None
         self.input_key = input_key
         self.language_key = language_key
         self.output_key = output_key

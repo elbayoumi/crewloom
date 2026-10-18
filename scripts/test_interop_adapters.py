@@ -111,6 +111,19 @@ class TestInteropSandboxCommand(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "commas"):
             build_sandbox_command(comma_dir, ["python3"])
 
+    def test_empty_writable_set_is_fully_readonly(self):
+        tool = CrewloomSandboxTool(workspace_root=self.workspace, writable=[])
+        self.assertEqual(tool.writable, ())
+        cmd = build_sandbox_command(self.workspace, ["python3", "-c", "print(1)"], writable=tool.writable)
+        mounts = [cmd[i + 1] for i, item in enumerate(cmd) if item == "--mount"]
+        self.assertEqual(mounts, [f"type=bind,src={self.workspace},dst=/workspace,readonly"])
+
+        executor = CrewloomAutoGenExecutor(workspace_root=self.workspace, writable=())
+        self.assertEqual(executor.writable, ())
+
+        node = CrewloomLangGraphNode(workspace_root=self.workspace, writable=[])
+        self.assertEqual(node.writable, ())
+
     def test_path_escape_refused(self):
         with self.assertRaisesRegex(ValueError, "escapes workspace"):
             build_sandbox_command(self.workspace, ["python3"], writable=["../outside"])
@@ -124,33 +137,57 @@ class TestCrewAISandboxTool(unittest.TestCase):
         self.workspace = Path(self.temp_dir.name).resolve()
         self.addCleanup(self.temp_dir.cleanup)
 
-    def test_tool_metadata(self):
+    def test_tool_metadata_and_func_property(self):
         tool = CrewloomSandboxTool(workspace_root=self.workspace)
         self.assertEqual(tool.name, "crewloom_sandbox")
         self.assertIn("isolated container", tool.description)
+        self.assertTrue(callable(tool.func))
+        self.assertEqual(tool.func, tool.run)
 
     @mock.patch("adapters.interop.crewai_sandbox.subprocess.run")
-    def test_tool_execution_success(self, mock_run):
-        mock_proc = mock.Mock()
-        mock_proc.returncode = 0
-        mock_proc.stdout = b"Hello from isolated container!\n"
-        mock_run.return_value = mock_proc
+    @mock.patch("adapters.interop.crewai_sandbox.subprocess.Popen")
+    def test_execute_sandbox_command_with_mock_popen(self, mock_popen, mock_run):
+        import io
+        proc = mock.MagicMock()
+        proc.stdout = io.BytesIO(b"direct output\n")
+        proc.wait.return_value = 0
+        proc.poll.return_value = 0
+        proc.returncode = 0
+        mock_popen.return_value = proc
+        res = execute_sandbox_command(self.workspace, ["python3", "-c", "print(1)"])
+        self.assertEqual(res["exit_code"], 0)
+        self.assertEqual(res["output"], "direct output\n")
+        self.assertFalse(res["output_truncated"])
 
+    @mock.patch("adapters.interop.crewai_sandbox.execute_sandbox_command")
+    def test_tool_execution_success(self, mock_exec):
+        mock_exec.return_value = {
+            "exit_code": 0,
+            "output": "Hello from isolated container!\n",
+            "timed_out": False,
+            "duration_ms": 10,
+            "output_truncated": False,
+            "isolation": "crewloom-airgap",
+            "image_id": "python:3.11-slim",
+        }
         tool = CrewloomSandboxTool(workspace_root=self.workspace)
         output = tool.run("print('Hello from isolated container!')")
         self.assertIn("Hello from isolated container!", output)
 
-        # Test __call__ interface
         call_output = tool("print('Hello from isolated container!')")
         self.assertEqual(call_output, output)
 
-    @mock.patch("adapters.interop.crewai_sandbox.subprocess.run")
-    def test_tool_execution_failure(self, mock_run):
-        mock_proc = mock.Mock()
-        mock_proc.returncode = 1
-        mock_proc.stdout = b"ZeroDivisionError: division by zero\n"
-        mock_run.return_value = mock_proc
-
+    @mock.patch("adapters.interop.crewai_sandbox.execute_sandbox_command")
+    def test_tool_execution_failure(self, mock_exec):
+        mock_exec.return_value = {
+            "exit_code": 1,
+            "output": "ZeroDivisionError: division by zero\n",
+            "timed_out": False,
+            "duration_ms": 5,
+            "output_truncated": False,
+            "isolation": "crewloom-airgap",
+            "image_id": "python:3.11-slim",
+        }
         tool = CrewloomSandboxTool(workspace_root=self.workspace)
         output = tool.run("1 / 0")
         self.assertIn("[Execution failed (code 1)]", output)
@@ -196,26 +233,34 @@ echo "done"
         self.assertEqual(blocks[1].language, "bash")
         self.assertEqual(blocks[1].code, 'echo "done"')
 
-    @mock.patch("adapters.interop.crewai_sandbox.subprocess.run")
-    def test_execute_code_blocks(self, mock_run):
-        mock_proc = mock.Mock()
-        mock_proc.returncode = 0
-        mock_proc.stdout = b"42\n"
-        mock_run.return_value = mock_proc
-
+    @mock.patch("adapters.interop.autogen_sandbox.execute_sandbox_command")
+    def test_execute_code_blocks(self, mock_exec):
+        mock_exec.return_value = {
+            "exit_code": 0,
+            "output": "42\n",
+            "timed_out": False,
+            "duration_ms": 10,
+            "output_truncated": False,
+            "isolation": "crewloom-airgap",
+            "image_id": "python:3.11-slim",
+        }
         executor = CrewloomAutoGenExecutor(workspace_root=self.workspace)
         result = executor.execute_code_blocks([CodeBlock(language="python", code="print(42)")])
         self.assertIsInstance(result, CommandLineCodeResult)
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, "42")
 
-    @mock.patch("adapters.interop.crewai_sandbox.subprocess.run")
-    def test_execute_markdown_string(self, mock_run):
-        mock_proc = mock.Mock()
-        mock_proc.returncode = 0
-        mock_proc.stdout = b"test passed\n"
-        mock_run.return_value = mock_proc
-
+    @mock.patch("adapters.interop.autogen_sandbox.execute_sandbox_command")
+    def test_execute_markdown_string(self, mock_exec):
+        mock_exec.return_value = {
+            "exit_code": 0,
+            "output": "test passed\n",
+            "timed_out": False,
+            "duration_ms": 10,
+            "output_truncated": False,
+            "isolation": "crewloom-airgap",
+            "image_id": "python:3.11-slim",
+        }
         executor = CrewloomAutoGenExecutor(workspace_root=self.workspace)
         markdown = "```python\nprint('test passed')\n```"
         result = executor.execute_code_blocks(markdown)
@@ -228,6 +273,24 @@ echo "done"
         self.assertEqual(result.exit_code, 0)
         self.assertIn("No executable code blocks found", result.output)
 
+    def test_autogen_cancellation_token_and_async(self):
+        import asyncio
+        executor = CrewloomAutoGenExecutor(workspace_root=self.workspace)
+        token = mock.Mock()
+        with mock.patch("adapters.interop.autogen_sandbox.execute_sandbox_command") as mock_exec:
+            mock_exec.return_value = {"exit_code": 0, "output": "ok"}
+            res = executor.execute_code_blocks([CodeBlock(language="python", code="1")], cancellation_token=token)
+            self.assertEqual(res.exit_code, 0)
+            self.assertEqual(res.output, "ok")
+
+        async def run_async():
+            with mock.patch("adapters.interop.autogen_sandbox.execute_sandbox_command") as mock_exec:
+                mock_exec.return_value = {"exit_code": 0, "output": "async_ok"}
+                return await executor.a_execute_code_blocks([CodeBlock(language="python", code="1")], cancellation_token=token)
+        async_res = asyncio.run(run_async())
+        self.assertEqual(async_res.exit_code, 0)
+        self.assertEqual(async_res.output, "async_ok")
+
 
 class TestLangGraphSandboxNode(unittest.TestCase):
     """Test LangGraph node adapter and state transformations."""
@@ -237,13 +300,17 @@ class TestLangGraphSandboxNode(unittest.TestCase):
         self.workspace = Path(self.temp_dir.name).resolve()
         self.addCleanup(self.temp_dir.cleanup)
 
-    @mock.patch("adapters.interop.crewai_sandbox.subprocess.run")
-    def test_langgraph_node_execution(self, mock_run):
-        mock_proc = mock.Mock()
-        mock_proc.returncode = 0
-        mock_proc.stdout = b"Graph node output\n"
-        mock_run.return_value = mock_proc
-
+    @mock.patch("adapters.interop.langgraph_sandbox.execute_sandbox_command")
+    def test_langgraph_node_execution(self, mock_exec):
+        mock_exec.return_value = {
+            "exit_code": 0,
+            "output": "Graph node output\n",
+            "timed_out": False,
+            "duration_ms": 10,
+            "output_truncated": False,
+            "isolation": "crewloom-airgap",
+            "image_id": "python:3.11-slim",
+        }
         node = create_crewloom_sandbox_node(workspace_root=self.workspace)
         state = {"code": "print('Graph node output')", "language": "python"}
         delta = node(state)

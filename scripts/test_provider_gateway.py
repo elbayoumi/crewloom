@@ -103,6 +103,27 @@ class GatewayTests(unittest.TestCase):
             with patch.object(h,'generate') as generate:report=w.run(root,plan,fingerprint,'image')
             self.assertEqual(report['status'],'failed');self.assertIn('disabled',report['blocker']);generate.assert_not_called()
 
+    def test_endpoint_resolution_appends_routes(self):
+        with patch.dict(os.environ,{'OLLAMA_ENDPOINT':'http://127.0.0.1:11434'}):
+            self.assertEqual(g._resolve_endpoint('ollama'),'http://127.0.0.1:11434/api/chat')
+        with patch.dict(os.environ,{'VLLM_ENDPOINT':'http://127.0.0.1:8000/v1'}):
+            self.assertEqual(g._resolve_endpoint('vllm'),'http://127.0.0.1:8000/v1/chat/completions')
+        with patch.dict(os.environ,{'VLLM_ENDPOINT':'http://127.0.0.1:8000'}):
+            self.assertEqual(g._resolve_endpoint('vllm'),'http://127.0.0.1:8000/v1/chat/completions')
+
+    def test_vllm_token_normalization(self):
+        raw_response={
+            'choices':[{'finish_reason':'stop','message':{'content':'{"artifacts":[{"path":"x.py","content":"1"}]}'}}],
+            'usage':{'prompt_tokens':42,'completion_tokens':10,'total_tokens':52}
+        }
+        _,meta=g.parse('vllm',raw_response,['x.py'])
+        usage=meta['usage']
+        self.assertEqual(usage['input_tokens'],42)
+        self.assertEqual(usage['output_tokens'],10)
+        self.assertEqual(usage['total_tokens'],52)
+        self.assertEqual(usage['prompt_tokens'],42)
+        self.assertEqual(usage['completion_tokens'],10)
+
     def test_untrusted_model_cannot_rewrite_trusted_runtime(self):
         import execution_policy as p
         with self.assertRaisesRegex(ValueError,'read-only'):

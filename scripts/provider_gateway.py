@@ -25,7 +25,7 @@ def _resolve_endpoint(provider):
     default_url,env_var=PROVIDERS[provider]
     url_str=os.environ.get(env_var,default_url) if provider in LOCAL_PROVIDERS else default_url
     if provider in LOCAL_PROVIDERS:
-        from urllib.parse import urlsplit
+        from urllib.parse import urlsplit, urlunsplit
         url=urlsplit(url_str)
         if (url.scheme not in ('http','https') or url.hostname not in ('localhost','127.0.0.1','::1')
                 or url.username is not None or url.password is not None or url.query or url.fragment
@@ -33,6 +33,15 @@ def _resolve_endpoint(provider):
             raise ValueError('Local provider must use a loopback URL without credentials or query')
         if url.port is None or url.port==0:
             raise ValueError('Local provider requires an explicit port')
+        path=url.path.rstrip('/')
+        if provider=='ollama':
+            if not path:path='/api/chat'
+            elif not path.endswith('/api/chat'):path=path+'/api/chat'
+        elif provider=='vllm':
+            if not path:path='/v1/chat/completions'
+            elif path.endswith('/v1'):path=path+'/chat/completions'
+            elif not path.endswith('/chat/completions'):path=path+'/chat/completions'
+        url_str=urlunsplit((url.scheme,url.netloc,path,'',''))
     return url_str
 
 
@@ -143,7 +152,12 @@ def parse(provider,value,outputs):
         content=message.get('content')
         if not content:raise ValueError('vLLM returned empty message content')
         text.append(content)
-        usage=value.get('usage',{})
+        raw_usage=value.get('usage') or {}
+        prompt_tokens=raw_usage.get('prompt_tokens',0)
+        completion_tokens=raw_usage.get('completion_tokens',0)
+        total_tokens=raw_usage.get('total_tokens',prompt_tokens+completion_tokens)
+        usage={'input_tokens':prompt_tokens,'output_tokens':completion_tokens,'total_tokens':total_tokens,
+               'prompt_tokens':prompt_tokens,'completion_tokens':completion_tokens}
     else:
         raise ValueError('Unknown provider: '+str(provider))
     raw=''.join(text).strip()
