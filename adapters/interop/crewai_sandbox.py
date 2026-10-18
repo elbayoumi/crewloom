@@ -83,6 +83,12 @@ def build_sandbox_command(
         raise ValueError("Workspace root path cannot contain commas")
 
     container_name = name or ("crewloom-crewai-" + uuid.uuid4().hex[:12])
+    crewloom_dir = root_path / ".crewloom"
+    if not crewloom_dir.exists():
+        try:
+            crewloom_dir.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
     mounts = _bind_mount(root_path, "/workspace", readonly=writable is not None)
 
     for relative in writable or ():

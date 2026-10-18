@@ -20,3 +20,4 @@ See [the MCP example](mcp/README.md) for the structure fixture and the procedure
 
 - [Concurrent development application](concurrent-development/README.md): three model tasks, isolated worktrees, combined acceptance, credential review and English/Arabic reports.
 - [Controlled context study](context-study/README.md): frozen full-source/selected-map comparisons with isolated held-out grading.
+- [Cross-framework interop sandboxes](interop/README.md): zero-dependency executable sandboxes for CrewAI, AutoGen, and LangGraph.
