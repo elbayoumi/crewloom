@@ -20,7 +20,7 @@ jobs:
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
       - run: docker pull python:3.14-slim
@@ -52,7 +52,7 @@ jobs:
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
       - run: docker pull python:3.14-slim
@@ -72,7 +72,7 @@ jobs:
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
       - run: docker pull python:3.14-slim
@@ -105,7 +105,7 @@ jobs:
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
       - run: python3 -m unittest discover -s scripts -p test_filesystem_alias_boundaries.py
@@ -118,7 +118,7 @@ jobs:
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
       - run: python3 -m pip install '.[syntax]'
@@ -140,7 +140,7 @@ jobs:
       # Git's background maintenance can add object-store files while a fixture runs and race the
       # no-write snapshots and temporary-directory cleanup; fixtures read this global config.
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
       - run: python3 -m pip install build 'setuptools>=77,<81' wheel
@@ -155,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
       - run: git config --global gc.auto 0 && git config --global maintenance.auto false
