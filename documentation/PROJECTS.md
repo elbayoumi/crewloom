@@ -33,7 +33,12 @@ crewloom project status --project /path/to/project --project-id sample-project
 crewloom project finish --project /path/to/project --project-id sample-project --task-id login-fix --evidence '[{"workflow": "login-flow", "step": "build", "scope": "unit tests"}]'
 ```
 
-Entry creates missing metadata, refreshes an existing one and reserves the root. It preserves the project constitution, installed role memory and lesson history. `status` never claims ownership of a running task. `finish` reports `complete` only from recorded executor evidence: `--evidence` names real workflow steps, while `--verification` is an operator attestation that keeps the task awaiting verification and fails closed when it claims a failure. `rebind` is the only supported way to move a checkout, and it rebuilds rebuildable caches without touching durable memory.
+Entry creates missing metadata, refreshes an existing one and reserves the root.
+An explicit `--config config/project.json` is recorded in the binding; subsequent
+context, status and relocation operations resolve that same file rather than silently
+using a default configuration. Managed lifecycle selection and lesson policy
+fingerprints follow this binding too; the selected policy remains protected from
+declared artifact writes and interop write grants. It preserves the project constitution, installed role memory and lesson history. `status` never claims ownership of a running task. `finish` reports `complete` only from recorded executor evidence: `--evidence` names real workflow steps, while `--verification` is an operator attestation that keeps the task awaiting verification and fails closed when it claims a failure. `rebind` is the only supported way to move a checkout, and it rebuilds rebuildable caches without touching durable memory.
 
 Context generations and navigation caches are rebuildable; lessons and task records are durable local memory. Agency projects validate the existing project-control ledger with `--agency-registry` and `--agency-root`, and `needs_reconciliation` permits evidence gathering only. Full contract, lifecycle labels and limits: [project context](PROJECT_CONTEXT.md).
 

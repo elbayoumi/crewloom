@@ -58,6 +58,16 @@ jobs:
       - run: docker pull python:3.14-slim
       - run: CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p test_workflow.py
       - run: CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p test_execution_policy.py
+      - run: python3 -m pip install 'autogen-agentchat==0.4.9'
+      - name: Actual interop boundaries, output capture and official AutoGen agent
+        env:
+          CREWLOOM_DOCKER_TESTS: '1'
+          CREWLOOM_AUTOGEN_TESTS: '1'
+        run: python3 -m unittest discover -s scripts -p test_interop_adapters.py
+      - name: Require actual container execution in adapter examples
+        env:
+          CREWLOOM_DOCKER_TESTS: '1'
+        run: python3 -m unittest discover -s scripts -p test_interop_examples.py
       - run: python3 scripts/context_pilot.py --out /tmp/crewloom-pilot.json
       - run: |
           mkdir -p /tmp/crewloom-submission/src

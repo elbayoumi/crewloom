@@ -26,7 +26,7 @@ DOCUMENTATION_DIRECTORY: str = "documentation"
 SCRIPTS_DIRECTORY: str = "scripts"
 MISSING: str = (
     "Crewloom resources are unavailable. Reinstall the distribution with "
-    "`pip install --force-reinstall crewloom`, or run from a Crewloom source "
+    "`python -m pip install --force-reinstall /path/to/crewloom`, or run from a Crewloom source "
     "checkout or unpacked sdist."
 )
 
@@ -168,8 +168,7 @@ def dashboard_dir() -> Path:
         raise ResourceError(
             "The dashboard is not bundled in the Python distribution because its Node "
             "dependencies are not. Start it from a Crewloom checkout or unpacked sdist "
-            "(`cd dashboard && npm install && npm run dev`), or point CREWLOOM_ROOT at "
-            "such a checkout when running the installed CLI."
+            "(`cd dashboard && npm ci && npm run dev`)."
         )
     folder = source / "dashboard"
     if not (folder / "package.json").is_file():

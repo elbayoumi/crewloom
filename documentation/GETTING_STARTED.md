@@ -8,6 +8,29 @@
 
 The `.agents/skills` layout contains ordinary Markdown role instructions. Hosts may support this directory natively or require their own skill configuration. The CLI does not install host adapters or claim automatic discovery across every agent application.
 
+## Choose only the prerequisites your first task needs
+
+The core needs Git and Python 3.9+. Run `./quickstart.sh --dry-run` for an environment
+check or `./quickstart.sh --fast` for the offline walkthrough. These commands do not
+install packages or prove container, provider or browser acceptance.
+
+For a first result, use `list`, choose one role, and generate its context with the
+commands below. Docker and Node are optional for this path. Run the full repository
+gate when developing Crewloom, rather than as a prerequisite for every user task.
+
+A normal `python -m pip install .` installs the CLI and role resources from this
+checkout; editable installation is optional. For exact JavaScript/TypeScript indexing,
+use an activated virtual environment and `python -m pip install '.[syntax]'`.
+Existing approximate map caches are refreshed automatically when the parser changes;
+without the extra, maps are labelled approximate and never claim a complete graph.
+
+The dashboard requires Node 24+ and npm; `crewloom dashboard` installs its locked
+Node dependencies on first launch from a checkout. The Python wheel does not contain
+the dashboard. Isolated command execution additionally requires a running Docker
+daemon and an explicitly pulled image, as described in [execution](EXECUTION.md).
+Model generation needs a configured external CLI/API or your own local model server;
+no model weights or hosted coordination service are included.
+
 ## Local commands
 
 From the checkout root:

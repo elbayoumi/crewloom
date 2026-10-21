@@ -206,6 +206,28 @@ class FallbackRegressions(JavaScriptProject):
         self.assertEqual(sorted(value['syntax']['packages']), sorted(js_syntax.PACKAGES))
         self.assertEqual(value['syntax']['revision'], js_syntax.revision())
 
+    def test_warm_cache_changes_extractor_when_syntax_becomes_available(self):
+        if not m.JS_GRAMMAR:
+            self.skipTest('Install syntax for the real extractor transition')
+        self.write('src/app.ts', 'const label = `\nfunction fake() {}\n`;\nexport const real = () => 42;\n')
+        with patch.object(m, 'JS_GRAMMAR', False):
+            before, _ = m.build(self.root)
+        self.assertIn('fake', [s['name'] for s in before['files']['src/app.ts']['symbols']])
+        after, _ = m.build(self.root)
+        entry = after['files']['src/app.ts']
+        self.assertEqual(entry['parser'], 'ts-ast')
+        self.assertNotIn('fake', [s['name'] for s in entry['symbols']])
+        with patch.object(m, 'JS_GRAMMAR', False):
+            fallback, _ = m.build(self.root)
+        self.assertEqual(fallback['files']['src/app.ts']['parser'], 'approximate-js-ts')
+
+    def test_approximate_dynamic_import_never_claims_complete_graph(self):
+        self.write('src/app.ts', 'export async function load(name: string) { return import(name); }\n')
+        with patch.object(m, 'JS_GRAMMAR', False):
+            value, _ = m.build(self.root)
+        self.assertFalse(value['graph_complete'])
+        self.assertIn('src/app.ts', value['incomplete_files'])
+
     def test_configuration_isolation_applies_without_the_extra(self):
         self.write('src/app.ts', 'export const app = 1;\n')
         self.root.joinpath('tsconfig.json').write_text('{"extends": "./tsconfig.child.json"}\n')

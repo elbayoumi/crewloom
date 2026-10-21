@@ -214,7 +214,9 @@ def lesson_selection(root, config, seeds, tokens):
     # A verified remedy whose declared source, recorded artifact or policy changed is stale
     # evidence. Revalidating here means entry can neither deliver it nor keep claiming it is
     # verified, instead of waiting for an operator to run the revalidation command by hand.
-    policy = Path(root) / 'crewloom.project.json'
+    import project_binding as pb
+    _, relative = pb.load_config(root)
+    policy = w.safe_path(Path(root), relative)
     project_lessons.revalidate(root, w.digest(policy.read_bytes()) if policy.is_file() else None)
     limit = min(MAX_LESSONS, max(0, config['budgets']['lesson_budget_bytes'] // 256))
     return project_lessons.select(root, seeds, tokens, limit)
@@ -531,11 +533,11 @@ def changed_files(root, context):
 def configuration_drift(root, context):
     recorded = context.get('configuration') or {}
     import project_binding as pb
-    config, _ = pb.load_config(root)
+    config, relative = pb.load_config(root)
     if config is None:
-        return ['crewloom.project.json: removed after freezing']
+        return [relative + ': removed after freezing']
     current = config_facts(root, config)
-    return ['crewloom.project.json: ' + key for key in sorted(recorded)
+    return [relative + ': ' + key for key in sorted(recorded)
             if key in current and recorded[key] != current[key]]
 
 

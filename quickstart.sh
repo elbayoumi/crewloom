@@ -5,7 +5,7 @@
 # Cross-platform: macOS (Bash 3.2+) and Linux (Bash 3.2+, 4.x, 5.x, POSIX)
 # Capabilities:
 #   - Detects prerequisites: Python >= 3.9, Git, Docker, Node.js
-#   - Validates repository integrity and 43 catalog roles
+#   - Validates repository integrity and the installed role catalog
 #   - Supports: --dry-run, --demo, --fast, --no-demo, --help
 #   - Zero external API keys required; safe and non-destructive
 # ==============================================================================
@@ -56,7 +56,7 @@ Prerequisites Detected:
   • Python >= 3.9   Required for CLI and role execution
   • Git             Required for repository tracking and privacy index
   • Docker          Optional (required for verified isolated container execution)
-  • Node.js / npm   Optional (required for live web dashboard)
+  • Node.js 24+ / npm Optional (required for live web dashboard)
 
 Examples:
   ./quickstart.sh                 # Run checks and interactive walkthrough
@@ -236,7 +236,20 @@ if command -v npm >/dev/null 2>&1; then
 fi
 
 if [ "$NODE_FOUND" -eq 1 ] && [ "$NPM_FOUND" -eq 1 ]; then
-  printf "${GREEN}[✓]${RESET} Node.js: %s, npm v%s (dashboard ready)\n" "$NODE_INFO" "$NPM_VER"
+  NODE_MAJOR="${NODE_VER#v}"
+  NODE_MAJOR="${NODE_MAJOR%%.*}"
+  case "$NODE_MAJOR" in
+    ''|*[!0-9]*)
+      printf "${YELLOW}[!]${RESET} Node.js: %s (version unknown; dashboard requires Node 24+)\n" "$NODE_INFO"
+      ;;
+    *)
+      if [ "$NODE_MAJOR" -ge 24 ]; then
+        printf "${GREEN}[✓]${RESET} Node.js: %s, npm v%s (dashboard ready)\n" "$NODE_INFO" "$NPM_VER"
+      else
+        printf "${YELLOW}[!]${RESET} Node.js: %s (dashboard requires Node 24+; core CLI remains available)\n" "$NODE_INFO"
+      fi
+      ;;
+  esac
 elif [ "$NODE_FOUND" -eq 1 ]; then
   printf "${GREEN}[✓]${RESET} Node.js: %s (npm not found)\n" "$NODE_INFO"
 else

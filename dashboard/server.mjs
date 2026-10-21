@@ -1,6 +1,10 @@
 import { createServer } from 'node:http';
 import next from 'next';
 
+if (Number.parseInt(process.versions.node, 10) < 24) {
+  throw new Error('Crewloom dashboard requires Node 24 or later');
+}
+
 // One launch path owns both the real socket and the password-free access decision.
 const args = process.argv.slice(2);
 let hostname = process.env.CREWLOOM_DASHBOARD_HOST || '127.0.0.1';

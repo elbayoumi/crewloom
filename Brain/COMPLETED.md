@@ -1,5 +1,28 @@
 # Completed work
 
+### 2026-10-21 — Specialist follow-up at the consumer boundary
+- Applied project security, QA, toolbox integration and delivery roles. Independent reviewers reproduced a Docker teardown race, decoded-output expansion, unsupported-language success and offline example overclaims; runtime provenance was checked separately from source version.
+- Repaired owned-removal idempotency, cancellation worker ownership/admission, returned UTF-8 budgets, prelaunch language refusal and explicit preview/execution examples. Actual use of the bound project also exposed alternate-config consumers falling back to the default path; resolution now follows the binding and relocation tests cover it.
+- Packaging follow-up: a synthetic `.agents/teamwork` note reproduced private source-archive inclusion despite Git ignore rules. Explicit archive pruning and populated-fixture checks now cover this separate publication boundary.
+- Focused evidence: 58 interop tests with actual Docker and pinned SDK enabled, six example checks with actual execution, 92 project regressions and a real local TLS certificate/hostname acceptance/refusal probe. Required gate and hosted checks remain distinct evidence.
+
+### 2026-10-21 — Deeper review repairs and consumer acceptance
+- Repaired all five reproduced follow-up defects: DNS sockets use validated numeric addresses; the explicit async wrapper works with the pinned AutoGen 0.4.9 agent; stateful capture includes raw descriptors and child output with bounded UTF-8 responses and no Docker log stream; adapters no longer import a consumer workflow.py; all constructors validate write-grant sequences before freezing them.
+- Evidence: 24 provider tests including real HTTP/DNS/proxy transport and TLS hostname assertions; 50 interop cases with Docker and the actual AutoGen agent enabled pass locally. Artifact acceptance also tests installed imports from a populated consumer directory. Full repository and hosted CI are separate checks, not implied by these focused results.
+
+### 2026-10-20 — Deeper contract review of the fix branch
+- Verified current-source wheel behavior, an actual pinned AutoGen 0.4.9 Agent, real subprocess/raw-fd output and a controlled local HTTP/DNS fixture. Five additional failures are reproduced; this pass makes no functional repairs.
+- Evidence: awaiting the synchronous executor fails in the real Agent; stateful child output is lost and bypasses the Python capture cap; installed imports collide with consumer workflow.py; string grants become character paths; DNS is resolved again after address validation. Prior test counts do not establish readiness for these contracts.
+
+### 2026-10-20 — Review defect fixes and onboarding alignment
+- Artifact: existing interop adapters/tests, wheel/sdist configuration, repo_map/parser tests, paired entry guides, quickstart and Node metadata; source changes stay on the review-fix branch.
+- Impact: default write refusal and validated output grants; installed adapter imports; live state without replay and explicit teardown; correct parser-transition cache invalidation and conservative fallback completeness; consistent Node 24+ readiness.
+- Evidence: actual Docker acceptance, installed wheel/rebuilt-sdist imports, real parser transitions and old-source rejection; final full gate outcome is recorded in the review evidence. Publication and hosted checks remain separate.
+
+### 2026-10-20 — Current-main limitations review
+- Reviewed 0.8.1 at 4c58bff against the reported installation, syntax, Docker and hosting limitations. Reproduced default interop workspace/Git writes, absent interop Python in wheel/sdist, stale approximate parses after enabling syntax, AutoGen replay side effects and inaccurate fallback graph completeness. Diagnosis only; fixes remain open.
+- Evidence: full repository gate, 66 dashboard tests, TypeScript/build, 14 actual distribution tests and 30 syntax tests pass; separate temporary-project/container and archive checks expose acceptance gaps.
+
 ### 2026-10-18 — Zero-friction developer experience, Cursor/Windsurf MCP, and competitive positioning
 - Artifact: `quickstart.sh`, `scripts/crewloom.py`, `examples/mcp/cursor.json`, `examples/mcp/windsurf.json`, `examples/mcp/README.md`, `README.md`, `README.ar.md`, `scripts/test_e2e_expansion.py`.
 - Impact: Fast zero-install quickstart script (`./quickstart.sh`) with dry-run support; rich interactive ANSI CLI walkthrough (`crewloom demo`); official MCP configurations for Cursor and Windsurf (resolving Issue #40); 7-dimension competitive framework comparison matrix and vector architecture workflow diagrams in English and Arabic.

@@ -204,6 +204,15 @@ def declared_path(root, relative):
     path = safe_path(root, relative)
     if folded(Path(relative).name) in PROTECTED_KEYS:
         raise ValueError('Workflow artifacts cannot use project control files: ' + str(relative))
+    binding_path = root / '.crewloom/binding.json'
+    if binding_path.exists():
+        import project_binding as pb
+        binding = pb.load_binding(root)
+        policy = safe_path(root, binding.get('config_path') or pb.CONFIG_NAME)
+        identity = physical_identity(policy)
+        if (path_key(path.relative_to(root)) == path_key(policy.relative_to(root)) or
+                (identity is not None and physical_identity(path) == identity)):
+            raise ValueError('Workflow artifacts cannot use the bound project control file: ' + str(relative))
     if host_authority_conflict(root, relative) is not None:
         raise ValueError('Workflow artifacts cannot use native host configuration: ' + str(relative))
     return path
@@ -982,8 +991,6 @@ def release_reservation(root, plan, fingerprint):
 
 def lifecycle_mode(root):
     """Managed lifecycle exists only where the project explicitly enabled it."""
-    if not (root / 'crewloom.project.json').is_file():
-        return None
     import project_binding as pb
     config, _ = pb.load_config(root)
     if not config:

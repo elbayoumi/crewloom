@@ -1,5 +1,29 @@
 # Challenges
 
+### 2026-10-21 — Independent roles found lifecycle and evidence gaps
+- Setuptools recursive source-archive patterns can include Git-ignored local team memory. Keep real private data out of build fixtures, inject synthetic data, and explicitly prune the private subtree from source distributions.
+- Concurrent Docker --rm can race explicit close. Only tolerate known missing/removing diagnostics after verified ownership and observing disappearance; preserve other daemon/ownership failures.
+- Byte capture alone does not bound decoded UTF-8. Budget normalized output and diagnostics, report truncation, and refuse success on overflow. Native asyncio cancellation must signal and join its worker; queued admission must observe cancellation too.
+- Adapter demos without SDKs must not claim framework protocol acceptance. Unknown-language dispatch must fail before execution. Alternate project configuration has to follow its binding in every consumer, including relocation.
+
+### 2026-10-21 — Resolve the five consumer-boundary failures
+- Python stream replacement missed subprocess/raw descriptor writes. Redirect both descriptors into a draining, bounded collector; cap UTF-8 replacement expansion too, fail excess output, and disable persistent Docker logs. A bounded drain prevents inherited descriptors from holding responses open indefinitely.
+- DNS checks must govern the socket, so transport pins numeric addresses and retains the original host for HTTP/TLS; restricted requests bypass proxies. An async helper name alone is not the framework protocol: expose an explicit wrapper and test the actual pinned agent. Remove the generic workflow import and normalize grant types before tuple conversion.
+
+### 2026-10-20 — Deeper review reopens readiness
+- Actual framework consumption differs from the async helper our tests call; installed imports must survive consumer module names, not just an empty cwd. Python stream redirection does not capture child/raw-fd output, and validating DNS separately from connection creation leaves a second-resolution gap.
+- Reproduced five open issues on the fix branch. These supersede readiness inferences, not historical passing test counts; no functional repairs were made in this review pass.
+
+### 2026-10-20 — Review defects corrected in place
+- Follow-up acceptance caught lowercase Docker missing-object diagnostics and a legacy graph test that mixed a Python-stdlib assertion with an approximate TS fixture. Normalize the diagnostic case and isolate that positive fixture; keep explicit incomplete-JS tests.
+- Solution: validate every explicit write grant before mkdir, retain read-only project mounts, package the documented adapter namespace, use a live container interpreter instead of history replay, key cache reuse by selected parser and refuse approximate completeness claims.
+- Acceptance: earlier source fails the reproduced write/replay/cache/completeness cases; the fixed source passes actual Docker and grammar acceptance. Real wheel and rebuilt-sdist imports pass outside the checkout. Named interpreter sessions require explicit reset; no durable process snapshot or workflow rollback is claimed.
+
+### 2026-10-20 — Passing component suites missed interop and parser transitions
+- Cause: checkout imports hide unshipped adapter modules; explicit writable-list tests omit the default None case; stateful mocks do not observe repeated file mutations; parser tests exercise cold modes independently rather than the optional-dependency transition.
+- Evidence: real Docker changed temporary source/Git fixtures by default; two AutoGen blocks appended twice; pristine wheel/sdist omitted adapter Python; installing syntax preserved an approximate cache until explicit rebuild. Fallback dynamic import also reported a complete graph.
+- Status: reproduced and added to backlog; no runtime fix or broader acceptance claim.
+
 ### 2026-10-15 — Python 3.9 native lock construction
 - Cause: asyncio.Lock was created by a synchronous controller constructor; Python 3.9 eagerly binds it to an absent/old loop after asyncio.run, causing six hosted errors.
 - Solution: lazy allocation inside the running operation loop, explicit foreign-loop refusal and contended serialization regression; nine offline cases pass on actual Python 3.9 and 3.14, one approved-live case remains opt-in.

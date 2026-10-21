@@ -87,6 +87,71 @@ class GatewayTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'outside allowed CIDRs'):
                     g._resolve_endpoint('ollama')
 
+    def test_dns_is_pinned_through_real_transport_and_proxy_cannot_override(self):
+        import socket
+        import threading
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+        observed = []
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                observed.append((self.headers['Host'], self.rfile.read(int(self.headers['Content-Length']))))
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b'{"done":true}')
+            def log_message(self, *args):
+                pass
+
+        server = HTTPServer(('127.0.0.1', 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        resolutions, connections = [], []
+        real_dns, real_connect = socket.getaddrinfo, socket.socket.connect
+
+        def dns(host, port, *args, **kwargs):
+            if host != 'rebind.internal':
+                return real_dns(host, port, *args, **kwargs)
+            resolutions.append(host)
+            ip = '127.0.0.1' if len(resolutions) == 1 else '203.0.113.10'
+            return [(socket.AF_INET, socket.SOCK_STREAM, 6, '', (ip, port or 0))]
+
+        def connect(sock, address):
+            connections.append(address[0])
+            if address[0] != '127.0.0.1':
+                raise AssertionError('Attempt to connect outside validated addresses')
+            return real_connect(sock, address)
+
+        env = {'OLLAMA_ENDPOINT': 'http://rebind.internal:%s' % server.server_port,
+               'CREWLOOM_TRUST_SYSTEM_PROXIES': '1', 'http_proxy': 'http://203.0.113.20:9'}
+        with patch.dict(os.environ, env, clear=True), patch('socket.getaddrinfo', side_effect=dns), \
+                patch.object(socket.socket, 'connect', connect):
+            self.assertTrue(g._request('ollama', 'test', 'synthetic prompt', 3)['done'])
+        self.assertEqual(len(resolutions), 1)
+        self.assertEqual(connections, ['127.0.0.1'])
+        self.assertEqual(observed[0][0], 'rebind.internal:%s' % server.server_port)
+        self.assertIn(b'synthetic prompt', observed[0][1])
+
+    def test_pinned_https_preserves_tls_host_and_verification(self):
+        import socket
+        import ssl
+        info = [(socket.AF_INET, socket.SOCK_STREAM, 6, '', ('127.0.0.1', 0))]
+        with patch('socket.getaddrinfo', return_value=info):
+            handler = g._pinned_local_handlers('https://model.internal:443')[1]
+        with patch.object(handler, 'do_open') as opened:
+            handler.https_open(None)
+        factory = opened.call_args.args[0]
+        context = opened.call_args.kwargs['context']
+        # Python 3.9 creates the default context in HTTPSConnection instead.
+        connection = factory('model.internal:443', context=context)
+        self.assertTrue(connection._context.check_hostname)
+        self.assertEqual(connection._context.verify_mode, ssl.CERT_REQUIRED)
+        with patch.object(socket.socket, 'connect'), patch.object(connection._context, 'wrap_socket') as wrap:
+            connection.connect()
+            self.assertEqual(wrap.call_args.kwargs['server_hostname'], 'model.internal')
+        connection.close()
+
     def test_think_tags_inside_artifact_content_preserved(self):
         raw_json = json.dumps({'artifacts': [{'path': 'a', 'content': 'before <think>keep me</think> after'}]})
         value = {

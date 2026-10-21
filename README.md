@@ -31,7 +31,7 @@ Run the zero-friction onboarding script or test the interactive walkthrough:
 python3 scripts/crewloom.py demo --fast
 ```
 
-The [quickstart script](quickstart.sh) detects prerequisites, configures Python dependencies, and provides instant verification without requiring external API keys.
+The [quickstart script](quickstart.sh) checks prerequisites and runs an offline walkthrough; it does not install Python packages, optional extras, Docker images or dashboard dependencies. It requires no external API keys for this check.
 
 ## How Crewloom works: Architecture & workflow
 
@@ -103,7 +103,7 @@ flowchart TD
 | **Developer Experience** | **Zero friction**: 1-line quickstart (`quickstart.sh`), instant 20-second offline demo (`crewloom demo`), zero API keys needed. | High setup friction; large dependency tree; mandatory paid API key for hello-world. | Requires virtualenv, `OAI_CONFIG_LIST` configuration, and active LLM credentials. | Requires multi-package installation, model credentials, and complex graph wiring. |
 | **AI IDE & MCP** | **Native stdio MCP bridge** with fine-grained security flags for Cursor, Windsurf, and Codex. | No repository MCP server; relies on standalone Python execution scripts. | Client-side tool consumer only; does not expose repo context or task packets to IDEs. | Client-side tool consumer; lacks repository-native MCP server for AI IDEs. |
 | **Local AI Sovereignty** | **100% local and offline**; native loopback gateways for Ollama & vLLM; zero telemetry; local dashboard. | Pushes toward CrewAI Enterprise / cloud monitoring. | Standalone library; optional cloud extensions. | Strongly coupled with LangSmith cloud monitoring and LangGraph Cloud. |
-| **Framework Interop** | **Universal Zero-Trust Sandbox**; drop-in standard-library adapters for CrewAI, AutoGen, and LangGraph (`adapters/interop/`). | Siloed execution; no drop-in sandboxing export. | Siloed execution; external code executor requires complex configuration. | Node-based; requires custom sandbox engineering. |
+| **Framework Interop** | **Isolated container execution**; drop-in standard-library adapters for CrewAI, AutoGen, and LangGraph (`adapters/interop/`). | Siloed execution; no drop-in sandboxing export. | Siloed execution; external code executor requires complex configuration. | Node-based; requires custom sandbox engineering. |
 
 See the [Local AI Sovereignty Guide](documentation/LOCAL_AI_SOVEREIGNTY.md) and [Cross-Framework Interoperability Guide](documentation/INTEROP.md) for architecture details.
 
@@ -169,7 +169,7 @@ python -m pip install -e .  # adds the `crewloom` command
 crewloom install --host claude --target /path/to/your/project --skill frontend-ux-auditor
 ```
 
-`--host claude` copies roles to `.claude/skills`; `--host agents` copies them to `.agents/skills` for hosts that read that folder (omit `--skill` for all 44). Existing roles are never overwritten without `--force`. Copied roles are static: re-run the command after pulling updates. A normal `pip install .` builds a local wheel with the Python runtime, role resources, adapters and examples. The editable command above keeps a development link to the clone. The optional Node dashboard runs from a source checkout.
+`--host claude` copies roles to `.claude/skills`; `--host agents` copies them to `.agents/skills` for hosts that read that folder (omit `--skill` for all 44). Existing roles are never overwritten without `--force`. Copied roles are static: re-run the command after pulling updates. A normal `pip install .` builds a local wheel with the Python runtime, role resources, adapters and examples. The editable command above keeps a development link to the clone. The optional Node dashboard runs from a checkout or unpacked sdist. The three framework adapters are included under `adapters.interop`; workspaces are read-only by default with explicit output grants. See [adapter boundaries and session cleanup](documentation/INTEROP.md). AutoGen 0.4 agents require `executor.as_async_executor()`; the real agent test uses SDK 0.4.9. Stateful capture includes child processes and raw stdout/stderr, with bounded output and Docker logging disabled. Unsupported languages fail explicitly. Adapter demos default to a preview; pass `--require-execution` to require Docker execution. Async task cancellation waits for container cleanup.
 
 Use the optional [native Codex plugin](documentation/CODEX_PLUGIN.md) for role/context/workflow guidance and the separate [manual browser companion](documentation/CHROME_EXTENSION_SIDE_PANEL.md) for element inspection and tab capture. For AI IDEs, integrate with tested MCP templates for [Cursor](examples/mcp/cursor.json) and [Windsurf](examples/mcp/windsurf.json) (see [MCP guide](examples/mcp/README.md)).
 

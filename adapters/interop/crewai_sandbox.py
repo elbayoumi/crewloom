@@ -15,25 +15,14 @@ Zero external pip dependencies required; operates entirely using Python 3.9+ sta
 from __future__ import annotations
 
 import os
+import json
 from pathlib import Path
 import re
-import shutil
 import subprocess
-import sys
-import tempfile
 import time
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 import uuid
-
-# Dynamically resolve scripts/ directory if workflow is not on sys.path
-_SCRIPTS_DIR = Path(__file__).resolve().parent.parent.parent / "scripts"
-if _SCRIPTS_DIR.is_dir() and str(_SCRIPTS_DIR) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS_DIR))
-
-try:
-    import workflow as _workflow
-except ImportError:
-    _workflow = None
+import unicodedata
 
 ISOLATION_FLAGS: Tuple[str, ...] = (
     "--network", "none",
@@ -49,8 +38,6 @@ ISOLATION_FLAGS: Tuple[str, ...] = (
 
 def _docker_user() -> str:
     """Ensure workflow containers never run as root."""
-    if _workflow is not None:
-        return _workflow.docker_user()
     if not hasattr(os, "getuid") or not hasattr(os, "getgid"):
         raise ValueError("Workflow containers require Linux, macOS or WSL; native Windows is not supported")
     uid = os.getuid()
@@ -58,7 +45,7 @@ def _docker_user() -> str:
     if uid == 0:
         override = os.environ.get("CREWLOOM_CONTAINER_USER", "").strip()
         if override:
-            if not re.fullmatch(r"[0-9]+:[0-9]+", override) or override.startswith("0:"):
+            if not re.fullmatch(r"[0-9]+:[0-9]+", override) or int(override.split(":")[0]) == 0:
                 raise ValueError("CREWLOOM_CONTAINER_USER must specify unprivileged uid:gid (e.g. 10001:10001)")
             return override
         if os.environ.get("CREWLOOM_ALLOW_CONTAINER_ROOT") == "1":
@@ -69,11 +56,98 @@ def _docker_user() -> str:
 
 def _bind_mount(source: Union[str, Path], destination: str, readonly: bool = False) -> List[str]:
     """Build one --mount argument pair, rejecting comma-injection."""
-    if _workflow is not None:
-        return _workflow.bind_mount(source, destination, readonly=readonly)
     if "," in str(source) or "," in str(destination):
         raise ValueError("Docker mount paths cannot contain commas")
     return ["--mount", f"type=bind,src={source},dst={destination}" + (",readonly" if readonly else "")]
+
+
+def _normalize_writable(writable: Optional[Sequence[str]]) -> Optional[Tuple[str, ...]]:
+    """Freeze explicit path sequences without interpreting strings as individual grants."""
+    if writable is None:
+        return None
+    if isinstance(writable, (str, bytes)) or not isinstance(writable, Sequence) or len(writable) > 128:
+        raise ValueError("Writable paths must be a sequence of at most 128 relative paths")
+    if any(not isinstance(path, str) or not path or "\0" in path for path in writable):
+        raise ValueError("Expected workspace-relative writable path")
+    return tuple(writable)
+
+
+def _bound_policy(root: Path) -> Optional[Path]:
+    """Find an explicitly selected policy without importing the host's runtime modules."""
+    state = root / '.crewloom'
+    binding = state / 'binding.json'
+    if state.is_symlink() or binding.is_symlink():
+        raise ValueError("Project binding must not use symlinks")
+    if not binding.exists():
+        return None
+    if not binding.is_file() or binding.stat().st_nlink != 1 or binding.stat().st_size > 65536:
+        raise ValueError("Invalid project binding")
+    try:
+        data = json.loads(binding.read_text(encoding='utf-8'))
+    except (ValueError, UnicodeError) as exc:
+        raise ValueError("Invalid project binding") from exc
+    if not isinstance(data, dict) or data.get('project_root') != str(root):
+        raise ValueError("Project binding belongs to another workspace")
+    relative = data.get('config_path') or 'crewloom.project.json'
+    if not isinstance(relative, str) or '\0' in relative or Path(relative).is_absolute() or '..' in Path(relative).parts:
+        raise ValueError("Invalid bound project policy path")
+    policy = (root / relative).resolve()
+    if policy == root or not policy.is_relative_to(root):
+        raise ValueError("Bound project policy escapes workspace")
+    return policy
+
+
+def _writable_paths(root: Path, writable: Optional[Sequence[str]]) -> List[Path]:
+    """Validate the complete write set before creating any mount directories."""
+    writable = _normalize_writable(writable)
+    policy = _bound_policy(root) if writable else None
+    policy_key = ('/'.join(unicodedata.normalize('NFC', part).casefold() for part in policy.relative_to(root).parts)
+                  if policy else None)
+    protected = {".git", ".crewloom", ".crewloom-repairs", ".codex", ".claude", ".opencode",
+                 "crewloom.project.json", "repository_scope.json", "opencode.json", "opencode.jsonc"}
+    paths = []
+    keys = []
+    inspected = 0
+    for relative in writable or ():
+        if not isinstance(relative, str) or not relative or "\0" in relative:
+            raise ValueError("Expected workspace-relative writable path")
+        rel = Path(relative)
+        target = root / rel
+        if rel.is_absolute() or ".." in rel.parts or target.resolve() == root or not target.resolve().is_relative_to(root):
+            raise ValueError("Writable path escapes workspace: " + relative)
+        for part in rel.parts:
+            if part.casefold() in protected:
+                raise ValueError("Writable path uses project control state: " + relative)
+        current = root
+        for part in rel.parts:
+            current = current / part
+            if current.is_symlink():
+                raise ValueError("Writable paths cannot use symlinks: " + relative)
+        # A directory grant includes every descendant, so inspect controls and aliases there too.
+        pending = [target]
+        while pending:
+            candidate = pending.pop()
+            inspected += 1
+            if inspected > 10000:
+                raise ValueError("Writable tree inspection budget exceeded")
+            if candidate.name.casefold() in protected or candidate.is_symlink():
+                raise ValueError("Writable tree contains control state or symlinks: " + relative)
+            if candidate.exists():
+                if candidate.is_file():
+                    if candidate.stat().st_nlink != 1:
+                        raise ValueError("Writable files cannot use hardlinks: " + relative)
+                elif candidate.is_dir():
+                    pending.extend(candidate.iterdir())
+                else:
+                    raise ValueError("Writable paths must be regular files or directories")
+        key = '/'.join(unicodedata.normalize('NFC', part).casefold() for part in rel.parts)
+        if policy_key is not None and (key == policy_key or policy_key.startswith(key + '/') or key.startswith(policy_key + '/')):
+            raise ValueError("Writable path includes the bound project control file: " + relative)
+        if any(key == other or key.startswith(other + '/') or other.startswith(key + '/') for other in keys):
+            raise ValueError("Writable paths cannot overlap")
+        paths.append(target)
+        keys.append(key)
+    return paths
 
 
 def build_sandbox_command(
@@ -83,37 +157,31 @@ def build_sandbox_command(
     name: Optional[str] = None,
     writable: Optional[Sequence[str]] = None,
 ) -> List[str]:
-    """Construct the complete hardened `docker run` argv."""
+    """Build a read-only workspace; only explicit validated output paths are writable."""
     root_path = Path(root).resolve()
     if not root_path.is_dir():
         raise ValueError(f"Workspace root must be an existing directory: {root}")
     if "," in str(root_path):
         raise ValueError("Workspace root path cannot contain commas")
-
-    container_name = name or ("crewloom-crewai-" + uuid.uuid4().hex[:12])
+    if not isinstance(image_id, str) or not image_id or image_id.startswith("-") or any(c.isspace() for c in image_id):
+        raise ValueError("Expected an explicit Docker image reference")
+    paths = _writable_paths(root_path, writable)
     crewloom_dir = root_path / ".crewloom"
-    if not crewloom_dir.exists():
-        try:
-            crewloom_dir.mkdir(parents=True, exist_ok=True)
-        except OSError:
-            pass
-    mounts = _bind_mount(root_path, "/workspace", readonly=writable is not None)
-
-    for relative in writable or ():
-        rel_path = Path(relative)
-        if rel_path.is_absolute():
-            raise ValueError(f"Expected workspace-relative writable path: {relative}")
-        target = (root_path / rel_path).resolve()
-        if not target.is_relative_to(root_path) or target == root_path:
-            raise ValueError(f"Writable path escapes workspace: {relative}")
+    if crewloom_dir.is_symlink() or (crewloom_dir.exists() and not crewloom_dir.is_dir()):
+        raise ValueError("Runtime state must be a directory without symlinks")
+    # Construct every argument (including comma checks) before making directories.
+    mounts = _bind_mount(root_path, "/workspace", readonly=True)
+    for target in paths:
+        mounts += _bind_mount(target, f"/workspace/{target.relative_to(root_path)}")
+    user = _docker_user()
+    for target in paths:
         if not target.exists():
             target.mkdir(parents=True, exist_ok=True)
-        mounts += _bind_mount(target, f"/workspace/{target.relative_to(root_path)}")
-
+    crewloom_dir.mkdir(mode=0o700, exist_ok=True)
     return [
-        "docker", "run", "--rm", "--name", container_name,
+        "docker", "run", "--rm", "--name", name or ("crewloom-crewai-" + uuid.uuid4().hex[:12]),
         *ISOLATION_FLAGS,
-        "--user", _docker_user(),
+        "--user", user,
         "--tmpfs", "/tmp:rw,nosuid,size=128m",
         "--tmpfs", "/workspace/.crewloom:ro,noexec,nosuid,size=1m",
         *mounts,
@@ -155,10 +223,22 @@ def execute_sandbox_command(
     cancellation_token: Any = None,
 ) -> Dict[str, Any]:
     """Execute command in sandbox with timeout, active cancellation monitoring, and output capture."""
+    if not isinstance(timeout, int) or isinstance(timeout, bool) or not 1 <= timeout <= 3600:
+        raise ValueError("Execution timeout must be between 1 and 3600 seconds")
     root_path = Path(root).resolve()
     container_name = "crewloom-crewai-" + uuid.uuid4().hex[:12]
     cmd = build_sandbox_command(root_path, argv, image_id=image_id, name=container_name, writable=writable)
 
+    return _execute_container_command(cmd, container_name, image_id, timeout, cancellation_token)
+
+
+def _execute_container_command(
+    cmd: Sequence[str], container_name: str, image_id: str, timeout: int,
+    cancellation_token: Any = None, remove: bool = True,
+) -> Dict[str, Any]:
+    """Collect bounded container output and destroy interrupted or one-shot executions."""
+    if not isinstance(timeout, int) or isinstance(timeout, bool) or not 1 <= timeout <= 3600:
+        raise ValueError("Execution timeout must be between 1 and 3600 seconds")
     started = time.monotonic()
     captured = bytearray()
     discarded = [False]
@@ -191,7 +271,7 @@ def execute_sandbox_command(
             if len(chunk) > available:
                 discarded[0] = True
                 try:
-                    subprocess.run(["docker", "kill", container_name], capture_output=True, check=False)
+                    subprocess.run(["docker", "kill", container_name], capture_output=True, check=False, timeout=10)
                 except Exception:
                     pass
 
@@ -205,7 +285,7 @@ def execute_sandbox_command(
                 cancelled = True
                 exit_code = 130
                 try:
-                    subprocess.run(["docker", "kill", container_name], capture_output=True, check=False)
+                    subprocess.run(["docker", "kill", container_name], capture_output=True, check=False, timeout=10)
                 except Exception:
                     pass
                 process.kill()
@@ -223,7 +303,11 @@ def execute_sandbox_command(
                     timed_out = True
                     break
     finally:
-        subprocess.run(["docker", "rm", "--force", container_name], capture_output=True, check=False)
+        if remove or timed_out or cancelled or discarded[0]:
+            try:
+                subprocess.run(["docker", "rm", "--force", container_name], capture_output=True, check=False, timeout=10)
+            except (OSError, subprocess.TimeoutExpired):
+                pass
         if process.poll() is None:
             process.kill()
             process.wait()
@@ -231,12 +315,21 @@ def execute_sandbox_command(
         if process.stdout:
             process.stdout.close()
 
+    if discarded[0] and exit_code == 0:
+        exit_code = 1
     duration_ms = round((time.monotonic() - started) * 1000)
     output = captured.decode("utf-8", errors="replace")
-    if timed_out:
-        output = (output + f"\n[Command timed out after {timeout} seconds]").strip()
-    elif cancelled:
-        output = (output + "\n[Execution cancelled by user]").strip()
+    suffix = (f"\n[Command timed out after {timeout} seconds]" if timed_out else
+              "\n[Execution cancelled by user]" if cancelled else "")
+    budget = 65536 - len(suffix.encode("utf-8"))
+    encoded = output.encode("utf-8")
+    if len(encoded) > budget:
+        discarded[0] = True
+        if exit_code == 0:
+            exit_code = 1
+    output = encoded[:budget].decode("utf-8", errors="ignore") + suffix
+    if suffix:
+        output = output.strip()
 
     return {
         "exit_code": exit_code,
@@ -274,7 +367,7 @@ class CrewloomSandboxTool:
         self.workspace_root = Path(workspace_root).resolve()
         self.image_id = image_id
         self.timeout = timeout
-        self.writable = tuple(writable) if writable is not None else None
+        self.writable = _normalize_writable(writable)
         self.func = self.run  # Direct CrewAI agent tool protocol compatibility
 
     @property
@@ -327,7 +420,6 @@ class CrewloomSandboxTool:
         """Convert into a native CrewAI BaseTool instance if crewai is installed."""
         try:
             from crewai.tools import BaseTool
-            from pydantic import Field
         except ImportError as exc:
             raise ImportError(
                 "crewai is not installed. CrewloomSandboxTool can be used directly as a callable tool, "

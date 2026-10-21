@@ -1,46 +1,31 @@
-"""Crewloom Interoperability Bridges for External Agent Frameworks.
+"""Standard-library framework adapters with read-only workspace defaults.
 
-Provides zero-dependency, enterprise-grade execution sandboxes for:
-- CrewAI (CrewloomSandboxTool)
-- Microsoft AutoGen (CrewloomAutoGenExecutor)
-- LangChain / LangGraph (CrewloomLangGraphNode)
-
-All adapters enforce Crewloom's zero-trust container security model:
-- Airgapped execution (--network none)
-- Non-root UID enforcement (refuses root)
-- Immutable read-only filesystem (--read-only)
-- Strict capability shedding (--cap-drop ALL, no-new-privileges)
-- Bounded memory, CPU, PID, and file-size quotas
+Import implementations lazily so module CLIs execute only once under ``python -m``.
+Docker and an explicitly selected local image are required for code execution.
 """
+from importlib import import_module
 
-from .autogen_sandbox import (
-    CodeBlock,
-    CommandLineCodeResult,
-    CrewloomAutoGenExecutor,
-    extract_code_blocks,
-)
-from .crewai_sandbox import (
-    ISOLATION_FLAGS,
-    CrewloomSandboxTool,
-    build_sandbox_command,
-    execute_in_sandbox,
-    execute_sandbox_command,
-)
-from .langgraph_sandbox import (
-    CrewloomLangGraphNode,
-    create_crewloom_sandbox_node,
-)
+_EXPORTS = {
+    "ISOLATION_FLAGS": "crewai_sandbox",
+    "CrewloomSandboxTool": "crewai_sandbox",
+    "build_sandbox_command": "crewai_sandbox",
+    "execute_in_sandbox": "crewai_sandbox",
+    "execute_sandbox_command": "crewai_sandbox",
+    "CodeBlock": "autogen_sandbox",
+    "CommandLineCodeResult": "autogen_sandbox",
+    "CrewloomAsyncAutoGenExecutor": "autogen_sandbox",
+    "CrewloomAutoGenExecutor": "autogen_sandbox",
+    "extract_code_blocks": "autogen_sandbox",
+    "CrewloomLangGraphNode": "langgraph_sandbox",
+    "create_crewloom_sandbox_node": "langgraph_sandbox",
+}
+__all__ = list(_EXPORTS)
 
-__all__ = [
-    "ISOLATION_FLAGS",
-    "CrewloomSandboxTool",
-    "build_sandbox_command",
-    "execute_in_sandbox",
-    "execute_sandbox_command",
-    "CodeBlock",
-    "CommandLineCodeResult",
-    "CrewloomAutoGenExecutor",
-    "extract_code_blocks",
-    "CrewloomLangGraphNode",
-    "create_crewloom_sandbox_node",
-]
+
+def __getattr__(name):
+    """Resolve the established public import names without eager CLI imports."""
+    if name not in _EXPORTS:
+        raise AttributeError(name)
+    value = getattr(import_module('.' + _EXPORTS[name], __name__), name)
+    globals()[name] = value
+    return value

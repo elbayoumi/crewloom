@@ -281,7 +281,11 @@ def validate_config(value, root):
 
 
 def load_config(root, config_path=None):
-    relative = config_path or CONFIG_NAME
+    # Once bound, every consumer must read the same explicitly selected config.
+    # Relocation still validates ownership in rebind; resolving its relative file
+    # must work before the recorded machine root has been updated.
+    binding = load_binding(root, required=False, allow_moved=True) if config_path is None else None
+    relative = config_path or (binding or {}).get('config_path') or CONFIG_NAME
     path = w.safe_path(root, relative)
     if not path.is_file():
         return None, relative

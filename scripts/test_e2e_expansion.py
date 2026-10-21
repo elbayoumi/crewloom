@@ -1195,6 +1195,23 @@ class Tier4EndToEndJourneys(E2ETestBase):
 # Main Runner
 # ==============================================================================
 
+class QuickstartReadinessTests(E2ETestBase):
+    def test_optional_dashboard_version_is_checked_without_blocking_core(self):
+        for version, ready in [('v20.19.0', False), ('v24.0.0', True), ('unknown', False)]:
+            with self.subTest(version=version), tempfile.TemporaryDirectory() as temporary:
+                folder = Path(temporary)
+                for name, value in [('node', version), ('npm', '10.0.0')]:
+                    path = folder / name
+                    path.write_text('#!/bin/sh\nprintf "%s\\n" "' + value + '"\n')
+                    path.chmod(0o755)
+                result = self.run_cmd(['bash', str(ROOT/'quickstart.sh'), '--dry-run'],
+                                      env={'PATH': str(folder) + os.pathsep + os.environ['PATH']})
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual('dashboard ready' in result.stdout, ready)
+                if not ready:
+                    self.assertIn('requires Node 24+', result.stdout)
+
+
 if __name__ == '__main__':
     # Support --strict flag on CLI
     if '--strict' in sys.argv:

@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
-"""Executable demonstration of Crewloom CodeExecutor for Microsoft AutoGen.
+"""Preview the AutoGen-style executor; --require-execution requires real Docker.
 
-Runs rootless container execution for AutoGen code blocks with:
-- Non-root UID enforcement
-- Airgapped execution (--network none)
-- Markdown code fence parsing
+No framework SDK or model is constructed by this adapter example.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 import sys
 import tempfile
 
@@ -19,6 +15,11 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+if __package__:
+    from .demo_runtime import IMAGE, execution_mode
+else:
+    from demo_runtime import IMAGE, execution_mode
+
 from adapters.interop.autogen_sandbox import (
     CodeBlock,
     CrewloomAutoGenExecutor,
@@ -26,7 +27,12 @@ from adapters.interop.autogen_sandbox import (
 )
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    try:
+        execute = execution_mode(argv)
+    except RuntimeError as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+        return 2
     print("=" * 60)
     print("Crewloom Interop Demo: Microsoft AutoGen Rootless CodeExecutor")
     print("=" * 60)
@@ -43,7 +49,7 @@ print("Fibonacci(10) =", fib(10))
         workspace = Path(temp_dir)
         executor = CrewloomAutoGenExecutor(
             workspace_root=workspace,
-            image_id="python:3.11-slim",
+            image_id=IMAGE,
             timeout=15,
         )
 
@@ -52,9 +58,7 @@ print("Fibonacci(10) =", fib(10))
         for idx, block in enumerate(blocks):
             print(f"    Block {idx+1} ({block.language}):\n{block.code}")
 
-        has_docker = shutil.which("docker") is not None
-
-        if has_docker:
+        if execute:
             print("\n[+] Executing code blocks through AutoGen CodeExecutor...")
             res = executor.execute_code_blocks(blocks)
             print(f"[+] Exit Code: {res.exit_code}")
@@ -63,11 +67,10 @@ print("Fibonacci(10) =", fib(10))
                 print(f"\n[!] AutoGen CodeExecutor failed with exit code {res.exit_code}")
                 return res.exit_code
         else:
-            print("\n[*] Docker binary not detected; completed offline parsing & protocol verification.")
-            print("[*] PASS: AutoGen CodeExecutor protocol and block extraction verified.")
+            print("[PREVIEW] Code fences parsed; execution and AutoGen SDK integration were skipped.")
 
     print("\n" + "=" * 60)
-    print("Demo completed successfully (exit code 0)")
+    print("Adapter example completed (exit code 0)")
     print("=" * 60)
     return 0
 

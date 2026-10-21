@@ -16,3 +16,4 @@ scripts/*.egg-info/
 *.egg-info/
 *.tsbuildinfo
 .agents/teamwork/
+/.crewloom/

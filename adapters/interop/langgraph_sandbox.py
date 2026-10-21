@@ -15,7 +15,7 @@ import sys
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 from .autogen_sandbox import CodeBlock, extract_code_blocks
-from .crewai_sandbox import _is_cancelled, execute_sandbox_command
+from .crewai_sandbox import _is_cancelled, _normalize_writable, execute_sandbox_command
 
 
 class CrewloomLangGraphNode:
@@ -57,7 +57,7 @@ class CrewloomLangGraphNode:
         self.workspace_root: Path = Path(workspace_root).resolve()
         self.image_id: str = image_id
         self.timeout: int = timeout
-        self.writable: Optional[tuple[str, ...]] = tuple(writable) if writable is not None else None
+        self.writable: Optional[tuple[str, ...]] = _normalize_writable(writable)
         self.input_key: str = input_key
         self.language_key: str = language_key
         self.output_key: str = output_key
@@ -140,6 +140,7 @@ class CrewloomLangGraphNode:
                 if not state.get(self.language_key):
                     language = target_block.language
 
+        language = language.lower() if isinstance(language, str) else language
         if language in ("python", "python3", "py"):
             argv = ["python3", "-c", str(code)]
         elif language in ("bash", "sh", "shell"):
@@ -147,7 +148,18 @@ class CrewloomLangGraphNode:
         elif language in ("node", "javascript", "js"):
             argv = ["node", "-e", str(code)]
         else:
-            argv = ["python3", "-c", str(code)]
+            return {
+                self.output_key: {
+                    "exit_code": 2,
+                    "output": f"Unsupported language: {language}. Supported: python, bash, sh, javascript, node",
+                    "timed_out": False,
+                    "cancelled": False,
+                    "duration_ms": 0,
+                    "output_truncated": False,
+                    "isolation": "crewloom-airgap",
+                    "image_id": self.image_id,
+                }
+            }
 
         result = execute_sandbox_command(
             root=self.workspace_root,

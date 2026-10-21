@@ -1,5 +1,17 @@
 # Crewloom shared memory
 
+### 2026-10-21 — Specialist consumer review
+Private teamwork memory is explicitly excluded from source archives and tested with a synthetic populated fixture. Independent security, QA and integration roles identified and reproduced remaining lifecycle, output-budget, dispatch and example-evidence defects. Repairs retain explicit ownership and add targeted actual execution; alternate configuration binding is now consistent across consumers. SDK, isolated unit, host and hosted evidence retain distinct scopes.
+
+### 2026-10-21 — Consumer-boundary repair
+The deeper review's five reproduced defects are repaired with real HTTP/DNS, Docker, pinned AutoGen 0.4.9 and populated-consumer artifact checks. Sync callers retain their API; 0.4 agents select as_async_executor(). No release, merge or universal sandbox assurance is implied. See Brain/COMPLETED.md and documentation/INTEROP.md for evidence and scope.
+
+- 2026-10-20: Deeper review found five additional open contract failures on the fix branch, including DNS connection binding and real AutoGen 0.4 integration. Readiness remains unestablished despite prior suite passes; see the latest backlog/challenges. No functional repairs were made in this review pass.
+
+- 2026-10-20: Review-fix branch closes the five reproduced interop/navigation defects and aligns Node/quickstart setup. Actual containers, installed artifacts and parser transitions verify the changed paths; named Python sessions need explicit reset and interop writes remain distinct from workflow publication. Hosted merge/release remains separate.
+
+- 2026-10-20: Review of main at 4c58bff reproduced five open interop/navigation defects despite passing component acceptance: default project/Git writes, missing distributed adapters, parser-transition cache reuse, stateful replay side effects and fallback completeness. See the dated challenges and active backlog; fixes are not yet implemented.
+
 - 2026-10-15: Repository review retains the prior defect-closure work and adds explicit-prerequisite refusal, real MCP/browser CI, lockfile dashboard startup, reviewed dependency proposals and synchronized bilingual setup. Local component acceptance passes; source proposal/hosted CI and stable-release rollout are distinct. See [review evidence](documentation/PROFESSIONAL_REVIEW.md).
 
 [Architecture](Brain/ARCHITECTURE.md) · [Completed](Brain/COMPLETED.md) · [Challenges](Brain/CHALLENGES.md) · [Ideas](Brain/IDEAS_VAULT.md) · [Backlog](Brain/ROADMAP_TODO.md)

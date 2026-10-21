@@ -96,7 +96,7 @@ def validate_conditions(conditions):
 
 
 def policy_fingerprint(root, binding):
-    config = Path(root) / 'crewloom.project.json'
+    config = w.safe_path(Path(root), binding.get('config_path') or 'crewloom.project.json')
     return {'policy_sha256': w.digest(config.read_bytes()) if config.is_file() else None,
             'project_id': binding['project_id'], 'checkout_id': binding['checkout_id']}
 

@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
-"""Executable demonstration of Crewloom Sandbox Tool for CrewAI.
+"""Preview the CrewAI-style tool; --require-execution requires real Docker.
 
-Runs zero-trust container sandboxing for CrewAI agents with:
-- Non-root UID enforcement
-- Airgapped execution (--network none)
-- Read-only root filesystem
+No framework SDK or model is constructed by this adapter example.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 import sys
 import tempfile
 
@@ -19,12 +15,22 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+if __package__:
+    from .demo_runtime import IMAGE, execution_mode
+else:
+    from demo_runtime import IMAGE, execution_mode
+
 from adapters.interop.crewai_sandbox import CrewloomSandboxTool, build_sandbox_command
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    try:
+        execute = execution_mode(argv)
+    except RuntimeError as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+        return 2
     print("=" * 60)
-    print("Crewloom Interop Demo: CrewAI Zero-Trust Sandbox Tool")
+    print("Crewloom Interop Demo: CrewAI-style Container Tool")
     print("=" * 60)
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -33,7 +39,7 @@ def main() -> int:
 
         tool = CrewloomSandboxTool(
             workspace_root=workspace,
-            image_id="python:3.11-slim",
+            image_id=IMAGE,
             timeout=15,
             writable=["out/"],
         )
@@ -49,10 +55,9 @@ def main() -> int:
             print(f"    [{idx:02d}] {arg}")
         print("    ... (and remaining mounts & flags)")
 
-        has_docker = shutil.which("docker") is not None
         code = "print('Factorial of 10 is:', __import__('math').factorial(10))"
 
-        if has_docker:
+        if execute:
             print(f"\n[+] Executing Python snippet in sandbox: {code}")
             result = tool.execute(code, language="python")
             print(f"[+] Exit Code: {result['exit_code']}")
@@ -62,11 +67,10 @@ def main() -> int:
                 print(f"\n[!] Sandbox execution failed with exit code {result['exit_code']}")
                 return result["exit_code"]
         else:
-            print("\n[*] Docker binary not detected; completed offline command & protocol verification.")
-            print("[*] PASS: CrewAI tool protocol and isolation flags verified.")
+            print("[PREVIEW] Docker command constructed; execution and CrewAI SDK integration were skipped.")
 
     print("\n" + "=" * 60)
-    print("Demo completed successfully (exit code 0)")
+    print("Adapter example completed (exit code 0)")
     print("=" * 60)
     return 0
 

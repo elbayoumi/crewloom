@@ -12,6 +12,8 @@ Adheres strictly to the Python standard library with zero external dependencies.
 from __future__ import annotations
 
 import ipaddress
+import http.client
+import socket
 import json
 import multiprocessing
 import multiprocessing.connection
@@ -59,10 +61,8 @@ def _is_ip_allowed(ip: Any) -> bool:
     return any(ip in network for network in ALLOWED_LOCAL_NETWORKS)
 
 
-def _validate_local_endpoint_host(hostname: str) -> None:
+def _validate_local_endpoint_host(hostname: str) -> Tuple[str, ...]:
     """Validate that hostname resolves strictly to approved loopback or RFC 1918 CIDRs."""
-    import socket
-
     if not hostname:
         raise ValueError('Local provider hostname cannot be empty')
 
@@ -73,12 +73,12 @@ def _validate_local_endpoint_host(hostname: str) -> None:
             raise ValueError(
                 f'Local provider address {hostname} is outside allowed loopback and RFC 1918 CIDRs'
             )
-        return
+        return (str(ip),)
     except ValueError as exc:
         if 'outside allowed loopback' in str(exc):
             raise
 
-    # Resolve DNS hostnames and verify all resolved addresses to prevent DNS rebinding
+    # Return the validated addresses so transport can connect without resolving again.
     try:
         addr_info = socket.getaddrinfo(hostname, None)
     except socket.gaierror as exc:
@@ -98,8 +98,9 @@ def _validate_local_endpoint_host(hostname: str) -> None:
                 f'Local provider hostname {hostname!r} resolved to {ip_str}, which is outside allowed CIDRs'
             )
 
+    return tuple(dict.fromkeys(info[4][0] for info in addr_info))
 
-def _resolve_endpoint(provider: str) -> str:
+def _resolve_endpoint(provider: str, *, validate_host: bool = True) -> str:
     """Resolve and validate the provider API endpoint."""
     default_url, env_var = PROVIDERS[provider]
     url_str = os.environ.get(env_var, default_url) if provider in LOCAL_PROVIDERS else default_url
@@ -120,7 +121,7 @@ def _resolve_endpoint(provider: str) -> str:
             raise ValueError('Local provider requires an explicit port')
 
         allow_remote = os.environ.get('CREWLOOM_ALLOW_REMOTE_GATEWAY') == '1'
-        if not allow_remote:
+        if not allow_remote and validate_host:
             _validate_local_endpoint_host(url.hostname or '')
 
         path = url.path.rstrip('/')
@@ -141,6 +142,47 @@ def _resolve_endpoint(provider: str) -> str:
 
     return url_str
 
+
+
+def _pinned_local_handlers(url: str) -> List[Any]:
+    """Keep URL host/SNI/certificate checks while connecting only to validated IPs."""
+    addresses = _validate_local_endpoint_host(urlsplit(url).hostname or '')
+
+    def connect(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
+        last_error = None
+        for ip in addresses:
+            family = socket.AF_INET6 if ipaddress.ip_address(ip).version == 6 else socket.AF_INET
+            sock = socket.socket(family, socket.SOCK_STREAM)
+            try:
+                if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+                    sock.settimeout(timeout)
+                if source_address:
+                    sock.bind(source_address)
+                # Numeric sockaddr: no second DNS lookup, including during TLS setup.
+                sock.connect((ip, address[1]))
+                return sock
+            except OSError as exc:
+                last_error = exc
+                sock.close()
+        raise last_error or OSError('No validated local provider addresses')
+
+    def factory(connection_type):
+        def create(host, **kwargs):
+            connection = connection_type(host, **kwargs)
+            connection._create_connection = connect
+            return connection
+        return create
+
+    class HTTP(urllib.request.HTTPHandler):
+        def http_open(self, req):
+            return self.do_open(factory(http.client.HTTPConnection), req)
+
+    class HTTPS(urllib.request.HTTPSHandler):
+        def https_open(self, req):
+            return self.do_open(factory(http.client.HTTPSConnection), req,
+                                context=self._context)
+
+    return [HTTP(), HTTPS()]
 
 def _max_output_tokens() -> int:
     """Retrieve effective max output tokens, allowing configuration up to ceiling."""
@@ -163,7 +205,7 @@ def _request(provider: str, model: str, prompt: str, timeout: int) -> Dict[str, 
     if len(prompt.encode('utf-8')) > MAX_TEXT:
         raise ValueError('Prompt budget exceeded')
 
-    url = _resolve_endpoint(provider)
+    url = _resolve_endpoint(provider, validate_host=False)
     _, variable = PROVIDERS[provider]
     key = os.environ.get(variable)
     if provider not in LOCAL_PROVIDERS and not key:
@@ -246,9 +288,12 @@ def _request(provider: str, model: str, prompt: str, timeout: int) -> Dict[str, 
         method='POST',
     )
 
-    trust_proxies = os.environ.get('CREWLOOM_TRUST_SYSTEM_PROXIES') == '1'
+    restricted_local = provider in LOCAL_PROVIDERS and os.environ.get('CREWLOOM_ALLOW_REMOTE_GATEWAY') != '1'
+    handlers = _pinned_local_handlers(url) if restricted_local else []
+    # A proxy could resolve or forward the original hostname outside the pinned boundary.
+    trust_proxies = not restricted_local and os.environ.get('CREWLOOM_TRUST_SYSTEM_PROXIES') == '1'
     proxy_handler = urllib.request.ProxyHandler() if trust_proxies else urllib.request.ProxyHandler({})
-    opener = urllib.request.build_opener(proxy_handler, NoRedirect())
+    opener = urllib.request.build_opener(proxy_handler, NoRedirect(), *handlers)
 
     try:
         with opener.open(req, timeout=timeout) as response:

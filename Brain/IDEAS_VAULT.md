@@ -1,5 +1,20 @@
 # Ideas
 
+### 2026-10-21 — Separate specialist evidence from runtime bookkeeping
+Use independent project-role reviews to seek failures that a passing suite misses, then reproduce them with targeted tests and actual execution. Record runtime provenance and exact evidence scope; role labels and preview exit codes do not establish SDK or model execution.
+
+### 2026-10-21 — Make integration mode explicit
+Expose synchronous and awaited framework entry points separately instead of returning ambiguous dual-mode values. Test real consumer calls and populated installed environments; keep framework versions pinned in acceptance without making them core runtime dependencies.
+
+### 2026-10-20 — Validate contracts at the external consumer
+Test the real pinned framework call path, installed library use in a populated consumer project, OS-level output and actual network connection selection. These boundaries cannot be established by helper-level mocks or import-only artifact checks.
+
+### 2026-10-20 — Preserve state in the execution boundary
+A live isolated interpreter preserves functions and imports without re-executing prior side effects or deserializing host state. Make ownership, policy reuse, teardown, lost-state errors and persistent CLI cleanup explicit, and keep the simpler one-shot path for stateless execution.
+
+### 2026-10-20 — Test capability transitions and observable side effects
+Pair outside-checkout adapter imports with actual built archives, default/empty/explicit write policies with real containers, optional-parser installation with a warm cache, and sequential session execution with persistent-file assertions. Component mocks and isolated cold-start checks cannot establish these contracts.
+
 ### 2026-10-15 — Construct async authority inside its execution loop
 Keep synchronous scope validation independent from event-loop allocation. Create async serialization primitives only during actual asynchronous use and bind the controller to that loop. Test real contention and reject foreign-loop reuse rather than relying on newer runtimes' lazy behavior.
 

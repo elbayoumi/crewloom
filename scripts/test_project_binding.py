@@ -90,6 +90,42 @@ class ProjectBindingTests(unittest.TestCase):
         registry.write_text(json.dumps({'schema_version': 1, 'projects': [entry]}), encoding='utf-8')
         return project, agency, registry
 
+    def test_alternate_config_survives_entry_status_and_relocation(self):
+        relative = 'config/project.json'
+        (self.root / 'config').mkdir()
+        entered = self.enter(config_path=relative)
+        self.assertEqual(entered['status'], 'active')
+        self.assertFalse((self.root / pb.CONFIG_NAME).exists())
+        status = pb.status(self.root, 'sample-project')
+        self.assertEqual(status['config_path'], relative)
+        self.assertEqual(status['project_id'], 'sample-project')
+        import user_context
+        self.assertEqual(user_context.scope(self.root)['project_id'], 'sample-project')
+        config, _ = pb.load_config(self.root)
+        config['policy'].update(mode='enforced', managed_lifecycle=True)
+        (self.root / relative).write_text(json.dumps(config))
+        self.assertEqual(w.lifecycle_mode(self.root), 'enforced')
+        import project_context
+        frozen = json.loads((self.root / '.crewloom/context/login-fix.json').read_text())
+        drift = project_context.configuration_drift(self.root, frozen)
+        self.assertTrue(drift)
+        self.assertTrue(all(item.startswith(relative + ':') for item in drift))
+        with self.assertRaisesRegex(ValueError, 'project control'):
+            w.declared_path(self.root, relative)
+        binding = pb.load_binding(self.root)
+        facts = project_lessons.policy_fingerprint(self.root, binding)
+        self.assertEqual(facts['policy_sha256'], pb.file_digest(self.root / relative))
+        # A different default file must not override an explicitly bound configuration.
+        (self.root / pb.CONFIG_NAME).write_text(json.dumps(pb.default_config('different-project')))
+        self.assertEqual(pb.load_config(self.root)[1], relative)
+        self.assertEqual(user_context.scope(self.root)['project_id'], 'sample-project')
+        moved = self.root.parent / (self.root.name + '-moved')
+        shutil.move(str(self.root), str(moved))
+        self.addCleanup(shutil.rmtree, moved, True)
+        rebound = pb.rebind(moved, 'sample-project', 'test explicit alternate-config relocation')
+        self.assertEqual(rebound['project_root'], str(moved))
+        self.assertEqual(pb.load_config(moved)[1], relative)
+
     def test_first_entry_creates_a_complete_and_idempotent_footprint(self):
         first = self.enter()
         self.assertEqual(sorted(first['created']), sorted([pb.CONFIG_NAME, pb.BINDING_RELATIVE]))

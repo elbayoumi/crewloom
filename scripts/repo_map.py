@@ -52,7 +52,7 @@ GENERATION_VERSION=2
 SCHEMA_VERSION=2
 # Cache keys name the exact extractor: a grammar upgrade changes the `ts-ast` revision, and
 # the approximate fallback keeps its own version so changing either one re-parses.
-PARSER_VERSIONS={'python-ast':3,'approximate-js-ts':4,'ts-ast':js_syntax.revision(),'syntax-error':2}
+PARSER_VERSIONS={'python-ast':3,'approximate-js-ts':5,'ts-ast':js_syntax.revision(),'syntax-error':2}
 JS_GRAMMAR=js_syntax.available()
 NOT_A_GIT_PROJECT='Repository map requires a Git project; initialize Git explicitly'
 NO_GIT_WORK_TREE='Repository map requires a Git project with a work tree at this root; bare repositories are unsupported'
@@ -252,6 +252,7 @@ def structure(name,text):
         complete=bool(found['complete'])
     else:
         parser='approximate-js-ts'
+        complete=False
         pattern=r'(?m)^\s*(?:export\s+)?(?:default\s+)?(?:async\s+)?(function|class|interface|type|const|let)\s+([\w$]+)'
         for match in re.finditer(pattern,text):
             symbols.append({'name':match[2],'line':text.count('\n',0,match.start())+1,'end':None,'kind':match[1]})
@@ -452,7 +453,11 @@ def build(root,rebuild=False,config=None):
         if len(files)>=MAX_FILES or total+path.stat().st_size>MAX_TOTAL:raise ValueError('Repository map scan budget exceeded; split the project')
         raw=path.read_bytes();total+=len(raw);fingerprint=hashlib.sha256(raw).hexdigest()
         previous=prior.get(name)
-        if (previous and previous.get('sha256')==fingerprint
+        expected_parser=('python-ast' if name.endswith('.py') else
+                         'ts-ast' if JS_GRAMMAR else 'approximate-js-ts')
+        reusable_parsers={expected_parser} | ({'syntax-error'} if name.endswith('.py') else set())
+        if (previous and previous.get('parser') in reusable_parsers
+                and previous.get('sha256')==fingerprint
                 and previous.get('parser_version')==PARSER_VERSIONS.get(previous.get('parser'))
                 and not previous.get('stale')):
             entry=dict(previous);reused+=1

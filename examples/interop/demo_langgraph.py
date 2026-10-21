@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""Executable demonstration of Crewloom Sandbox Node for LangChain / LangGraph.
+"""Preview the LangGraph-style state node; --require-execution requires real Docker.
 
-Runs isolated container execution within a StateGraph state dictionary.
+No framework SDK or model is constructed by this adapter example.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 import sys
 import tempfile
 
@@ -16,19 +15,29 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+if __package__:
+    from .demo_runtime import IMAGE, execution_mode
+else:
+    from demo_runtime import IMAGE, execution_mode
+
 from adapters.interop.langgraph_sandbox import create_crewloom_sandbox_node
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    try:
+        execute = execution_mode(argv)
+    except RuntimeError as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+        return 2
     print("=" * 60)
-    print("Crewloom Interop Demo: LangGraph StateGraph Sandbox Node")
+    print("Crewloom Interop Demo: LangGraph-style State Node")
     print("=" * 60)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         workspace = Path(temp_dir)
         sandbox_node = create_crewloom_sandbox_node(
             workspace_root=workspace,
-            image_id="python:3.11-slim",
+            image_id=IMAGE,
             timeout=15,
         )
 
@@ -42,9 +51,7 @@ def main() -> int:
         for k, v in initial_state.items():
             print(f"    {k}: {v}")
 
-        has_docker = shutil.which("docker") is not None
-
-        if has_docker:
+        if execute:
             print("\n[+] Invoking LangGraph sandbox node...")
             delta = sandbox_node(initial_state)
             res = delta["sandbox_result"]
@@ -55,11 +62,10 @@ def main() -> int:
                 print(f"\n[!] LangGraph sandbox node failed with exit code {res['exit_code']}")
                 return res["exit_code"]
         else:
-            print("\n[*] Docker binary not detected; completed offline node & state verification.")
-            print("[*] PASS: LangGraph node callable and state transformation verified.")
+            print("[PREVIEW] Adapter and input state constructed; execution and LangGraph SDK integration were skipped.")
 
     print("\n" + "=" * 60)
-    print("Demo completed successfully (exit code 0)")
+    print("Adapter example completed (exit code 0)")
     print("=" * 60)
     return 0
 

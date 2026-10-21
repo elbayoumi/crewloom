@@ -47,6 +47,16 @@ remain opt-in. No paid model generation or native desktop permission prompt runs
 Dependency update proposals are scheduled through [Dependabot](../.github/dependabot.yml).
 Updates require the same checks and review; there is no automatic merge rule.
 
+## Current review fixes
+
+Interop workspaces are read-only by default, adapter Python ships in wheel/sdist,
+and AutoGen command replay is replaced by a live isolated interpreter. Named CLI
+sessions need explicit reset; old JSON command histories are ignored. See
+[adapter boundaries](INTEROP.md) for limits and migration. Parser changes invalidate
+cached JS/TS extraction; approximate maps do not claim complete dependency graphs.
+Dashboard setup requires Node 24+ consistently; quickstart checks prerequisites
+without installing optional components.
+
 ## Historical initial public edition
 
 Crewloom provides 42 English public role adaptations, clean memory templates, a repository CLI, bilingual context labels, a structure validator, and a resource-pattern checker.

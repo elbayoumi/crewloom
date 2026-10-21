@@ -175,6 +175,9 @@ class MapTests(unittest.TestCase):
         with self.assertRaises(ValueError):m.render(value,'',1)
 
     def test_map_never_claims_a_complete_graph(self):
+        # Isolate Python stdlib resolution from the optional approximate TS fixture.
+        # Approximate graph completeness has its own paired-parser regressions.
+        (self.root/'other.ts').unlink()
         value,_=m.build(self.root)
         text,_=m.render(value,'login',4096)
         self.assertIn('partial',text)
